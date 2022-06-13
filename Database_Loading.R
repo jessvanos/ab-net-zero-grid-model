@@ -6,7 +6,6 @@
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
 # OTHER CONTRIBUTORS:
-<<<<<<< HEAD
 # CREATED: May 2022; LAST EDIT: June 13, 2022
 
 ################################################################################
@@ -17,34 +16,8 @@
   library(ggplot2)       # Package for graphics and plot aesthetics
   library(here)          # Package to set filepaths inside R project
 }
-=======
-# LAST EDIT: June 2022
-
 
 ################################################################################
-# LOAD & ATTACH REQUIRED PACKAGES
-
-library(odbc)          # Driver for Database Loading
-library(DBI)           # Package for interface between database and R
-library(ggplot2)       # Package for graphics and plot aesthetics
-
->>>>>>> parent of 030a4c7 (Data Files Add & Update Code)
-################################################################################
-# CONNECT TO MICROSOFT SQL SERVER
-{
-  #Input Database Name below:
-  SourceDB<-"AuroraNetZeroCase1_Jess_May30"
-  
-  #Connect to database specified (via server, user, and password)
-  con <- dbConnect(odbc(),
-                   Driver = "SQL Server",
-                   Server = rstudioapi::askForPassword("Server"),
-                   Database = SourceDB,
-                   UID = rstudioapi::askForPassword("User Name"),
-                   PWD = rstudioapi::askForPassword("Password"))
-}
-################################################################################
-<<<<<<< HEAD
 # READ TABLES FROM DATABASE INTO ENVIRONMENT
 # Can edit to select required tables only
 {
@@ -109,10 +82,4 @@ load(here("Data Files","nrgstream_gen.RData"))
   sub_samp<-filter(nrgstream_gen, time >= as.Date("2017-01-1"))
   rm(nrgstream_gen)
 
-
-=======
-# READ IN TABLES FROM DATABASE
->>>>>>> parent of 030a4c7 (Data Files Add & Update Code)
-
-Link <- dbReadTable(con,'LinkStudy1')
 
