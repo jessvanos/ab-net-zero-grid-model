@@ -16,8 +16,9 @@
   library(DBI)           # Package for interface between database and R
   library(ggplot2)       # Package for graphics and plot aesthetics
   library(dplyr)         # Data manipulation package
-  library(ggplot2)       # Used for graphical packages and asthetic
+  library(ggplot2)       # Used for graphical packages and aestheticc
   library(tidyverse)     # Data science package
+  library(lubridate)     # Allow time and data manipulation
   library(here)          # Package to set filepaths inside R project
   
   # Functions
@@ -38,9 +39,6 @@
                    UID = rstudioapi::askForPassword("User Name"),
                    PWD = rstudioapi::askForPassword("Password"))
 }
-################################################################################
-## FILTER AND SORT DATABASE SIM TABLES
-
 
 ################################################################################
 ## READ TABLES FROM DATABASE INTO ENVIRONMENT
@@ -80,6 +78,9 @@
 
 ################################################################################
 ## PULL OUT REQUIRED COLUMNS AND TIME PERIODS
+
+Hr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",Hr$Time_Period))), 
+                      tz = "MST")-(60*60)
 
 
 ################################################################################
