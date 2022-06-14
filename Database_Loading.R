@@ -1,59 +1,81 @@
 ################################################################################
 # TITLE: Database_Loading
-# DESCRIPTION: Load database from Microsoft SQL Server and import tables
+# DESCRIPTION:  Script loads database from Microsoft SQL Server and imports tables, it then imports AESO data
 
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# OTHER CONTRIBUTORS:
 # CREATED: May 2022; LAST EDIT: June 14, 2022
 
+# NOTES: Before running, create folder called "Data Files" withen project directory and populate it with AESO data. 
+#        Once this file is run through completion, can call any functions with environment that is loaded
+
 ################################################################################
-##gc LOAD REQUIRED PACKAGES AND SOURCE FUNCTIONS
-{
-  # Packages
-  library(odbc)          # Driver for Database Loading
-  library(DBI)           # Package for interface between database and R
-  library(ggplot2)       # Package for graphics and plot aesthetics
-  library(dplyr)         # Data manipulation package
-  library(ggplot2)       # Used for graphical packages and aestheticc
-  library(tidyverse)     # Data science package
-  library(lubridate)     # Allow time and data manipulation
-  library(here)          # Package to set filepaths inside R project
+## LOAD REQUIRED PACKAGES AND SOURCE FUNCTIONS
+ {# Package Info
+    # tidyverse: Data science package
+    # ggplot: Used for graphical packages and aestheticc
+    # grid: Used for plotting, adds grid to the plot
+    # gtable: Grob tables, more tools
+    # gridExtra: User functions for grid graphics
+    # odbc: Driver for Database Loading
+    # ggpubr:
+    # DBI: Package for interface between database and R
+    # lubridate: Allow time and data manipulation
+    # cowplot: Quality features for ggplots
+    # scales: Graphical mapping stuff
+    # dplyr: Data manipulation package
+    # reshape2:
+    # zoo: Used for time series indexing
+    # ggpattern: Geoms for ggplot2
+    # here: Package to set filepaths inside R project
+  }
+
+{ # Packages required
+  packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
+                   "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo","ggpattern","here")
+  # Function to check for packages, install if not present, and load
+  packs_check(packs_to_load)
   
-  # Functions
-  source("plot_functions.R")
+
+  
+  # Import functions from files, take from the functions folder in R project
+  source(here('Functions','other_functions.R'))
+  source(here('Functions','sim_eval_1.R'))
+  source(here('Functions','aeso_eval_1.R'))
+  source(here('Functions','aseo_sim_comp_1.R'))  
 }
 
 ################################################################################
 ## CONNECT TO MICROSOFT SQL SERVER
-{
-  #Input Database Name below:
+
+{ #Input Database Name below:
   SourceDB<-"Comp_June13"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
                    Driver = "SQL Server",
-                   Server = rstudioapi::askForPassword("Server"),
+                   Server = rstudioapi::askForPassword("Server(IP_Addess,Port"),
                    Database = SourceDB,
                    UID = rstudioapi::askForPassword("User Name"),
-                   PWD = rstudioapi::askForPassword("Password"))
+                   PWD = rstudioapi::askForPassword("Password"))  
 }
 
 ################################################################################
 ## DEFINE CASES TO STUDY (IE: RUN ID)
-## This is only needed when running multiple cases in a simulation
+## This will just be AsIs if not using cases. Value can be found in the "Run_Id" column of any AURORA table
 
-AsIs <- "LTCE Shorter Run Time"
-BC <- "Base Case"
-NZC1 <- "Net Zero Case 1"
+{ AsIs <- "LTCE Shorter Run Time"
+  BC <- "Base Case"
+  NZC1 <- "Net Zero Case 1" 
+}
 
 ################################################################################
 ## READ TABLES FROM DATABASE INTO ENVIRONMENT
 ## Can edit to select required tables only
-{
-  # Fuel tables
-#  FuelYr <- dbReadTable(con,'FuelYear1')
+
+{  # Fuel tables
+  FuelYr <- dbReadTable(con,'FuelYear1')
 #  FuelMn <- dbReadTable(con,'FuelMonth1')
   
   # Resource Tables
@@ -77,27 +99,28 @@ NZC1 <- "Net Zero Case 1"
 #  ZoneMn <- dbReadTable(con,'ZoneMonth1')
   ZoneHr <- dbReadTable(con,'ZoneHour1')
 #  LTRes <- dbReadTable(con,'LTResValue1')
-#  BuildReport <- dbReadTable(con,'LTBuildReport1')
+  Build <- dbReadTable(con,'LTBuildReport1')
 #  Study <- dbReadTable(con,'StudyLog1')
   
-  # Get rid of Unused R memory
-  gc() 
-}
+  # Get rid of Unused R memory to keep speed up
+  gc()   
+} 
 
 ################################################################################
-## CHANGE DATA TYPE TO REFLECT PROPER TIME PERIODS
-{
-  # Fuel Tables
-#  FuelYr$Time_Period  <- as.Date(as.character(FuelYr$Time_Period), 
-#                                 format = "%Y")
+## REFLECT PROPER TIME PERIODS
+## Adds a column which is formated in a way that R can understand for dates and times
+
+{  # Fuel Tables
+#  FuelYr$Time_Period <- as.Date(as.character(FuelYr$Time_Period), 
+#                       format = "%Y")
 #  FuelMn$Time_Period <- ym(FuelMn$Time_Period)
   
   # Resource Tables
   ResYr$Time_Period  <- as.Date(as.character(ResYr$Time_Period), 
-                                format = "%Y")
+                        format = "%Y")
 #  ResMn$Time_Period <- ym(ResMn$Time_Period)
   ResHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResHr$Time_Period))), 
-                           tz = "MST")-(60*60)
+                        tz = "MST")-(60*60)
 
   # Resource Group Tables
   ResGroupHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResGroupHr$Time_Period))), 
@@ -105,28 +128,28 @@ NZC1 <- "Net Zero Case 1"
   ResGroupMn$Time_Period <- ym(ResGroupMn$Time_Period)
   
   ResGroupYr$Time_Period  <- as.Date(as.character(ResGroupYr$Time_Period), 
-                               format = "%Y")
+                        format = "%Y")
   ResGroupEmYr$Time_Period  <- as.Date(as.character(ResGroupEmYr$Time_Period), 
-                                       format = "%Y")
+                        format = "%Y")
   
   # Other Tables
   ResStackYr$Time_Period  <- as.Date(as.character(ResStackYr$Time_Period), 
-                                     format = "%Y")
+                        format = "%Y")
   ResStackHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResStackHr$Time_Period))), 
-                                tz = "MST")-(60*60)
+                        tz = "MST")-(60*60)
 #  Link$Time_Period  <- as.Date(as.character(Link$Time_Period), 
-#                               format = "%Y")
+#                       format = "%Y")
 #  ZoneYr$Time_Period  <- as.Date(as.character(ZoneYr$Time_Period), 
-#                                 format = "%Y")
+#                       format = "%Y")
 #  ZoneMn$Time_Period <- ym(ZoneMn$Time_Period)
   ZoneHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ZoneHr$Time_Period))), 
-                              tz = "MST")-(60*60)
+                         tz = "MST")-(60*60)     
 }
 
 ################################################################################
 ## FILTER TABLES TO GET RID OF COLUMNS I DONT CARE ABOUT & PULL OUT IMPORT/EXPORT
 { 
-  {
+  { # HOURLY DATA
     # Resourse Group Hourly Tables, choose specific columns
     ResGroupHr_sub <- ResGroupHr %>%
       subset(., select = c(ID, date, Report_Year, Output_MWH, Run_ID, Capacity_Factor))
@@ -156,9 +179,9 @@ NZC1 <- "Net Zero Case 1"
                            Revenue, Variable_OM_Cost, Capacity_Factor, 
                            Total_Emission_Cost, Total_Hours_Run, Condition, 
                            Report_Year, Run_ID, Peak_Capacity, 
-                           Primary_Fuel,Zone))
+                           Primary_Fuel,Zone))   
   }
-  {
+  { #IMPORT/EXPORT 
     # Select the Import/Export data
     Import <- ZoneHr_Avg %>%
       subset(., select = c(date, Imports, Run_ID)) %>%
@@ -171,14 +194,14 @@ NZC1 <- "Net Zero Case 1"
       add_column(ID = "Export")
     
     #Fix Aurora sign convention
-    Export$Output_MWH <- Export$Output_MWH * -1
-    }
+    Export$Output_MWH <- Export$Output_MWH * -1   
+  }
 }  
 
 ################################################################################
 ## BRING IN OTHER DATA FROM AESO FILES & FORMAT
-{
-  # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
+
+{ # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
   merit <- readRDS(here("Data Files","Leach_MeritData.RData"))
   
     #Filter Data to relevant dates & remove old data
@@ -194,19 +217,20 @@ NZC1 <- "Net Zero Case 1"
     
     # Get rid of rows with blanks
     nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$gen),] 
-    nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$time),] 
+    nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$time),]   
 }
 
+################################################################################
 ## FURTHER FORMAT AND MANIPULATE NRG DATA
-{
-    # Create a demand table. Summarise takes median of Demand, AIL, and Price for each time period 
+
+{   # Create a demand table. Summarize takes median of Demand, AIL, and Price for each time period 
     demand <- nrgstream_gen %>%
       group_by(time) %>%
       summarise(Demand = median(Demand), 
                 Price = median(Price),
                 AIL = median(AIL))
     
-    #Take out dates I dont care about
+    #Take out dates I dont care about and remove the old table
     sub_samp<-filter(nrgstream_gen, time >= as.Date("2020-01-1"))
     rm(nrgstream_gen)
 
@@ -215,7 +239,8 @@ NZC1 <- "Net Zero Case 1"
                   "AB - WECC Exp Hr Avg MW",
                   "AB - WECC Imp/Exp Hr Avg MW")
     
-    # Create Dataframe, ony select rows where the Nat resource group is in the defined groups (ie trading), then grouped by plant type 
+    # Create Dataframe, ony select rows where the Nat resource group is in the defined groups (ie trading)
+    # then grouped by plant type 
     df1 <- sub_samp %>% 
       filter(! NRG_Stream %in% trade_excl)%>% 
       group_by(Plant_Type,time) %>% 
@@ -230,30 +255,45 @@ NZC1 <- "Net Zero Case 1"
     df1$Day <- date(df1$time)
     df1$Year <- as.factor(year(df1$time))
     
-    {
-      #Resource type list
-      plant_types<-c("COAL","COGEN","HYDRO","NGCC", "OTHER", "SCGT","SOLAR","IMPORT","EXPORT","WIND")
+  {  # ORGANIZE RESOURCES
+     #Make a resource type list
+     plant_types<-c("COAL","COGEN","HYDRO","NGCC", "OTHER", "SCGT","SOLAR","IMPORT","EXPORT","WIND")
     
-      #Create a new dataframe with plant types only
-      df1a <- df1 %>%
-        filter(Plant_Type %in% plant_types,month(time)<05)
+     # Create a new dataframe with plant types specified only, 
+     # Then filter AESO data to exclude dates without information (after April 2022)
+     df1a <- df1 %>%
+     filter(Plant_Type %in% plant_types,month(time)<05)
       
-      # Put in desired order: Coal, Cogen, NGCC, SCGT, Other, Hydro, Wind, Solar, Import, Export
-      df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "OTHER",after=Inf)
-      df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "HYDRO",after=Inf)
-      df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "WIND",after=Inf)
-      df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "SOLAR",after=Inf)
-      df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "IMPORT",after=Inf)
-      df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "EXPORT",after=Inf)
-    }
+     # Put in desired order: Coal, Cogen, NGCC, SCGT, Other, Hydro, Wind, Solar, Import, Export
+     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "OTHER",after=Inf)
+     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "HYDRO",after=Inf)
+     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "WIND",after=Inf)
+     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "SOLAR",after=Inf)
+     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "IMPORT",after=Inf)
+     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "EXPORT",after=Inf)
+     gc()   
+   }
 }
+
+################################################################################
+## PLOT SETTINGS
+
+  # Set limits for plots
+  ylimit <- max(ResGroupHr$Output_MWH) + max(ZoneHr$Imports)
+
+  # Set legend color schemes
+  colours = c("darkslateblue", "grey", "darkslategrey", "coral4", "goldenrod4", 
+              "dodgerblue", "forestgreen", "gold", "darkolivegreen1", "cyan")
+  colours1 = c("darkslateblue", "grey", "darkslategrey", "coral4", "goldenrod4", 
+               "darkcyan", "dodgerblue", "forestgreen", "gold", "cyan")
+  colours2 = c("grey", "darkslategrey", "coral4", "goldenrod4", 
+               "dodgerblue", "darkcyan", "forestgreen", "gold", "cyan")
+  colours3 = c("forestgreen", "gold", "coral4", "goldenrod4", "cyan", "dodgerblue")
+
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   
 
-source(here::here('Extra Code','sim_eval.R'))
-source(here::here('Extra Code','aeso_eval.R'))
-source(here::here('Extra Code','aeso_sim_comp_eval.R'))  
   
   
   
