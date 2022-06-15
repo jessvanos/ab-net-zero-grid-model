@@ -5,10 +5,11 @@
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: June 14, 2022
+# CREATED: May 2022; LAST EDIT: June 15, 2022
 
-# NOTES: Before running, create folder called "Data Files" withen project directory and populate it with AESO data. 
-#        Once this file is run through completion, can call any functions with environment that is loaded
+# NOTES: Make sure the project file is open first or "here" commands wont work right.
+#        Before running, create folder called "Data Files" withen project directory and populate it with AESO data. 
+#        Once this file is run through completion, can call any functions with environment that is loaded.
 
 ################################################################################
 ## LOAD REQUIRED PACKAGES AND SOURCE FUNCTIONS
@@ -29,21 +30,25 @@
     # zoo: Used for time series indexing
     # ggpattern: Geoms for ggplot2
     # here: Package to set filepaths inside R project
+    # beepr: Allows sound to paly when code is done
+    # showtext: Allows fonts changes in ggplot
   }
 
-{ # Packages required
-  packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
-                   "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo","ggpattern","here")
-  # Function to check for packages, install if not present, and load
-  packs_check(packs_to_load)
-  
-
+{ # Must load the here package in order to make sure internal project directories work
+  library(here)
   
   # Import functions from files, take from the functions folder in R project
   source(here('Functions','other_functions.R'))
   source(here('Functions','sim_eval_1.R'))
   source(here('Functions','aeso_eval_1.R'))
-  source(here('Functions','aseo_sim_comp_1.R'))  
+  source(here('Functions','aseo_sim_comp_1.R')) 
+  
+  # Packages required
+  packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
+                   "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo","ggpattern","here","beepr","showtext")
+  # Function to check for packages, install if not present, and load
+  packs_check(packs_to_load)
+ 
 }
 
 ################################################################################
@@ -66,15 +71,16 @@
 ## This will just be AsIs if not using cases. Value can be found in the "Run_Id" column of any AURORA table
 
 { AsIs <- "LTCE Shorter Run Time"
-  BC <- "Base Case"
+  BAU <- "Base Case" #Buisness as usual
   NZC1 <- "Net Zero Case 1" 
 }
 
 ################################################################################
 ## READ TABLES FROM DATABASE INTO ENVIRONMENT
-## Can edit to select required tables only
+## Can edit to select required tables only, DOUBLE CHECK all tables are in databse
+## It will just skip tables that are not there and all the ones after
 
-{  # Fuel tables
+{ # Fuel tables
   FuelYr <- dbReadTable(con,'FuelYear1')
 #  FuelMn <- dbReadTable(con,'FuelMonth1')
   
@@ -181,6 +187,7 @@
                            Report_Year, Run_ID, Peak_Capacity, 
                            Primary_Fuel,Zone))   
   }
+  
   { #IMPORT/EXPORT 
     # Select the Import/Export data
     Import <- ZoneHr_Avg %>%
@@ -277,23 +284,44 @@
 
 ################################################################################
 ## PLOT SETTINGS
+  # Colours Info
+    # IMPORT - slateblue1
+    # COAL - grey
+    # COGEN - darkslategrey
+    # SCGT - deeppink4
+    # NGCC - deeppink
+    # HYDRO - dodgerblue3
+    # OTHER - darkorange2
+    # WIND - darkgreen
+    # SOLAR - gold
+    # STORAGE - cyan
 
   # Set limits for plots
-  ylimit <- max(ResGroupHr$Output_MWH) + max(ZoneHr$Imports)
+ # ylimit <- max(ResGroupHr$Output_MWH) + max(ZoneHr$Imports)
 
-  # Set legend color schemes
-  colours = c("darkslateblue", "grey", "darkslategrey", "coral4", "goldenrod4", 
-              "dodgerblue", "forestgreen", "gold", "darkolivegreen1", "cyan")
-  colours1 = c("darkslateblue", "grey", "darkslategrey", "coral4", "goldenrod4", 
-               "darkcyan", "dodgerblue", "forestgreen", "gold", "cyan")
-  colours2 = c("grey", "darkslategrey", "coral4", "goldenrod4", 
-               "dodgerblue", "darkcyan", "forestgreen", "gold", "cyan")
-  colours3 = c("forestgreen", "gold", "coral4", "goldenrod4", "cyan", "dodgerblue")
+  # Available Fonts for plotting
+  font_add(family="Times",regular="times.ttf")
+  showtext_auto()
+  
+  # Set legend color schemes for contistancy
+  colours = c("slateblue1", "grey", "darkslategrey", "deeppink4", "deeppink", 
+              "darkorange2", "darkgreen", "gold", "darkolivegreen1", "cyan")
+  
+  colours1 = c("slateblue1", "grey", "darkslategrey", "deeppink4", "deeppink", 
+               "dodgerblue3", "darkorange2", "darkgreen", "gold", "cyan")
+  
+  colours2 = c("grey", "darkslategrey", "deeppink4", "deeppink", 
+               "darkorange2", "dodgerblue3", "darkgreen", "gold", "cyan")
+  colours3 = c("darkgreen", "gold", "deeppink4", "deeppink", "cyan", "dodgerblue")
 
+  #For fun, make the code beep when its all done
+  beep(3)
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   
-
+  Yr4Sp=list(2020,2021,2022,2023)
   
+  source(here('Functions','sim_eval_1.R'))
   
+  Week1(2024,10,08,AsIs)
   

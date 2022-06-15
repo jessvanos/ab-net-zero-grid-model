@@ -100,55 +100,65 @@
 ##    case - Run_ID which you want to plot
 ## TABLES REQUIRED: 
 ##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
 ################################################################################
 
   Week1 <- function(year, month, day, case) {
-    # Filters for the desired case study
+    # Filters for the desired case study from the resource groups
     data <- ResGroupHr_sub%>%
       sim_filt1(.) %>%
       subset(., select=-c(Report_Year,Capacity_Factor)) %>%
       rbind(.,Import) %>%
       filter(Run_ID == case)
     
+    # Set levels to each category in order specified
     data$ID <- factor(data$ID, levels=c("Import", "COAL", "COGEN", "SCGT", "NGCC", 
                                         "HYDRO", "OTHER",
                                         "WIND", "SOLAR", "STORAGE"))
     
-    #    data$date <- as.POSIXct(data$date, tz = "MST")
+    ## SELECT A SINGLE WEEK
     
+    # Specify start and end dates
     wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
     wk_end <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
     
-    # Select only a single week
-    ##############################################################################
     WK <- data %>%
       filter(date >= wk_st, date <= wk_end)
     
-    # Select only a single week
-    #    WK <- HrTime(data,year,month,day)
+    
+    # Select only a single week from the zone Hourly, and Export data
+    WK <- HrTime(data,year,month,day)
     ZPrice <- HrTime(ZoneHr_Avg,year,month,day)
     Expo <- HrTime(Export,year,month,day)
+    
+    # Get y-max, demand to meet + exports
     WK$MX <- ZPrice$Demand + Expo$Output_MWH
     
-    # Set the max and min for the plot
-    MX <- plyr::round_any(max(abs(WK$MX)), 100, f = ceiling)
+    # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
+    MX <- plyr::round_any(max(abs(WK$MX))+200, 100, f = ceiling)
     MN <- plyr::round_any(min(WK$Output_MWH), 100, f = floor)
     
-    # Plot the data    
+    ## PLOT WITH AREA PLOT
+    
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
                 alpha=0.6, size=.5, colour="black") +
       
-      # Add hourly load line
+      # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
-                aes(x = date, y = Demand), size=2, colour = "black") +
+                aes(x = date, y = Demand), size=1.5, colour = "black") +
       scale_x_datetime(expand=c(0,0)) +
       
       # Set the theme for the plot
       theme_bw() +
       theme(panel.grid = element_blank(),
-            legend.position = "right",
-      ) +
+            legend.position = "right",) +
+      
+      theme(text=element_text(family="Times")) +
+      
+      theme(plot.title = element_text(hjust = 0.5)) +
+      
       theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.x = element_blank(),
@@ -157,28 +167,42 @@
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            text = element_text(size= 15)
+            text = element_text(size= 30)
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
                          breaks = seq(MN, MX, by = MX/4)) +
-      labs(x = "Date", y = "Output (MWh)", fill = "Resource") +
+      labs(title=paste(wk_st, "through to", wk_end),x = "Date", y = "Output (MWh)", fill = "Resource") +
+      
+      #Add colour
       scale_fill_manual(values = colours1)
   }
-  
-  ################################################################################
-  # Functions for weekly evaluation over four years
-  ################################################################################  
+
+################################################################################  
+## FUNCTION: week14 **NOT WORKING YET
+## Plots output for a single week given the case study, compares over 4 years
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
   
   Week14 <- function(year, month, day, case) {
-    # Add imports and exports to data
-    
     
     # Filters for the desired case study
     data <- ResGroupHr_sub%>%
       sim_filt1(.) %>%
-      select(-Report_Year) %>%
+      subset(., select=-c(Report_Year,Capacity_Factor)) %>%
       rbind(.,Import) %>%
       filter(Run_ID == case)
+    # data <- ResGroupHr_sub%>%
+    #   sim_filt1(.) %>%
+    #   select(-Report_Year) %>%
+    #   rbind(.,Import) %>%
+    #   filter(Run_ID == case)
     
     data$ID <- factor(data$ID, levels=c("Import", "COAL", "COGEN", "SCGT", "NGCC", 
                                         "HYDRO", "OTHER",
@@ -188,16 +212,18 @@
     WK <- HrTime(data,year,month,day)
     ZPrice <- HrTime(ZoneHr_Avg,year,month,day)
     Expo <- HrTime(Export,year,month,day)
+    
+    #Max demand
     data$MX <- ZoneHr_Avg$Demand + Export$Output_MWH
     
-    # Set the max and min for the plot
+    # Set the max and min for the plot using 4 year comparison data
     MX1 <- HrTime(data,Yr4Sp[[1]],month,day)
     MX2 <- HrTime(data,Yr4Sp[[2]],month,day)
     MX3 <- HrTime(data,Yr4Sp[[3]],month,day)
     MX4 <- HrTime(data,Yr4Sp[[4]],month,day)
     MXtime <- rbind(MX1, MX2, MX3, MX4)
     
-    MX <- plyr::round_any(max(abs(MXtime$MX)), 100, f = ceiling)
+    MX <- plyr::round_any(max(abs(MXtime$MX))+200, 100, f = ceiling)
     MN <- plyr::round_any(min(MXtime$Output_MWH), 100, f = floor)
     
     # Plot the data    
@@ -231,19 +257,23 @@
       scale_fill_manual(values = colours1)
   }
   
-  ################################################################################
-  # Generate weekly storage output plot function
-  ################################################################################
-  ################################################################################
+################################################################################  
+## FUNCTION: Stor1
+## Weekly storage output
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+################################################################################
+  
   Stor1 <- function(year, month, day, case) {
-    # Add imports and exports to data
-    
-    
+
     # Filters for the desired case study
     data <- ResGroupHr_sub%>%
       filter(ID=="LTO_Storage") %>%
       filter(Run_ID == case)
-    
     
     # Select only a single week
     WK <- HrTime(data,year,month,day)
@@ -259,6 +289,9 @@
       
       # Set the theme for the plot
       theme_bw() +
+      
+      theme(text=element_text(family="Times",size= 20)) +
+      
       theme(panel.grid = element_blank(),
             axis.title.x=element_blank(),
             axis.text.x=element_blank(),
@@ -268,13 +301,20 @@
       scale_y_continuous(breaks = seq(-MX, MX, by = MX), 
                          limits = c(-MX-1,MX+1),
                          labels = label_number(accuracy = 1)) +
-      labs(x = "Date", y = "Storage\n(MWh)", fill = "Resource") +
+      labs(x = "Date", y = "Storage (MWh)", fill = "Resource") +
       scale_fill_manual(values = "cyan")
   }
   
-  ################################################################################
-  # Generate weekly storage output plot function with axis limits for 4 years
-  ################################################################################
+################################################################################  
+## FUNCTION: Stor14
+## Weekly storage output with 4 year comparison
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+################################################################################
   
   Stor14 <- function(year, month, day, case) {
     # Add imports and exports to data
