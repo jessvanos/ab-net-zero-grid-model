@@ -81,14 +81,31 @@
   
 ################################################################################
 ## FUNCTION: HrTime
-## Function to convert the date time for plotting
+## Convert the date and select a subset for one day from the data pulled in
 ################################################################################
   
 { HrTime <- function(data, year, month, day) {
     subset(data,
           (date >= paste(year,"-", month, "-", day," 00:00:00", sep = "") & 
               date <= 
-              paste(year,"-", month, "-", (day+7)," 00:00:00", sep = "")))  }
+              paste(year,"-", month, "-", (day)," 24:00:00", sep = "")))  }
+}
+
+################################################################################
+## FUNCTION: WkTime
+## Convert the date and select a subset for one week from the data pulled in
+################################################################################
+
+{ WkTime <- function(data, year, month, day) {
+  
+  #Set start and end dates of week  
+  wk_st <- as.POSIXct(paste(paste(year,month,day, sep = "-"),"00:00:00"),tz="MST")
+  wk_end <- as.POSIXct(paste(paste(year,month,day+7, sep = "-"),"23:00:00"),tz="MST")
+  
+  #Create subset for specified week
+  subset(data,
+         (date >= wk_st & date <= wk_end)) 
+  }
 }
 
 ################################################################################
@@ -118,19 +135,11 @@
                                         "WIND", "SOLAR", "STORAGE"))
     
     ## SELECT A SINGLE WEEK
-    
-    # Specify start and end dates
-    wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
-    wk_end <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
-    
-    WK <- data %>%
-      filter(date >= wk_st, date <= wk_end)
-    
-    
+
     # Select only a single week from the zone Hourly, and Export data
-    WK <- HrTime(data,year,month,day)
-    ZPrice <- HrTime(ZoneHr_Avg,year,month,day)
-    Expo <- HrTime(Export,year,month,day)
+    WK <- WkTime(data,year,month,day)
+    ZPrice <- WkTime(ZoneHr_Avg,year,month,day)
+    Expo <- WkTime(Export,year,month,day)
     
     # Get y-max, demand to meet + exports
     WK$MX <- ZPrice$Demand + Expo$Output_MWH
@@ -138,6 +147,10 @@
     # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
     MX <- plyr::round_any(max(abs(WK$MX))+200, 100, f = ceiling)
     MN <- plyr::round_any(min(WK$Output_MWH), 100, f = floor)
+    
+    # Title Formating
+    wk_st <- as.POSIXct(paste(year,month,day, sep = "-"),tz="MST")
+    wk_end <- as.POSIXct(paste(year,month,day+7, sep = "-"),tz="MST")
     
     ## PLOT WITH AREA PLOT
     
@@ -148,7 +161,7 @@
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
                 aes(x = date, y = Demand), size=1.5, colour = "black") +
-      scale_x_datetime(expand=c(0,0)) +
+      scale_x_datetime(expand=c(0,0),breaks = "day") +
       
       # Set the theme for the plot
       theme_bw() +
@@ -177,8 +190,87 @@
       scale_fill_manual(values = colours1)
   }
 
+################################################################################
+## FUNCTION: day1
+## Plots output for a single day given the case study
+##
+## INPUTS: 
+##    year, month, day - Date to plot
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+  
+  day1 <- function(year, month, day, case) {
+    # Filters for the desired case study from the resource groups
+    data <- ResGroupHr_sub%>%
+      sim_filt1(.) %>%
+      subset(., select=-c(Report_Year,Capacity_Factor)) %>%
+      rbind(.,Import) %>%
+      filter(Run_ID == case)
+    
+    # Set levels to each category in order specified
+    data$ID <- factor(data$ID, levels=c("Import", "COAL", "COGEN", "SCGT", "NGCC", 
+                                        "HYDRO", "OTHER",
+                                        "WIND", "SOLAR", "STORAGE"))
+    # Get full date
+    day_report <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
+    
+    ## SELECT A SINGLE DAY
+    # Select only a single day from the zone Hourly, and Export data
+    DY <- HrTime(data,year,month,day)
+    ZPrice <- HrTime(ZoneHr_Avg,year,month,day)
+    Expo <- HrTime(Export,year,month,day)
+    
+    # Get y-max, demand to meet + exports
+    DY$MX <- ZPrice$Demand + Expo$Output_MWH
+    
+    # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
+    MX <- plyr::round_any(max(abs(DY$MX))+200, 100, f = ceiling)
+    MN <- plyr::round_any(min(DY$Output_MWH), 100, f = floor)
+    
+    ## PLOT WITH AREA PLOT
+    
+    ggplot() +
+      geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID), 
+                alpha=0.6, size=.5, colour="black") +
+      
+      # Add hourly load line (black line on the top)
+      geom_line(data = ZPrice, 
+                aes(x = date, y = Demand), size=1.5, colour = "black") +
+      scale_x_datetime(expand=c(0,0)) +
+      
+      # Set the theme for the plot
+      theme_bw() +
+      theme(panel.grid = element_blank(),
+            legend.position = "right",) +
+      
+      theme(text=element_text(family="Times")) +
+      
+      theme(plot.title = element_text(hjust = 0.5)) +
+      
+      theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
+            panel.background = element_rect(fill = "transparent"),
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            plot.background = element_rect(fill = "transparent", color = NA),
+            legend.key = element_rect(colour = "transparent", fill = "transparent"),
+            legend.background = element_rect(fill='transparent'),
+            legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+            text = element_text(size= 30)
+      ) +
+      scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
+                         breaks = seq(MN, MX, by = MX/4)) +
+      labs(title=paste("Resource Output on",day_report),x = "Date", y = "Output (MWh)", fill = "Resource") +
+      
+      #Add colour
+      scale_fill_manual(values = colours1)
+  }
+  
 ################################################################################  
-## FUNCTION: week14 **NOT WORKING YET
+## FUNCTION: week14 **NOT EDITED
 ## Plots output for a single week given the case study, compares over 4 years
 ##
 ## INPUTS: 
@@ -209,18 +301,18 @@
                                         "WIND", "SOLAR", "STORAGE"))
     
     # Select only a single week
-    WK <- HrTime(data,year,month,day)
-    ZPrice <- HrTime(ZoneHr_Avg,year,month,day)
-    Expo <- HrTime(Export,year,month,day)
+    WK <- WkTime(data,year,month,day)
+    ZPrice <- WkTime(ZoneHr_Avg,year,month,day)
+    Expo <- WkTime(Export,year,month,day)
     
     #Max demand
     data$MX <- ZoneHr_Avg$Demand + Export$Output_MWH
     
     # Set the max and min for the plot using 4 year comparison data
-    MX1 <- HrTime(data,Yr4Sp[[1]],month,day)
-    MX2 <- HrTime(data,Yr4Sp[[2]],month,day)
-    MX3 <- HrTime(data,Yr4Sp[[3]],month,day)
-    MX4 <- HrTime(data,Yr4Sp[[4]],month,day)
+    MX1 <- WkTime(data,Yr4Sp[[1]],month,day)
+    MX2 <- WkTime(data,Yr4Sp[[2]],month,day)
+    MX3 <- WkTime(data,Yr4Sp[[3]],month,day)
+    MX4 <- WkTime(data,Yr4Sp[[4]],month,day)
     MXtime <- rbind(MX1, MX2, MX3, MX4)
     
     MX <- plyr::round_any(max(abs(MXtime$MX))+200, 100, f = ceiling)
@@ -276,14 +368,14 @@
       filter(Run_ID == case)
     
     # Select only a single week
-    WK <- HrTime(data,year,month,day)
+    WK <- WkTime(data,year,month,day)
     
     # Set the max and min for the plot
     MX <- plyr::round_any(max(abs(WK$Output_MWH)), 10, f = ceiling)
     
     # Plot the data    
     ggplot() +
-      geom_area(data = WK, aes(x = date, y = Output_MWH), 
+      geom_area(data = WK, aes(x = date, y = Output_MWH,fill="Storage"), 
                 alpha=0.6, size=.5, colour="black") +
       ggtitle(year)+
       
@@ -293,11 +385,11 @@
       theme(text=element_text(family="Times",size= 20)) +
       
       theme(panel.grid = element_blank(),
-            axis.title.x=element_blank(),
-            axis.text.x=element_blank(),
+            axis.title.x=element_text(),
+            axis.text.x=element_text(angle = 25, vjust = 1, hjust = 1),
             plot.title = element_text(hjust = 0.5)
       ) +
-      scale_x_datetime(expand=c(0,0)) +
+      scale_x_datetime(expand=c(0,0),breaks = "day") +
       scale_y_continuous(breaks = seq(-MX, MX, by = MX), 
                          limits = c(-MX-1,MX+1),
                          labels = label_number(accuracy = 1)) +
@@ -306,7 +398,7 @@
   }
   
 ################################################################################  
-## FUNCTION: Stor14
+## FUNCTION: Stor14 **NOT EDITED
 ## Weekly storage output with 4 year comparison
 ##
 ## INPUTS: 
@@ -327,13 +419,13 @@
     
     
     # Select only a single week
-    WK <- HrTime(data,year,month,day)
+    WK <- WkTime(data,year,month,day)
     
     # Set the max and min for the plot
-    MX1 <- HrTime(data,Yr4Sp[[1]],month,day)
-    MX2 <- HrTime(data,Yr4Sp[[2]],month,day)
-    MX3 <- HrTime(data,Yr4Sp[[3]],month,day)
-    MX4 <- HrTime(data,Yr4Sp[[4]],month,day)
+    MX1 <- WkTime(data,Yr4Sp[[1]],month,day)
+    MX2 <- WkTime(data,Yr4Sp[[2]],month,day)
+    MX3 <- WkTime(data,Yr4Sp[[3]],month,day)
+    MX4 <- WkTime(data,Yr4Sp[[4]],month,day)
     MXtime <- rbind(MX1, MX2, MX3, MX4)
     
     MX <- plyr::round_any(max(abs(MXtime$Output_MWH)), 10, f = ceiling)
@@ -359,40 +451,52 @@
       scale_fill_manual(values = "cyan")
   }
   
-  ################################################################################
-  # Function for plotting prices
-  ################################################################################
-  ################################################################################
+################################################################################  
+## FUNCTION: week_price **NOT EDITED
+## Electricity price for one week
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Zone Hour average condition only table
+################################################################################
   
   week_price <- function(year, month, day,case) {
     # Filters for the desired case study
     data <- ZoneHr_Avg%>%
       filter(Run_ID == case)
     
-    # Select only a single week using function HrTime
-    ZPrice <- HrTime(data,year,month,day)
+    # Select only a single week using function WkTime
+    ZPrice <- WkTime(data,year,month,day)
     
     # Set the max and min for the plot
     MX <- plyr::round_any(max(abs(ZPrice$Price)), 10, f = ceiling)
-    MN <- plyr::round_any(min(abs(ZPrice$Price)), 10, f = floor)
+    MN <- plyr::round_any(min(abs(ZPrice$Price)), 10, f = floor) #Could put in scale y limits
+    
+    #Max min for date (x-axis)
+    day_MN <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
+    day_MX <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
     
     # Plot the data    
     ggplot() +
       geom_line(data = ZPrice, 
                 aes(x = date, y = Price), 
-                size = 1.5, colour = "red") +
+                size = 1.5, colour = "midnightblue") +
       theme_bw() +
+      theme(text=element_text(family="Times")) +
       theme(panel.background = element_rect(fill = "transparent"),
+            axis.text.x=element_text(),
             panel.grid = element_blank(),
             plot.background = element_rect(fill = "transparent", color = NA),
-            text = element_text(size= 15)
+            text = element_text(size= 30)
       ) +
-      labs(y = "Pool Price \n$/MWh", fill = "Resource") +
-      scale_x_datetime(expand=c(0,0)) +
+      labs(y = "Pool Price ($/MWh)", x="Date",fill = "Resource") +
+      scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "day") +
       scale_y_continuous(expand=c(0,0), 
-                         limits= c(MN,MX),
+                         limits= c(0,MX),
                          #                       labels = label_number(accuracy = 1),
-                         breaks = seq(MN, MX, by = MX/4)
+                         breaks = seq(0, MX, by = MX/4)
       )
   }
   
@@ -405,14 +509,14 @@
     data <- ZoneHr_Avg%>%
       filter(Run_ID == case)
     
-    # Select only a single week using function HrTime
-    ZPrice <- HrTime(data,year,month,day)
+    # Select only a single week using function WkTime
+    ZPrice <- WkTime(data,year,month,day)
     
     # Set the max and min for the plot
-    MX1 <- HrTime(data,Yr4Sp[[1]],month,day)
-    MX2 <- HrTime(data,Yr4Sp[[2]],month,day)
-    MX3 <- HrTime(data,Yr4Sp[[3]],month,day)
-    MX4 <- HrTime(data,Yr4Sp[[4]],month,day)
+    MX1 <- WkTime(data,Yr4Sp[[1]],month,day)
+    MX2 <- WkTime(data,Yr4Sp[[2]],month,day)
+    MX3 <- WkTime(data,Yr4Sp[[3]],month,day)
+    MX4 <- WkTime(data,Yr4Sp[[4]],month,day)
     MXtime <- rbind(MX1, MX2, MX3, MX4)
     
     MX <- plyr::round_any(max(abs(MXtime$Price)), 10, f = ceiling)

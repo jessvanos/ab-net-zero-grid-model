@@ -55,7 +55,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"Comp_June13"
+  SourceDB<-"Comp_June15"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -71,7 +71,7 @@
 ## This will just be AsIs if not using cases. Value can be found in the "Run_Id" column of any AURORA table
 
 { AsIs <- "LTCE Shorter Run Time"
-  BAU <- "Base Case" #Buisness as usual
+  BAU <- "BAU" #Buisness as usual
   NZC1 <- "Net Zero Case 1" 
 }
 
@@ -319,9 +319,13 @@
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   
-  Yr4Sp=list(2020,2021,2022,2023)
+  Yr4Sp=list(2021,2021,2022,2023)
   
   source(here('Functions','sim_eval_1.R'))
   
-  Week1(2024,10,08,AsIs)
+  day1(2021,01,08,BAU)
+  
+  Week1(2021,01,08,BAU)
+  
+  week_price(2023,10,09,BAU)
   
