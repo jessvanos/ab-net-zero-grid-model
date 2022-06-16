@@ -107,6 +107,20 @@
          (date >= wk_st & date <= wk_end)) 
   }
 }
+################################################################################
+## FUNCTION: imsave_git & imsave_loc
+## Convert the date and select a subset for one week from the data pulled in
+##
+## INPUTS: 
+##    name - Date to plot, the week will start on the day chosen. Enter as "name"
+################################################################################
+# Save to a git folder
+imsave_git <- function(name) {
+  ggsave(plot=last_plot(),path = here("Figures"), filename = paste(name,".png", sep = ""), bg = "transparent")   }
+
+# Save to a loacl folder that is ignored by git
+imsave_loc <- function(name) {
+  ggsave(plot=last_plot(),path = here("Figures (Local)"), filename = paste(name,".png", sep = ""), bg = "transparent")   }
 
 ################################################################################
 ## FUNCTION: week1
@@ -156,7 +170,7 @@
     
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.6, size=.5, colour="black") +
+                alpha=0.7, size=.25, colour="black") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -170,9 +184,11 @@
       
       theme(text=element_text(family="Times")) +
       
-      theme(plot.title = element_text(hjust = 0.5)) +
+      theme(plot.title = element_text(hjust = 0.5,size= 20)) +
       
       theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
+            axis.title.x = element_text(size= 20),
+            axis.title.y = element_text(size= 20),
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
@@ -180,7 +196,8 @@
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            text = element_text(size= 30)
+            legend.title = element_text(size=20),
+            text = element_text(size= 15)
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
                          breaks = seq(MN, MX, by = MX/4)) +
@@ -235,7 +252,7 @@
     
     ggplot() +
       geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.6, size=.5, colour="black") +
+                alpha=0.7, size=.25, colour="black") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -249,7 +266,7 @@
       
       theme(text=element_text(family="Times")) +
       
-      theme(plot.title = element_text(hjust = 0.5)) +
+      theme(plot.title = element_text(hjust = 0.5,face="bold")) +
       
       theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
             panel.background = element_rect(fill = "transparent"),
@@ -263,89 +280,9 @@
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
                          breaks = seq(MN, MX, by = MX/4)) +
-      labs(title=paste("Resource Output on",day_report),x = "Date", y = "Output (MWh)", fill = "Resource") +
+      labs(title=paste("Resource Output, ",day_report),x = "Date", y = "Output (MWh)", fill = "Resource") +
       
       #Add colour
-      scale_fill_manual(values = colours1)
-  }
-  
-################################################################################  
-## FUNCTION: week14 **NOT EDITED
-## Plots output for a single week given the case study, compares over 4 years
-##
-## INPUTS: 
-##    year, month, day - Date to plot, the week will start on the day chosen
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
-##    ZoneHr_Avg - Average hourly info in zone
-##    Export - Exports selected from Zone Hourly Table
-################################################################################
-  
-  Week14 <- function(year, month, day, case) {
-    
-    # Filters for the desired case study
-    data <- ResGroupHr_sub%>%
-      sim_filt1(.) %>%
-      subset(., select=-c(Report_Year,Capacity_Factor)) %>%
-      rbind(.,Import) %>%
-      filter(Run_ID == case)
-    # data <- ResGroupHr_sub%>%
-    #   sim_filt1(.) %>%
-    #   select(-Report_Year) %>%
-    #   rbind(.,Import) %>%
-    #   filter(Run_ID == case)
-    
-    data$ID <- factor(data$ID, levels=c("Import", "COAL", "COGEN", "SCGT", "NGCC", 
-                                        "HYDRO", "OTHER",
-                                        "WIND", "SOLAR", "STORAGE"))
-    
-    # Select only a single week
-    WK <- WkTime(data,year,month,day)
-    ZPrice <- WkTime(ZoneHr_Avg,year,month,day)
-    Expo <- WkTime(Export,year,month,day)
-    
-    #Max demand
-    data$MX <- ZoneHr_Avg$Demand + Export$Output_MWH
-    
-    # Set the max and min for the plot using 4 year comparison data
-    MX1 <- WkTime(data,Yr4Sp[[1]],month,day)
-    MX2 <- WkTime(data,Yr4Sp[[2]],month,day)
-    MX3 <- WkTime(data,Yr4Sp[[3]],month,day)
-    MX4 <- WkTime(data,Yr4Sp[[4]],month,day)
-    MXtime <- rbind(MX1, MX2, MX3, MX4)
-    
-    MX <- plyr::round_any(max(abs(MXtime$MX))+200, 100, f = ceiling)
-    MN <- plyr::round_any(min(MXtime$Output_MWH), 100, f = floor)
-    
-    # Plot the data    
-    ggplot() +
-      geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.6, size=.5, colour="black") +
-      
-      # Add hourly load line
-      geom_line(data = ZPrice, 
-                aes(x = date, y = Demand), size=2, colour = "black") +
-      scale_x_datetime(expand=c(0,0)) +
-      
-      # Set the theme for the plot
-      theme_bw() +
-      theme(panel.grid = element_blank(),
-            legend.position = "right",
-      ) +
-      theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
-            panel.background = element_rect(fill = "transparent"),
-            panel.grid.major.x = element_blank(),
-            panel.grid.minor.x = element_blank(),
-            plot.background = element_rect(fill = "transparent", color = NA),
-            legend.key = element_rect(colour = "transparent", fill = "transparent"),
-            legend.background = element_rect(fill='transparent'),
-            legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            text = element_text(size= 10)
-      ) +
-      scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
-                         breaks = seq(MN, MX, by = MX/4)) +
-      labs(x = "Date", y = "Output (MWh)", fill = "Simulated Data: \nResource") +
       scale_fill_manual(values = colours1)
   }
   
@@ -398,61 +335,7 @@
   }
   
 ################################################################################  
-## FUNCTION: Stor14 **NOT EDITED
-## Weekly storage output with 4 year comparison
-##
-## INPUTS: 
-##    year, month, day - Date to plot, the week will start on the day chosen
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
-################################################################################
-  
-  Stor14 <- function(year, month, day, case) {
-    # Add imports and exports to data
-    
-    
-    # Filters for the desired case study
-    data <- ResGroupHr_sub%>%
-      filter(ID=="LTO_Storage") %>%
-      filter(Run_ID == case)
-    
-    
-    # Select only a single week
-    WK <- WkTime(data,year,month,day)
-    
-    # Set the max and min for the plot
-    MX1 <- WkTime(data,Yr4Sp[[1]],month,day)
-    MX2 <- WkTime(data,Yr4Sp[[2]],month,day)
-    MX3 <- WkTime(data,Yr4Sp[[3]],month,day)
-    MX4 <- WkTime(data,Yr4Sp[[4]],month,day)
-    MXtime <- rbind(MX1, MX2, MX3, MX4)
-    
-    MX <- plyr::round_any(max(abs(MXtime$Output_MWH)), 10, f = ceiling)
-    
-    # Plot the data    
-    ggplot() +
-      geom_area(data = WK, aes(x = date, y = Output_MWH), 
-                alpha=0.6, size=.5, colour="black") +
-      ggtitle(year)+
-      
-      # Set the theme for the plot
-      theme_bw() +
-      theme(panel.grid = element_blank(),
-            axis.title.x=element_blank(),
-            axis.text.x=element_blank(),
-            plot.title = element_text(hjust = 0.5)
-      ) +
-      scale_x_datetime(expand=c(0,0)) +
-      scale_y_continuous(breaks = seq(-MX, MX, by = MX), 
-                         limits = c(-MX-1,MX+1),
-                         labels = label_number(accuracy = 1)) +
-      labs(x = "Date", y = "Storage\n(MWh)", fill = "Resource") +
-      scale_fill_manual(values = "cyan")
-  }
-  
-################################################################################  
-## FUNCTION: week_price **NOT EDITED
+## FUNCTION: week_price 
 ## Electricity price for one week
 ##
 ## INPUTS: 
@@ -486,12 +369,20 @@
       theme_bw() +
       theme(text=element_text(family="Times")) +
       theme(panel.background = element_rect(fill = "transparent"),
-            axis.text.x=element_text(),
+            axis.text.x=element_text(vjust=-1,face="bold"),
+            axis.title.x = element_text(vjust=-1),
+            axis.text.y=element_text(hjust=-0.5,face="bold"),
+            axis.title.y = element_text(vjust=1),
+            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'grey'),
+            panel.grid.minor.y = element_line(size=0.25,linetype=5,color = 'lightgrey'),
+            panel.grid.major.x = element_blank(),
             panel.grid = element_blank(),
             plot.background = element_rect(fill = "transparent", color = NA),
-            text = element_text(size= 30)
+            plot.title = element_text(face="bold"),
+            text = element_text(size= 30) 
+            
       ) +
-      labs(y = "Pool Price ($/MWh)", x="Date",fill = "Resource") +
+      labs(title="Simulated Weekly Average Pool Price",y = "Pool Price ($/MWh)", x="Date",fill = "Resource") +
       scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "day") +
       scale_y_continuous(expand=c(0,0), 
                          limits= c(0,MX),
@@ -500,52 +391,16 @@
       )
   }
   
-  ################################################################################
-  # Function for plotting prices with axis limits for 4 years
-  ################################################################################
-  
-  week_price4 <- function(year, month, day,case) {
-    # Filters for the desired case study
-    data <- ZoneHr_Avg%>%
-      filter(Run_ID == case)
-    
-    # Select only a single week using function WkTime
-    ZPrice <- WkTime(data,year,month,day)
-    
-    # Set the max and min for the plot
-    MX1 <- WkTime(data,Yr4Sp[[1]],month,day)
-    MX2 <- WkTime(data,Yr4Sp[[2]],month,day)
-    MX3 <- WkTime(data,Yr4Sp[[3]],month,day)
-    MX4 <- WkTime(data,Yr4Sp[[4]],month,day)
-    MXtime <- rbind(MX1, MX2, MX3, MX4)
-    
-    MX <- plyr::round_any(max(abs(MXtime$Price)), 10, f = ceiling)
-    MN <- plyr::round_any(min(abs(MXtime$Price)), 10, f = floor)
-    
-    # Plot the data    
-    ggplot() +
-      geom_line(data = ZPrice, 
-                aes(x = date, y = Price), 
-                size = 1.5, colour = "red") +
-      theme_bw() +
-      theme(panel.grid = element_blank(),
-            axis.title.x=element_blank(),
-            axis.text.x=element_blank()
-      ) +
-      labs(y = "$/MWh", fill = "Resource") +
-      scale_x_datetime(expand=c(0,0)) +
-      scale_y_continuous(expand=c(0,0), 
-                         limits= c(MN,MX),
-                         #                       labels = label_number(accuracy = 1),
-                         breaks = seq(MN, MX, by = MX/4)
-      )
-  }
-  
-  ################################################################################
-  ################################################################################
-  # Function for plotting month/year profiles
-  ################################################################################
-  ################################################################################
+################################################################################  
+## FUNCTION: Eval 
+## Plotting month/year profiles
+##
+## INPUTS: 
+##    input - 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Import - Import table derived of zone average table
+################################################################################
   
   Eval <- function(input,case) {
     Imp <- Import %>%
@@ -557,9 +412,7 @@
     
     #  Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
     #                               format = "%Y")
-    
-    #  Imp <- subset(Imp, Time_Period <= '2040-04-05')
-    
+  
     # Filters for the desired case study
     data <- input %>%
       filter(Run_ID == case & Condition == "Average") %>%
@@ -586,6 +439,16 @@
       scale_fill_manual(values = colours1) +
       labs(x = "Date", y = "Output (GWh)", fill = "Resource") 
   }
+################################################################################  
+## FUNCTION: Evalcap **Not read
+## Plotting month/year profiles
+##
+## INPUTS: 
+##    input - 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Import - Import table derived of zone average table
+################################################################################
   
   Evalcap <- function(input,case) {
     
@@ -611,11 +474,15 @@
       scale_fill_manual(values = colours2) +
       labs(x = "Date", y = "Capacity (GWh)", fill = "Resource") 
   }
-  
-  ################################################################################
-  # Function for plotting month/year profiles as a percentage of total
-  ################################################################################
-  ################################################################################
+ 
+################################################################################  
+## FUNCTION: EvalPerc **Not read
+## Year/month profiles as a percentage of the total
+##
+## INPUTS: 
+##    input - 
+##    case - Run_ID which you want to plot
+################################################################################ 
   
   EvalPerc <- function(input,case) {
     # Filters for the desired case study
@@ -661,10 +528,15 @@
       labs(x = "Date", y = "Percentage of Generation", fill = "Resource") 
   }
   
-  ################################################################################
-  # Function for plotting the resources built
-  ################################################################################
-  ################################################################################
+################################################################################  
+## FUNCTION: Built **Not read
+## Plotting the resources built
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
   
   # Stacked Area showing totals for Fuel Types
   Built <- function(case) {
@@ -692,9 +564,15 @@
       scale_fill_manual(values = colours3)
   }
   
-  ################################################################################
-  # Function for plotting the resources built as bar chart
-  ################################################################################
+################################################################################  
+## FUNCTION: Builtcol **Not read
+## Plotting the resources built as a bar chart
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
   
   # Stacked Area showing totals for Fuel Types
   Builtcol <- function(case) {
@@ -729,10 +607,16 @@
       #    scale_x_discrete(expand=c(0,0)) +
       scale_fill_manual(values = colours3)
   }
-  
-  ################################################################################
-  # Function for plotting the capacity of resources built
-  ################################################################################
+
+################################################################################  
+## FUNCTION: BuiltMW **Not read
+## Plotting the capacity of resources built
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
   
   # Stacked Area showing totals for Fuel Types
   BuiltMW <- function(case) {
@@ -766,12 +650,19 @@
       scale_fill_manual(values = colours3)
   }
   
-  ################################################################################
-  # Unit specific bar chart showing builds
-  ################################################################################
-  ################################################################################
-  
+################################################################################  
+## FUNCTION: Units **Not read
+## Unit specific bar chart showing builds
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+##    Fuel - Fuel type matching Fuel_ID 
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
+
   Units <- function(case, Fuel) {
+    
     data <- Build %>%
       filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
                Time_Period == "Study" & Fuel_Type == Fuel) 
@@ -795,10 +686,16 @@
             panel.border = element_rect(colour = "black", fill = "transparent")) 
   }
   
-  ################################################################################
-  # Unit specific bar chart showing availability not built 
-  ################################################################################
-  ################################################################################
+################################################################################  
+## FUNCTION: Slack **Not read
+## Unit specific bar chart showing units not built
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+##    Fuel - Fuel type matching Fuel_ID 
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
   
   Slack <- function(case, Fuel) {
     data <- Build %>%
@@ -823,9 +720,16 @@
             panel.border = element_rect(colour = "black", fill = "transparent"))
   }
   
-  ################################################################################
-  # Unit specific bar chart showing builds with potential builds highlighted
-  ################################################################################
+################################################################################  
+## FUNCTION: Units2 **Not read
+## Unit specific bar chart showing builds with potential builds highlighted
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+##    Fuel - Fuel type matching Fuel_ID 
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
   
   Units2 <- function(case, Fuel) {
     data <- Build %>%
@@ -855,10 +759,17 @@
             panel.border = element_rect(colour = "black", fill = "transparent")) 
   }
   
-  ################################################################################
-  # Unit specific bar chart showing availability not built with potential sites 
-  # highlighted
-  ################################################################################
+###############################################################################  
+## FUNCTION: Slack2 **Not read
+## Unit specific bar chart showing availability not built with potential sites 
+## highlighted
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+##    Fuel - Fuel type matching Fuel_ID 
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
   
   Slack2 <- function(case, Fuel) {
     data <- Build %>%
@@ -889,11 +800,17 @@
             panel.border = element_rect(colour = "black", fill = "transparent"))
   }
   
-  ################################################################################
-  # Simulation duration curve. 
-  # The price duration curve represents the percentage of hours in which pool price 
-  # equaled or exceeded a specified level.
-  ################################################################################
+###############################################################################  
+## FUNCTION: Sim_dur **Not read
+## Simulation duration curve. 
+## The price duration curve represents the percentage of hours in which pool price 
+## equaled or exceeded a specified level.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_All - Zone hourly table for all conditions
+################################################################################  
   
   Sim_dur <- function(case) {
     
@@ -1031,12 +948,3 @@
                         paste("Simulation: \n",SourceDB, sep = ""))),
               ncol = 2, widths=c(7,1))
   }
-
-
-subtit <- function(plot) {
-  ggdraw(add_sub(plot,paste("Simulation: ",SourceDB, sep = "")))
-}
-
-imsave <- function(name) {
-  setwd("D:/Documents/GitHub/AuroraEval")
-  ggsave(path = "images", filename = paste(name,".png", sep = ""), bg = "transparent")   }

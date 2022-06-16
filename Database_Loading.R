@@ -75,6 +75,15 @@
   NZC1 <- "Net Zero Case 1" 
 }
 
+{ # Define fuel types for new builds
+  solar <- "SUN"
+  wind <- "WND"
+  other <- "OT"
+  storage <- "PS"
+  gas1 <- "Gas1"
+  gas0 <- "Gas0"
+  }
+
 ################################################################################
 ## READ TABLES FROM DATABASE INTO ENVIRONMENT
 ## Can edit to select required tables only, DOUBLE CHECK all tables are in databse
@@ -319,13 +328,20 @@
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   
-  Yr4Sp=list(2021,2021,2022,2023)
-  
   source(here('Functions','sim_eval_1.R'))
   
+  #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
   day1(2021,01,08,BAU)
   
+  # Gives stacked area chart for single week
   Week1(2021,01,08,BAU)
   
+  # Gives weekly storage function
+  Stor1(2021,01,08,BAU)
+  
+  # Average Pool Price for one week
   week_price(2023,10,09,BAU)
+  
+  # 
+  eval()
   
