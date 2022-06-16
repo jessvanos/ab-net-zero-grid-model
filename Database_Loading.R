@@ -293,38 +293,51 @@
 
 ################################################################################
 ## PLOT SETTINGS
-  # Colours Info
-    # IMPORT - slateblue1
-    # COAL - grey
-    # COGEN - darkslategrey
-    # SCGT - deeppink4
-    # NGCC - deeppink
+## Can change here
+  { # Colours Info
+    # IMPORT - violetred
+    # COAL - snow3
+    # COGEN - snow4
+    # SCGT - mediumorchid4
+    # NGCC - darkorchid1
     # HYDRO - dodgerblue3
-    # OTHER - darkorange2
-    # WIND - darkgreen
+    # OTHER - navy
+    # WIND - chartreuse3
     # SOLAR - gold
-    # STORAGE - cyan
-
-  # Set limits for plots
- # ylimit <- max(ResGroupHr$Output_MWH) + max(ZoneHr$Imports)
-
-  # Available Fonts for plotting
-  font_add(family="Times",regular="times.ttf")
-  showtext_auto()
+    # STORAGE - paleturquoise 
+    }
+{ # Available Fonts for plotting, can choose different one and change Plot_Text if needed
+  # Uses local computer font files (search font in search bar to confirm font names)
   
+    # font_add(family="Times",regular="times.ttf")
+    # Plot_Text <- 'Times'
+    
+    font_add(family="Cambrai",regular="CAMBRIA.ttc")
+    Plot_Text <- 'Cambrai'
+    
+    showtext_auto()
+    
+  # Set size for plot features to be consitant
+  { Tit_Sz = 25
+    XTit_Sz = 20
+    YTit_Sz = 20
+    Overall_Sz =15 }
+    
   # Set legend color schemes for contistancy
-  colours = c("slateblue1", "grey", "darkslategrey", "deeppink4", "deeppink", 
-              "darkorange2", "darkgreen", "gold", "darkolivegreen1", "cyan")
+  colours = c("violetred", "snow3", "snow4", "mediumorchid4", "darkorchid1", 
+              "navy", "chartreuse3", "#gold", "darkolivegreen1", "paleturquoise")
   
-  colours1 = c("slateblue1", "grey", "darkslategrey", "deeppink4", "deeppink", 
-               "dodgerblue3", "darkorange2", "darkgreen", "gold", "cyan")
+  colours1 = c("violetred", "snow3", "snow4", "mediumorchid4", "darkorchid1", 
+               "dodgerblue3", "navy", "chartreuse3", "gold", "paleturquoise")
   
-  colours2 = c("grey", "darkslategrey", "deeppink4", "deeppink", 
-               "darkorange2", "dodgerblue3", "darkgreen", "gold", "cyan")
-  colours3 = c("darkgreen", "gold", "deeppink4", "deeppink", "cyan", "dodgerblue")
-
+  colours2 = c("snow3", "snow4", "mediumorchid4", "darkorchid1", 
+               "navy", "dodgerblue3", "chartreuse3", "gold", "paleturquoise")
+  
+  colours3 = c("chartreuse3","gold", "mediumorchid4", "darkorchid1", "paleturquoise", "steelblue")
+}
   #For fun, make the code beep when its all done
   beep(3)
+  
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   
@@ -340,7 +353,7 @@
   Stor1(2021,01,08,BAU)
   
   # Average Pool Price for one week
-  week_price(2023,10,09,BAU)
+  week_price(2023,10,08,BAU)
   
   # 
   eval()

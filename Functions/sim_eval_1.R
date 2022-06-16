@@ -170,7 +170,7 @@ imsave_loc <- function(name) {
     
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.7, size=.25, colour="black") +
+                alpha=0.7, size=.5, colour="black") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -182,16 +182,15 @@ imsave_loc <- function(name) {
       theme(panel.grid = element_blank(),
             legend.position = "right",) +
       
-      theme(text=element_text(family="Times")) +
+      theme(text=element_text(family=Plot_Text)) +
       
-      theme(plot.title = element_text(hjust = 0.5,size= 20)) +
+      theme(plot.title = element_text(size= Tit_Sz)) +
       
       theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
-            axis.title.x = element_text(size= 20),
-            axis.title.y = element_text(size= 20),
+            axis.title.x = element_text(size= XTit_Sz,face = 'bold'),
+            axis.title.y = element_text(size= YTit_Sz,face = 'bold'),
             panel.background = element_rect(fill = "transparent"),
-            panel.grid.major.x = element_blank(),
-            panel.grid.minor.x = element_blank(),
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'black'),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent'),
@@ -252,11 +251,11 @@ imsave_loc <- function(name) {
     
     ggplot() +
       geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.7, size=.25, colour="black") +
+                alpha=0.7, size=.5, colour="black") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
-                aes(x = date, y = Demand), size=1.5, colour = "black") +
+                aes(x = date, y = Demand,colour = "Demand"), size=1.5, colour = "black") +
       scale_x_datetime(expand=c(0,0)) +
       
       # Set the theme for the plot
@@ -264,22 +263,27 @@ imsave_loc <- function(name) {
       theme(panel.grid = element_blank(),
             legend.position = "right",) +
       
-      theme(text=element_text(family="Times")) +
+      theme(text=element_text(family=Plot_Text)) +
       
-      theme(plot.title = element_text(hjust = 0.5,face="bold")) +
+      theme(plot.title = element_text(size= Tit_Sz)) +
       
       theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'black'),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            text = element_text(size= 30)
+            legend.title = element_text(size=20),
+            axis.title.x = element_text(size=XTit_Sz,face='bold'),
+            axis.title.y = element_text(size=YTit_Sz,face='bold'),
+            text = element_text(size= Overall_Sz)
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
                          breaks = seq(MN, MX, by = MX/4)) +
+      
       labs(title=paste("Resource Output, ",day_report),x = "Date", y = "Output (MWh)", fill = "Resource") +
       
       #Add colour
@@ -313,25 +317,28 @@ imsave_loc <- function(name) {
     # Plot the data    
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH,fill="Storage"), 
-                alpha=0.6, size=.5, colour="black") +
+                alpha=0.7, size=.5, colour="black") +
       ggtitle(year)+
       
       # Set the theme for the plot
       theme_bw() +
       
-      theme(text=element_text(family="Times",size= 20)) +
+      theme(text=element_text(family=Plot_Text)) +
       
       theme(panel.grid = element_blank(),
-            axis.title.x=element_text(),
             axis.text.x=element_text(angle = 25, vjust = 1, hjust = 1),
-            plot.title = element_text(hjust = 0.5)
+            plot.title = element_text(size=Tit_Sz),
+            legend.title = element_text(size=20),
+            axis.title.x = element_text(size=XTit_Sz,face='bold'),
+            axis.title.y = element_text(size=YTit_Sz,face='bold'),
+            text = element_text(size= Overall_Sz)
       ) +
       scale_x_datetime(expand=c(0,0),breaks = "day") +
       scale_y_continuous(breaks = seq(-MX, MX, by = MX), 
                          limits = c(-MX-1,MX+1),
                          labels = label_number(accuracy = 1)) +
       labs(x = "Date", y = "Storage (MWh)", fill = "Resource") +
-      scale_fill_manual(values = "cyan")
+      scale_fill_manual(values = "paleturquoise")
   }
   
 ################################################################################  
@@ -367,19 +374,19 @@ imsave_loc <- function(name) {
                 aes(x = date, y = Price), 
                 size = 1.5, colour = "midnightblue") +
       theme_bw() +
-      theme(text=element_text(family="Times")) +
+      theme(text=element_text(family=Plot_Text)) +
       theme(panel.background = element_rect(fill = "transparent"),
-            axis.text.x=element_text(vjust=-1,face="bold"),
-            axis.title.x = element_text(vjust=-1),
-            axis.text.y=element_text(hjust=-0.5,face="bold"),
-            axis.title.y = element_text(vjust=1),
+            axis.text.x=element_text(vjust=-1),
+            axis.title.x = element_text(vjust=-1,size= XTit_Sz,face="bold"),
+            axis.text.y=element_text(hjust=-0.5),
+            axis.title.y = element_text(vjust=1,size= YTit_Sz,face="bold"),
             panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'grey'),
             panel.grid.minor.y = element_line(size=0.25,linetype=5,color = 'lightgrey'),
             panel.grid.major.x = element_blank(),
             panel.grid = element_blank(),
             plot.background = element_rect(fill = "transparent", color = NA),
-            plot.title = element_text(face="bold"),
-            text = element_text(size= 30) 
+            plot.title = element_text(size = Tit_Sz),
+            text = element_text(size = 20) 
             
       ) +
       labs(title="Simulated Weekly Average Pool Price",y = "Pool Price ($/MWh)", x="Date",fill = "Resource") +
@@ -426,7 +433,7 @@ imsave_loc <- function(name) {
     data %>%
       ggplot() +
       aes(Time_Period, (Output_MWH/1000), fill = ID) +
-      geom_area(alpha=0.6, size=.5, colour="black") +
+      geom_area(alpha=0.7, size=.5, colour="black") +
       #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
       theme(panel.grid = element_blank(),
@@ -461,7 +468,7 @@ imsave_loc <- function(name) {
     data %>%
       ggplot() +
       aes(Time_Period, (Capacity/1000), fill = ID) +
-      geom_area(alpha=0.6, size=.5, colour="black") +
+      geom_area(alpha=0.7, size=.5, colour="black") +
       #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
       theme(panel.grid = element_blank(),
@@ -501,7 +508,7 @@ imsave_loc <- function(name) {
     case_Time %>%
       ggplot() +
       aes(Time_Period, Output_MWH, fill = ID) +
-      geom_area(position = "fill", alpha=0.6, size=.5, colour="black") +
+      geom_area(position = "fill", alpha=0.7, size=.5, colour="black") +
       geom_hline(yintercept = 0.3, linetype = "dashed", color = "forestgreen", size = 1.5) +
       geom_vline(xintercept = as.Date(ISOdate(2035, 1,1)),
                  linetype = "dashed", color = "dodgerblue", size = 1.5) +
@@ -552,7 +559,7 @@ imsave_loc <- function(name) {
     data %>%
       ggplot() +
       aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
-      geom_area(alpha=0.6, size=.5, colour="black") +
+      geom_area(alpha=0.7, size=.5, colour="black") +
       theme_bw() +
       theme(panel.grid = element_blank(), 
             legend.justification = c(0,0.5),
@@ -594,7 +601,7 @@ imsave_loc <- function(name) {
     
     ggplot(data) +
       aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=0.6, colour = "black") +
+      geom_bar(position="stack", stat="identity", alpha=0.7, colour = "black") +
       theme_bw() +
       theme(panel.grid = element_blank(),  
             legend.position ="none"
@@ -638,7 +645,7 @@ imsave_loc <- function(name) {
     
     ggplot(data) +
       aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=0.6, colour = "black") +
+      geom_bar(position="stack", stat="identity", alpha=0.7, colour = "black") +
       theme_bw() +
       theme(panel.grid = element_blank(), 
             legend.position ="none"
