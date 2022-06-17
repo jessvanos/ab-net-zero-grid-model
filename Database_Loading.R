@@ -326,6 +326,10 @@
     gas0 <- "Gas0"
   }  
     
+  # Define years to compare
+    Yr4Sp <- c(2021,2022,2022,2023)
+    Yr2Sp <- c(2021, 2022)
+    
   # Set legend color schemes for contistancy
   colours = c("maroon1", "snow3", "gray47", "mediumorchid4", "darkorchid1", 
               "navy", "chartreuse3", "#gold", "darkolivegreen1", "paleturquoise")
@@ -350,36 +354,56 @@
   
   source(here('Functions','sim_eval_1.R'))
   
-  #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
-  day1(2021,01,08,BAU)
-  
-  # Gives stacked area chart for single week
-  Week1(2021,01,08,BAU)
-  
-  # Gives weekly storage function
-  Stor1(2021,01,08,BAU)
-  
-  # Average Pool Price for one week
-  week_price(2023,10,08,BAU)
-  
-  # Gives overall picture of Output over time period
-  Eval(ResGroupMn,BAU)
-  
-  # Units Built over study period
-  Builtcol(BAU)
-  
-  # Units Built over study period by capacity
-  BuiltMW(BAU)
-  
-  # Lets you get where units were built 
-  Units(BAU,wind)
-  
-  # Lets you get where units could have been built 
-  Slack(BAU,wind)
-  
-  # Shows built and highlights potential builds
-  Units2(BAU,wind)
-  
-  #Shows Prices for simulation duration
-  Sim_dur(BAU)
-  
+## SIM FUNCTIONS
+    #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
+    day1(2021,01,08,BAU)
+    
+    # Gives stacked area chart for single week
+    Week14(2023,01,08,BAU)
+    
+    # Gives weekly storage function
+    Stor1(2021,01,08,BAU)
+    
+    # Average Pool Price for one week
+    week_price(2023,10,08,BAU)
+    
+    # Gives overall picture of Output over time period
+    Eval(ResGroupMn,BAU)
+    
+    # Units Built over study period
+    Builtcol(BAU)
+    
+    # Units Built over study period by capacity
+    BuiltMW(BAU)
+    
+    # Lets you get where units were built 
+    Units(BAU,wind)
+    
+    # Lets you get where units could have been built 
+    Slack(BAU,wind)
+    
+    # Shows built and highlights potential builds
+    Units2(BAU,wind)
+    
+    #Shows Prices for simulation duration
+    Sim_dur(BAU)
+
+## COMBINED SIM FUNCTIONS
+    
+    # Plot over 4 years defined in plotting section
+    Week4(01,08,BAU)
+    
+    #Plot Pool price and output for a week 
+    PrOut(2023,10,08,BAU)
+
+    # New units, new capacity, and output for the duration
+    EvalOut(ResGroupMn,BAU)
+    
+    #Compare available units and built units
+    BuildUnits(BAU, wind)
+    BuildUnits2(BAU, wind)
+    
+    # Pool price and output for two years side by side
+    Eval2(01,08,BAU)
+    
+    
