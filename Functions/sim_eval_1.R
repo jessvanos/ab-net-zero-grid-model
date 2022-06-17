@@ -4,20 +4,28 @@
 
 # ORIGINAL AUTHOR: Taylor Pawlenchuk (Retrieved June 3, 2022)
 # EDITS & ADDITIONAL CONTENT: Jessica Van Os
-# LAST EDIT: June 14, 2022
-
+# LAST EDIT: June 17, 2022
+#
+################################################################################
+#
+#
+# TO USE IN PLOTING FUNCTIONS SECTION
+#
+#
 ################################################################################
 ## FUNCTION: sim_filt
 ## This function filters for the data that will be evaluated.
 ################################################################################
 
 { sim_filt <- function(inputdata) {
-    # Filter the data by resource
+  
+    # Filter the data by resource, creates a table for each resource
     {Coal <- inputdata %>%
       filter(ID=="LTO_Coal")
     Coal2Gas  <- inputdata %>%
       filter(ID=="LTO_Coal2Gas")
-    Coal2Gas$Output_MWH[Coal2Gas$Output_MWH < 0] <- 0
+        #Force zero output if negative
+        #Coal2Gas$Output_MWH[Coal2Gas$Output_MWH < 0] <- 0
     Cogen  <- inputdata %>%
       filter(ID=="LTO_Cogen")
     NatGas <- inputdata %>%
@@ -33,11 +41,15 @@
     Wind <- inputdata %>%
       filter(ID=="LTO_Wind")   }
     
-  # Combine the grouped data
+  # Combine the grouped data tables into one
   { case <- rbind(Coal, Coal2Gas, Cogen, NatGas, Hydro, Solar, Wind, Storage, Other)
+    
+    # Sort the table by case ID
+    #A factor is a categorical variable 
     case$ID <- factor(case$ID, levels=c("LTO_Coal", "LTO_Coal2Gas", "LTO_Cogen", 
                                         "LTO_NatGas", "LTO_Other", "LTO_Hydro", 
                                         "LTO_Wind", "LTO_Solar", "LTO_Storage"))
+    # Replace ID value with name 
     levels(case$ID) <- c("Coal", "Coal2Gas", "Cogen", "NatGas", "Other", "Hydro",
                          "Wind", "Solar", "Storage")   }
     return(case)  }
@@ -78,7 +90,14 @@
                            "WIND", "SOLAR", "STORAGE")  }
       return(case)  }
   }
-  
+
+################################################################################
+#
+#
+# PLOTING FUNCTIONS SECTION
+#
+#
+################################################################################  
 ################################################################################
 ## FUNCTION: HrTime
 ## Convert the date and select a subset for one day from the data pulled in
@@ -120,7 +139,7 @@ imsave_git <- function(name) {
 
 # Save to a loacl folder that is ignored by git
 imsave_loc <- function(name) {
-  ggsave(plot=last_plot(),path = here("Figures (Local)"), filename = paste(name,".png", sep = ""), bg = "transparent")   }
+  ggsave(plot=last_plot(),path = here("Figures (Local)"), filename = paste(name,".png", sep = ""), bg = "white")   }
 
 ################################################################################
 ## FUNCTION: week1
@@ -170,7 +189,7 @@ imsave_loc <- function(name) {
     
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.7, size=.5, colour="black") +
+                alpha=0.7, size=.5, colour="white") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -190,11 +209,12 @@ imsave_loc <- function(name) {
             axis.title.x = element_text(size= XTit_Sz,face = 'bold'),
             axis.title.y = element_text(size= YTit_Sz,face = 'bold'),
             panel.background = element_rect(fill = "transparent"),
-            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'black'),
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+            legend.key.size = unit(0.5,"lines"), #Shrink legend
             legend.title = element_text(size=20),
             text = element_text(size= 15)
       ) +
@@ -251,7 +271,7 @@ imsave_loc <- function(name) {
     
     ggplot() +
       geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.7, size=.5, colour="black") +
+                alpha=0.7, size=.5, colour="white") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -271,9 +291,10 @@ imsave_loc <- function(name) {
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
-            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'black'),
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
+            legend.key.size = unit(0.5,"lines"), #Shrink legend
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             legend.title = element_text(size=20),
@@ -400,10 +421,10 @@ imsave_loc <- function(name) {
   
 ################################################################################  
 ## FUNCTION: Eval 
-## Plotting month/year profiles
+## Plotting month/year profiles of resource output
 ##
 ## INPUTS: 
-##    input - 
+##    input - ResgroupMnor ResGroupYr
 ##    case - Run_ID which you want to plot
 ## TABLES REQUIRED: 
 ##    Import - Import table derived of zone average table
@@ -417,8 +438,8 @@ imsave_loc <- function(name) {
       summarise(Output_MWH = mean(Output_MWH)) %>%
       mutate(ID = "Import")
     
-    #  Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
-    #                               format = "%Y")
+      Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
+                                   format = "%Y")
   
     # Filters for the desired case study
     data <- input %>%
@@ -428,33 +449,40 @@ imsave_loc <- function(name) {
       rbind(.,Imp) 
     
     data$ID<-fct_relevel(data$ID, "Import")
-    data$Time_Period <- as.Date(data$Time_Period)
+    data$Time_Period <- as.Date(data$Time_Period,format = "%Y")
     
     data %>%
       ggplot() +
       aes(Time_Period, (Output_MWH/1000), fill = ID) +
-      geom_area(alpha=0.7, size=.5, colour="black") +
+      geom_area(alpha=0.7, size=.5, colour="white") +
       #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
       theme(panel.grid = element_blank(),
             axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-            plot.title = element_text(hjust = 0.5),
+            axis.title.x = element_text(size = XTit_Sz,face = "bold"),
+            axis.title.y = element_text(size = YTit_Sz,face = "bold"),
+            plot.title = element_text(size = Tit_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
-            legend.justification = c(0,0.5)) +
-      #    scale_x_date(expand=c(0,0)) +
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            legend.key.size = unit(0.5,"lines"), #Shrink legend
+            legend.justification = c(0,0.5),
+            text = element_text(size = 20)) +
+      
+      scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
       scale_y_continuous(expand=c(0,0)) +
-      scale_fill_manual(values = colours1) +
-      labs(x = "Date", y = "Output (GWh)", fill = "Resource") 
+      scale_fill_manual(values = colours4) +
+      labs(title="Yearly Output",x = "Date", y = "Output (GWh)", fill = "Resource") 
   }
 ################################################################################  
-## FUNCTION: Evalcap **Not read
-## Plotting month/year profiles
+## FUNCTION: Evalcap 
+## Plotting month/year profiles of resource capacity
 ##
 ## INPUTS: 
-##    input - 
+##    input - ResgroupMn or ResGroupYr
 ##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Import - Import table derived of zone average table
 ################################################################################
   
   Evalcap <- function(input,case) {
@@ -468,22 +496,31 @@ imsave_loc <- function(name) {
     data %>%
       ggplot() +
       aes(Time_Period, (Capacity/1000), fill = ID) +
-      geom_area(alpha=0.7, size=.5, colour="black") +
+      geom_area(alpha=0.7, size=.5, colour="white") +
       #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
       theme(panel.grid = element_blank(),
             axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-            plot.title = element_text(hjust = 0.5),
+            axis.title.x = element_text(size = XTit_Sz,face="bold"),
+            axis.title.y = element_text(size = YTit_Sz,face="bold"),
+            plot.title = element_text(size = Tit_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
-            legend.justification = c(0,0.5)) +
-      scale_x_date(expand=c(0,0)) +
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            legend.justification = c(0,0.5),
+            legend.key.size = unit(0.5,"lines"),
+            text = element_text(size = 20)) +
+      
+      scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
       scale_y_continuous(expand=c(0,0)) +
       scale_fill_manual(values = colours2) +
-      labs(x = "Date", y = "Capacity (GWh)", fill = "Resource") 
+      labs(title="Yearly Capacity",x = "Date", y = "Capacity (GWh)", fill = "Resource") 
   }
  
 ################################################################################  
-## FUNCTION: EvalPerc **Not read
+## FUNCTION: EvalPerc **Not read - maybe make a pie chart?
 ## Year/month profiles as a percentage of the total
 ##
 ## INPUTS: 
@@ -527,6 +564,7 @@ imsave_loc <- function(name) {
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             legend.justification = c(0,0.5)) +
+      
       scale_x_date(expand=c(0,0)) +
       scale_y_continuous(expand=c(0,0),
                          labels = scales::percent, 
@@ -536,43 +574,7 @@ imsave_loc <- function(name) {
   }
   
 ################################################################################  
-## FUNCTION: Built **Not read
-## Plotting the resources built
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Build - Build table describing all new resources
-################################################################################
-  
-  # Stacked Area showing totals for Fuel Types
-  Built <- function(case) {
-    data <- Build %>%
-      filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
-               Time_Period != "Study")%>%
-      group_by(Fuel_Type, Time_Period) %>%
-      summarise(Units = sum(Units_Built)) 
-    
-    data$Fuel_Type <- factor(data$Fuel_Type, 
-                             levels = c("WND","SUN","Gas0","Gas1", "PS", "OT"))
-    
-    data %>%
-      ggplot() +
-      aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
-      geom_area(alpha=0.7, size=.5, colour="black") +
-      theme_bw() +
-      theme(panel.grid = element_blank(), 
-            legend.justification = c(0,0.5),
-      ) +
-      labs(x = "Date", y = "# of Units Built", fill = "Fuel Type") +
-      scale_y_continuous(expand=c(0,0),
-                         limits = c(0,(max(data$Units)+1))) +
-      #    scale_x_discrete(expand=c(0,0)) +
-      scale_fill_manual(values = colours3)
-  }
-  
-################################################################################  
-## FUNCTION: Builtcol **Not read
+## FUNCTION: Builtcol
 ## Plotting the resources built as a bar chart
 ##
 ## INPUTS: 
@@ -601,14 +603,24 @@ imsave_loc <- function(name) {
     
     ggplot(data) +
       aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=0.7, colour = "black") +
+      geom_bar(position="stack", stat="identity", alpha=0.7) +
       theme_bw() +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
       theme(panel.grid = element_blank(),  
-            legend.position ="none"
-            #          legend.justification = c(0,0.5),
-            #          legend.position = "top"
-      ) +
-      labs(x = "Date", y = "# of Units Built", fill = "Fuel Type") +
+            axis.title.x = element_text(size = XTit_Sz,face="bold"),
+            axis.title.y = element_text(size = YTit_Sz,face="bold"),
+            plot.title = element_text(size = Tit_Sz),
+            legend.justification = c(0.5,0.5),
+            legend.position = ("bottom"),
+            legend.key.size = unit(0.5,"lines"),
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            text = element_text(size = 20)) +
+  
+      guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+      
+      labs(title="New Units Built",x = "Date", y = "# of Units Built", fill = "Fuel Type") +
       scale_y_continuous(expand=c(0,0),
                          limits = c(0,(mxu+1))) +
       #    scale_x_discrete(expand=c(0,0)) +
@@ -645,11 +657,23 @@ imsave_loc <- function(name) {
     
     ggplot(data) +
       aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=0.7, colour = "black") +
+      geom_bar(position="stack", stat="identity", alpha=0.7) +
       theme_bw() +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
       theme(panel.grid = element_blank(), 
-            legend.position ="none"
-      ) +
+            axis.title.x = element_text(size = XTit_Sz,face="bold"),
+            axis.title.y = element_text(size = YTit_Sz,face="bold"),
+            plot.title = element_text(size = Tit_Sz),
+            legend.justification = c(0.5,0.5),
+            legend.position = ("bottom"),
+            legend.key.size = unit(0.5,"lines"),
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            text = element_text(size = 20)) +
+
+      guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+      
       labs(x = "Date", y = "Capacity Built \n(MW)", fill = "Fuel Type") +
       scale_y_continuous(expand=c(0,0),
                          limits = c(0,plyr::round_any(mxc, 100, f = ceiling))) +
@@ -658,7 +682,7 @@ imsave_loc <- function(name) {
   }
   
 ################################################################################  
-## FUNCTION: Units **Not read
+## FUNCTION: Units
 ## Unit specific bar chart showing builds
 ##
 ## INPUTS: 
@@ -676,21 +700,32 @@ imsave_loc <- function(name) {
     
     data %>%
       ggplot() +
-      aes(Name, Units_Built) + 
+      aes(Name, Units_Built,fill = Fuel_Type) + 
       geom_col() +
       labs(x = "Plant Name", y = "Units Built") +
       scale_y_continuous(expand = c(0,0),
                          limits = c(0,(max(data$Units_Built)+1))) +
+      
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-            #          axis.title.x = element_text(vjust=0.5),
+
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
+            axis.title.x = element_text(size = XTit_Sz,face="bold"),
+            axis.title.y = element_text(size = YTit_Sz,face="bold"),
+            plot.title = element_text(size = Tit_Sz),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
+            legend.key.size = unit(0.5,"lines"), 
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            panel.border = element_rect(colour = "black", fill = "transparent")) 
+            text = element_text(size = 15),
+            panel.border = element_rect(colour = "black", fill = "transparent"),
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")) + 
+    
+            scale_fill_manual(values="gray") +
+      
+            theme(text=element_text(family=Plot_Text))
   }
   
 ################################################################################  
@@ -711,20 +746,31 @@ imsave_loc <- function(name) {
     
     data %>%
       ggplot() +
-      aes(Name, Max_Limit_Slack) + 
+      aes(Name, Max_Limit_Slack,fill = Fuel_Type) + 
       geom_col() +
       labs(x = "Plant Name", y = "Units Available") +
       scale_y_continuous(expand = c(0,0),
                          limits = c(0,(max(data$Max_Limit_Slack)+1))) +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+            
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
+            axis.title.x = element_text(size = XTit_Sz,face="bold"),
+            axis.title.y = element_text(size = YTit_Sz,face="bold"),
+            plot.title = element_text(size = Tit_Sz),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
+            legend.key.size = unit(0.5,"lines"), 
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            panel.border = element_rect(colour = "black", fill = "transparent"))
+            text = element_text(size = 15),
+            panel.border = element_rect(colour = "black", fill = "transparent"),
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")) + 
+      
+      scale_fill_manual(values="gray") +
+      
+      theme(text=element_text(family=Plot_Text))
   }
   
 ################################################################################  
@@ -757,54 +803,20 @@ imsave_loc <- function(name) {
                          limits = c(0,(max(data$Units_Built)+1))) +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
             panel.background = element_rect(fill = "transparent"),
+            axis.title.x = element_text(size = XTit_Sz,face="bold"),
+            axis.title.y = element_text(size = YTit_Sz,face="bold"),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
+            legend.key.size = unit(0.5,"lines"),
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            panel.border = element_rect(colour = "black", fill = "transparent")) 
-  }
-  
-###############################################################################  
-## FUNCTION: Slack2 **Not read
-## Unit specific bar chart showing availability not built with potential sites 
-## highlighted
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-##    Fuel - Fuel type matching Fuel_ID 
-## TABLES REQUIRED: 
-##    Build - Build table describing all new resources
-################################################################################
-  
-  Slack2 <- function(case, Fuel) {
-    data <- Build %>%
-      filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
-               Time_Period == "Study" & Fuel_Type == Fuel) %>%
-      mutate(Potential = ifelse(grepl("Potential", Name, fixed = TRUE), 
-                                "Hypothetical", "AESO Queue")) 
-    
-    data %>%
-      ggplot() +
-      aes(Name, Max_Limit_Slack, fill = Potential) + 
-      geom_col() +
-      labs(x = "Plant Name", y = "Units Available") +
-      scale_fill_manual(
-        values = c("Hypothetical"="forestgreen", "AESO Queue"="gray"),
-        guide = "none") +
-      scale_y_continuous(expand = c(0,0),
-                         limits = c(0,(max(data$Max_Limit_Slack)+1)),
-                         breaks = c((max(data$Max_Limit_Slack)+1)/2,(max(data$Max_Limit_Slack)+1))) +
-      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-            panel.background = element_rect(fill = "transparent"),
-            panel.grid.major.x = element_blank(),
-            panel.grid.minor.x = element_blank(),
-            plot.background = element_rect(fill = "transparent", color = NA),
-            legend.key = element_rect(colour = "transparent", fill = "transparent"),
-            legend.background = element_rect(fill='transparent'),
-            legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            panel.border = element_rect(colour = "black", fill = "transparent"))
+            panel.grid.major.y = element_line(size=0.25,linetype=5, color = "gray36" ),
+            text = element_text(size = 15),
+            panel.border = element_rect(colour = "black", fill = "transparent")) +
+      
+      theme(text=element_text(family=Plot_Text))
   }
   
 ###############################################################################  
@@ -831,27 +843,36 @@ imsave_loc <- function(name) {
       geom_line(data = tot, 
                 aes(x = perc, y = Price, colour = Report_Year), size = 1) +
       facet_grid(cols = vars(Condition)) +
+      
       theme_bw() +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
       theme(panel.grid = element_blank(),
-      ) +
+            axis.title.x = element_text(size = XTit_Sz,face="bold"),
+            axis.title.y = element_text(size = YTit_Sz,face="bold"),
+            text = element_text(size = 15)) +
+            
       labs(y = "Pool Price$/MWh", x = "Percentage of Time") +
       scale_color_manual(values = c("goldenrod1", "forestgreen", "cornflowerblue")) +
       scale_x_continuous(expand=c(0,0), 
                          limits = c(0,1.1),
                          labels = percent) +
-      scale_y_continuous(expand=c(0,0)
-      )
+      
+      scale_y_continuous(expand=c(0,0)) 
   }
   
-  ################################################################################
-  ################################################################################
-  # Combination plotting functions defined
-  ################################################################################
-  ################################################################################
-  
-  ################################################################################
-  # Function to plot four years for a specific case study
-  ################################################################################
+################################################################################
+#
+#
+# COMBINED PLOTS SECTION
+#
+#
+################################################################################ 
+################################################################################
+## FUNCTION: Week4
+## Function to plot four years for a specific case study
+################################################################################
   
   Week4 <- function(month,day,case) {
     ggdraw(add_sub(ggarrange(Week14(Yr4Sp[[1]],month,day,case),
@@ -863,9 +884,10 @@ imsave_loc <- function(name) {
                              ncol = 2, nrow = 2), SourceDB))
   }
   
-  ################################################################################
-  # Function to plot Price and Output together
-  ################################################################################
+################################################################################
+## FUNCTIONS: PrOt, PrOut, PrOut4
+## Plot Price and Output together
+################################################################################
   
   PrOt <- function(year,month,day,case) {
     plot_grid(week_price(year,month,day,case) + 
@@ -887,10 +909,10 @@ imsave_loc <- function(name) {
               Week14(year,month,day,case)+theme(legend.position ="none"), 
               ncol = 1, align="v", axis = "l",rel_heights = c(1,1,2.5))
   }
-  
-  ################################################################################
-  # Function for plotting the month/year profile with the build
-  ################################################################################
+################################################################################
+## FUNCTION: EvalOut
+## Plotting the month/year profile with the build
+################################################################################
   
   EvalOut <- function(input,case) {
     p1 <- plot_grid(Eval(input,case) + theme(legend.position="top"), 
@@ -902,10 +924,10 @@ imsave_loc <- function(name) {
     
     ggdraw(add_sub(p1,paste("Simulation: ",SourceDB, sep = "")))
   }
-  
-  ################################################################################
-  # Function to plot four years for a specific case study of the combined plots
-  ################################################################################
+################################################################################
+## FUNCTIONS: BuildUnits, BuildUnits2
+## Plot four years for a specific case study of the combined plots
+################################################################################
   
   BuildUnits <- function(case, Fuel) {
     p1 <- plot_grid(Units(case,Fuel)+theme(axis.title.x = element_blank(),
@@ -926,9 +948,10 @@ imsave_loc <- function(name) {
     ggdraw(add_sub(p1,paste("Simulation: ",SourceDB, sep = "")))
   }
   
-  ################################################################################
-  # Function to plot four years for a specific case study of the combined plots
-  ################################################################################
+################################################################################
+## FUNCTIONS: g_legend, Eval2, Eval4
+## Plot four years for a specific case study of the combined plots
+################################################################################
   
   g_legend<-function(a.gplot){
     tmp <- ggplot_gtable(ggplot_build(a.gplot))

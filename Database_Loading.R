@@ -45,7 +45,8 @@
   
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
-                   "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo","ggpattern","here","beepr","showtext")
+                   "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
+                   "ggpattern","here","beepr","showtext")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -75,15 +76,6 @@
   NZC1 <- "Net Zero Case 1" 
 }
 
-{ # Define fuel types for new builds
-  solar <- "SUN"
-  wind <- "WND"
-  other <- "OT"
-  storage <- "PS"
-  gas1 <- "Gas1"
-  gas0 <- "Gas0"
-  }
-
 ################################################################################
 ## READ TABLES FROM DATABASE INTO ENVIRONMENT
 ## Can edit to select required tables only, DOUBLE CHECK all tables are in databse
@@ -106,8 +98,8 @@
 #  ResGroupEmSt <- dbReadTable(con,'ResourceGroupEmissionsStudy1')
   
   # Other Tables
-  ResStackYr <- dbReadTable(con,'ResourceStackYear1')
-  ResStackHr  <- dbReadTable(con,'ResourceStackHour1')
+#  ResStackYr <- dbReadTable(con,'ResourceStackYear1')
+#  ResStackHr  <- dbReadTable(con,'ResourceStackHour1')
   Link <- dbReadTable(con,'LinkYear1')
 #  CC <- dbReadTable(con,'CustomConstraint1')
 #  ZoneYr <- dbReadTable(con,'ZoneYear1')
@@ -148,10 +140,10 @@
                         format = "%Y")
   
   # Other Tables
-  ResStackYr$Time_Period  <- as.Date(as.character(ResStackYr$Time_Period), 
-                        format = "%Y")
-  ResStackHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResStackHr$Time_Period))), 
-                        tz = "MST")-(60*60)
+#  ResStackYr$Time_Period  <- as.Date(as.character(ResStackYr$Time_Period), 
+#                        format = "%Y")
+#  ResStackHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResStackHr$Time_Period))), 
+#                        tz = "MST")-(60*60)
 #  Link$Time_Period  <- as.Date(as.character(Link$Time_Period), 
 #                       format = "%Y")
 #  ZoneYr$Time_Period  <- as.Date(as.character(ZoneYr$Time_Period), 
@@ -295,9 +287,9 @@
 ## PLOT SETTINGS
 ## Can change here
   { # Colours Info
-    # IMPORT - violetred
+    # IMPORT - maroon1
     # COAL - snow3
-    # COGEN - snow4
+    # COGEN - gray47
     # SCGT - mediumorchid4
     # NGCC - darkorchid1
     # HYDRO - dodgerblue3
@@ -305,6 +297,7 @@
     # WIND - chartreuse3
     # SOLAR - gold
     # STORAGE - paleturquoise 
+    # COal2Gas - deeppink4
     }
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
@@ -323,17 +316,31 @@
     YTit_Sz = 20
     Overall_Sz =15 }
     
+    
+  { # Define fuel types for new builds
+    solar <- "SUN"
+    wind <- "WND"
+    other <- "OT"
+    storage <- "PS"
+    gas1 <- "Gas1"
+    gas0 <- "Gas0"
+  }  
+    
   # Set legend color schemes for contistancy
-  colours = c("violetred", "snow3", "snow4", "mediumorchid4", "darkorchid1", 
+  colours = c("maroon1", "snow3", "gray47", "mediumorchid4", "darkorchid1", 
               "navy", "chartreuse3", "#gold", "darkolivegreen1", "paleturquoise")
   
-  colours1 = c("violetred", "snow3", "snow4", "mediumorchid4", "darkorchid1", 
+  colours1 = c("maroon1", "snow3", "gray47", "mediumorchid4", "darkorchid1", 
                "dodgerblue3", "navy", "chartreuse3", "gold", "paleturquoise")
   
-  colours2 = c("snow3", "snow4", "mediumorchid4", "darkorchid1", 
+  colours2 = c("snow3", "deeppink4", "gray47", "darkorchid1", 
                "navy", "dodgerblue3", "chartreuse3", "gold", "paleturquoise")
   
   colours3 = c("chartreuse3","gold", "mediumorchid4", "darkorchid1", "paleturquoise", "steelblue")
+  
+  colours4 = c("maroon1", "snow3", "deeppink4", "gray47", "darkorchid1", 
+               "dodgerblue3", "navy", "chartreuse3", "gold", "paleturquoise")
+  
 }
   #For fun, make the code beep when its all done
   beep(3)
@@ -355,6 +362,24 @@
   # Average Pool Price for one week
   week_price(2023,10,08,BAU)
   
-  # 
-  eval()
+  # Gives overall picture of Output over time period
+  Eval(ResGroupMn,BAU)
+  
+  # Units Built over study period
+  Builtcol(BAU)
+  
+  # Units Built over study period by capacity
+  BuiltMW(BAU)
+  
+  # Lets you get where units were built 
+  Units(BAU,wind)
+  
+  # Lets you get where units could have been built 
+  Slack(BAU,wind)
+  
+  # Shows built and highlights potential builds
+  Units2(BAU,wind)
+  
+  #Shows Prices for simulation duration
+  Sim_dur(BAU)
   
