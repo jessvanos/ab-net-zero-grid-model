@@ -7,28 +7,13 @@
 # LAST EDIT: June 14, 2022
 
 ################################################################################
-
 ################################################################################
-## FUNCTION: AESO_Pr0t
-## Price and output side by side 
+## FUNCTIONS: AESO_Sim
+## Plot comparison between actual and simulated data
 ##
-## INPUTS: 
-##    year, month, day - Date to look at
-## FUNCTIONS REQUIRED: 
-##    wkPrice - One week of AESO price data output
-##    Week_act - One week of AESO data output
-################################################################################
-
-AESO_PrOt <- function(year,month,day) {
-  plot_grid(wkPrice(year,month,day) + 
-              theme(axis.title.x=element_blank(),axis.text.x=element_blank(),legend.position ="bottom"),
-            
-            Week_act(year,month,day)+theme(legend.position ="none"), 
-            ncol = 1, align="v", axis = "l",rel_heights = c(1,2.5))
-}
-
-################################################################################
-# Plot comparison between actual and simulated data
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
 ################################################################################
 
 AESO_Sim <- function(year,month,day,case) {
@@ -50,7 +35,8 @@ AESO_Sim <- function(year,month,day,case) {
     min(layer_scales(SimO)$y$range$range,layer_scales(ActO)$y$range$range),
     100, f = floor)
   
-  legend <- gtable_filter(ggplotGrob(Week1(year,month,day,case)), "guide-box")
+  legend <- gtable_filter(ggplotGrob(Week1(year,month,day,case)), "guide-box") +
+              theme(legend.position = "bottom")
   
   sz <- 15
   
@@ -86,7 +72,8 @@ AESO_Sim <- function(year,month,day,case) {
                                                        breaks = pretty_breaks(4)),
                                   Week_act(year,month,day)+
                                     theme(legend.position ="none",
-                                          axis.title.y=element_blank())+
+                                          axis.title.y=element_blank(),
+                                          plot.title=element_blank())+
                                     scale_y_continuous(expand=c(0,0), limits = c(MNO,MXO), 
                                                        breaks = pretty_breaks(4)), 
                                   ncol = 1, align="v", axis = "l",
@@ -97,7 +84,13 @@ AESO_Sim <- function(year,month,day,case) {
 }
 
 ################################################################################
-# Plot difference between simulated and actual pool price
+## FUNCTIONS: rev_dur
+## Plot difference between simulated and actual pool price
+##
+## INPUTS:
+##    year1 and year2 - Years to compare
+##    type - Plant type
+##    case - Run_ID which you want to plot
 ################################################################################
 
 rev_dur <- function(year1, year2, type, case) {

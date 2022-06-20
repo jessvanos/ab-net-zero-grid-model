@@ -514,7 +514,7 @@ Week14 <- function(year, month, day, case) {
             axis.text.x=element_text(vjust=-1),
             axis.title.x = element_text(vjust=-1,size= XTit_Sz,face="bold"),
             axis.text.y=element_text(hjust=-0.5),
-            axis.title.y = element_text(vjust=1.5,size= YTit_Sz,face="bold"),
+            axis.title.y = element_text(vjust=2,size= YTit_Sz,face="bold"),
             panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'grey'),
             panel.grid.minor.y = element_line(size=0.25,linetype=5,color = 'lightgrey'),
             panel.grid.major.x = element_blank(),
@@ -568,21 +568,24 @@ Week14 <- function(year, month, day, case) {
     data %>%
       ggplot() +
       aes(Time_Period, (Output_MWH/1000), fill = ID) +
-      geom_area(alpha=0.7, size=.5, colour="black") +
+      geom_area(alpha=1, size=.5, colour="black") +
       #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
       
       theme(panel.grid = element_blank(),
-            axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+            axis.text.x = element_text(vjust = 1),
             axis.title.x = element_text(size = XTit_Sz,face = "bold"),
             axis.title.y = element_text(size = YTit_Sz,face = "bold"),
             plot.title = element_text(size = Tit_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
             panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            panel.background = element_rect(fill = NA),
+            panel.ontop = TRUE,
             legend.key.size = unit(0.5,"lines"), #Shrink legend
             legend.justification = c(0,0.5),
+            legend.title=element_blank(),
             text = element_text(size = 20)) +
       
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
@@ -717,7 +720,7 @@ Week14 <- function(year, month, day, case) {
     
     ggplot(data) +
       aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=0.7, size=.5, colour="black") +
+      geom_bar(position="stack", stat="identity", alpha=1, size=.5, colour="black") +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -771,7 +774,7 @@ Week14 <- function(year, month, day, case) {
     
     ggplot(data) +
       aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=0.7, size=.5, colour="black") +
+      geom_bar(position="stack", stat="identity", alpha=1, size=.5, colour="black") +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -784,11 +787,13 @@ Week14 <- function(year, month, day, case) {
             legend.position = ("bottom"),
             legend.key.size = unit(0.5,"lines"),
             panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            panel.background = element_rect(fill = NA),
+            panel.ontop = TRUE,
             text = element_text(size = 20)) +
 
       guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
       
-      labs(x = "Date", y = "Capacity Built \n(MW)", fill = "Fuel Type") +
+      labs(x = "Date", y = "Capacity Built (MW)", fill = "Fuel Type") +
       scale_y_continuous(expand=c(0,0),
                          limits = c(0,plyr::round_any(mxc, 100, f = ceiling))) +
       #    scale_x_discrete(expand=c(0,0)) +
@@ -887,55 +892,10 @@ Week14 <- function(year, month, day, case) {
       theme(text=element_text(family=Plot_Text))
   }
   
-################################################################################  
-## FUNCTION: Units2
-## Unit specific bar chart showing builds with potential builds highlighted
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-##    Fuel - Fuel type matching Fuel_ID 
-## TABLES REQUIRED: 
-##    Build - Build table describing all new resources
-################################################################################
-  
-  Units2 <- function(case, Fuel) {
-    data <- Build %>%
-      filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
-               Time_Period == "Study" & Fuel_Type == Fuel) %>%
-      mutate(Potential = ifelse(grepl("Potential", Name, fixed = TRUE), 
-                                "Hypothetical", "AESO Queue"))
-    
-    data %>%
-      ggplot() +
-      aes(Name, Units_Built, fill = Potential) + 
-      geom_col() +
-      labs(x = "Plant Name", y = "Units Built") +
-      scale_fill_manual(
-        values = c("Hypothetical"="forestgreen", "AESO Queue"="gray"),
-        guide = "none") +
-      scale_y_continuous(expand = c(0,0),
-                         limits = c(0,(max(data$Units_Built)+1))) +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-            panel.background = element_rect(fill = "transparent"),
-            axis.title.x = element_text(size = XTit_Sz,face="bold"),
-            axis.title.y = element_text(size = YTit_Sz,face="bold"),
-            panel.grid.major.x = element_blank(),
-            panel.grid.minor.x = element_blank(),
-            plot.background = element_rect(fill = "transparent", color = NA),
-            legend.key = element_rect(colour = "transparent", fill = "transparent"),
-            legend.key.size = unit(0.5,"lines"),
-            legend.background = element_rect(fill='transparent'),
-            legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            panel.grid.major.y = element_line(size=0.25,linetype=5, color = "gray36" ),
-            text = element_text(size = 15),
-            panel.border = element_rect(colour = "black", fill = "transparent")) +
-      
-      theme(text=element_text(family=Plot_Text))
-  }
   
 ###############################################################################  
 ## FUNCTION: Sim_dur 
-## Simulation duration curve. 
+## Simulation duration curve ploted each year
 ## The price duration curve represents the percentage of hours in which pool price 
 ## equaled or exceeded a specified level.
 ##
@@ -989,13 +949,17 @@ Week14 <- function(year, month, day, case) {
 ################################################################################
   
   Week4 <- function(month,day,case) {
-    ggdraw(add_sub(ggarrange(Week14(Yr4Sp[[1]],month,day,case),
-                             Week14(Yr4Sp[[2]],month,day,case),
-                             Week14(Yr4Sp[[3]],month,day,case),
-                             Week14(Yr4Sp[[4]],month,day,case),
+    ggdraw(add_sub(ggarrange(Week14(Yr4Sp[[1]],month,day,case) +
+                             theme(legend.position ="none"),
+                             Week14(Yr4Sp[[2]],month,day,case) +
+                               theme(legend.position ="none"),
+                             Week14(Yr4Sp[[3]],month,day,case) +
+                               theme(legend.position ="none"),
+                             Week14(Yr4Sp[[4]],month,day,case) +
+                               theme(legend.position ="none"),
                              labels = c(Yr4Sp[[1]],Yr4Sp[[2]],Yr4Sp[[3]],Yr4Sp[[4]]),
                              common.legend = TRUE, 
-                             legend = "right",ncol = 2, nrow = 2),paste("Simulation Name: SourceDB")))
+                             legend = "bottom",ncol = 2, nrow = 2),paste("Simulation Name: SourceDB")))
   }
   
 ################################################################################
@@ -1005,7 +969,9 @@ Week14 <- function(year, month, day, case) {
   
   PrOt <- function(year,month,day,case) {
     plot_grid(week_price(year,month,day,case) + 
-                theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.title=element_blank()),
+                theme(axis.title.x=element_blank(),
+                      axis.text.x=element_blank(),
+                      axis.title=element_blank()),
                 Week1(year,month,day,case)+
                 theme(legend.position ="bottom"), 
                 ncol = 1, align="v", axis = "l",rel_heights = c(1,2.5)) +
@@ -1028,14 +994,21 @@ Week14 <- function(year, month, day, case) {
 ################################################################################
   
   EvalOut <- function(input,case) {
-    p1 <- plot_grid(Eval(input,case) + theme(legend.position="top"), 
-                    Builtcol(case)+theme(legend.position ="none",
-                                         axis.title.x = element_blank(),
-                                         axis.text.x = element_blank()), 
-                    BuiltMW(case)+theme(legend.position ="none"), 
-                    ncol = 1, align="v", axis = "l",rel_heights = c(2.5,0.8,1))
+    p1 <- Eval(input,case) +
+                      theme(legend.position="bottom",
+                            legend.spacing.x = unit(0.5,"lines")) +
+                      guides(fill = guide_legend(nrow = 1, byrow = TRUE)) 
+    p2 <- Builtcol(case) +
+            theme(legend.position ="none",
+               axis.title.x = element_blank(),
+               axis.text.x = element_blank())
+    p3 <- BuiltMW(case) +
+            theme(legend.position ="none",
+                  axis.title.x = element_blank()) 
+                    
+    p4 <- plot_grid(p3, p2, p1, ncol = 1, nrow=3, align="v", axis = "l",rel_heights = c(1,1,2.5))
     
-    ggdraw(add_sub(p1,paste("Simulation: ",SourceDB, sep = "")))
+    ggdraw(add_sub(p4,paste("Simulation: ",SourceDB, sep = "")))
   }
 ################################################################################
 ## FUNCTIONS: BuildUnits, BuildUnits2
@@ -1043,13 +1016,17 @@ Week14 <- function(year, month, day, case) {
 ################################################################################
   
   BuildUnits <- function(case, Fuel) {
-    p1 <- plot_grid(Units(case,Fuel)+theme(axis.title.x = element_blank(),
-                                           axis.text.x = element_blank()),
-                    Slack(case,Fuel), 
-                    ncol = 1, align="v", axis = "l",rel_heights = c(1,1)) +
-    theme(legend.position ="none")
+    p1 <- Units(case,Fuel)+
+            theme(axis.title.x = element_blank(),
+                axis.text.x = element_blank(),
+                legend.position ="none")
     
-    ggdraw(add_sub(p1,paste("Simulation: ",SourceDB, sep = "")))
+    p2 <- Slack(case,Fuel)  +
+            theme(legend.position ="none")
+    
+    p3 <- plot_grid(p1, p2, ncol = 1, align="v", axis = "l", rel_heights = c(1,1))
+    
+    ggdraw(add_sub(p3,paste("Simulation: ",SourceDB,"; ", "Fuel Type:",Fuel, sep = "")))
   }
   
   BuildUnits2 <- function(case, Fuel) {
@@ -1062,22 +1039,4 @@ Week14 <- function(year, month, day, case) {
     ggdraw(add_sub(p1,paste("Simulation: ",SourceDB, sep = "")))
   }
   
-################################################################################
-## FUNCTIONS: g_legend, Eval2, Eval4  ** Not Done
-## Plot four years for a specific case study of the combined plots
-################################################################################
-  
-  g_legend<-function(a.gplot){
-    tmp <- ggplot_gtable(ggplot_build(a.gplot))
-    leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-    legend <- tmp$grobs[[leg]]
-    return(legend)}
-  
-  Eval2 <- function(month,day,case) {
-    ggarrange(arrangeGrob(PrOt(Yr2Sp[[1]],month,day,case)+theme(legend.position ="bottom"),
-                          PrOt(Yr2Sp[[2]],month,day,case)+theme(legend.position ="none"),
-                          common.legend = TRUE, 
-                          legend = "right",ncol = 2, nrow = 2, widths=c(12,1)))
-             # g_legend(Week1(Yr2Sp[[1]],month,day,case))
-  }
   

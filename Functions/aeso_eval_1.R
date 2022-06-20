@@ -33,9 +33,6 @@ Week_act <- function(year,month,day) {
   wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
   
-  #wk_st <- hms::as.hms(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
-  #wk_end <- hms::as.hms(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
-  
   df1a$time <- as.POSIXct(df1a$time, tz = "MST")
   
   # Select only a single week
@@ -76,37 +73,42 @@ Week_act <- function(year,month,day) {
   # Plot the data    
   ggplot() +
     geom_area(data = WK, aes(x = time, y = total_gen, fill = Plant_Type), 
-              alpha=0.7, size=.5, colour="black") +
+              alpha=1, size=.25, colour="black") +
     
     # Add hourly load line
     geom_line(data = dmd, 
               aes(x = time, y = Demand), size=2, colour = "black") +
     
-    scale_x_datetime(expand=c(0,0)) +
+    scale_x_datetime(expand=c(0,0),date_labels = "%b-%e" ,breaks = "day") +
     
-  # Set the theme for the plot
+    # Set the theme for the plot
   theme_bw() +
-    theme(panel.grid = element_blank(),
-          legend.position = "right") +
-          
+    
     theme(text=element_text(family=Plot_Text)) +
   
-    theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
+    theme(panel.grid = element_blank(),
+          legend.position = "bottom",
+    ) +
+    theme(axis.text.x = element_text(vjust = 1),
           panel.background = element_rect(fill = "transparent"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          axis.title.x = element_text(size = XTit_Sz),
-          axis.title.y = element_text(size = YTit_Sz),
-          text = element_text(size = 15),
+          axis.title.x = element_text(size= XTit_Sz,face = 'bold'),
+          axis.title.y = element_text(size= YTit_Sz,face = 'bold'),
+          title = element_text(size= Tit_Sz),
+          panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36"),
+          panel.ontop = TRUE,
           plot.background = element_rect(fill = "transparent", color = NA),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.background = element_rect(fill='transparent'),
+          legend.key.size = unit(0.5,"lines"),
+          legend.title=element_blank(),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          legend.key.size = unit(0.5,"lines"), 
-          panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
+          text = element_text(size= 20)
     ) +
+    guides(fill = guide_legend(nrow = 1)) +
     scale_y_continuous(expand=c(0,0)) +
-    labs(x = "Date", y = "Output (MWh)", fill = "AESO Data: \nResource") +
+    labs(title = paste("AESO Data,", year), x = "Date", y = "Output (MWh)") +
     scale_fill_manual(values = colours)
 }
 
@@ -122,15 +124,18 @@ Week_act <- function(year,month,day) {
 wkPrice <- function(year,month,day) {
   
   wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
-  wk_end <- as.POSIXct(paste(day+14,month,year, sep = "/"), format="%d/%m/%Y")
+  wk_end <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
   
   price_WK <- demand %>%
     filter(time >= wk_st & time <= wk_end)
   
+  # Set the max for the plot
+  MX <- plyr::round_any(max(abs(price_WK$Price)+10), 10, f = ceiling)
+  
   ggplot() +
     geom_line(data = price_WK, 
               aes(x=time, y=Price), 
-              size = 1.5, color="red") +
+              size = 1.5, color="midnightblue") +
     scale_x_datetime(expand=c(0,0)) +
     
     theme_bw() +
@@ -139,17 +144,18 @@ wkPrice <- function(year,month,day) {
           panel.grid = element_blank(),
           axis.title.x = element_text(size = XTit_Sz),
           axis.title.y = element_text(size = YTit_Sz),
+          axis.text.y=element_text(hjust=-0.5),
           plot.background = element_rect(fill = "transparent", color = NA),
           panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'grey'),
           panel.grid.minor.y = element_line(size=0.25,linetype=5,color = 'lightgrey'),
           text = element_text(size= 20)
     ) +
-    scale_y_continuous(expand=c(0,0)) +
+    scale_y_continuous(expand=c(0,0),limits=c(0,MX)) +
     labs(x = "Date", y = "Pool Price ($/MWh)")
 }
 
 ################################################################################
-## FUNCTION: cap_pf
+## FUNCTION: cap_pf **NOT READ
 ## Plots actual AESO pool price
 ##
 ## INPUTS: 
@@ -257,7 +263,7 @@ cap_pf <- function(plant){#, year){
 }
 
 ################################################################################
-## FUNCTION: hrc
+## FUNCTION: hrc  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -293,7 +299,7 @@ hrc <- function(plant) {
 }
 
 ################################################################################
-## FUNCTION: cap_offer
+## FUNCTION: cap_offer  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -435,7 +441,7 @@ cap_offer <- function(plant){#, year){
 }
 
 ################################################################################
-## FUNCTION: cap_offermn
+## FUNCTION: cap_offermn  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -625,7 +631,7 @@ cap_offermn <- function(plant){#, year){
 }
 
 ################################################################################
-## FUNCTION: cdata
+## FUNCTION: cdata  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -757,7 +763,7 @@ cdata <- function(plant,parameter){
 }
 
 ################################################################################
-## FUNCTION: cap_type
+## FUNCTION: cap_type  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -929,7 +935,7 @@ cap_type <- function(plant_type){#, year){
 }
 
 ################################################################################
-## FUNCTION: table_type
+## FUNCTION: table_type  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -1054,7 +1060,7 @@ table_type <- function(plant_type){#, year){
 }
 
 ################################################################################
-## FUNCTION: table_data
+## FUNCTION: table_data  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -1179,7 +1185,7 @@ table_data <- function(plant_type){#, year){
 }
 
 ################################################################################
-## FUNCTION: graph_type
+## FUNCTION: graph_type  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -1399,7 +1405,7 @@ graph_type <- function(plant_type){
 }
 
 ################################################################################
-## FUNCTION: Cap3
+## FUNCTION: Cap3  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -1454,7 +1460,7 @@ Cap4 <- function(plant1,plant2,plant3,plant4) {
 }
 
 ################################################################################
-## FUNCTION: yearly_dmd
+## FUNCTION: yearly_dmd  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -1481,7 +1487,7 @@ yearly_dmd <- function(year) {
 }
 
 ################################################################################
-## FUNCTION: monthly_dmd_ave
+## FUNCTION: monthly_dmd_ave  **NOT READ
 ## 
 ##
 ## INPUTS: 
@@ -1554,3 +1560,22 @@ monthly_dmd_ave <- function() {
     labs(y = "Load (MWh)",
     )
 }
+
+################################################################################
+## FUNCTION: AESO_Pr0t
+## Price and output side by side 
+##
+## INPUTS: 
+##    year, month, day - Date to look at
+## FUNCTIONS REQUIRED: 
+##    wkPrice - One week of AESO price data output
+##    Week_act - One week of AESO data output
+################################################################################
+
+AESO_PrOt <- function(year,month,day) {
+  plot_grid(wkPrice(year,month,day) + 
+              theme(axis.title.x=element_blank(),axis.text.x=element_blank(),legend.position ="bottom"),
+            
+            Week_act(year,month,day)+theme(legend.position ="none"), 
+            ncol = 1, align="v", axis = "l",rel_heights = c(1,2.5)) 
+  }

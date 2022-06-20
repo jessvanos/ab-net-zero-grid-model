@@ -327,7 +327,7 @@
       cOL_NGCC <- "darkorchid1"
       cOL_HYDRO <- "dodgerblue3"
       cOL_OTHER <- "navy"
-      cOL_WIND <- "chartreuse3"
+      cOL_WIND <- "forestgreen"
       cOL_SOLAR <- "gold"
       cOL_STORAGE <- "paleturquoise" 
       cOL_COal2Gas <- "deeppink4"
@@ -353,14 +353,12 @@
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   
-  source(here('Functions','sim_eval_1.R'))
-  
 ## SIM FUNCTIONS
     #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
     day1(2021,01,08,BAU)
     
     # Gives stacked area chart for single week
-    Week14(2023,01,08,BAU)
+    Week1(2023,01,08,BAU)
     
     # Gives weekly storage function
     Stor1(2021,01,08,BAU)
@@ -370,6 +368,9 @@
     
     # Gives overall picture of Output over time period
     Eval(ResGroupMn,BAU)
+    
+    # Gives overall picture of capacity over time period
+    Evalcap(ResGroupMn,BAU)
     
     # Units Built over study period
     Builtcol(BAU)
@@ -383,35 +384,39 @@
     # Lets you get where units could have been built 
     Slack(BAU,wind)
     
-    # Shows built and highlights potential builds
-    Units2(BAU,wind)
-    
     #Shows Prices for simulation duration
     Sim_dur(BAU)
 
 ## COMBINED SIM FUNCTIONS
     
-    # Plot over 4 years defined in plotting section
+    # Plot over 4 years defined in plotting section (2x2 grid)
     Week4(01,08,BAU)
     
     #Plot Pool price and output for a week 
-    PrOut(2023,10,08,BAU)
+    PrOt(2023,10,08,BAU)
 
     # New units, new capacity, and output for the duration
     EvalOut(ResGroupMn,BAU)
     
     #Compare available units and built units
     BuildUnits(BAU, wind)
-    BuildUnits2(BAU, wind)
     
-    # Pool price and output for two years side by side
-    Eval2(01,08,BAU)
     
 ## AESO FUNCTIONS
+    #AESO Output
+    Week_act(2020,01,08)
     
+    #AESO Week Price
+    wkPrice(2021,10,08)
     
-##  AESO SIM COMPARE FUNCTIONS
+    # AESO Week Price and output in one
     AESO_PrOt(2021,01,08)
     
+##  AESO SIM COMPARE FUNCTIONS
+
+    # Prices and Output for noth AESO and Sim
     AESO_Sim(2021,01,08,BAU)
+    
+    #Clear plots
+    # dev.off(dev.list()["RStudioGD"])
     
