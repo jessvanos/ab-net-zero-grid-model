@@ -285,20 +285,7 @@
 
 ################################################################################
 ## PLOT SETTINGS
-## Can change here
-  { # Colours Info
-    # IMPORT - maroon1
-    # COAL - snow3
-    # COGEN - gray47
-    # SCGT - mediumorchid4
-    # NGCC - darkorchid1
-    # HYDRO - dodgerblue3
-    # OTHER - navy
-    # WIND - chartreuse3
-    # SOLAR - gold
-    # STORAGE - paleturquoise 
-    # COal2Gas - deeppink4
-    }
+
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
   
@@ -331,20 +318,34 @@
     Yr2Sp <- c(2021, 2022)
     
   # Set legend color schemes for contistancy
-  colours = c("maroon1", "snow3", "gray47", "mediumorchid4", "darkorchid1", 
-              "navy", "chartreuse3", "#gold", "darkolivegreen1", "paleturquoise")
-  
-  colours1 = c("maroon1", "snow3", "gray47", "mediumorchid4", "darkorchid1", 
-               "dodgerblue3", "navy", "chartreuse3", "gold", "paleturquoise")
-  
-  colours2 = c("snow3", "deeppink4", "gray47", "darkorchid1", 
-               "navy", "dodgerblue3", "chartreuse3", "gold", "paleturquoise")
-  
-  colours3 = c("chartreuse3","gold", "mediumorchid4", "darkorchid1", "paleturquoise", "steelblue")
-  
-  colours4 = c("maroon1", "snow3", "deeppink4", "gray47", "darkorchid1", 
-               "dodgerblue3", "navy", "chartreuse3", "gold", "paleturquoise")
-  
+    ## Can change here
+    { # Colours Info
+      cOL_IMPORT <- "darkorange1"
+      cOL_COAL <- "snow3"
+      cOL_COGEN <- "gray47"
+      cOL_SCGT <- "mediumorchid4"
+      cOL_NGCC <- "darkorchid1"
+      cOL_HYDRO <- "dodgerblue3"
+      cOL_OTHER <- "navy"
+      cOL_WIND <- "chartreuse3"
+      cOL_SOLAR <- "gold"
+      cOL_STORAGE <- "paleturquoise" 
+      cOL_COal2Gas <- "deeppink4"
+    
+      colours = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
+                  cOL_OTHER, cOL_WIND, cOL_SOLAR, "darkolivegreen1", cOL_STORAGE)
+      
+      colours1 = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
+                   cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+      
+      colours2 = c(cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
+                   cOL_OTHER, cOL_HYDRO, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+      
+      colours3 = c(cOL_WIND,cOL_SOLAR, cOL_SCGT, cOL_NGCC, cOL_STORAGE, "steelblue")
+      
+      colours4 = c(cOL_IMPORT, cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
+                   cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+    }
 }
   #For fun, make the code beep when its all done
   beep(3)
@@ -406,4 +407,11 @@
     # Pool price and output for two years side by side
     Eval2(01,08,BAU)
     
+## AESO FUNCTIONS
+    
+    
+##  AESO SIM COMPARE FUNCTIONS
+    AESO_PrOt(2021,01,08)
+    
+    AESO_Sim(2021,01,08,BAU)
     

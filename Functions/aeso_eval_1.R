@@ -7,8 +7,8 @@
 # LAST EDIT: June 14, 2022
 
 ################################################################################
-
-# Identify Specific Plant traits
+## FUNCTION: plnt_tr
+## Identify Specific Plant traits
 ################################################################################
 plnt_tr <- function(Asset_ID) {
   plnt <- sub_samp %>%
@@ -16,10 +16,19 @@ plnt_tr <- function(Asset_ID) {
     subset(., select = c(time, Price, gen, Capacity, Plant_Type, AESO_Name, CO2, Heat.Rate, Revenue, Cap_Fac))
 }
 
+################################################################################
+## FUNCTION: Week_act
+## Plots actual AESO output for a single week given the case study
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+## TABLES REQUIRED: 
+##    df1a - Filtered version of nrgstream
+################################################################################
 Week_act <- function(year,month,day) {
   
-  colours = c("darkslateblue", "grey", "darkslategrey", "coral4", "goldenrod4", 
-              "darkcyan", "dodgerblue", "forestgreen", "gold", "cyan")
+  colours = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
+              cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
   
   wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
@@ -30,7 +39,6 @@ Week_act <- function(year,month,day) {
   df1a$time <- as.POSIXct(df1a$time, tz = "MST")
   
   # Select only a single week
-  ##############################################################################
   WKa <- df1a %>%
     filter(Plant_Type != "EXPORT" & Plant_Type != "IMPORT") %>%
     filter(time >= wk_st, time <= wk_end)
@@ -66,10 +74,9 @@ Week_act <- function(year,month,day) {
     filter(time >= wk_st & time <= wk_end)
   
   # Plot the data    
-  ##############################################################################
   ggplot() +
     geom_area(data = WK, aes(x = time, y = total_gen, fill = Plant_Type), 
-              alpha=0.6, size=.5, colour="black") +
+              alpha=0.7, size=.5, colour="black") +
     
     # Add hourly load line
     geom_line(data = dmd, 
@@ -77,21 +84,26 @@ Week_act <- function(year,month,day) {
     
     scale_x_datetime(expand=c(0,0)) +
     
-    # Set the theme for the plot
-    ############################################################################
+  # Set the theme for the plot
   theme_bw() +
     theme(panel.grid = element_blank(),
-          legend.position = "right",
-    ) +
+          legend.position = "right") +
+          
+    theme(text=element_text(family=Plot_Text)) +
+  
     theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
           panel.background = element_rect(fill = "transparent"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
+          axis.title.x = element_text(size = XTit_Sz),
+          axis.title.y = element_text(size = YTit_Sz),
+          text = element_text(size = 15),
           plot.background = element_rect(fill = "transparent", color = NA),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.background = element_rect(fill='transparent'),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size= 15)
+          legend.key.size = unit(0.5,"lines"), 
+          panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
     ) +
     scale_y_continuous(expand=c(0,0)) +
     labs(x = "Date", y = "Output (MWh)", fill = "AESO Data: \nResource") +
@@ -99,11 +111,14 @@ Week_act <- function(year,month,day) {
 }
 
 ################################################################################
+## FUNCTION: wkPrice
+## Plots actual AESO pool price
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+## TABLES REQUIRED: 
+##    demand - Filtered version of nrgstream
 ################################################################################
-# Plot the AESO pool price
-################################################################################
-################################################################################
-
 wkPrice <- function(year,month,day) {
   
   wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
@@ -117,15 +132,31 @@ wkPrice <- function(year,month,day) {
               aes(x=time, y=Price), 
               size = 1.5, color="red") +
     scale_x_datetime(expand=c(0,0)) +
+    
     theme_bw() +
+    theme(text=element_text(family=Plot_Text)) +
     theme(panel.background = element_rect(fill = "transparent"),
           panel.grid = element_blank(),
+          axis.title.x = element_text(size = XTit_Sz),
+          axis.title.y = element_text(size = YTit_Sz),
           plot.background = element_rect(fill = "transparent", color = NA),
-          text = element_text(size= 15)
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'grey'),
+          panel.grid.minor.y = element_line(size=0.25,linetype=5,color = 'lightgrey'),
+          text = element_text(size= 20)
     ) +
     scale_y_continuous(expand=c(0,0)) +
-    labs(x = "Date", y = "Pool Price \n($/MWh)")
+    labs(x = "Date", y = "Pool Price ($/MWh)")
 }
+
+################################################################################
+## FUNCTION: cap_pf
+## Plots actual AESO pool price
+##
+## INPUTS: 
+##    Plant - plant to look at
+## TABLES REQUIRED: 
+##    meritfilt - Filtered version of leach merit data
+################################################################################
 
 cap_pf <- function(plant){#, year){
   Mode <- function(x) {
@@ -225,6 +256,16 @@ cap_pf <- function(plant){#, year){
          subtitle = paste("Bids at $0 at ",round(must_run*100, digits=2),"% CF",sep=""))
 }
 
+################################################################################
+## FUNCTION: hrc
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    sub_samb - Filtered version of ngrstream
+################################################################################
+
 hrc <- function(plant) {
   data <- sub_samp %>%
     filter(ID == plant) %>%
@@ -250,6 +291,16 @@ hrc <- function(plant) {
     scale_y_continuous(expand=c(0,0)
     )
 }
+
+################################################################################
+## FUNCTION: cap_offer
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    
+################################################################################
 
 cap_offer <- function(plant){#, year){
   #  start <- as.Date(paste(year,"-01-01",sep=""))
@@ -382,6 +433,16 @@ cap_offer <- function(plant){#, year){
          title = paste(name, type, sep = ": "),
     )
 }
+
+################################################################################
+## FUNCTION: cap_offermn
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    
+################################################################################
 
 cap_offermn <- function(plant){#, year){
   
@@ -563,6 +624,16 @@ cap_offermn <- function(plant){#, year){
     )
 }
 
+################################################################################
+## FUNCTION: cdata
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    
+################################################################################
+
 cdata <- function(plant,parameter){
   
   # Set a start and end date if needed
@@ -684,6 +755,16 @@ cdata <- function(plant,parameter){
   setwd("F:/My Drive/transfer")
   write.csv(data3, "Incremental_Bid_Factors.csv")
 }
+
+################################################################################
+## FUNCTION: cap_type
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    
+################################################################################
 
 cap_type <- function(plant_type){#, year){
   
@@ -847,6 +928,16 @@ cap_type <- function(plant_type){#, year){
   write.csv(data2, paste(type,"BidFac","OffPeak","Incremental_Bid_Factors.csv",sep="_"))
 }
 
+################################################################################
+## FUNCTION: table_type
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    
+################################################################################
+
 table_type <- function(plant_type){#, year){
   
   # Set a start and end date if needed
@@ -962,6 +1053,16 @@ table_type <- function(plant_type){#, year){
   #  write.csv(data2, paste(type,"BidFac","OnPeak","Incremental_Bid_Factors.csv",sep="_"))
 }
 
+################################################################################
+## FUNCTION: table_data
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    
+################################################################################
+
 table_data <- function(plant_type){#, year){
   
   # Set a start and end date if needed
@@ -1076,6 +1177,16 @@ table_data <- function(plant_type){#, year){
   write.csv(data3, paste(type,"_Bid_Factors.csv",sep="_"))
   #  write.csv(data2, paste(type,"BidFac","OnPeak","Incremental_Bid_Factors.csv",sep="_"))
 }
+
+################################################################################
+## FUNCTION: graph_type
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    
+################################################################################
 
 graph_type <- function(plant_type){
   # Plots each month capture prices, bidding factors at the various capacities
@@ -1287,6 +1398,16 @@ graph_type <- function(plant_type){
     )
 }
 
+################################################################################
+## FUNCTION: Cap3
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    
+################################################################################
+
 Cap3 <- function(plant1,plant2,plant3) {
   #  MXa <- plyr::round_any(
   #    max(layer_scales(cap_offer(plant1))$y$range$range,
@@ -1332,6 +1453,16 @@ Cap4 <- function(plant1,plant2,plant3,plant4) {
             ncol = 2, nrow = 2)
 }
 
+################################################################################
+## FUNCTION: yearly_dmd
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    
+################################################################################
+
 yearly_dmd <- function(year) {
   data <- demand 
   
@@ -1348,6 +1479,16 @@ yearly_dmd <- function(year) {
   #SAVE FILE (To save the processed data) This is to be entered into Aurora.
   write.csv(data, file=paste("Alberta",year,".csv",sep=""))
 }
+
+################################################################################
+## FUNCTION: monthly_dmd_ave
+## 
+##
+## INPUTS: 
+##    Plant - Plant to look at
+## TABLES REQUIRED: 
+##    
+################################################################################
 
 monthly_dmd_ave <- function() {
   data <- demand 

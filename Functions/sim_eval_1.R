@@ -203,7 +203,7 @@ imsave_loc <- function(name) {
     
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.7, size=.5, colour="white") +
+                alpha=0.7, size=.5, colour="black") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -294,7 +294,7 @@ Week14 <- function(year, month, day, case) {
   
   ggplot() +
     geom_area(data = WK, aes(x = date, y = Output_MWH,fill = ID), 
-              alpha=0.7, size=.5, colour="white") +
+              alpha=0.7, size=.5, colour="black") +
     
     # Add hourly load line (black line on the top)
     geom_line(data = ZPrice, 
@@ -375,7 +375,7 @@ Week14 <- function(year, month, day, case) {
     
     ggplot() +
       geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.7, size=.5, colour="white") +
+                alpha=0.7, size=.5, colour="black") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -558,7 +558,7 @@ Week14 <- function(year, month, day, case) {
     data %>%
       ggplot() +
       aes(Time_Period, (Output_MWH/1000), fill = ID) +
-      geom_area(alpha=0.7, size=.5, colour="white") +
+      geom_area(alpha=0.7, size=.5, colour="black") +
       #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
       
@@ -600,7 +600,7 @@ Week14 <- function(year, month, day, case) {
     data %>%
       ggplot() +
       aes(Time_Period, (Capacity/1000), fill = ID) +
-      geom_area(alpha=0.7, size=.5, colour="white") +
+      geom_area(alpha=0.7, size=.5, colour="black") +
       #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
       
@@ -707,7 +707,7 @@ Week14 <- function(year, month, day, case) {
     
     ggplot(data) +
       aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=0.7) +
+      geom_bar(position="stack", stat="identity", alpha=0.7, size=.5, colour="black") +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -761,7 +761,7 @@ Week14 <- function(year, month, day, case) {
     
     ggplot(data) +
       aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=0.7) +
+      geom_bar(position="stack", stat="identity", alpha=0.7, size=.5, colour="black") +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +

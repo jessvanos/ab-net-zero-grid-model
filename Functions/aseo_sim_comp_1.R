@@ -8,16 +8,21 @@
 
 ################################################################################
 
-
-#g_legend<-function(a.gplot){
-#  tmp <- ggplot_gtable(ggplot_build(a.gplot))
-#  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-#  legend <- tmp$grobs[[leg]]
-#  return(legend)}
+################################################################################
+## FUNCTION: AESO_Pr0t
+## Price and output side by side 
+##
+## INPUTS: 
+##    year, month, day - Date to look at
+## FUNCTIONS REQUIRED: 
+##    wkPrice - One week of AESO price data output
+##    Week_act - One week of AESO data output
+################################################################################
 
 AESO_PrOt <- function(year,month,day) {
   plot_grid(wkPrice(year,month,day) + 
-              theme(axis.title.x=element_blank(),axis.text.x=element_blank()),
+              theme(axis.title.x=element_blank(),axis.text.x=element_blank(),legend.position ="bottom"),
+            
             Week_act(year,month,day)+theme(legend.position ="none"), 
             ncol = 1, align="v", axis = "l",rel_heights = c(1,2.5))
 }
@@ -51,16 +56,18 @@ AESO_Sim <- function(year,month,day,case) {
   
   ggarrange(arrangeGrob(plot_grid(week_price(year,month,day,case) + 
                                     labs(title = paste0("Simulated Data for ",year),
-                                         subtitle = paste0("(",SourceDB,")")) +
+                                         subtitle = paste0("(","Source:",SourceDB,")")) +
                                     theme(axis.title.x=element_blank(),
                                           axis.text.x=element_blank(),
+                                          axis.title.y=element_text(size=sz),
                                           legend.position ="none",
                                           plot.title = element_text(hjust = 0.5, size = sz),
                                           plot.subtitle = element_text(hjust = 0.5, size = sz-2, face="italic")) + 
                                     scale_y_continuous(expand=c(0,0), limits = c(MNP,MXP), 
                                                        breaks = pretty_breaks(4)),
                                   Week1(year,month,day,case)+
-                                    theme(legend.position ="none") + 
+                                    theme(legend.position ="none",
+                                          axis.title.y=element_text(size=sz)) + 
                                     scale_y_continuous(expand=c(0,0), limits = c(MNO,MXO), 
                                                        breaks = pretty_breaks(4)), 
                                   ncol = 1, align="v", axis = "l",
@@ -69,8 +76,9 @@ AESO_Sim <- function(year,month,day,case) {
                         plot_grid(wkPrice(year,month,day) + 
                                     labs(title = paste0("AESO Data for ",year),
                                          subtitle = "NRGStream Data") +
-                                    theme(axis.title=element_blank(),
+                                    theme(axis.title.x=element_blank(),
                                           axis.text.x=element_blank(),
+                                          axis.title.y=element_blank(),
                                           legend.position ="none",
                                           plot.title = element_text(hjust = 0.5, size = sz),
                                           plot.subtitle = element_text(hjust = 0.5, size = sz-2, face="italic")) + 
@@ -84,7 +92,6 @@ AESO_Sim <- function(year,month,day,case) {
                                   ncol = 1, align="v", axis = "l",
                                   rel_heights = c(1,2.5)),
                         ncol=2, widths = c(1.05,1)),
-            
             legend,
             ncol=2, widths =c(5,1))
 }
