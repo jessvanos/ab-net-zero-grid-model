@@ -96,11 +96,10 @@
 ## This function is supposed to fill data gaps 
 ################################################################################
 fill_gaps <- function(inputdata) {
-  data <- inputdata %>%
+  data <- inputdata 
   
-    tidyr::spread(key = ID, value = Output_MWH, fill = 0) %>%
-    tidyr::gather(key = ID, value = Output_MWH, - date, - Run_ID) %>%
-    arrange(date, ID)
+
+
   
   return(data)
 }
@@ -131,6 +130,7 @@ fill_gaps <- function(inputdata) {
   #Create subset for specified week
   subset(data,
          (date >= wk_st & date <= wk_end)) 
+  
   }
 }
 ################################################################################
@@ -180,7 +180,6 @@ imsave_loc <- function(name) {
     data$ID <- factor(data$ID, levels=c("Import", "COAL", "COGEN", "SCGT", "NGCC", 
                                         "HYDRO", "OTHER",
                                         "WIND", "SOLAR", "STORAGE"))
-    
     ## SELECT A SINGLE WEEK
 
     # Select only a single week from the zone Hourly, and Export data
@@ -192,23 +191,23 @@ imsave_loc <- function(name) {
     WK$MX <- ZPrice$Demand + Expo$Output_MWH
     
     # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-    MX <- plyr::round_any(max(abs(WK$MX))+200, 100, f = ceiling)
+    MX <- plyr::round_any(max(abs(WK$MX))+500, 100, f = ceiling)
     MN <- plyr::round_any(min(WK$Output_MWH), 100, f = floor)
     
     # Title Formating
-    wk_st <- as.POSIXct(paste(year,month,day, sep = "-"),tz="MST")
-    wk_end <- as.POSIXct(paste(year,month,day+7, sep = "-"),tz="MST")
+    wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
+    wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
     
     ## PLOT WITH AREA PLOT
     
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.7, size=.5, colour="black") +
+                alpha=1, size=0.25, colour = "black") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
                 aes(x = date, y = Demand), size=1.5, colour = "black") +
-      scale_x_datetime(expand=c(0,0),breaks = "day") +
+      scale_x_datetime(expand=c(0,0),date_labels = "%b-%e" ,breaks = "day") +
       
       # Set the theme for the plot
       theme_bw() +
@@ -219,21 +218,25 @@ imsave_loc <- function(name) {
       
       theme(plot.title = element_text(size= Tit_Sz)) +
       
-      theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
+      theme(axis.text.x = element_text(vjust = 1),
             axis.title.x = element_text(size= XTit_Sz,face = 'bold'),
             axis.title.y = element_text(size= YTit_Sz,face = 'bold'),
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            panel.ontop = TRUE,
             plot.background = element_rect(fill = "transparent", color = NA),
+            legend.title=element_blank(),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             legend.key.size = unit(0.5,"lines"), #Shrink legend
-            legend.title = element_text(size=20),
+            legend.position = "bottom",
             text = element_text(size= 15)
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
                          breaks = seq(MN, MX, by = MX/4)) +
+      guides(fill = guide_legend(nrow = 1)) +
+      
       labs(x = "Date", y = "Output (MWh)", fill = "Resource") +
       
       #Add colour
@@ -282,7 +285,7 @@ Week14 <- function(year, month, day, case) {
   MXtime <- rbind(MX1, MX2, MX3, MX4)
   
   # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-  MX <- plyr::round_any(max(abs(MXtime$MX))+200, 100, f = ceiling)
+  MX <- plyr::round_any(max(abs(MXtime$MX))+500, 100, f = ceiling)
   MN <- plyr::round_any(min(MXtime$Output_MWH), 100, f = floor)
   
   
@@ -293,13 +296,13 @@ Week14 <- function(year, month, day, case) {
   ## PLOT WITH AREA PLOT
   
   ggplot() +
-    geom_area(data = WK, aes(x = date, y = Output_MWH,fill = ID), 
-              alpha=0.7, size=.5, colour="black") +
+    geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
+              alpha=1, size=0.25, colour = "black") +
     
     # Add hourly load line (black line on the top)
     geom_line(data = ZPrice, 
               aes(x = date, y = Demand), size=1.5, colour = "black") +
-    scale_x_datetime(expand=c(0,0),breaks = "day") +
+    scale_x_datetime(expand=c(0,0),date_labels = "%b-%e" ,breaks = "day") +
     
     # Set the theme for the plot
     theme_bw() +
@@ -310,21 +313,25 @@ Week14 <- function(year, month, day, case) {
     
     theme(plot.title = element_text(size= Tit_Sz)) +
     
-    theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
+    theme(axis.text.x = element_text(vjust = 1),
           axis.title.x = element_text(size= XTit_Sz,face = 'bold'),
           axis.title.y = element_text(size= YTit_Sz,face = 'bold'),
           panel.background = element_rect(fill = "transparent"),
           panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+          panel.ontop = TRUE,
           plot.background = element_rect(fill = "transparent", color = NA),
+          legend.title=element_blank(),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.background = element_rect(fill='transparent'),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
           legend.key.size = unit(0.5,"lines"), #Shrink legend
-          legend.title = element_text(size=20),
+          legend.position = "bottom",
           text = element_text(size= 15)
     ) +
     scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
                        breaks = seq(MN, MX, by = MX/4)) +
+    guides(fill = guide_legend(nrow = 1)) +
+    
     labs(x = "Date", y = "Output (MWh)", fill = "Resource") +
     
     #Add colour
@@ -368,14 +375,14 @@ Week14 <- function(year, month, day, case) {
     DY$MX <- ZPrice$Demand + Expo$Output_MWH
     
     # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-    MX <- plyr::round_any(max(abs(DY$MX))+200, 100, f = ceiling)
+    MX <- plyr::round_any(max(abs(DY$MX))+500, 100, f = ceiling)
     MN <- plyr::round_any(min(DY$Output_MWH), 100, f = floor)
     
     ## PLOT WITH AREA PLOT
     
     ggplot() +
       geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.7, size=.5, colour="black") +
+                alpha=1, size=.25, colour="black") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -385,27 +392,29 @@ Week14 <- function(year, month, day, case) {
       # Set the theme for the plot
       theme_bw() +
       theme(panel.grid = element_blank(),
-            legend.position = "right",) +
+            legend.position = "bottom",) +
       
       theme(text=element_text(family=Plot_Text)) +
       
       theme(plot.title = element_text(size= Tit_Sz)) +
       
-      theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust = 1),
+      theme(axis.text.x = element_text(vjust = 1),
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
             panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            panel.ontop = TRUE,
             plot.background = element_rect(fill = "transparent", color = NA),
+            legend.title=element_blank(),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.key.size = unit(0.5,"lines"), #Shrink legend
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            legend.title = element_text(size=20),
             axis.title.x = element_text(size=XTit_Sz,face='bold'),
             axis.title.y = element_text(size=YTit_Sz,face='bold'),
             text = element_text(size= Overall_Sz)
       ) +
+      guides(fill = guide_legend(nrow = 1)) +
       scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
                          breaks = seq(MN, MX, by = MX/4)) +
       
@@ -451,18 +460,19 @@ Week14 <- function(year, month, day, case) {
       theme(text=element_text(family=Plot_Text)) +
       
       theme(panel.grid = element_blank(),
-            axis.text.x=element_text(angle = 25, vjust = 1, hjust = 1),
+            axis.text.x=element_text(vjust = 0),
             plot.title = element_text(size=Tit_Sz),
-            legend.title = element_text(size=20),
-            axis.title.x = element_text(size=XTit_Sz,face='bold'),
+            legend.title = element_blank(),
+            legend.position = "none",
+            axis.title.x = element_text(size=XTit_Sz,face='bold',vjust = -1),
             axis.title.y = element_text(size=YTit_Sz,face='bold'),
             text = element_text(size= Overall_Sz)
       ) +
-      scale_x_datetime(expand=c(0,0),breaks = "day") +
+      scale_x_datetime(expand=c(0,0),date_labels = "%b-%e",breaks = "day") +
       scale_y_continuous(breaks = seq(-MX, MX, by = MX), 
                          limits = c(-MX-1,MX+1),
                          labels = label_number(accuracy = 1)) +
-      labs(x = "Date", y = "Storage (MWh)", fill = "Resource") +
+      labs(x = "Date", y = "Storage (MWh)") +
       scale_fill_manual(values = "paleturquoise")
   }
   
@@ -486,7 +496,7 @@ Week14 <- function(year, month, day, case) {
     ZPrice <- WkTime(data,year,month,day)
     
     # Set the max and min for the plot
-    MX <- plyr::round_any(max(abs(ZPrice$Price)), 10, f = ceiling)
+    MX <- plyr::round_any(max(abs(ZPrice$Price)+10), 10, f = ceiling)
     MN <- plyr::round_any(min(abs(ZPrice$Price)), 10, f = floor) #Could put in scale y limits
     
     #Max min for date (x-axis)
@@ -497,14 +507,14 @@ Week14 <- function(year, month, day, case) {
     ggplot() +
       geom_line(data = ZPrice, 
                 aes(x = date, y = Price), 
-                size = 1.5, colour = "red") +
+                size = 1.5, colour = "darkred") +
       theme_bw() +
       theme(text=element_text(family=Plot_Text)) +
       theme(panel.background = element_rect(fill = "transparent"),
             axis.text.x=element_text(vjust=-1),
             axis.title.x = element_text(vjust=-1,size= XTit_Sz,face="bold"),
             axis.text.y=element_text(hjust=-0.5),
-            axis.title.y = element_text(vjust=1,size= YTit_Sz,face="bold"),
+            axis.title.y = element_text(vjust=1.5,size= YTit_Sz,face="bold"),
             panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'grey'),
             panel.grid.minor.y = element_line(size=0.25,linetype=5,color = 'lightgrey'),
             panel.grid.major.x = element_blank(),
@@ -515,7 +525,7 @@ Week14 <- function(year, month, day, case) {
             
       ) +
       labs(y = "Pool Price ($/MWh)", x="Date",fill = "Resource") +
-      scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "day") +
+      scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "day",date_labels = "%b-%e") +
       scale_y_continuous(expand=c(0,0), 
                          limits= c(0,MX),
                          #                       labels = label_number(accuracy = 1),
