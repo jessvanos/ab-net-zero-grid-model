@@ -92,19 +92,6 @@
   }
 
 ################################################################################
-## FUNCTION: fill_gaps
-## This function is supposed to fill data gaps 
-################################################################################
-fill_gaps <- function(inputdata) {
-  data <- inputdata 
-  
-
-
-  
-  return(data)
-}
-  
-################################################################################
 ## FUNCTION: HrTime
 ## Convert the date and select a subset for one day from the data pulled in
 ################################################################################
@@ -142,11 +129,11 @@ fill_gaps <- function(inputdata) {
 ################################################################################
 # Save to a git folder
 imsave_git <- function(name) {
-  ggsave(plot=last_plot(),path = here("Figures"), filename = paste(name,".png", sep = ""), bg = "transparent")   }
+  ggsave(plot=last_plot(),path = here("Figures"), filename = paste(name,".png", sep = ""), bg = "transparent",dpi= 300)   }
 
 # Save to a loacl folder that is ignored by git
 imsave_loc <- function(name) {
-  ggsave(plot=last_plot(),path = here("Figures (Local)"), filename = paste(name,".png", sep = ""), bg = "white")   }
+  ggsave(plot=last_plot(),path = here("Figures (Local)"), filename = paste(name,".png", sep = ""), bg = "white", dpi= 300)   }
 
 ################################################################################
 #
@@ -202,7 +189,7 @@ imsave_loc <- function(name) {
     
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=1, size=0.25, colour = "black") +
+                alpha=0.7, size=0.25, colour = "black") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -297,7 +284,7 @@ Week14 <- function(year, month, day, case) {
   
   ggplot() +
     geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
-              alpha=1, size=0.25, colour = "black") +
+              alpha=0.7, size=0.25, colour = "black") +
     
     # Add hourly load line (black line on the top)
     geom_line(data = ZPrice, 
@@ -382,7 +369,7 @@ Week14 <- function(year, month, day, case) {
     
     ggplot() +
       geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=1, size=.25, colour="black") +
+                alpha=0.7, size=.25, colour="black") +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -568,7 +555,7 @@ Week14 <- function(year, month, day, case) {
     data %>%
       ggplot() +
       aes(Time_Period, (Output_MWH/1000), fill = ID) +
-      geom_area(alpha=1, size=.5, colour="black") +
+      geom_area(alpha=0.7, size=.5, colour="black") +
       #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
       
@@ -628,6 +615,7 @@ Week14 <- function(year, month, day, case) {
             panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
             legend.justification = c(0,0.5),
             legend.key.size = unit(0.5,"lines"),
+            legend.position = "bottom",
             text = element_text(size = 20)) +
       
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
@@ -662,7 +650,7 @@ Week14 <- function(year, month, day, case) {
     case_Time %>%
       ggplot() +
       aes(Time_Period, Output_MWH, fill = ID) +
-      geom_area(position = "fill", alpha=0.7, size=.5, colour="black") +
+      geom_area(position = "fill", alpha = 0.7, size=.5, colour="black") +
       geom_hline(yintercept = 0.3, linetype = "dashed", color = "forestgreen", size = 1.5) +
       geom_vline(xintercept = as.Date(ISOdate(2035, 1,1)),
                  linetype = "dashed", color = "dodgerblue", size = 1.5) +
@@ -720,7 +708,7 @@ Week14 <- function(year, month, day, case) {
     
     ggplot(data) +
       aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=1, size=.5, colour="black") +
+      geom_bar(position="stack", stat="identity", alpha=0.7, size=.5, colour="black") +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -728,6 +716,8 @@ Week14 <- function(year, month, day, case) {
       theme(panel.grid = element_blank(),  
             axis.title.x = element_text(size = XTit_Sz,face="bold"),
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
+            panel.ontop = TRUE,
+            panel.background = element_rect(fill = "transparent"),
             plot.title = element_text(size = Tit_Sz),
             legend.justification = c(0.5,0.5),
             legend.position = ("bottom"),
@@ -774,7 +764,7 @@ Week14 <- function(year, month, day, case) {
     
     ggplot(data) +
       aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=1, size=.5, colour="black") +
+      geom_bar(position="stack", stat="identity", alpha=0.7, size=.5, colour="black") +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -783,12 +773,12 @@ Week14 <- function(year, month, day, case) {
             axis.title.x = element_text(size = XTit_Sz,face="bold"),
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
             plot.title = element_text(size = Tit_Sz),
+            panel.ontop = TRUE,
+            panel.background = element_rect(fill = "transparent"),
             legend.justification = c(0.5,0.5),
             legend.position = ("bottom"),
             legend.key.size = unit(0.5,"lines"),
             panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
-            panel.background = element_rect(fill = NA),
-            panel.ontop = TRUE,
             text = element_text(size = 20)) +
 
       guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
@@ -827,13 +817,15 @@ Week14 <- function(year, month, day, case) {
       
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
 
-            panel.background = element_rect(fill = "transparent"),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
+            panel.grid.minor.y = element_blank(),
             axis.title.x = element_text(size = XTit_Sz,face="bold"),
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
             plot.title = element_text(size = Tit_Sz),
             plot.background = element_rect(fill = "transparent", color = NA),
+            panel.ontop = TRUE,
+            panel.background = element_rect(fill = "transparent"),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.key.size = unit(0.5,"lines"), 
             legend.background = element_rect(fill='transparent'),
@@ -875,9 +867,11 @@ Week14 <- function(year, month, day, case) {
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
+            panel.grid.minor.y = element_blank(),
             axis.title.x = element_text(size = XTit_Sz,face="bold"),
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
             plot.title = element_text(size = Tit_Sz),
+            panel.ontop = TRUE,
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.key.size = unit(0.5,"lines"), 

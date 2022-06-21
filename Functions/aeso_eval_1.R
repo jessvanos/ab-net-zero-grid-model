@@ -73,7 +73,7 @@ Week_act <- function(year,month,day) {
   # Plot the data    
   ggplot() +
     geom_area(data = WK, aes(x = time, y = total_gen, fill = Plant_Type), 
-              alpha=1, size=.25, colour="black") +
+              alpha=0.7, size=.25, colour="black") +
     
     # Add hourly load line
     geom_line(data = dmd, 

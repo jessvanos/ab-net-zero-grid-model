@@ -84,12 +84,12 @@ AESO_Sim <- function(year,month,day,case) {
 }
 
 ################################################################################
-## FUNCTIONS: rev_dur
+## FUNCTIONS: rev_dur **NOT READ
 ## Plot difference between simulated and actual pool price
 ##
 ## INPUTS:
 ##    year1 and year2 - Years to compare
-##    type - Plant type
+##    type - Plant type, ex: "WIND"
 ##    case - Run_ID which you want to plot
 ################################################################################
 
@@ -102,8 +102,6 @@ rev_dur <- function(year1, year2, type, case) {
            Run_ID == case, 
            Condition != "Average") %>%
     subset(.,select=c(date,Condition,Price))
-  
-  typeH <- sim_filt1(Hour)
   
   typeH <- ResGroupHr_sub%>%
     sim_filt1(.) %>%

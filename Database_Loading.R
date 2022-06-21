@@ -320,7 +320,7 @@
   # Set legend color schemes for contistancy
     ## Can change here
     { # Colours Info
-      cOL_IMPORT <- "darkorange1"
+      cOL_IMPORT <- "hotpink"
       cOL_COAL <- "snow3"
       cOL_COGEN <- "gray47"
       cOL_SCGT <- "mediumorchid4"
@@ -358,7 +358,7 @@
     day1(2021,01,08,BAU)
     
     # Gives stacked area chart for single week
-    Week1(2023,01,08,BAU)
+    Week1(2021,01,08,BAU)
     
     # Gives weekly storage function
     Stor1(2021,01,08,BAU)
