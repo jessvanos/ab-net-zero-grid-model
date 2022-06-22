@@ -27,9 +27,6 @@ plnt_tr <- function(Asset_ID) {
 ################################################################################
 Week_act <- function(year,month,day) {
   
-  colours = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
-              cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
-  
   wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
   
@@ -82,10 +79,10 @@ Week_act <- function(year,month,day) {
     scale_x_datetime(expand=c(0,0),date_labels = "%b-%e" ,breaks = "day") +
     
     # Set the theme for the plot
-  theme_bw() +
+    theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
-  
+    
     theme(panel.grid = element_blank(),
           legend.position = "bottom",
     ) +
@@ -96,8 +93,6 @@ Week_act <- function(year,month,day) {
           axis.title.x = element_text(size= XTit_Sz,face = 'bold'),
           axis.title.y = element_text(size= YTit_Sz,face = 'bold'),
           title = element_text(size= Tit_Sz),
-          panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36"),
-          panel.ontop = TRUE,
           plot.background = element_rect(fill = "transparent", color = NA),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.background = element_rect(fill='transparent'),
@@ -110,6 +105,8 @@ Week_act <- function(year,month,day) {
     scale_y_continuous(expand=c(0,0)) +
     labs(title = paste("AESO Data,", year), x = "Date", y = "Output (MWh)") +
     scale_fill_manual(values = colours)
+    
+    #scale_colour_manual(values = colours1)
 }
 
 ################################################################################

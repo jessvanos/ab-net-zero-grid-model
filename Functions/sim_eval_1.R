@@ -188,9 +188,9 @@ imsave_loc <- function(name) {
     ## PLOT WITH AREA PLOT
     
     ggplot() +
-      geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.7, size=0.25, colour = "black") +
-      
+      geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID, colour = ID), 
+                alpha=0.5, size=0.5) +
+
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
                 aes(x = date, y = Demand), size=1.5, colour = "black") +
@@ -198,8 +198,7 @@ imsave_loc <- function(name) {
       
       # Set the theme for the plot
       theme_bw() +
-      theme(panel.grid = element_blank(),
-            legend.position = "right",) +
+      theme(panel.grid = element_blank()) +
       
       theme(text=element_text(family=Plot_Text)) +
       
@@ -209,14 +208,12 @@ imsave_loc <- function(name) {
             axis.title.x = element_text(size= XTit_Sz,face = 'bold'),
             axis.title.y = element_text(size= YTit_Sz,face = 'bold'),
             panel.background = element_rect(fill = "transparent"),
-            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
-            panel.ontop = TRUE,
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.title=element_blank(),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
-            legend.background = element_rect(fill='transparent'),
+            legend.background = element_rect(fill='transparent',colour ='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            legend.key.size = unit(0.5,"lines"), #Shrink legend
+            legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
             text = element_text(size= 15)
       ) +
@@ -224,10 +221,13 @@ imsave_loc <- function(name) {
                          breaks = seq(MN, MX, by = MX/4)) +
       guides(fill = guide_legend(nrow = 1)) +
       
-      labs(x = "Date", y = "Output (MWh)", fill = "Resource") +
+      labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource") +
       
       #Add colour
-      scale_fill_manual(values = colours1)
+      scale_fill_manual(values = colours1) +
+      
+      # Make outline the same as fill colors
+      scale_colour_manual(values = colours1)
   }
 
 ################################################################################
@@ -304,14 +304,14 @@ Week14 <- function(year, month, day, case) {
           axis.title.x = element_text(size= XTit_Sz,face = 'bold'),
           axis.title.y = element_text(size= YTit_Sz,face = 'bold'),
           panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+         # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
           panel.ontop = TRUE,
           plot.background = element_rect(fill = "transparent", color = NA),
           legend.title=element_blank(),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.background = element_rect(fill='transparent'),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          legend.key.size = unit(0.5,"lines"), #Shrink legend
+          legend.key.size = unit(1,"lines"), #Shrink legend
           legend.position = "bottom",
           text = element_text(size= 15)
     ) +
@@ -389,12 +389,12 @@ Week14 <- function(year, month, day, case) {
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
-            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+           # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
             panel.ontop = TRUE,
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.title=element_blank(),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
-            legend.key.size = unit(0.5,"lines"), #Shrink legend
+            legend.key.size = unit(1,"lines"), #Shrink legend
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             axis.title.x = element_text(size=XTit_Sz,face='bold'),
@@ -460,7 +460,7 @@ Week14 <- function(year, month, day, case) {
                          limits = c(-MX-1,MX+1),
                          labels = label_number(accuracy = 1)) +
       labs(x = "Date", y = "Storage (MWh)") +
-      scale_fill_manual(values = "paleturquoise")
+      scale_fill_manual(values = cOL_STORAGE)
   }
   
 ################################################################################  
@@ -567,10 +567,10 @@ Week14 <- function(year, month, day, case) {
             axis.title.y = element_text(size = YTit_Sz,face = "bold"),
             plot.title = element_text(size = Tit_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
-            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
             panel.background = element_rect(fill = NA),
             panel.ontop = TRUE,
-            legend.key.size = unit(0.5,"lines"), #Shrink legend
+            legend.key.size = unit(1,"lines"), #Shrink legend
+            legend.position = "bottom",
             legend.justification = c(0,0.5),
             legend.title=element_blank(),
             text = element_text(size = 20)) +
@@ -601,7 +601,6 @@ Week14 <- function(year, month, day, case) {
       ggplot() +
       aes(Time_Period, (Capacity/1000), fill = ID) +
       geom_area(alpha=0.7, size=.5, colour="black") +
-      #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -612,9 +611,9 @@ Week14 <- function(year, month, day, case) {
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
             plot.title = element_text(size = Tit_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
-            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+           # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
             legend.justification = c(0,0.5),
-            legend.key.size = unit(0.5,"lines"),
+            legend.key.size = unit(1,"lines"),
             legend.position = "bottom",
             text = element_text(size = 20)) +
       
@@ -721,8 +720,8 @@ Week14 <- function(year, month, day, case) {
             plot.title = element_text(size = Tit_Sz),
             legend.justification = c(0.5,0.5),
             legend.position = ("bottom"),
-            legend.key.size = unit(0.5,"lines"),
-            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            legend.key.size = unit(1,"lines"),
+           # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
             text = element_text(size = 20)) +
   
       guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
@@ -777,8 +776,8 @@ Week14 <- function(year, month, day, case) {
             panel.background = element_rect(fill = "transparent"),
             legend.justification = c(0.5,0.5),
             legend.position = ("bottom"),
-            legend.key.size = unit(0.5,"lines"),
-            panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            legend.key.size = unit(1,"lines"),
+           # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
             text = element_text(size = 20)) +
 
       guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
@@ -824,15 +823,15 @@ Week14 <- function(year, month, day, case) {
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
             plot.title = element_text(size = Tit_Sz),
             plot.background = element_rect(fill = "transparent", color = NA),
-            panel.ontop = TRUE,
             panel.background = element_rect(fill = "transparent"),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
-            legend.key.size = unit(0.5,"lines"), 
+            legend.key.size = unit(1,"lines"), 
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             text = element_text(size = 15),
-            panel.border = element_rect(colour = "black", fill = "transparent"),
-            panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")) + 
+            panel.border = element_rect(colour = "black", fill = "transparent"), 
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")) +
+          
     
             scale_fill_manual(values="gray") +
       
@@ -871,15 +870,14 @@ Week14 <- function(year, month, day, case) {
             axis.title.x = element_text(size = XTit_Sz,face="bold"),
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
             plot.title = element_text(size = Tit_Sz),
-            panel.ontop = TRUE,
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
-            legend.key.size = unit(0.5,"lines"), 
+            legend.key.size = unit(1,"lines"), 
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             text = element_text(size = 15),
-            panel.border = element_rect(colour = "black", fill = "transparent"),
-            panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")) + 
+            panel.border = element_rect(colour = "black", fill = "transparent"), 
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")) +  
       
       scale_fill_manual(values="gray") +
       
@@ -990,7 +988,7 @@ Week14 <- function(year, month, day, case) {
   EvalOut <- function(input,case) {
     p1 <- Eval(input,case) +
                       theme(legend.position="bottom",
-                            legend.spacing.x = unit(0.5,"lines")) +
+                            legend.spacing.x = unit(1,"lines")) +
                       guides(fill = guide_legend(nrow = 1, byrow = TRUE)) 
     p2 <- Builtcol(case) +
             theme(legend.position ="none",

@@ -175,12 +175,16 @@ rev_dur <- function(year1, year2, type, case) {
     )
 }
 
+################################################################################
+## FUNCTIONS: year_comp **Not read
+## Plots the difference in Pool Price between AESO and Sim
+##
+## INPUTS:
+##    year- Year to compare
+##    case - Run_ID which you want to plot
+################################################################################
+
 year_comp <- function(year,case) {
-  # Plots the difference in Pool Price between AESO and Sim
-  
-  #  setwd("D:/Documents/Education/Masters Degree/Aurora/R Code")
-  #  write.csv(ZH, file="sim_price.csv")
-  #  sim <- read.csv("sim_price.csv", header = TRUE)
   
   wk_st <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(01,01,year+1, sep = "/"), format="%d/%m/%Y")
@@ -224,8 +228,16 @@ year_comp <- function(year,case) {
     scale_x_datetime(expand=c(0,0))
 }
 
+################################################################################
+## FUNCTIONS: year_comp **Not read
+## Bar plot showing the difference between AESO and Sim
+##
+## INPUTS:
+##    year- Year to compare
+##    case - Run_ID which you want to plot
+################################################################################
+
 year_dif <- function(year,case) {
-  # Bar plot showing the difference between AESO and Sim
   
   wk_st <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(31,12,year, sep = "/"), format="%d/%m/%Y")
@@ -278,8 +290,16 @@ year_dif <- function(year,case) {
          colour = element_blank())
 }
 
+################################################################################
+## FUNCTIONS: year_avg **Not read
+## Bar chart comparing monthly average pool prices
+##
+## INPUTS:
+##    year- Year to compare
+##    case - Run_ID which you want to plot
+################################################################################
+
 year_avg <- function(year,case) {
-  # Bar chart comparing monthly average pool prices 
   
   wk_st <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(31,12,year, sep = "/"), format="%d/%m/%Y")
@@ -334,15 +354,16 @@ year_avg <- function(year,case) {
 }
 
 ################################################################################
-# Plot charts shown in AESO 2021 Market Report
+## FUNCTIONS: year_pool **Not read
+## A function to plot the Monthly average pool price 
+## (Like in the AESO Market Report 2021 Figure 1)
+##
+## INPUTS:
+##    year1. year2 - Year to compare
+##    case - Run_ID which you want to plot
 ################################################################################
 
-AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
-                  "#001933")
-
 year_pool <- function(year1, year2,case) {
-  # A function to plot the Monthly average pool price 
-  # (Like in the AESO Market Report 2021 Figure 1)
   
   # Filter and prepare Simulation data
   Sim <- ZoneHr_All%>%
@@ -450,11 +471,19 @@ year_pool <- function(year1, year2,case) {
     )
 }
 
+################################################################################
+## FUNCTIONS: comp_dur **Not read
+## Plots the Pool Price duration vs percentile for AESO and Sim
+## Like AESO Market Report 2021 Figures 2 and 3
+##
+## INPUTS:
+##    year1. year2 - Year to compare
+##    case - Run_ID which you want to plot
+################################################################################
+
 comp_dur <- function(year1, year2, case) {
-  # Plots the Pool Price duration vs percentile for AESO and Sim
-  # Like AESO Market Report 2021 Figures 2 and 3
-  
-  # Load and filter Simulation data, 
+
+    # Load and filter Simulation data, 
   # Calculate the percentage of time
   # Create column 'sit' to indicate Simulation
   totSim <- ZoneHr_All%>%
@@ -528,11 +557,19 @@ comp_dur <- function(year1, year2, case) {
     )
 }
 
+################################################################################
+## FUNCTIONS: load_dur **Not read
+## Plots the load duration vs percentile for AESO and Sim
+## Like AESO Market Report 2021 Figures 7 and 8
+##
+## INPUTS:
+##    year1. year2 - Year to compare
+##    case - Run_ID which you want to plot
+################################################################################
+
 load_dur <- function(year1, year2, case) {
-  # Plots the load duration vs percentile for AESO and Sim
-  # Like AESO Market Report 2021 Figures 7 and 8
-  
-  # Load and filter Simulation data, 
+
+    # Load and filter Simulation data, 
   # Calculate the percentage of time
   # Create column 'sit' to indicate Simulation
   totSim <- ZoneHr_All%>%
@@ -607,6 +644,16 @@ load_dur <- function(year1, year2, case) {
     scale_y_continuous(expand=c(0,0)
     )
 }
+
+################################################################################
+## FUNCTIONS: tech_cap **Not read
+## Plots the capacity factor by technology for AESO and Sim
+## Like AESO Market Report 2021 Figure 15
+##
+## INPUTS:
+##    year1. year2 - Year to compare
+##    case - Run_ID which you want to plot
+################################################################################
 
 tech_cap <- function(yearstart, yearend, case) {
   # Plots the capacity factor by technology for AESO and Sim
@@ -694,11 +741,19 @@ tech_cap <- function(yearstart, yearend, case) {
     )
 }
 
+################################################################################
+## FUNCTIONS: margin **Not read
+## Plots the marginal price-setting technology for AESO and Sim
+## Like AESO Market Report 2021 Figure 19
+##
+## INPUTS:
+##    year1. year2 - Year to compare
+##    case - Run_ID which you want to plot
+################################################################################
+
 margin <- function(year1, year2, case) {
-  # Plots the marginal price-setting technology for AESO and Sim
-  # Like AESO Market Report 2021 Figure 19
-  
-  totZone <- ZoneHr_All%>%
+
+    totZone <- ZoneHr_All%>%
     filter(Report_Year >= year1 & 
              Report_Year <= year2,
            Run_ID == case, 
@@ -724,11 +779,19 @@ margin <- function(year1, year2, case) {
     slice_max(n=1,merit)
 }
 
+################################################################################
+## FUNCTIONS: margin **Not read
+## Plots the annual wind capacity factor duration curve for AESO and Sim
+## Like AESO Market Report 2021 Figure 25
+##
+## INPUTS:
+##    year1. year2 - Year to compare
+##    case - Run_ID which you want to plot
+################################################################################
+
 wind_cap <- function(year1, year2, case) {
-  # Plots the annual wind capacity factor duration curve for AESO and Sim
-  # Like AESO Market Report 2021 Figure 25
-  
-  # Load and filter Simulation data, 
+
+    # Load and filter Simulation data, 
   # Calculate the percentage of time
   # Create column 'sit' to indicate Simulation
   Sim <- ResGroupHr_sub%>%
@@ -813,9 +876,18 @@ wind_cap <- function(year1, year2, case) {
     )
 }
 
+################################################################################
+## FUNCTIONS: tot_cap **Not read
+## Plots the year-end capacity by technology for AESO and Sim
+## Like AESO Market Report 2021 Figure 11
+##
+## INPUTS:
+##    year1. year2 - Year to compare
+##    case - Run_ID which you want to plot
+################################################################################
+
 tot_cap <- function(year1, year2, case) {
-  # Plots the year-end capacity by technology for AESO and Sim
-  # Like AESO Market Report 2021 Figure 11
+
   
   Act <- sub_samp %>%
     filter(! NRG_Stream %in% trade_excl,
@@ -905,7 +977,9 @@ tot_cap <- function(year1, year2, case) {
 }
 
 ################################################################################
-# Plot combination of plots
+## FUNCTIONS: AESOSim **Not read
+##
+## INPUTS:
 ################################################################################
 
 AESOSim <- function(year1,year2,case) {

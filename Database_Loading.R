@@ -69,11 +69,12 @@
 
 ################################################################################
 ## DEFINE CASES TO STUDY (IE: RUN ID)
-## This will just be AsIs if not using cases. Value can be found in the "Run_Id" column of any AURORA table
+## Value can be found in the "Run_Id" column of any AURORA table
 
-{ AsIs <- "LTCE Shorter Run Time"
-  BAU <- "BAU" #Buisness as usual
-  NZC1 <- "Net Zero Case 1" 
+{ BAU <- "BAU" #Buisness as usualcase
+  AR <- "All Renewables" # Case with 100% renewables
+  HCZE <- "Hard Constraint on Zero Emissions" 
+  RCO2 <- "Relaxed  CO2 Constraint"
 }
 
 ################################################################################
@@ -289,11 +290,11 @@
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
   
-    # font_add(family="Times",regular="times.ttf")
-    # Plot_Text <- 'Times'
+    font_add(family="Times",regular="times.ttf")
+    Plot_Text <- 'Times'
     
-    font_add(family="Cambrai",regular="CAMBRIA.ttc")
-    Plot_Text <- 'Cambrai'
+    # font_add(family="Cambrai",regular="CAMBRIA.ttc")
+    # Plot_Text <- 'Cambrai'
     
     showtext_auto()
     
@@ -320,20 +321,32 @@
   # Set legend color schemes for contistancy
     ## Can change here
     { # Colours Info
-      cOL_IMPORT <- "hotpink"
+      # cOL_IMPORT <- "hotpink"
+      # cOL_COAL <- "snow3"
+      # cOL_COGEN <- "gray47"
+      # cOL_SCGT <- "mediumorchid4"
+      # cOL_NGCC <- "darkorchid1"
+      # cOL_OTHER <- "dodgerblue3"
+      # cOL_HYDRO <- "navy"
+      # cOL_WIND <- "forestgreen"
+      # cOL_SOLAR <- "gold"
+      # cOL_STORAGE <- "paleturquoise" 
+      # cOL_COal2Gas <- "deeppink4"
+      
+      cOL_IMPORT <- "darkorchid1"
       cOL_COAL <- "snow3"
       cOL_COGEN <- "gray47"
-      cOL_SCGT <- "mediumorchid4"
-      cOL_NGCC <- "darkorchid1"
-      cOL_HYDRO <- "dodgerblue3"
-      cOL_OTHER <- "navy"
-      cOL_WIND <- "forestgreen"
+      cOL_SCGT <- "navy"
+      cOL_NGCC <- "dodgerblue3"
+      cOL_HYDRO <- "lightskyblue"
+      cOL_OTHER <- "darkgreen"
+      cOL_WIND <- "green3"
       cOL_SOLAR <- "gold"
-      cOL_STORAGE <- "paleturquoise" 
-      cOL_COal2Gas <- "deeppink4"
-    
+      cOL_STORAGE <- "yellow4" 
+      cOL_COal2Gas <- "mediumorchid4"
+      
       colours = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
-                  cOL_OTHER, cOL_WIND, cOL_SOLAR, "darkolivegreen1", cOL_STORAGE)
+                  cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
       
       colours1 = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
                    cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
@@ -341,10 +354,13 @@
       colours2 = c(cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
                    cOL_OTHER, cOL_HYDRO, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
       
-      colours3 = c(cOL_WIND,cOL_SOLAR, cOL_SCGT, cOL_NGCC, cOL_STORAGE, "steelblue")
+      colours3 = c(cOL_WIND,cOL_SOLAR, cOL_SCGT, cOL_NGCC, cOL_STORAGE, cOL_OTHER)
       
       colours4 = c(cOL_IMPORT, cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
-                   cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+                   cOL_OTHER,cOL_HYDRO, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+      
+      AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
+                        "#001933")
     }
 }
   #For fun, make the code beep when its all done
@@ -354,7 +370,7 @@
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   
 ## SIM FUNCTIONS
-    #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
+{  #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
     day1(2021,01,08,BAU)
     
     # Gives stacked area chart for single week
@@ -386,7 +402,7 @@
     
     #Shows Prices for simulation duration
     Sim_dur(BAU)
-
+}
 ## COMBINED SIM FUNCTIONS
     
     # Plot over 4 years defined in plotting section (2x2 grid)
