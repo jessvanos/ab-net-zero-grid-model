@@ -5,7 +5,7 @@
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: June 15, 2022
+# CREATED: May 2022; LAST EDIT: July 1, 2022
 
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
 #        Before running, create folder called "Data Files" withen project directory and populate it with AESO data. 
@@ -42,6 +42,7 @@
   source(here('Functions','sim_eval_1.R'))
   source(here('Functions','aeso_eval_1.R'))
   source(here('Functions','aseo_sim_comp_1.R')) 
+  source(here('Functions','Net_Zero_eval'))
   
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
@@ -56,12 +57,12 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"Comp_June15"
+  SourceDB<-"TestRun_June_30_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
                    Driver = "SQL Server",
-                   Server = rstudioapi::askForPassword("Server(IP_Addess,Port"),
+                   Server = rstudioapi::askForPassword("Server(IP_Addess,Port)"),
                    Database = SourceDB,
                    UID = rstudioapi::askForPassword("User Name"),
                    PWD = rstudioapi::askForPassword("Password"))  
@@ -71,9 +72,11 @@
 ## DEFINE CASES TO STUDY (IE: RUN ID)
 ## Value can be found in the "Run_Id" column of any AURORA table
 
-{ BAU <- "BAU" #Buisness as usualcase
+{ BC <- "Base Case" 
+  BAU <- "BAU" #Buisness as usualcase
   AR <- "All Renewables" # Case with 100% renewables
-  HCZE <- "Hard Constraint on Zero Emissions" 
+  HC <- "Hard Constraint on Zero Emissions" 
+  HCnr <- "Hard Constraint on Zero Emissions (nr)"
   RCO2 <- "Relaxed  CO2 Constraint"
 }
 
@@ -83,13 +86,13 @@
 ## It will just skip tables that are not there and all the ones after
 
 { # Fuel tables
-  FuelYr <- dbReadTable(con,'FuelYear1')
+#  FuelYr <- dbReadTable(con,'FuelYear1')
 #  FuelMn <- dbReadTable(con,'FuelMonth1')
   
   # Resource Tables
   ResYr <- dbReadTable(con,'ResourceYear1')
 #  ResMn <- dbReadTable(con,'ResourceMonth1')
-  ResHr <- dbReadTable(con,'ResourceHour1')
+  ResHr <- dbReadTable(con,'ResourceHour1') # This one takes eons
   
   # Resource Group Tables
   ResGroupYr <- dbReadTable(con,'ResourceGroupYear1')
@@ -202,8 +205,9 @@
       'colnames<-'(c("date", "Output_MWH", "Run_ID")) %>%
       add_column(ID = "Export")
     
-    #Fix Aurora sign convention
-    Export$Output_MWH <- Export$Output_MWH * -1   
+    #Fix Aurora sign convention if needed
+    if (min(Export$Output_MWH) < 0) {
+      Export$Output_MWH <- Export$Output_MWH * -1   }
   }
 }  
 
@@ -299,9 +303,9 @@
     showtext_auto()
     
   # Set size for plot features to be consitant
-  { Tit_Sz = 25
-    XTit_Sz = 20
-    YTit_Sz = 20
+  { Tit_Sz = 15
+    XTit_Sz = 15
+    YTit_Sz = 15
     Overall_Sz =15 }
     
     
@@ -315,24 +319,25 @@
   }  
     
   # Define years to compare
-    Yr4Sp <- c(2021,2022,2022,2023)
-    Yr2Sp <- c(2021, 2022)
+    Yr4Sp <- c(2021,2022,2023,2024)
+    Yr2Sp <- c(2022, 2025)
     
   # Set legend color schemes for contistancy
     ## Can change here
-    { # Colours Info
-      # cOL_IMPORT <- "hotpink"
-      # cOL_COAL <- "snow3"
-      # cOL_COGEN <- "gray47"
-      # cOL_SCGT <- "mediumorchid4"
-      # cOL_NGCC <- "darkorchid1"
-      # cOL_OTHER <- "dodgerblue3"
-      # cOL_HYDRO <- "navy"
-      # cOL_WIND <- "forestgreen"
-      # cOL_SOLAR <- "gold"
-      # cOL_STORAGE <- "paleturquoise" 
-      # cOL_COal2Gas <- "deeppink4"
+    { # Colours Outline Info
+      OUT_IMPORT <- "darkorchid4"
+      OUT_COAL <- "snow4"
+      OUT_COGEN <- "gray27"
+      OUT_SCGT <- "midnightblue"
+      OUT_NGCC <- "dodgerblue4"
+      OUT_OTHER <- "darkgreen"
+      OUT_HYDRO <- "deepskyblue"
+      OUT_WIND <- "green4"
+      OUT_SOLAR <- "gold3"
+      OUT_STORAGE <- "yellow4"
+      OUT_COal2Gas <- "mediumorchid4"
       
+      # Colour Fill info
       cOL_IMPORT <- "darkorchid1"
       cOL_COAL <- "snow3"
       cOL_COGEN <- "gray47"
@@ -344,12 +349,12 @@
       cOL_SOLAR <- "gold"
       cOL_STORAGE <- "yellow4" 
       cOL_COal2Gas <- "mediumorchid4"
-      
-      colours = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
-                  cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
-      
+
       colours1 = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
                    cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+      
+      Outline1 = c(OUT_IMPORT, OUT_COAL, OUT_COGEN, OUT_SCGT, OUT_NGCC, 
+                   OUT_HYDRO, OUT_OTHER, OUT_WIND, OUT_SOLAR, OUT_STORAGE)
       
       colours2 = c(cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
                    cOL_OTHER, cOL_HYDRO, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
@@ -380,13 +385,15 @@
     Stor1(2021,01,08,BAU)
     
     # Average Pool Price for one week
-    week_price(2023,10,08,BAU)
+    week_price(2022,10,08,BAU)
     
     # Gives overall picture of Output over time period
     Eval(ResGroupMn,BAU)
+    Eval(ResGroupYr,BAU)
     
     # Gives overall picture of capacity over time period
     Evalcap(ResGroupMn,BAU)
+    Evalcap(ResGroupYr,BAU)
     
     # Units Built over study period
     Builtcol(BAU)
@@ -431,8 +438,8 @@
 ##  AESO SIM COMPARE FUNCTIONS
 
     # Prices and Output for noth AESO and Sim
-    AESO_Sim(2021,01,08,BAU)
+    AESO_SimOP(2022,04,08,BAU)
     
     #Clear plots
-    # dev.off(dev.list()["RStudioGD"])
+    #dev.off(dev.list()["RStudioGD"])
     

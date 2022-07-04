@@ -69,8 +69,8 @@ Week_act <- function(year,month,day) {
   
   # Plot the data    
   ggplot() +
-    geom_area(data = WK, aes(x = time, y = total_gen, fill = Plant_Type), 
-              alpha=0.7, size=.25, colour="black") +
+    geom_area(data = WK, aes(x = time, y = total_gen, fill = Plant_Type, colour = Plant_Type), 
+              alpha=0.7, size=0.5) +
     
     # Add hourly load line
     geom_line(data = dmd, 
@@ -90,8 +90,8 @@ Week_act <- function(year,month,day) {
           panel.background = element_rect(fill = "transparent"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          axis.title.x = element_text(size= XTit_Sz,face = 'bold'),
-          axis.title.y = element_text(size= YTit_Sz,face = 'bold'),
+          axis.title.x = element_text(size= XTit_Sz),
+          axis.title.y = element_text(size= YTit_Sz),
           title = element_text(size= Tit_Sz),
           plot.background = element_rect(fill = "transparent", color = NA),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
@@ -99,14 +99,18 @@ Week_act <- function(year,month,day) {
           legend.key.size = unit(0.5,"lines"),
           legend.title=element_blank(),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size= 20)
+          text = element_text(size= 15)
     ) +
     guides(fill = guide_legend(nrow = 1)) +
     scale_y_continuous(expand=c(0,0)) +
-    labs(title = paste("AESO Data,", year), x = "Date", y = "Output (MWh)") +
-    scale_fill_manual(values = colours)
+    labs(title = paste("AESO Data,", year), x = "Date", y = "Output (MWh)", fill = "Plant_Type", colour = "Plant_Type") +
+
+    #Add colour
+    scale_fill_manual(values = colours1) +
     
-    #scale_colour_manual(values = colours1)
+    # Make outline the same as fill colors
+    scale_colour_manual(values = Outline1)
+    
 }
 
 ################################################################################
@@ -127,12 +131,12 @@ wkPrice <- function(year,month,day) {
     filter(time >= wk_st & time <= wk_end)
   
   # Set the max for the plot
-  MX <- plyr::round_any(max(abs(price_WK$Price)+10), 10, f = ceiling)
+  MX <- plyr::round_any(max(abs(price_WK$Price)+100), 10, f = ceiling)
   
   ggplot() +
     geom_line(data = price_WK, 
               aes(x=time, y=Price), 
-              size = 1.5, color="midnightblue") +
+              size = 1.5, color="darkred") +
     scale_x_datetime(expand=c(0,0)) +
     
     theme_bw() +
@@ -144,8 +148,8 @@ wkPrice <- function(year,month,day) {
           axis.text.y=element_text(hjust=-0.5),
           plot.background = element_rect(fill = "transparent", color = NA),
           panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'grey'),
-          panel.grid.minor.y = element_line(size=0.25,linetype=5,color = 'lightgrey'),
-          text = element_text(size= 20)
+          panel.grid.minor.y = element_blank(),
+          text = element_text(size= 15)
     ) +
     scale_y_continuous(expand=c(0,0),limits=c(0,MX)) +
     labs(x = "Date", y = "Pool Price ($/MWh)")

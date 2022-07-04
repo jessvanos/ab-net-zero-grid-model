@@ -8,7 +8,7 @@
 
 ################################################################################
 ################################################################################
-## FUNCTIONS: AESO_Sim
+## FUNCTIONS: AESO_SimOP
 ## Plot comparison between actual and simulated data
 ##
 ## INPUTS:
@@ -16,18 +16,21 @@
 ##    case - Run_ID which you want to plot
 ################################################################################
 
-AESO_Sim <- function(year,month,day,case) {
+AESO_SimOP <- function(year,month,day,case) {
   SimP <- week_price(year,month,day,case)
   ActP <- wkPrice(year,month,day)
   SimO <- Week1(year,month,day,case)
   ActO <- Week_act(year,month,day)
   
+  #Price Limits
   MXP <- plyr::round_any(
     max(layer_scales(SimP)$y$range$range,layer_scales(ActP)$y$range$range),
-    10, f = ceiling)
+    50, f = ceiling)
   MNP <- plyr::round_any(
     min(layer_scales(SimP)$y$range$range,layer_scales(ActP)$y$range$range),
-    10, f = floor)  
+    50, f = floor)  
+  
+  # output Lmiits
   MXO <- plyr::round_any(
     max(layer_scales(SimO)$y$range$range,layer_scales(ActO)$y$range$range),
     100, f = ceiling)
@@ -35,52 +38,56 @@ AESO_Sim <- function(year,month,day,case) {
     min(layer_scales(SimO)$y$range$range,layer_scales(ActO)$y$range$range),
     100, f = floor)
   
-  legend <- gtable_filter(ggplotGrob(Week1(year,month,day,case)), "guide-box") +
-              theme(legend.position = "bottom")
-  
+  # Create each plot
   sz <- 15
   
-  ggarrange(arrangeGrob(plot_grid(week_price(year,month,day,case) + 
-                                    labs(title = paste0("Simulated Data for ",year),
-                                         subtitle = paste0("(","Source:",SourceDB,")")) +
-                                    theme(axis.title.x=element_blank(),
-                                          axis.text.x=element_blank(),
-                                          axis.title.y=element_text(size=sz),
-                                          legend.position ="none",
-                                          plot.title = element_text(hjust = 0.5, size = sz),
-                                          plot.subtitle = element_text(hjust = 0.5, size = sz-2, face="italic")) + 
-                                    scale_y_continuous(expand=c(0,0), limits = c(MNP,MXP), 
-                                                       breaks = pretty_breaks(4)),
-                                  Week1(year,month,day,case)+
-                                    theme(legend.position ="none",
-                                          axis.title.y=element_text(size=sz)) + 
-                                    scale_y_continuous(expand=c(0,0), limits = c(MNO,MXO), 
-                                                       breaks = pretty_breaks(4)), 
-                                  ncol = 1, align="v", axis = "l",
-                                  rel_heights = c(1,2.5)),
-                        
-                        plot_grid(wkPrice(year,month,day) + 
-                                    labs(title = paste0("AESO Data for ",year),
-                                         subtitle = "NRGStream Data") +
-                                    theme(axis.title.x=element_blank(),
-                                          axis.text.x=element_blank(),
-                                          axis.title.y=element_blank(),
-                                          legend.position ="none",
-                                          plot.title = element_text(hjust = 0.5, size = sz),
-                                          plot.subtitle = element_text(hjust = 0.5, size = sz-2, face="italic")) + 
-                                    scale_y_continuous(expand=c(0,0), limits = c(MNP,MXP), 
-                                                       breaks = pretty_breaks(4)),
-                                  Week_act(year,month,day)+
-                                    theme(legend.position ="none",
-                                          axis.title.y=element_blank(),
-                                          plot.title=element_blank())+
-                                    scale_y_continuous(expand=c(0,0), limits = c(MNO,MXO), 
-                                                       breaks = pretty_breaks(4)), 
-                                  ncol = 1, align="v", axis = "l",
-                                  rel_heights = c(1,2.5)),
-                        ncol=2, widths = c(1.05,1)),
-            legend,
-            ncol=2, widths =c(5,1))
+  p1 <- week_price(year,month,day,case) + 
+          labs(title = paste0("Simulated Data for ",year),
+               subtitle = paste0("(","Source:",SourceDB,")")) +
+          theme(axis.title.x=element_blank(),
+                axis.text.x=element_blank(),
+                axis.title.y=element_text(size=sz, vjust=4),
+                legend.position ="none",
+                plot.title = element_text(hjust = 0.5, size = sz),
+                plot.subtitle = element_text(hjust = 0.5, size = sz-2)) + 
+          scale_y_continuous(expand=c(0,0), limits = c(MNP,MXP), 
+                             breaks = pretty_breaks(4))
+  
+  p2 <- Week1(year,month,day,case)+
+          theme(legend.position ="none",
+                axis.title.y=element_text(size=sz)) + 
+          scale_y_continuous(expand=c(0,0), limits = c(MNO,MXO), 
+                             breaks = seq(0, MXO, by = MXO/4)) 
+
+  p3 <- wkPrice(year,month,day) + 
+          labs(title = paste0("AESO Data for ",year),
+               subtitle = "NRGStream Data") +
+          theme(axis.title.x=element_blank(),
+                axis.text.x=element_blank(),
+                axis.title.y=element_blank(),
+                legend.position ="none",
+                plot.title = element_text(hjust = 0.5, size = sz),
+                plot.subtitle = element_text(hjust = 0.5, size = sz-2, face="italic")) + 
+          scale_y_continuous(expand=c(0,0), limits = c(MNP,MXP), 
+                             breaks = pretty_breaks(4))
+  
+  p4 <- Week_act(year,month,day)+
+          theme(axis.title.y=element_blank(),
+                plot.title=element_blank())+
+          scale_y_continuous(expand=c(0,0), limits = c(MNO,MXO), 
+                             breaks = seq(0, MXO, by = MXO/4))
+  
+  legend <- get_legend(p4)
+        p4 <- p4 + theme(legend.position ="none")
+  
+  dev.new(width=3.75, height=2, unit="in")      
+  
+  grid.arrange(plot_grid(p1, p2, ncol=1, align="v", axis = "l", rel_heights = c(1,2.5)),
+               plot_grid(p3, p4, ncol=1,  align="v", axis = "l", rel_heights = c(1,2.5)),
+               plot_grid(legend),
+                 ncol=3, nrow=2,
+                 layout_matrix = rbind(c(1,2), c(3,3)),
+                 heights=c(1, 0.1),widths=c(1, 1,0.05))
 }
 
 ################################################################################

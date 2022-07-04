@@ -111,8 +111,8 @@
 { WkTime <- function(data, year, month, day) {
   
   #Set start and end dates of week  
-  wk_st <- as.POSIXct(paste(paste(year,month,day, sep = "-"),"00:00:00"),tz="MST")
-  wk_end <- as.POSIXct(paste(paste(year,month,day+7, sep = "-"),"23:00:00"),tz="MST")
+  wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
+  wk_end <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
   
   #Create subset for specified week
   subset(data,
@@ -120,21 +120,6 @@
   
   }
 }
-################################################################################
-## FUNCTION: imsave_git & imsave_loc
-## Convert the date and select a subset for one week from the data pulled in
-##
-## INPUTS: 
-##    name - Date to plot, the week will start on the day chosen. Enter as "name"
-################################################################################
-# Save to a git folder
-imsave_git <- function(name) {
-  ggsave(plot=last_plot(),path = here("Figures"), filename = paste(name,".png", sep = ""), bg = "transparent",dpi= 300)   }
-
-# Save to a loacl folder that is ignored by git
-imsave_loc <- function(name) {
-  ggsave(plot=last_plot(),path = here("Figures (Local)"), filename = paste(name,".png", sep = ""), bg = "white", dpi= 300)   }
-
 ################################################################################
 #
 #
@@ -171,8 +156,10 @@ imsave_loc <- function(name) {
 
     # Select only a single week from the zone Hourly, and Export data
     WK <- WkTime(data,year,month,day)
-    ZPrice <- WkTime(ZoneHr_Avg,year,month,day)
-    Expo <- WkTime(Export,year,month,day)
+    ZPrice <- WkTime(ZoneHr_Avg,year,month,day) %>%
+      filter(Run_ID == case)
+    Expo <- WkTime(Export,year,month,day) %>%
+      filter(Run_ID == case)
     
     # Get y-max, demand to meet + exports
     WK$MX <- ZPrice$Demand + Expo$Output_MWH
@@ -185,16 +172,17 @@ imsave_loc <- function(name) {
     wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
     wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
     
+    
     ## PLOT WITH AREA PLOT
     
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID, colour = ID), 
-                alpha=0.5, size=0.5) +
+                alpha=0.7, size=0.5) +
 
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
                 aes(x = date, y = Demand), size=1.5, colour = "black") +
-      scale_x_datetime(expand=c(0,0),date_labels = "%b-%e" ,breaks = "day") +
+      scale_x_datetime(expand=c(0,0),date_labels = "%b-%e", breaks = "day") +
       
       # Set the theme for the plot
       theme_bw() +
@@ -205,8 +193,8 @@ imsave_loc <- function(name) {
       theme(plot.title = element_text(size= Tit_Sz)) +
       
       theme(axis.text.x = element_text(vjust = 1),
-            axis.title.x = element_text(size= XTit_Sz,face = 'bold'),
-            axis.title.y = element_text(size= YTit_Sz,face = 'bold'),
+            axis.title.x = element_text(size= XTit_Sz),
+            axis.title.y = element_text(size= YTit_Sz),
             panel.background = element_rect(fill = "transparent"),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.title=element_blank(),
@@ -217,8 +205,8 @@ imsave_loc <- function(name) {
             legend.position = "bottom",
             text = element_text(size= 15)
       ) +
-      scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
-                         breaks = seq(MN, MX, by = MX/4)) +
+      scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
+                         breaks = seq(0, MX, by = MX/4)) +
       guides(fill = guide_legend(nrow = 1)) +
       
       labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource") +
@@ -227,7 +215,7 @@ imsave_loc <- function(name) {
       scale_fill_manual(values = colours1) +
       
       # Make outline the same as fill colors
-      scale_colour_manual(values = colours1)
+      scale_colour_manual(values = Outline1)
   }
 
 ################################################################################
@@ -255,23 +243,26 @@ Week14 <- function(year, month, day, case) {
   data$ID <- factor(data$ID, levels=c("Import", "COAL", "COGEN", "SCGT", "NGCC", 
                                       "HYDRO", "OTHER",
                                       "WIND", "SOLAR", "STORAGE"))
-  
   ## SELECT A SINGLE WEEK
   
   # Select only a single week from the zone Hourly, and Export data
   WK <- WkTime(data,year,month,day)
-  ZPrice <- WkTime(ZoneHr_Avg,year,month,day)
-  Expo <- WkTime(Export,year,month,day)
-  data$MX <- ZoneHr_Avg$Demand + Export$Output_MWH
+  ZPrice <- WkTime(ZoneHr_Avg,year,month,day) %>%
+    filter(Run_ID == case)
+  Expo <- WkTime(Export,year,month,day) %>%
+    filter(Run_ID == case)
+  
+  # Get y-max, demand to meet + exports
+  WK$MX <- ZPrice$Demand + Expo$Output_MWH
   
   # Set the max and min for the plot
-  MX1 <- WkTime(data,Yr4Sp[[1]],month,day)
-  MX2 <- WkTime(data,Yr4Sp[[2]],month,day)
-  MX3 <- WkTime(data,Yr4Sp[[3]],month,day)
-  MX4 <- WkTime(data,Yr4Sp[[4]],month,day)
+  MX1 <- WkTime(WK,Yr4Sp[[1]],month,day)
+  MX2 <- WkTime(WK,Yr4Sp[[2]],month,day)
+  MX3 <- WkTime(WK,Yr4Sp[[3]],month,day)
+  MX4 <- WkTime(WK,Yr4Sp[[4]],month,day)
   MXtime <- rbind(MX1, MX2, MX3, MX4)
   
-  # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
+  # Set the max and min for the plot Output axis (y), Set slightly above max (500 above)
   MX <- plyr::round_any(max(abs(MXtime$MX))+500, 100, f = ceiling)
   MN <- plyr::round_any(min(MXtime$Output_MWH), 100, f = floor)
   
@@ -283,8 +274,8 @@ Week14 <- function(year, month, day, case) {
   ## PLOT WITH AREA PLOT
   
   ggplot() +
-    geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), 
-              alpha=0.7, size=0.25, colour = "black") +
+    geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID, colour = ID), 
+              alpha=0.7, size=0.5) +
     
     # Add hourly load line (black line on the top)
     geom_line(data = ZPrice, 
@@ -319,10 +310,13 @@ Week14 <- function(year, month, day, case) {
                        breaks = seq(MN, MX, by = MX/4)) +
     guides(fill = guide_legend(nrow = 1)) +
     
-    labs(x = "Date", y = "Output (MWh)", fill = "Resource") +
+    labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource") +
     
     #Add colour
-    scale_fill_manual(values = colours1)
+    scale_fill_manual(values = colours1) +
+    
+    # Make outline the same as fill colors
+    scale_colour_manual(values = colours1)
 }
 ################################################################################
 ## FUNCTION: day1
@@ -355,8 +349,10 @@ Week14 <- function(year, month, day, case) {
     ## SELECT A SINGLE DAY
     # Select only a single day from the zone Hourly, and Export data
     DY <- HrTime(data,year,month,day)
-    ZPrice <- HrTime(ZoneHr_Avg,year,month,day)
-    Expo <- HrTime(Export,year,month,day)
+    ZPrice <- HrTime(ZoneHr_Avg,year,month,day) %>%
+      filter(Run_ID == case)
+    Expo <- HrTime(Export,year,month,day) %>%
+      filter(Run_ID == case)
     
     # Get y-max, demand to meet + exports
     DY$MX <- ZPrice$Demand + Expo$Output_MWH
@@ -368,8 +364,8 @@ Week14 <- function(year, month, day, case) {
     ## PLOT WITH AREA PLOT
     
     ggplot() +
-      geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID), 
-                alpha=0.7, size=.25, colour="black") +
+      geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID, colour = ID), 
+                alpha=0.7, size=0.5) +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -378,20 +374,19 @@ Week14 <- function(year, month, day, case) {
       
       # Set the theme for the plot
       theme_bw() +
-      theme(panel.grid = element_blank(),
-            legend.position = "bottom",) +
+      theme(legend.position = "bottom") +
       
       theme(text=element_text(family=Plot_Text)) +
       
       theme(plot.title = element_text(size= Tit_Sz)) +
       
       theme(axis.text.x = element_text(vjust = 1),
-            panel.background = element_rect(fill = "transparent"),
+            panel.background = element_rect(fill = "transparent", colour = "transparent"),
+            panel.grid = element_blank(),
             panel.grid.major.x = element_blank(),
+            panel.grid.major.y = element_blank(),
             panel.grid.minor.x = element_blank(),
-           # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
-            panel.ontop = TRUE,
-            plot.background = element_rect(fill = "transparent", color = NA),
+            plot.background = element_blank(),
             legend.title=element_blank(),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.key.size = unit(1,"lines"), #Shrink legend
@@ -402,13 +397,17 @@ Week14 <- function(year, month, day, case) {
             text = element_text(size= Overall_Sz)
       ) +
       guides(fill = guide_legend(nrow = 1)) +
-      scale_y_continuous(expand=c(0,0), limits = c(MN,MX), 
-                         breaks = seq(MN, MX, by = MX/4)) +
       
-      labs(title=paste("Resource Output, ",day_report),x = "Date", y = "Output (MWh)", fill = "Resource") +
+      scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
+                         breaks = seq(0, MX, by = MX/4)) +
+      
+      labs(title=paste("Resource Output, ",day_report),x = "Date", y = "Output (MWh)", fill = "Resource",colour = "Resource" ) +
       
       #Add colour
-      scale_fill_manual(values = colours1)
+      scale_fill_manual(values = colours1) +
+      
+      # Make outline the same as fill colors
+      scale_colour_manual(values = colours1)
   }
   
 ################################################################################  
@@ -503,12 +502,12 @@ Week14 <- function(year, month, day, case) {
             axis.text.y=element_text(hjust=-0.5),
             axis.title.y = element_text(vjust=2,size= YTit_Sz,face="bold"),
             panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'grey'),
-            panel.grid.minor.y = element_line(size=0.25,linetype=5,color = 'lightgrey'),
+            panel.grid.minor.y = element_blank(),
             panel.grid.major.x = element_blank(),
             panel.grid = element_blank(),
             plot.background = element_rect(fill = "transparent", color = NA),
             plot.title = element_text(size = Tit_Sz),
-            text = element_text(size = 20) 
+            text = element_text(size = 15) 
             
       ) +
       labs(y = "Pool Price ($/MWh)", x="Date",fill = "Resource") +

@@ -30,3 +30,19 @@ packs_check <- function(packs_to_load) {
 }
 
 ################################################################################
+## FUNCTION: imsave_git & imsave_loc
+## Convert the date and select a subset for one week from the data pulled in
+##
+## INPUTS: 
+##    name - Date to plot, the week will start on the day chosen. Enter as "name"
+################################################################################
+# Save to a git folder
+imsave_git <- function(name) {
+  ggsave(plot=last_plot(),path = here("Figures"), 
+         filename = paste(name,".png", sep = ""), bg = "transparent")  }
+
+# Save to a loacl folder that is ignored by git
+imsave_loc <- function(name) {
+  ggsave(plot=last_plot(),path = here("Figures (Local)"), 
+         filename = paste(name,".png", sep = ""), bg = "white")   }
+
