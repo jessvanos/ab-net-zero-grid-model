@@ -403,10 +403,10 @@
     Evalcap(ResGroupYr,BAU)
     
     # Units Built over study period
-    Builtcol(BAU)
+    Builtcol(BC)
     
     # Units Built over study period by capacity
-    BuiltMW(BAU)
+    BuiltMW(BC)
     
     # Lets you get where units were built 
     Units(BAU,wind)
@@ -459,5 +459,4 @@
     #Clear plots
     
     dev.off(dev.list()["RStudioGD"])
-    dev.new()
-    
+    windows(12,8)

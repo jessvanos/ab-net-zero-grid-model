@@ -44,5 +44,5 @@ imsave_git <- function(name) {
 # Save to a loacl folder that is ignored by git
 imsave_loc <- function(name) {
   ggsave(plot=last_plot(),path = here("Figures (Local)"), 
-         filename = paste(name,".png", sep = ""), bg = "white")   }
-
+         filename = paste(name,".png", sep = ""),
+         width = 15.24, height=10.16, units=c("cm"),dpi=300, bg = "transparent")  }

@@ -618,11 +618,12 @@ Week14 <- function(year, month, day, case) {
       sim_filt(.)
     
     # Set the max and min for the plot Output axis (y)
-    MX <- plyr::round_any(max(data$Capacity)/1000+10, 10, f = ceiling)
+   # MX <- plyr::round_any(max(data$Capacity), 10000, f = ceiling)
+    MX <- 35000
     
     data %>%
       ggplot() +
-      geom_area(aes(Time_Period, (Capacity/1000), fill = ID, colour=ID),alpha=0.7, size=.5) +
+      geom_area(aes(Time_Period, (Capacity), fill = ID, colour=ID),alpha=1, size=.5) +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -633,25 +634,26 @@ Week14 <- function(year, month, day, case) {
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
             plot.title = element_text(size = Tit_Sz),
             panel.background = element_rect(fill = "transparent"),
+            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
             plot.subtitle = element_text(hjust = 0.5), 
-            legend.justification = c(0,0.5),
-            legend.key.size = unit(1,"lines"),
+            #legend.justification = c(0,0.5),
             legend.position = "bottom",
             legend.title = element_blank(),
+            legend.text = element_text(size =15),
+            legend.key.size= unit(0.2, 'cm'),
             text = element_text(size = 20)) +
       
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
       
-      scale_y_continuous(expand=c(0,0), limits=c(0,MX)) +
+      scale_y_continuous(expand=c(0,0), limits=c(0,MX),breaks = seq(0, MX, by = MX/7)) +
       
-      labs(x = "Date", y = "Capacity (GWh)", fill = "Resource",colour="Resource") +
+      labs(x = "Date", y = "Capacity (MWh)", fill = "Resource",colour="Resource") +
     
       guides(fill = guide_legend(nrow = 1)) +
       
       scale_fill_manual(values = colours2) +
       scale_colour_manual(values = Outline2) 
-      
-
+    
   }
  
 ################################################################################  
@@ -720,9 +722,12 @@ Week14 <- function(year, month, day, case) {
   
   # Stacked Area showing totals for Fuel Types
   Builtcol <- function(case) {
+    MaxIt <- max(Build$LT_Iteration)
+    
     data <- Build %>%
-      filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
-               Time_Period != "Study")%>%
+      filter(Run_ID == case & LT_Iteration == MaxIt 
+             #&  Time_Period != "Study"
+             )%>%
       group_by(Fuel_Type, Time_Period) %>%
       summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) 
     
