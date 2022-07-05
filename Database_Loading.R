@@ -42,7 +42,7 @@
   source(here('Functions','sim_eval_1.R'))
   source(here('Functions','aeso_eval_1.R'))
   source(here('Functions','aseo_sim_comp_1.R')) 
-  source(here('Functions','Net_Zero_eval'))
+  source(here('Functions','Net_Zero_eval.R'))
   
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
@@ -349,6 +349,7 @@
       cOL_SOLAR <- "gold"
       cOL_STORAGE <- "yellow4" 
       cOL_COal2Gas <- "mediumorchid4"
+      cOL_EXPORT <- "sienna1"
 
       colours1 = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
                    cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
@@ -359,10 +360,16 @@
       colours2 = c(cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
                    cOL_OTHER, cOL_HYDRO, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
       
+      Outline2 = c(OUT_COAL, OUT_COal2Gas, OUT_COGEN, OUT_NGCC, 
+                   OUT_OTHER, OUT_HYDRO, OUT_WIND, OUT_SOLAR, OUT_STORAGE)
+      
       colours3 = c(cOL_WIND,cOL_SOLAR, cOL_SCGT, cOL_NGCC, cOL_STORAGE, cOL_OTHER)
       
       colours4 = c(cOL_IMPORT, cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
                    cOL_OTHER,cOL_HYDRO, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+      
+      Outline4 = c(OUT_IMPORT, OUT_COAL, OUT_COal2Gas, OUT_COGEN, OUT_NGCC, 
+                   OUT_OTHER,OUT_HYDRO, OUT_WIND, OUT_SOLAR, OUT_STORAGE)
       
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
@@ -379,7 +386,7 @@
     day1(2021,01,08,BAU)
     
     # Gives stacked area chart for single week
-    Week1(2021,01,08,BAU)
+    Week1(2025,01,01,BAU)
     
     # Gives weekly storage function
     Stor1(2021,01,08,BAU)
@@ -440,6 +447,17 @@
     # Prices and Output for noth AESO and Sim
     AESO_SimOP(2022,04,08,BAU)
     
+    # output compare only
+    AESO_SimO(2022,01,01,BC)
+    
+    # Price compare only
+    AESO_SimP(2022,04,01,BAU)
+    
+    #Plot the full year pool price
+    AESO_SimP2(2022,BAU)
+    
     #Clear plots
-    #dev.off(dev.list()["RStudioGD"])
+    
+    dev.off(dev.list()["RStudioGD"])
+    dev.new()
     

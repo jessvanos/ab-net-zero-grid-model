@@ -43,7 +43,7 @@ AESO_SimOP <- function(year,month,day,case) {
   
   p1 <- week_price(year,month,day,case) + 
           labs(title = paste0("Simulated Data for ",year),
-               subtitle = paste0("(","Source:",SourceDB,")")) +
+               subtitle = paste0(SourceDB,", ",case)) +
           theme(axis.title.x=element_blank(),
                 axis.text.x=element_blank(),
                 axis.title.y=element_text(size=sz, vjust=4),
@@ -88,6 +88,228 @@ AESO_SimOP <- function(year,month,day,case) {
                  ncol=3, nrow=2,
                  layout_matrix = rbind(c(1,2), c(3,3)),
                  heights=c(1, 0.1),widths=c(1, 1,0.05))
+}
+
+################################################################################
+## FUNCTIONS: AESO_SimP
+## Plot comparison between actual and simulated data price for 1 week
+##
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################
+AESO_SimP <- function(year,month,day,case) {
+  
+  #Firt get Sim Data
+    # Filters for the desired case study
+    data <- ZoneHr_Avg%>%
+      filter(Run_ID == case)
+    
+    # Select only a single week using function WkTime
+    ZPrice <- WkTime(data,year,month,day)
+    
+    # Set the max and min for the plot
+    MXa <- plyr::round_any(max(abs(ZPrice$Price)+10), 10, f = ceiling)
+    MN <- plyr::round_any(min(abs(ZPrice$Price)), 10, f = floor) #Could put in scale y limits
+    
+    #Max min for date (x-axis)
+    day_MN <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
+    day_MX <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
+    
+  #Get AESO Data
+    
+    price_WK <- demand %>%
+      filter(time >= day_MN & time <= day_MX)
+    
+    # Set the max for the plot
+    MXb <- plyr::round_any(max(abs(price_WK$Price)+100), 10, f = ceiling)
+    MX <-max(MXa,MXb)
+    
+  # Plot the data    
+  ggplot() +
+    geom_line(data = ZPrice, 
+              aes(x = date, y = Price,colour = "Simulated (AURORA)"), 
+              size = 1.5) +
+    
+    geom_line(data = price_WK, 
+              aes(x=time, y=Price, color="Actual (AESO)"), 
+              size = 1.5) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.background = element_rect(fill = "transparent"),
+          axis.text.x=element_text(vjust=-1),
+          axis.title.x = element_text(vjust=-1,size= XTit_Sz,face="bold"),
+          axis.text.y=element_text(hjust=-0.5),
+          axis.title.y = element_text(vjust=2,size= YTit_Sz,face="bold"),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'grey'),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid = element_blank(),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          plot.title = element_text(size = Tit_Sz),
+          text = element_text(size = 15),
+          legend.position = "bottom",
+          legend.background = element_rect(fill='transparent',colour ='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent")
+          
+    ) +
+    
+    scale_colour_manual("", 
+                        breaks = c("Simulated (AURORA)","Actual (AESO)"),
+                        values = c("darkred","midnightblue")) +
+    
+    labs(title=year, y = "Pool Price ($/MWh)", x="Date",fill = "Resource") +
+    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "day",date_labels = "%a, %b-%e") +
+    
+    scale_y_continuous(expand=c(0,0), 
+                       limits= c(0,MX),
+                       breaks = seq(0, MX, by = MX/8)
+
+  )
+}
+
+################################################################################
+## FUNCTIONS: AESO_SimP
+## Plot comparison between actual and simulated data price for 1 week
+##
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################
+AESO_SimP2 <- function(year,case) {
+  
+  #Firt get Sim Data
+  # Filters for the desired case study
+  data <- ZoneHr_Avg%>%
+    filter(Run_ID == case)
+  
+  # Select only a single year using function WkTime
+  ZPrice <- YrTime(data,year)
+  
+  # Set the max and min for the plot
+  MXa <- plyr::round_any(max(abs(ZPrice$Price)+10), 10, f = ceiling)
+  MN <- plyr::round_any(min(abs(ZPrice$Price)), 10, f = floor) #Could put in scale y limits
+  
+  #Max min for date (x-axis)
+  day_MN <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
+  day_MX <- as.POSIXct(paste(31,12,year, sep = "/"), format="%d/%m/%Y")
+  
+  #Get AESO Data
+  
+  price_WK <- demand %>%
+    filter(time >= day_MN & time <= day_MX)
+  
+  # Set the max for the plot
+  MXb <- plyr::round_any(max(abs(price_WK$Price)+100), 10, f = ceiling)
+  MX <-max(MXa,MXb)
+  
+  # Plot the data    
+  ggplot() +
+
+    geom_line(data = price_WK, 
+              aes(x=time, y=Price, color="Actual (AESO)"), 
+              size = 1) +
+    
+    geom_line(data = ZPrice, 
+              aes(x = date, y = Price,colour = "Simulated (AURORA)"), 
+              size = 1) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.background = element_rect(fill = "transparent"),
+          axis.text.x=element_text(vjust=-1),
+          axis.title.x = element_text(vjust=-1,size= XTit_Sz,face="bold"),
+          axis.text.y=element_text(hjust=-0.5),
+          axis.title.y = element_text(vjust=2,size= YTit_Sz,face="bold"),
+          panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'grey'),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid = element_blank(),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          plot.title = element_text(size = Tit_Sz),
+          text = element_text(size = 15),
+          legend.position = "bottom",
+          legend.background = element_rect(fill='transparent',colour ='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent")
+          
+    ) +
+    
+    scale_colour_manual("", 
+                        breaks = c("Simulated (AURORA)","Actual (AESO)"),
+                        values = c("darkred","midnightblue")) +
+    
+    labs(title=year, y = "Pool Price ($/MWh)", x="Date",fill = "Resource") +
+    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "month",date_labels = "%b") +
+    
+    scale_y_continuous(expand=c(0,0), 
+                       limits= c(0,MX),
+                       breaks = seq(0, 1000, by = 100)
+                       
+    )
+}
+
+################################################################################
+## FUNCTIONS: AESO_SimO
+## Plot comparison between actual and simulated data
+##
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################
+
+AESO_SimO <- function(year,month,day,case) {
+  SimO <- Week1(year,month,day,case)
+  ActO <- Week_act(year,month,day)
+
+  # output Lmiits
+  MXO <- plyr::round_any(
+    max(layer_scales(SimO)$y$range$range,layer_scales(ActO)$y$range$range),
+    100, f = ceiling)
+  MNO <- plyr::round_any(
+    min(layer_scales(SimO)$y$range$range,layer_scales(ActO)$y$range$range),
+    100, f = floor)
+  
+  # Create each plot
+  sz <- 15
+  
+  p1 <- Week1(year,month,day,case)+ 
+    labs(title = paste0("Simulated Data for ",year),
+         subtitle = paste0(SourceDB,", ",case)) +
+    theme(legend.position ="none",
+          axis.title.y=element_text(size=sz),
+          plot.title = element_text(hjust = 0.5, size = sz),
+          plot.subtitle = element_text(hjust = 0.5, size = sz-2))+ 
+    scale_y_continuous(expand=c(0,0), limits = c(MNO,MXO), 
+                       breaks = seq(0, MXO, by = MXO/4)) 
+  
+  p2 <- Week_act(year,month,day) + 
+    labs(title = paste0("AESO Data for ",year),
+         subtitle = "NRGStream Data") +
+    theme(axis.title.y=element_blank(),
+          plot.title = element_text(hjust = 0.5, size = sz),
+          plot.subtitle = element_text(hjust = 0.5, size = sz-2))+ 
+    scale_y_continuous(expand=c(0,0), limits = c(MNO,MXO), 
+                       breaks = seq(0, MXO, by = MXO/4))
+  
+  legend <- get_legend(p2)
+  p2 <- p2 + theme(legend.position ="none")
+  
+  #dev.new(width=3.75, height=2, unit="in")      
+  
+  # grid.arrange(plot_grid(p1,p2, nrow=1, align="hv", axis = "l",rel_widths=c(1,1)),
+  #              legend,
+  #              ncol=1, nrow=2,
+  #              heights=c(1, 0.1))
+  
+  grid.arrange(p1,p2,legend,
+               ncol=3, nrow=2,
+               layout_matrix = rbind(c(1,2), c(3,3)),
+               widths = c(2.7, 2.7), heights = c(2.5, 0.2))
 }
 
 ################################################################################

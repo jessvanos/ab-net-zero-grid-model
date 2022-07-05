@@ -120,6 +120,25 @@
   
   }
 }
+
+################################################################################
+## FUNCTION: YrTime
+## Convert the date and select a subset for one week from the data pulled in
+################################################################################
+
+{ YrTime <- function(data, year) {
+  
+  #Set start and end dates of week  
+  yr_st <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
+  yr_end <- as.POSIXct(paste(31,12,year, sep = "/"), format="%d/%m/%Y")
+  
+  #Create subset for specified week
+  subset(data,
+         (date >= yr_st & date <= yr_end)) 
+  
+}
+}
+
 ################################################################################
 #
 #
@@ -553,9 +572,9 @@ Week14 <- function(year, month, day, case) {
     
     data %>%
       ggplot() +
-      aes(Time_Period, (Output_MWH/1000), fill = ID) +
-      geom_area(alpha=0.7, size=.5, colour="black") +
-      #    facet_wrap(~ Condition, nrow = 1) +
+      aes(Time_Period, (Output_MWH/1000), fill = ID,colour=ID) +
+      geom_area(alpha=0.7, size=.5) +
+      
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -576,8 +595,10 @@ Week14 <- function(year, month, day, case) {
       
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
       scale_y_continuous(expand=c(0,0)) +
-      scale_fill_manual(values = colours4) +
-      labs(x = "Date", y = "Output (GWh)", fill = "Resource") 
+      
+      scale_fill_manual(values = colours4) 
+      # Make outline the same as fill colors
+      
   }
 ################################################################################  
 ## FUNCTION: Evalcap 
@@ -596,30 +617,41 @@ Week14 <- function(year, month, day, case) {
       select(ID, Time_Period, Capacity) %>%
       sim_filt(.)
     
+    # Set the max and min for the plot Output axis (y)
+    MX <- plyr::round_any(max(data$Capacity)/1000+10, 10, f = ceiling)
+    
     data %>%
       ggplot() +
-      aes(Time_Period, (Capacity/1000), fill = ID) +
-      geom_area(alpha=0.7, size=.5, colour="black") +
+      geom_area(aes(Time_Period, (Capacity/1000), fill = ID, colour=ID),alpha=0.7, size=.5) +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
       
       theme(panel.grid = element_blank(),
-            axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+            axis.text.x = element_text(),
             axis.title.x = element_text(size = XTit_Sz,face="bold"),
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
             plot.title = element_text(size = Tit_Sz),
+            panel.background = element_rect(fill = "transparent"),
             plot.subtitle = element_text(hjust = 0.5), 
-           # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
             legend.justification = c(0,0.5),
             legend.key.size = unit(1,"lines"),
             legend.position = "bottom",
+            legend.title = element_blank(),
             text = element_text(size = 20)) +
       
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
-      scale_y_continuous(expand=c(0,0)) +
+      
+      scale_y_continuous(expand=c(0,0), limits=c(0,MX)) +
+      
+      labs(x = "Date", y = "Capacity (GWh)", fill = "Resource",colour="Resource") +
+    
+      guides(fill = guide_legend(nrow = 1)) +
+      
       scale_fill_manual(values = colours2) +
-      labs(x = "Date", y = "Capacity (GWh)", fill = "Resource") 
+      scale_colour_manual(values = Outline2) 
+      
+
   }
  
 ################################################################################  
