@@ -57,7 +57,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_June_30_2022"
+  SourceDB<-"TestRun_July_8_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -75,8 +75,8 @@
 { BC <- "Base Case" 
   BAU <- "BAU" #Buisness as usualcase
   AR <- "All Renewables" # Case with 100% renewables
-  HC <- "Hard Constraint on Zero Emissions" 
-  HCnr <- "Hard Constraint on Zero Emissions (nr)"
+  CNZ <- "Constraint on Zero Emissions" 
+  CNZnc <- "Constraint on Zero Emissions (nc)"
   RCO2 <- "Relaxed  CO2 Constraint"
 }
 
@@ -127,8 +127,10 @@
 #  FuelMn$Time_Period <- ym(FuelMn$Time_Period)
   
   # Resource Tables
-  ResYr$Time_Period  <- as.Date(as.character(ResYr$Time_Period), 
+  ResYr$YEAR  <- as.POSIXct(as.character(ResYr$Time_Period), 
                         format = "%Y")
+  ResYr$YEAR <- format(ResYr$YEAR,format="%Y") # Reformat for year only
+  
 #  ResMn$Time_Period <- ym(ResMn$Time_Period)
   ResHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResHr$Time_Period))), 
                         tz = "MST")-(60*60)
@@ -350,6 +352,10 @@
       cOL_STORAGE <- "yellow4" 
       cOL_COal2Gas <- "mediumorchid4"
       cOL_EXPORT <- "sienna1"
+      
+      cOL_Gas <- "slateblue"
+      COL_Gas1 <- "dodgerblue3"
+      COL_Gas2 <- "navy"
 
       colours1 = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
                    cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
@@ -363,13 +369,16 @@
       Outline2 = c(OUT_COAL, OUT_COal2Gas, OUT_COGEN, OUT_NGCC, 
                    OUT_OTHER, OUT_HYDRO, OUT_WIND, OUT_SOLAR, OUT_STORAGE)
       
-      colours3 = c(cOL_WIND,cOL_SOLAR, cOL_SCGT, cOL_NGCC, cOL_STORAGE, cOL_OTHER)
+      colours3 = c(cOL_WIND,cOL_SOLAR, cOL_Gas, COL_Gas1, cOL_STORAGE, cOL_OTHER)
       
       colours4 = c(cOL_IMPORT, cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
                    cOL_OTHER,cOL_HYDRO, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
       
       Outline4 = c(OUT_IMPORT, OUT_COAL, OUT_COal2Gas, OUT_COGEN, OUT_NGCC, 
                    OUT_OTHER,OUT_HYDRO, OUT_WIND, OUT_SOLAR, OUT_STORAGE)
+      
+      colours5 = c(cOL_COAL, cOL_COGEN, cOL_Gas, COL_Gas1, COL_Gas2,
+                   cOL_HYDRO, cOL_SOLAR, cOL_WIND, cOL_STORAGE,cOL_OTHER)
       
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
@@ -395,11 +404,11 @@
     week_price(2022,10,08,BAU)
     
     # Gives overall picture of Output over time period
-    Eval(ResGroupMn,BAU)
+    Eval(ResGroupMn,BC)
     Eval(ResGroupYr,BAU)
     
     # Gives overall picture of capacity over time period
-    Evalcap(ResGroupMn,BAU)
+    Evalcap(ResGroupMn,BC)
     Evalcap(ResGroupYr,BAU)
     
     # Units Built over study period
@@ -456,7 +465,14 @@
     #Plot the full year pool price
     AESO_SimP2(2022,BAU)
     
+## NET ZERO FUNCTIONS
+    Retirecol(BC)
+    
+    Add_Ret(BC)
+    
     #Clear plots
     
     dev.off(dev.list()["RStudioGD"])
     windows(12,8)
+
+    

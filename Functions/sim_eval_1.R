@@ -13,6 +13,9 @@
 #
 #
 ################################################################################
+
+round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
+
 ## FUNCTION: sim_filt
 ## This function filters for the data that will be evaluated.
 ################################################################################
@@ -92,6 +95,44 @@
   }
 
 ################################################################################
+## FUNCTION: sim_filt2
+## This function filters for the data that will be evaluated.  
+################################################################################
+
+{ sim_filt2 <- function(inputdata) {
+  # Filter the data by resource
+  {Coal <- inputdata %>%
+    filter(Primary_Fuel=="Coal Canada West") 
+  Cogen  <- inputdata %>%
+    filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
+  Gas  <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas-NonCycling")
+  Gas1 <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas")
+  Gas2 <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
+  Other <- inputdata %>%
+    filter(Primary_Fuel=="Other, Bio, ZZ, WC, WH")
+  Hydro <- inputdata %>%
+    filter(Primary_Fuel=="Water")
+  Solar <- inputdata %>%
+    filter(Primary_Fuel=="Solar")
+  Storage <- inputdata %>%    
+    filter(Primary_Fuel=="Storage")
+  Wind <- inputdata %>%
+    filter(Primary_Fuel=="Wind")  }
+  
+  # Combine the grouped data
+  { case <- rbind(Coal, Cogen, Gas, Gas1, Gas2, Hydro, Solar, Wind, Storage, Other)
+    case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c("Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta", 
+                                        "WECC-Alberta NaturalGas-NonCycling","WECC-Alberta NaturalGas",
+                                        "WECC-Alberta NaturalGas-Peaking","Water", "Solar", 
+                                        "Wind", "Storage", "Other, Bio, ZZ, WC, WH"))
+    levels(case$Primary_Fuel) <- c("Coal", "Cogen", "Gas", "Gas1", "Gas2", "Hydro","Solar",
+                         "Wind", "Storage", "Other")  }
+  return(case)  }
+}
+################################################################################
 ## FUNCTION: HrTime
 ## Convert the date and select a subset for one day from the data pulled in
 ################################################################################
@@ -163,7 +204,7 @@
     # Filters for the desired case study from the resource groups
     data <- ResGroupHr_sub%>%
       sim_filt1(.) %>%
-      subset(., select=-c(Report_Year,Capacity_Factor)) %>%
+      subset(., select=-c(Zone,Capacity_Factor)) %>%
       rbind(.,Import) %>%
       filter(Run_ID == case)
     
@@ -726,13 +767,15 @@ Week14 <- function(year, month, day, case) {
     
     data <- Build %>%
       filter(Run_ID == case & LT_Iteration == MaxIt 
-             #&  Time_Period != "Study"
+             &  Time_Period != "Study"
              )%>%
       group_by(Fuel_Type, Time_Period) %>%
       summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) 
     
     data$Fuel_Type <- factor(data$Fuel_Type, 
                              levels = c("WND","SUN","Gas0","Gas1", "PS", "OT"))
+    
+    levels(data$Fuel_Type) <- c("Wind","Solar","Gas0","Gas1", "Storage", "Other")
     
     Tot <- data %>%
       group_by(Time_Period) %>%
@@ -743,29 +786,31 @@ Week14 <- function(year, month, day, case) {
     
     ggplot(data) +
       aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=0.7, size=.5, colour="black") +
+      geom_bar(position="stack", stat="identity", alpha=1) +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
       
       theme(panel.grid = element_blank(),  
-            axis.title.x = element_text(size = XTit_Sz,face="bold"),
-            axis.title.y = element_text(size = YTit_Sz,face="bold"),
-            panel.ontop = TRUE,
+            axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
+            axis.title.y = element_text(size = YTit_Sz, vjust=0),
             panel.background = element_rect(fill = "transparent"),
             plot.title = element_text(size = Tit_Sz),
             legend.justification = c(0.5,0.5),
             legend.position = ("bottom"),
+            legend.title=element_blank(), 
             legend.key.size = unit(1,"lines"),
-           # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            plot.caption=element_text(size=10),
+            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
             text = element_text(size = 20)) +
   
       guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
       
-      labs(x = "Date", y = "# of Units Built", fill = "Fuel Type") +
+      labs(x = "Date", y = "# of Units Built", fill = "Fuel Type",
+           caption="Note: Units may be partially built to a certain capacity which is why numbers are not all even") +
       scale_y_continuous(expand=c(0,0),
-                         limits = c(0,(mxu+1))) +
-      #    scale_x_discrete(expand=c(0,0)) +
+                         limits = c(0,(80)),breaks=seq(0,80,by=10)) +
+      
       scale_fill_manual(values = colours3)
   }
 
