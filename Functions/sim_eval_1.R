@@ -50,10 +50,10 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
     # Sort the table by case ID
     #A factor is a categorical variable 
     case$ID <- factor(case$ID, levels=c("LTO_Coal", "LTO_Coal2Gas", "LTO_Cogen", 
-                                        "LTO_NatGas", "LTO_Other", "LTO_Hydro", 
+                                        "LTO_NatGas", "LTO_Hydro","LTO_Other",  
                                         "LTO_Wind", "LTO_Solar", "LTO_Storage"))
     # Replace ID value with name 
-    levels(case$ID) <- c("Coal", "Coal2Gas", "Cogen", "NatGas", "Other", "Hydro",
+    levels(case$ID) <- c("Coal", "Coal to Gas", "Cogen", "Natural Gas", "Hydro", "Other",
                          "Wind", "Solar", "Storage")   }
     return(case)  }
 }
@@ -86,11 +86,12 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
       
     # Combine the grouped data
     { case <- rbind(Coal, Cogen, SCCT, CCCT, Hydro, Solar, Wind, Storage, Other)
-      case$ID <- factor(case$ID, levels=c("LTO_Coal", "AB_CCCT_noncogen", "LTO_Cogen",
-                                          "AB_SCCT_noncogen", "LTO_Hydro", "LTO_Other", 
+      case$ID <- factor(case$ID, levels=c("LTO_Coal",  "LTO_Cogen","AB_SCCT_noncogen", "AB_CCCT_noncogen",
+                                           "LTO_Hydro", "LTO_Other", 
                                           "LTO_Wind", "LTO_Solar", "LTO_Storage"))
-      levels(case$ID) <- c("COAL", "NGCC", "COGEN", "SCGT", "HYDRO", "OTHER",
-                           "WIND", "SOLAR", "STORAGE")  }
+      
+      levels(case$ID) <- c("Coal", "Cogen", "SCGT", "NGCC", "Hydro", "Other",
+                           "Wind", "Solar", "Storage")  }
       return(case)  }
   }
 
@@ -204,14 +205,13 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
     # Filters for the desired case study from the resource groups
     data <- ResGroupHr_sub%>%
       sim_filt1(.) %>%
-      subset(., select=-c(Zone,Capacity_Factor)) %>%
+      subset(., select=-c(Report_Year,Capacity_Factor)) %>%
       rbind(.,Import) %>%
       filter(Run_ID == case)
     
     # Set levels to each category in order specified
-    data$ID <- factor(data$ID, levels=c("Import", "COAL", "COGEN", "SCGT", "NGCC", 
-                                        "HYDRO", "OTHER",
-                                        "WIND", "SOLAR", "STORAGE"))
+    data$ID <- factor(data$ID, levels=c("Import","Coal", "Cogen", "SCGT", "NGCC", "Hydro", "Other",
+                                        "Wind", "Solar", "Storage"))
     ## SELECT A SINGLE WEEK
 
     # Select only a single week from the zone Hourly, and Export data
@@ -300,9 +300,8 @@ Week14 <- function(year, month, day, case) {
     filter(Run_ID == case)
   
   # Set levels to each category in order specified
-  data$ID <- factor(data$ID, levels=c("Import", "COAL", "COGEN", "SCGT", "NGCC", 
-                                      "HYDRO", "OTHER",
-                                      "WIND", "SOLAR", "STORAGE"))
+  data$ID <- factor(data$ID, levels=c("Import","Coal", "Cogen", "SCGT", "NGCC", "Hydro", "Other",
+                                      "Wind", "Solar", "Storage"))
   ## SELECT A SINGLE WEEK
   
   # Select only a single week from the zone Hourly, and Export data
@@ -400,9 +399,8 @@ Week14 <- function(year, month, day, case) {
       filter(Run_ID == case)
     
     # Set levels to each category in order specified
-    data$ID <- factor(data$ID, levels=c("Import", "COAL", "COGEN", "SCGT", "NGCC", 
-                                        "HYDRO", "OTHER",
-                                        "WIND", "SOLAR", "STORAGE"))
+    data$ID <- factor(data$ID, levels=c("Import","Coal", "Cogen", "SCGT", "NGCC", "Hydro", "Other",
+                                        "Wind", "Solar", "Storage"))
     # Get full date
     day_report <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
     
@@ -417,9 +415,8 @@ Week14 <- function(year, month, day, case) {
     # Get y-max, demand to meet + exports
     DY$MX <- ZPrice$Demand + Expo$Output_MWH
     
-    # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-    MX <- plyr::round_any(max(abs(DY$MX))+500, 100, f = ceiling)
-    MN <- plyr::round_any(min(DY$Output_MWH), 100, f = floor)
+    # Set the max and min for the plot Output axis (y), Set slightly above max ( round up to nearest 500)
+    MX <- plyr::round_any(max(abs(DY$MX)), 500, f = ceiling)
     
     ## PLOT WITH AREA PLOT
     
@@ -593,14 +590,14 @@ Week14 <- function(year, month, day, case) {
   Eval <- function(input,case) {
     Imp <- Import %>%
       filter(Run_ID == case) %>%
-      mutate(Time_Period = format(.$date, format="%Y")) %>%
+      mutate(Time_Period = format(.$date, format="%Y-%m-%d")) %>%
       group_by(Time_Period) %>%
-      summarise(Output_MWH = mean(Output_MWH)) %>%
+      summarise(Output_MWH = sum(Output_MWH)) %>%
       mutate(ID = "Import")
     
-      Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
-                                   format = "%Y")
-  
+   # Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
+   #                             format = "%Y")
+    
     # Filters for the desired case study
     data <- input %>%
       filter(Run_ID == case & Condition == "Average") %>%
@@ -609,12 +606,17 @@ Week14 <- function(year, month, day, case) {
       rbind(.,Imp) 
     
     data$ID<-fct_relevel(data$ID, "Import")
-    data$Time_Period <- as.Date(data$Time_Period,format = "%Y")
+    data$Time_Period <- as.Date(data$Time_Period)
     
+    # Set the max for the plot
+    dyMX <- aggregate(data["Output_MWH"], by=data["Time_Period"], sum)
+    MX <- plyr::round_any(max(abs(dyMX$Output_MWH)/1000000), 20, f = ceiling)
+    
+    # Plot
     data %>%
       ggplot() +
-      aes(Time_Period, (Output_MWH/1000), fill = ID,colour=ID) +
-      geom_area(alpha=0.7, size=.5) +
+      aes(Time_Period, (Output_MWH/1000000), fill = ID, colour=ID) +
+      geom_area(alpha=1, size=.5) +
       
       theme_bw() +
       
@@ -622,24 +624,103 @@ Week14 <- function(year, month, day, case) {
       
       theme(panel.grid = element_blank(),
             axis.text.x = element_text(vjust = 1),
-            axis.title.x = element_text(size = XTit_Sz,face = "bold"),
-            axis.title.y = element_text(size = YTit_Sz,face = "bold"),
+            axis.title.x = element_text(size = XTit_Sz),
+            axis.title.y = element_text(size = YTit_Sz),
+            plot.title = element_text(size = Tit_Sz),
+            plot.subtitle = element_text(hjust = 0.5), 
+            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+            panel.background = element_rect(fill = NA),
+            legend.key.size = unit(1,"lines"), #Shrink legend
+            legend.position = "bottom",
+            legend.justification = c(0.5,0.5),
+            legend.title=element_blank(),
+            text = element_text(size = 20)) +
+      
+      scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
+      scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=seq(0, MX, by = MX/6)) +
+      
+      labs(x = "Date", y = "Generation (TWh)", fill = "Resource",colour="Resource") +
+      
+      guides(fill = guide_legend(nrow = 1)) +
+      
+      scale_fill_manual(values = colours4) +
+      scale_colour_manual(values = Outline4)
+    
+
+  }
+  
+  ################################################################################  
+  ## FUNCTION: Evalyr 
+  ## Plotting month/year profiles of resource output
+  ##
+  ## INPUTS: 
+  ##    input - ResgroupMnor ResGroupYr
+  ##    case - Run_ID which you want to plot
+  ## TABLES REQUIRED: 
+  ##    Import - Import table derived of zone average table
+  ################################################################################
+  
+  Evalyr <- function(input,case) {
+    Imp <- Import %>%
+      filter(Run_ID == case) %>%
+      mutate(Time_Period = format(.$date, format="%Y")) %>%
+      group_by(Time_Period) %>%
+      summarise(Output_MWH = sum(Output_MWH)) %>%
+      mutate(ID = "Import") 
+
+    Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
+                                 format = "%Y")
+    
+    # Filters for the desired case study
+    data <- input %>%
+      filter(Run_ID == case & Condition == "Average") %>%
+      select(ID, Time_Period, Output_MWH) %>%
+      sim_filt(.) %>%
+      rbind(.,Imp) 
+    
+    data$ID<-fct_relevel(data$ID, "Import")
+    data$Time_Period <- as.Date(data$Time_Period)
+    
+    # Set the max for the plot
+    dyMX <- aggregate(data["Output_MWH"], by=data["Time_Period"], sum)
+    MX <- plyr::round_any(max(abs(dyMX$Output_MWH)/1000000), 20, f = ceiling)
+    
+    # Plot
+    data %>%
+      ggplot() +
+      aes(Time_Period, (Output_MWH/1000000), fill = ID, colour=ID) +
+      geom_area(alpha=1, size=.5) +
+      
+      theme_bw() +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
+      theme(panel.grid = element_blank(),
+            axis.text.x = element_text(vjust = 1),
+            axis.title.x = element_text(size = XTit_Sz),
+            axis.title.y = element_text(size = YTit_Sz),
             plot.title = element_text(size = Tit_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
             panel.background = element_rect(fill = NA),
-            panel.ontop = TRUE,
+            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
             legend.justification = c(0,0.5),
             legend.title=element_blank(),
             text = element_text(size = 20)) +
       
-      scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
-      scale_y_continuous(expand=c(0,0)) +
+      scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y",
+                   limits = as.Date(c('2021-07-08','2034-08-01'))) +
+      scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       
-      scale_fill_manual(values = colours4) 
-      # Make outline the same as fill colors
+      labs(x = "Date", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource") +
       
+      guides(fill = guide_legend(nrow = 1)) +
+      
+      scale_fill_manual(values = colours4) +
+      scale_colour_manual(values = Outline4)
+    
+    
   }
 ################################################################################  
 ## FUNCTION: Evalcap 
@@ -659,8 +740,10 @@ Week14 <- function(year, month, day, case) {
       sim_filt(.)
     
     # Set the max and min for the plot Output axis (y)
-   # MX <- plyr::round_any(max(data$Capacity), 10000, f = ceiling)
-    MX <- 35000
+    # Set the max for the plot
+    ppMX <-  aggregate(data["Capacity"], by=data["Time_Period"], sum)
+    MX <- plyr::round_any(max(abs(ppMX$Capacity)), 5000, f = ceiling)
+    
     
     data %>%
       ggplot() +
@@ -677,18 +760,18 @@ Week14 <- function(year, month, day, case) {
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
             plot.subtitle = element_text(hjust = 0.5), 
-            #legend.justification = c(0,0.5),
+            legend.justification = c(0.5,0.5),
             legend.position = "bottom",
+            legend.key.size = unit(1,"lines"),
             legend.title = element_blank(),
             legend.text = element_text(size =15),
-            legend.key.size= unit(0.2, 'cm'),
             text = element_text(size = 20)) +
       
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
       
-      scale_y_continuous(expand=c(0,0), limits=c(0,MX),breaks = seq(0, MX, by = MX/7)) +
+      scale_y_continuous(expand=c(0,0), limits=c(0,MX),breaks = pretty_breaks(6)) +
       
-      labs(x = "Date", y = "Capacity (MWh)", fill = "Resource",colour="Resource") +
+      labs(x = "Date", y = "Capacity (MW)", fill = "Resource",colour="Resource") +
     
       guides(fill = guide_legend(nrow = 1)) +
       
@@ -752,69 +835,6 @@ Week14 <- function(year, month, day, case) {
   }
   
 ################################################################################  
-## FUNCTION: Builtcol
-## Plotting the resources built as a bar chart
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Build - Build table describing all new resources
-################################################################################
-  
-  # Stacked Area showing totals for Fuel Types
-  Builtcol <- function(case) {
-    MaxIt <- max(Build$LT_Iteration)
-    
-    data <- Build %>%
-      filter(Run_ID == case & LT_Iteration == MaxIt 
-             &  Time_Period != "Study"
-             )%>%
-      group_by(Fuel_Type, Time_Period) %>%
-      summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) 
-    
-    data$Fuel_Type <- factor(data$Fuel_Type, 
-                             levels = c("WND","SUN","Gas0","Gas1", "PS", "OT"))
-    
-    levels(data$Fuel_Type) <- c("Wind","Solar","Gas0","Gas1", "Storage", "Other")
-    
-    Tot <- data %>%
-      group_by(Time_Period) %>%
-      summarise(totu = sum(Units), totc = sum(Capacity))
-    
-    mxu <- max(Tot$totu)
-    mxc <- max(Tot$totc)
-    
-    ggplot(data) +
-      aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=1) +
-      theme_bw() +
-      
-      theme(text=element_text(family=Plot_Text)) +
-      
-      theme(panel.grid = element_blank(),  
-            axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
-            axis.title.y = element_text(size = YTit_Sz, vjust=0),
-            panel.background = element_rect(fill = "transparent"),
-            plot.title = element_text(size = Tit_Sz),
-            legend.justification = c(0.5,0.5),
-            legend.position = ("bottom"),
-            legend.title=element_blank(), 
-            legend.key.size = unit(1,"lines"),
-            plot.caption=element_text(size=10),
-            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-            text = element_text(size = 20)) +
-  
-      guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
-      
-      labs(x = "Date", y = "# of Units Built", fill = "Fuel Type",
-           caption="Note: Units may be partially built to a certain capacity which is why numbers are not all even") +
-      scale_y_continuous(expand=c(0,0),
-                         limits = c(0,(80)),breaks=seq(0,80,by=10)) +
-      
-      scale_fill_manual(values = colours3)
-  }
-
-################################################################################  
 ## FUNCTION: BuiltMW **Not read
 ## Plotting the capacity of resources built
 ##
@@ -835,6 +855,8 @@ Week14 <- function(year, month, day, case) {
     data$Fuel_Type <- factor(data$Fuel_Type, 
                              levels = c("WND","SUN","Gas0","Gas1", "PS", "OT"))
     
+    levels(data$Fuel_Type) <- c("Wind","Solar","Gas0","Gas1", "Storage", "Other")
+    
     Tot <- data %>%
       group_by(Time_Period) %>%
       summarise(totu = sum(Units), totc = sum(Capacity))
@@ -844,7 +866,7 @@ Week14 <- function(year, month, day, case) {
     
     ggplot(data) +
       aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=0.7, size=.5, colour="black") +
+      geom_bar(position="stack", stat="identity", alpha=1) +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -853,12 +875,12 @@ Week14 <- function(year, month, day, case) {
             axis.title.x = element_text(size = XTit_Sz,face="bold"),
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
             plot.title = element_text(size = Tit_Sz),
-            panel.ontop = TRUE,
             panel.background = element_rect(fill = "transparent"),
             legend.justification = c(0.5,0.5),
+            legend.title=element_blank(),
             legend.position = ("bottom"),
             legend.key.size = unit(1,"lines"),
-           # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray36'),
+            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
             text = element_text(size = 20)) +
 
       guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +

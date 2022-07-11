@@ -57,7 +57,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_July_8_2022"
+  SourceDB<-"PartRun_July_8_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -93,6 +93,7 @@
   ResYr <- dbReadTable(con,'ResourceYear1')
 #  ResMn <- dbReadTable(con,'ResourceMonth1')
   ResHr <- dbReadTable(con,'ResourceHour1') # This one takes eons
+  ResSt <-dbReadTable(con,'ResourceStudy1')
   
   # Resource Group Tables
   ResGroupYr <- dbReadTable(con,'ResourceGroupYear1')
@@ -111,7 +112,7 @@
   ZoneHr <- dbReadTable(con,'ZoneHour1')
 #  LTRes <- dbReadTable(con,'LTResValue1')
   Build <- dbReadTable(con,'LTBuildReport1')
-#  Study <- dbReadTable(con,'StudyLog1')
+  Study <- dbReadTable(con,'LTStudyLog1')
   
   # Get rid of Unused R memory to keep speed up
   gc()   
@@ -327,7 +328,7 @@
   # Set legend color schemes for contistancy
     ## Can change here
     { # Colours Outline Info
-      OUT_IMPORT <- "darkorchid4"
+      OUT_IMPORT <- "chocolate3"
       OUT_COAL <- "snow4"
       OUT_COGEN <- "gray27"
       OUT_SCGT <- "midnightblue"
@@ -340,7 +341,7 @@
       OUT_COal2Gas <- "mediumorchid4"
       
       # Colour Fill info
-      cOL_IMPORT <- "darkorchid1"
+      cOL_IMPORT <- "chocolate1" #"darkorchid1"
       cOL_COAL <- "snow3"
       cOL_COGEN <- "gray47"
       cOL_SCGT <- "navy"
@@ -357,25 +358,35 @@
       COL_Gas1 <- "dodgerblue3"
       COL_Gas2 <- "navy"
 
-      colours1 = c(cOL_IMPORT, cOL_COAL, cOL_COGEN, cOL_SCGT, cOL_NGCC, 
-                   cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+      # Now Define Lists
+      colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogen"=cOL_COGEN, 
+                 "SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
+                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                 "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
-      Outline1 = c(OUT_IMPORT, OUT_COAL, OUT_COGEN, OUT_SCGT, OUT_NGCC, 
-                   OUT_HYDRO, OUT_OTHER, OUT_WIND, OUT_SOLAR, OUT_STORAGE)
+      Outline1 = c("Import"= OUT_IMPORT, "Coal"=OUT_COAL, "Cogen"=OUT_COGEN, 
+                   "SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
+                   "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
+                   "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
       colours2 = c(cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
-                   cOL_OTHER, cOL_HYDRO, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+                   cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
       
       Outline2 = c(OUT_COAL, OUT_COal2Gas, OUT_COGEN, OUT_NGCC, 
-                   OUT_OTHER, OUT_HYDRO, OUT_WIND, OUT_SOLAR, OUT_STORAGE)
+                   OUT_HYDRO, OUT_OTHER, OUT_WIND, OUT_SOLAR, OUT_STORAGE)
       
       colours3 = c(cOL_WIND,cOL_SOLAR, cOL_Gas, COL_Gas1, cOL_STORAGE, cOL_OTHER)
+
       
-      colours4 = c(cOL_IMPORT, cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
-                   cOL_OTHER,cOL_HYDRO, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+      colours4=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Coal to Gas"=cOL_COal2Gas,
+                 "Cogen"=cOL_COGEN,"Natural Gas"=cOL_NGCC, 
+                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                 "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
-      Outline4 = c(OUT_IMPORT, OUT_COAL, OUT_COal2Gas, OUT_COGEN, OUT_NGCC, 
-                   OUT_OTHER,OUT_HYDRO, OUT_WIND, OUT_SOLAR, OUT_STORAGE)
+      Outline4 = c("Import"= OUT_IMPORT, "Coal"=OUT_COAL, "Coal to Gas"=OUT_COal2Gas,
+                   "Cogen"=OUT_COGEN,  "Natural Gas"=OUT_NGCC, 
+                   "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
+                   "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
       colours5 = c(cOL_COAL, cOL_COGEN, cOL_Gas, COL_Gas1, COL_Gas2,
                    cOL_HYDRO, cOL_SOLAR, cOL_WIND, cOL_STORAGE,cOL_OTHER)
@@ -390,26 +401,39 @@
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   
+## THE TOP FUNCTIONS
+  # Gives stacked area chart for single week
+  Week1(2021,01,08,BC)
+  
+  # Yearly Output
+  Evalyr(ResGroupYr,BC)
+  
+  # Yearly Capacity
+  Evalcap(ResGroupYr,BC)
+  
+################################################################################  
+## BUT THERE ARE MORE
+  
 ## SIM FUNCTIONS
 {  #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
-    day1(2021,01,08,BAU)
+    day1(2029,01,08,BC)
     
     # Gives stacked area chart for single week
-    Week1(2025,01,01,BAU)
+    Week1(2025,01,08,BC)
     
     # Gives weekly storage function
     Stor1(2021,01,08,BAU)
     
     # Average Pool Price for one week
-    week_price(2022,10,08,BAU)
+    week_price(2022,10,08,BC)
     
     # Gives overall picture of Output over time period
     Eval(ResGroupMn,BC)
-    Eval(ResGroupYr,BAU)
+    Evalyr(ResGroupYr,BC)
     
     # Gives overall picture of capacity over time period
     Evalcap(ResGroupMn,BC)
-    Evalcap(ResGroupYr,BAU)
+    Evalcap(ResGroupYr,BC)
     
     # Units Built over study period
     Builtcol(BC)
@@ -467,6 +491,8 @@
     
 ## NET ZERO FUNCTIONS
     Retirecol(BC)
+    
+    RetirecMW(BC)
     
     Add_Ret(BC)
     
