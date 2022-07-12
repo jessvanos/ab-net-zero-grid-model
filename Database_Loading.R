@@ -110,7 +110,7 @@
 #  ZoneYr <- dbReadTable(con,'ZoneYear1')
 #  ZoneMn <- dbReadTable(con,'ZoneMonth1')
   ZoneHr <- dbReadTable(con,'ZoneHour1')
-#  LTRes <- dbReadTable(con,'LTResValue1')
+  #LTRes <- dbReadTable(con,'LTResValue1')
   Build <- dbReadTable(con,'LTBuildReport1')
   Study <- dbReadTable(con,'LTStudyLog1')
   
@@ -364,16 +364,18 @@
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
-      Outline1 = c("Import"= OUT_IMPORT, "Coal"=OUT_COAL, "Cogen"=OUT_COGEN, 
+      Outline1 = c("Import"= OUT_IMPORT, "Coal"= OUT_COAL, "Cogen"=OUT_COGEN, 
                    "SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
                    "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
                    "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
-      colours2 = c(cOL_COAL, cOL_COal2Gas, cOL_COGEN, cOL_NGCC, 
-                   cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR, cOL_STORAGE)
+      colours2 = c("Coal"= cOL_COAL, "Coal to Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN, 
+                   "Natural Gas"=cOL_NGCC,"Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
+                   "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
-      Outline2 = c(OUT_COAL, OUT_COal2Gas, OUT_COGEN, OUT_NGCC, 
-                   OUT_HYDRO, OUT_OTHER, OUT_WIND, OUT_SOLAR, OUT_STORAGE)
+      Outline2 = c("Coal"= OUT_COAL, "Coal to Gas"=OUT_COal2Gas, "Cogen"=OUT_COGEN, 
+                   "Natural Gas"=OUT_NGCC, "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, 
+                   "Wind"=OUT_WIND, "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
       colours3 = c(cOL_WIND,cOL_SOLAR, cOL_Gas, COL_Gas1, cOL_STORAGE, cOL_OTHER)
 
@@ -411,6 +413,20 @@
   # Yearly Capacity
   Evalcap(ResGroupYr,BC)
   
+  # Yearly percentage of generation
+  EvalPerc(ResGroupYr,BC)
+  
+  # Study Resources Built & Res capacity built
+  Builtcol(BC)
+  BuiltMW(BC)
+  
+  # Study Retirements 
+  Retirecol(BC)
+  
+  # Show Yearly Output by resource in columns 
+  Output_Comp(ResGroupYr,BC)
+  Years2Disp <- c(2022,2025,2030,2035) # Years to Show
+  
 ################################################################################  
 ## BUT THERE ARE MORE
   
@@ -419,7 +435,7 @@
     day1(2029,01,08,BC)
     
     # Gives stacked area chart for single week
-    Week1(2025,01,08,BC)
+    Week1(2021,01,08,BC)
     
     # Gives weekly storage function
     Stor1(2021,01,08,BAU)
@@ -435,20 +451,17 @@
     Evalcap(ResGroupMn,BC)
     Evalcap(ResGroupYr,BC)
     
-    # Units Built over study period
-    Builtcol(BC)
-    
-    # Units Built over study period by capacity
-    BuiltMW(BC)
-    
+    # Gives all as % of total generation being met
+    EvalPerc(ResGroupYr,BC)
+
     # Lets you get where units were built 
-    Units(BAU,wind)
+    Units(BC,wind)
     
     # Lets you get where units could have been built 
-    Slack(BAU,wind)
+    Slack(BC,wind)
     
     #Shows Prices for simulation duration
-    Sim_dur(BAU)
+    Sim_dur(BC)
 }
 ## COMBINED SIM FUNCTIONS
     
@@ -478,27 +491,64 @@
 ##  AESO SIM COMPARE FUNCTIONS
 
     # Prices and Output for noth AESO and Sim
-    AESO_SimOP(2022,04,08,BAU)
+    AESO_SimOP(2022,04,08,BC)
     
     # output compare only
-    AESO_SimO(2022,01,01,BC)
+    AESO_SimO(2022,01,08,BC)
     
     # Price compare only
-    AESO_SimP(2022,04,01,BAU)
+    AESO_SimP(2022,04,08,BC)
     
     #Plot the full year pool price
-    AESO_SimP2(2022,BAU)
+    AESO_SimP2(2022,BC)
     
+    #Show difference between pool price for year in graph
+    year_comp(2021,BC)
+    
+    # Pool price diff as bar chart with labels
+    year_dif(2021,BC)
+    
+    # Monthly average prices, sim vs act
+    year_avg(2021,BC)
+    
+    #Plot Average Monthly Pool Price vs AESO
+    year_pool(2021,2022,BC)
+    
+    # Compare duration of pool price from year 1 to year 2
+    comp_dur(2021,2022,BC)
+    
+    # Compare duration of hourly load from year 1 to year 2
+    load_dur(2021,2022,BC)
+    
+    # Plot capacity factors 
+    tech_cap(2021,2022,BC)
+    
+    margin(2021,2022,BC)
+    
+    tot_cap(2021,2022,BC)
+    
+    AESOSim(2021,2022,BC)
+
 ## NET ZERO FUNCTIONS
     Retirecol(BC)
     
     RetirecMW(BC)
     
-    Add_Ret(BC)
+    Add_Ret(BC)   
+    
+    # Units Built over study period
+    Builtcol(BC)
+    
+    BuiltMW(BC)
+    
+    Output_Comp(ResGroupYr,BC)
+      Years2Disp <- c(2022,2025,2030,2035) # Years to Show
     
     #Clear plots
     
     dev.off(dev.list()["RStudioGD"])
     windows(12,8)
+    windows(14,8)
+    windows(10,8)
 
     

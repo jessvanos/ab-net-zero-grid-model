@@ -125,14 +125,17 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
   
   # Combine the grouped data
   { case <- rbind(Coal, Cogen, Gas, Gas1, Gas2, Hydro, Solar, Wind, Storage, Other)
+    
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c("Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta", 
                                         "WECC-Alberta NaturalGas-NonCycling","WECC-Alberta NaturalGas",
                                         "WECC-Alberta NaturalGas-Peaking","Water", "Solar", 
                                         "Wind", "Storage", "Other, Bio, ZZ, WC, WH"))
-    levels(case$Primary_Fuel) <- c("Coal", "Cogen", "Gas", "Gas1", "Gas2", "Hydro","Solar",
+    
+    levels(case$Primary_Fuel) <- c("Coal", "Cogen", "NG - NonCycling", "NG", "NG - Peaking", "Hydro","Solar",
                          "Wind", "Storage", "Other")  }
   return(case)  }
 }
+
 ################################################################################
 ## FUNCTION: HrTime
 ## Convert the date and select a subset for one day from the data pulled in
@@ -637,7 +640,7 @@ Week14 <- function(year, month, day, case) {
             text = element_text(size = 20)) +
       
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
-      scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=seq(0, MX, by = MX/6)) +
+      scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       
       labs(x = "Date", y = "Generation (TWh)", fill = "Resource",colour="Resource") +
       
@@ -651,7 +654,7 @@ Week14 <- function(year, month, day, case) {
   
   ################################################################################  
   ## FUNCTION: Evalyr 
-  ## Plotting month/year profiles of resource output
+  ## Plotting year profiles of resource output
   ##
   ## INPUTS: 
   ##    input - ResgroupMnor ResGroupYr
@@ -679,8 +682,8 @@ Week14 <- function(year, month, day, case) {
       rbind(.,Imp) 
     
     data$ID<-fct_relevel(data$ID, "Import")
-    data$Time_Period <- as.Date(data$Time_Period)
-    
+    data$Time_Period <- as.Date(data$Time_Period,format="%Y")
+
     # Set the max for the plot
     dyMX <- aggregate(data["Output_MWH"], by=data["Time_Period"], sum)
     MX <- plyr::round_any(max(abs(dyMX$Output_MWH)/1000000), 20, f = ceiling)
@@ -705,9 +708,9 @@ Week14 <- function(year, month, day, case) {
             panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
-            legend.justification = c(0,0.5),
+            legend.justification = c(0.5,0.5),
             legend.title=element_blank(),
-            text = element_text(size = 20)) +
+            text = element_text(size = 15)) +
       
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y",
                    limits = as.Date(c('2021-07-08','2034-08-01'))) +
@@ -760,14 +763,15 @@ Week14 <- function(year, month, day, case) {
             panel.background = element_rect(fill = "transparent"),
             panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
             plot.subtitle = element_text(hjust = 0.5), 
-            legend.justification = c(0.5,0.5),
             legend.position = "bottom",
             legend.key.size = unit(1,"lines"),
             legend.title = element_blank(),
             legend.text = element_text(size =15),
-            text = element_text(size = 20)) +
+            legend.justification = c(0.5,0.5),
+            text = element_text(size = 15)) +
       
-      scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
+      scale_x_date(expand=c(0,0),
+                   breaks = "year",date_labels = "%Y") +
       
       scale_y_continuous(expand=c(0,0), limits=c(0,MX),breaks = pretty_breaks(6)) +
       
@@ -781,7 +785,7 @@ Week14 <- function(year, month, day, case) {
   }
  
 ################################################################################  
-## FUNCTION: EvalPerc **Not read - maybe make a pie chart?
+## FUNCTION: EvalPerc 
 ## Year/month profiles as a percentage of the total
 ##
 ## INPUTS: 
@@ -793,10 +797,7 @@ Week14 <- function(year, month, day, case) {
     # Filters for the desired case study
     data <- input %>%
       filter(Run_ID == case & Condition == "Average")# %>%
-    #    group_by(Time_Period, ID) %>%
-    #    summarise(n = sum(Output_MWH)) %>%
-    #    mutate(Percentage = n / sum(n))
-    
+
     # Filter the data by resource
     case_Time <- sim_filt(data)
     
@@ -805,15 +806,17 @@ Week14 <- function(year, month, day, case) {
     
     case_Time %>%
       ggplot() +
-      aes(Time_Period, Output_MWH, fill = ID) +
-      geom_area(position = "fill", alpha = 0.7, size=.5, colour="black") +
-      geom_hline(yintercept = 0.3, linetype = "dashed", color = "forestgreen", size = 1.5) +
+      geom_area(aes(Time_Period, Output_MWH, fill = ID,colour= ID),
+                position = "fill", alpha = 0.7, size=.5) +
       geom_vline(xintercept = as.Date(ISOdate(2035, 1,1)),
-                 linetype = "dashed", color = "dodgerblue", size = 1.5) +
+                 linetype = "dashed", color = "black", size = 1) +
       #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
       theme(panel.grid = element_blank(),
-            axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+            axis.text.x = element_text(),
             plot.title = element_text(hjust = 0.5),
             plot.subtitle = element_text(hjust = 0.5), 
             legend.title = element_blank(),
@@ -822,74 +825,24 @@ Week14 <- function(year, month, day, case) {
             panel.grid.minor.x = element_blank(),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
-            legend.background = element_rect(fill='transparent'),
+            legend.background = element_rect(fill='transparent',colour='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+            # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray70'),
+            # panel.ontop = TRUE,
+            legend.key.size = unit(1,"lines"),
+            legend.position = "bottom",
             legend.justification = c(0,0.5)) +
       
-      scale_x_date(expand=c(0,0)) +
+      scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
       scale_y_continuous(expand=c(0,0),
                          labels = scales::percent, 
-                         breaks = sort(c(seq(0,1,length.out=5),0.3))) +
+                         breaks = sort(c(seq(0,1,length.out=5)))) +
+      
+      guides(fill = guide_legend(nrow = 1)) +
+      labs(x = "Date", y = "Percentage of Generation", fill = "Resource",colour="Resource") +
       scale_fill_manual(values = colours2) +
-      labs(x = "Date", y = "Percentage of Generation", fill = "Resource") 
-  }
-  
-################################################################################  
-## FUNCTION: BuiltMW **Not read
-## Plotting the capacity of resources built
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Build - Build table describing all new resources
-################################################################################
-  
-  # Stacked Area showing totals for Fuel Types
-  BuiltMW <- function(case) {
-    data <- Build %>%
-      filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
-               Time_Period != "Study")%>%
-      group_by(Fuel_Type, Time_Period) %>%
-      summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) 
-    
-    data$Fuel_Type <- factor(data$Fuel_Type, 
-                             levels = c("WND","SUN","Gas0","Gas1", "PS", "OT"))
-    
-    levels(data$Fuel_Type) <- c("Wind","Solar","Gas0","Gas1", "Storage", "Other")
-    
-    Tot <- data %>%
-      group_by(Time_Period) %>%
-      summarise(totu = sum(Units), totc = sum(Capacity))
-    
-    mxu <- max(Tot$totu)
-    mxc <- max(Tot$totc)
-    
-    ggplot(data) +
-      aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-      geom_bar(position="stack", stat="identity", alpha=1) +
-      theme_bw() +
+      scale_colour_manual(values = Outline2) 
       
-      theme(text=element_text(family=Plot_Text)) +
-      
-      theme(panel.grid = element_blank(), 
-            axis.title.x = element_text(size = XTit_Sz,face="bold"),
-            axis.title.y = element_text(size = YTit_Sz,face="bold"),
-            plot.title = element_text(size = Tit_Sz),
-            panel.background = element_rect(fill = "transparent"),
-            legend.justification = c(0.5,0.5),
-            legend.title=element_blank(),
-            legend.position = ("bottom"),
-            legend.key.size = unit(1,"lines"),
-            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-            text = element_text(size = 20)) +
-
-      guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
-      
-      labs(x = "Date", y = "Capacity Built (MW)", fill = "Fuel Type") +
-      scale_y_continuous(expand=c(0,0),
-                         limits = c(0,plyr::round_any(mxc, 100, f = ceiling))) +
-      #    scale_x_discrete(expand=c(0,0)) +
-      scale_fill_manual(values = colours3)
   }
   
 ################################################################################  
@@ -1023,7 +976,7 @@ Week14 <- function(year, month, day, case) {
             text = element_text(size = 15)) +
             
       labs(y = "Pool Price$/MWh", x = "Percentage of Time") +
-      scale_color_manual(values = c("goldenrod1", "forestgreen", "cornflowerblue")) +
+      #scale_color_manual(values = c("goldenrod1", "forestgreen", "cornflowerblue")) +
       scale_x_continuous(expand=c(0,0), 
                          limits = c(0,1.1),
                          labels = percent) +

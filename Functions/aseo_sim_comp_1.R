@@ -307,7 +307,7 @@ AESO_SimO <- function(year,month,day,case) {
   #              heights=c(1, 0.1))
   
   grid.arrange(p1,p2,legend,
-               ncol=3, nrow=2,
+               ncol=2, nrow=2,
                layout_matrix = rbind(c(1,2), c(3,3)),
                widths = c(2.7, 2.7), heights = c(2.5, 0.2))
 }
@@ -405,7 +405,7 @@ rev_dur <- function(year1, year2, type, case) {
 }
 
 ################################################################################
-## FUNCTIONS: year_comp **Not read
+## FUNCTIONS: year_comp 
 ## Plots the difference in Pool Price between AESO and Sim
 ##
 ## INPUTS:
@@ -418,7 +418,7 @@ year_comp <- function(year,case) {
   wk_st <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(01,01,year+1, sep = "/"), format="%d/%m/%Y")
   
-  sim <- ZH
+  sim <- ZoneHr_Avg
   #  sim$Date <- as.POSIXct(as.character(sim$date), tz = "MST")
   
   sim_wk <- sim %>%
@@ -458,7 +458,7 @@ year_comp <- function(year,case) {
 }
 
 ################################################################################
-## FUNCTIONS: year_comp **Not read
+## FUNCTIONS: year_comp 
 ## Bar plot showing the difference between AESO and Sim
 ##
 ## INPUTS:
@@ -471,7 +471,7 @@ year_dif <- function(year,case) {
   wk_st <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(31,12,year, sep = "/"), format="%d/%m/%Y")
   
-  sim <- ZH
+  sim <- ZoneHr_Avg
   sim_wk <- sim %>%
     filter(date >= wk_st & date <= wk_end & Run_ID == case) %>%
     subset(., select = c(date, Price))
@@ -520,7 +520,7 @@ year_dif <- function(year,case) {
 }
 
 ################################################################################
-## FUNCTIONS: year_avg **Not read
+## FUNCTIONS: year_avg 
 ## Bar chart comparing monthly average pool prices
 ##
 ## INPUTS:
@@ -533,7 +533,7 @@ year_avg <- function(year,case) {
   wk_st <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(31,12,year, sep = "/"), format="%d/%m/%Y")
   
-  sim <- ZH
+  sim <- ZoneHr_Avg
   sim_wk <- sim %>%
     filter(date >= wk_st & date <= wk_end & Run_ID == case) %>%
     subset(., select = c(date, Price))
@@ -583,7 +583,7 @@ year_avg <- function(year,case) {
 }
 
 ################################################################################
-## FUNCTIONS: year_pool **Not read
+## FUNCTIONS: year_pool 
 ## A function to plot the Monthly average pool price 
 ## (Like in the AESO Market Report 2021 Figure 1)
 ##
@@ -701,7 +701,7 @@ year_pool <- function(year1, year2,case) {
 }
 
 ################################################################################
-## FUNCTIONS: comp_dur **Not read
+## FUNCTIONS: comp_dur
 ## Plots the Pool Price duration vs percentile for AESO and Sim
 ## Like AESO Market Report 2021 Figures 2 and 3
 ##
@@ -716,7 +716,7 @@ comp_dur <- function(year1, year2, case) {
   # Calculate the percentage of time
   # Create column 'sit' to indicate Simulation
   totSim <- ZoneHr_All%>%
-    filter(Report_Year >= (year1-2) & 
+    filter(Report_Year >= (year1) & 
              Report_Year <= year2,
            Run_ID == case, 
            Condition != "Average") %>%
@@ -735,7 +735,7 @@ comp_dur <- function(year1, year2, case) {
   Actual$Hour <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%H")
   
   totAct <- Actual %>%
-    filter(Year >= (year1-2), 
+    filter(Year >= (year1), 
            Year <= year2,) %>%
     mutate(Condition = if_else(between(Hour, 08, 23), 
                                "On-Peak WECC", "Off-Peak WECC")) %>%
@@ -787,7 +787,7 @@ comp_dur <- function(year1, year2, case) {
 }
 
 ################################################################################
-## FUNCTIONS: load_dur **Not read
+## FUNCTIONS: load_dur
 ## Plots the load duration vs percentile for AESO and Sim
 ## Like AESO Market Report 2021 Figures 7 and 8
 ##
@@ -875,7 +875,7 @@ load_dur <- function(year1, year2, case) {
 }
 
 ################################################################################
-## FUNCTIONS: tech_cap **Not read
+## FUNCTIONS: tech_cap 
 ## Plots the capacity factor by technology for AESO and Sim
 ## Like AESO Market Report 2021 Figure 15
 ##
@@ -1008,102 +1008,6 @@ margin <- function(year1, year2, case) {
     slice_max(n=1,merit)
 }
 
-################################################################################
-## FUNCTIONS: margin **Not read
-## Plots the annual wind capacity factor duration curve for AESO and Sim
-## Like AESO Market Report 2021 Figure 25
-##
-## INPUTS:
-##    year1. year2 - Year to compare
-##    case - Run_ID which you want to plot
-################################################################################
-
-wind_cap <- function(year1, year2, case) {
-
-    # Load and filter Simulation data, 
-  # Calculate the percentage of time
-  # Create column 'sit' to indicate Simulation
-  Sim <- ResGroupHr_sub%>%
-    filter(Report_Year >= year1 & 
-             Report_Year <= year2,
-           Run_ID == case,
-           ID == "LTO_Wind") %>%
-    group_by(Report_Year) %>%
-    mutate(perc = 1-ecdf(Capacity_Factor)(Capacity_Factor)) %>%
-    mutate(sit = "Simulated", Cap_Fac = Capacity_Factor) %>%
-    subset(., select=c(Report_Year, Cap_Fac, perc, sit)) %>%
-    rename(Year = Report_Year) %>%
-    ungroup() 
-  
-  # Load and filter AESO data, 
-  # Calculate the percentage of time
-  # Create column 'sit' to indicate Actual AESO data
-  Actual <- sub_samp 
-  #  Actual <- df1
-  #  Actual$Year <- as.numeric(as.character(Actual$Year))
-  #  Actual$Year <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%Y")
-  Actual <- Actual %>%
-    filter(year(time) >= year1,
-           year(time) <= year2,
-           Plant_Type == "WIND") #%>%
-  #   mutate(Cap_Fac = meancap)
-  Actual <- na.omit(Actual)
-  Actual$Year <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%Y")
-  
-  #  Act <- Actual %>%
-  #    group_by(Year,time) %>%
-  #    mutate(perc = 1-ecdf(Cap_Fac)(Cap_Fac)) %>%
-  #    subset(., select=c(Year, Cap_Fac, perc)) %>%
-  #    ungroup() %>%
-  #    mutate(sit = "Actual")
-  
-  Act <- Actual %>%
-    group_by(Year,time) %>%
-    summarise(Cap_Fac = mean(Cap_Fac)) %>%
-    mutate(perc = 1-ecdf(Cap_Fac)(Cap_Fac)) %>%
-    subset(., select=c(Year, Cap_Fac, perc)) %>%
-    ungroup() %>%
-    mutate(sit = "Actual")
-  
-  # Combine Actual and Simulation data
-  total <- rbind(Sim, Act)
-  
-  # Set font size for plot
-  sz <- 15
-  
-  ggplot() +
-    geom_line(data = total, 
-              aes(x = perc, y = Cap_Fac, colour = Year, linetype = sit), size = 1) +
-    #    facet_grid(cols = vars(Condition)) +
-    theme_bw() +
-    theme(axis.text = element_text(size = sz),
-          axis.title = element_text(size = sz),
-          plot.title = element_text(size = sz+2),
-          legend.text = element_text(size = sz),
-          
-          # For transparent background
-          panel.grid = element_blank(),
-          legend.title = element_blank(),
-          panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.spacing = unit(1.5, "lines"),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.key = element_rect(colour = "transparent", fill = "transparent"),
-          legend.background = element_rect(fill='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-    ) +
-    labs(y = "Wind Capacity Factor", 
-         x = "Percentage of Time", 
-         title = "AESO Data vs Simulation",
-         subtitle = SourceDB) +
-    scale_color_manual(values = AESO_colours) +
-    scale_x_continuous(expand=c(0,0), 
-                       limits = c(0,1.1),
-                       labels = percent) +
-    scale_y_continuous(expand=c(0,0)
-    )
-}
 
 ################################################################################
 ## FUNCTIONS: tot_cap **Not read
@@ -1254,7 +1158,5 @@ AESOSim <- function(year1,year2,case) {
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
           panel.border = element_rect(colour = "black", fill = "transparent"))
   
-  #  plot_grid(p.c,p.y,p.t,
-  #            ncol = 1, align = "v", axis = "l",
-  #            rel_heights = c(2,1.5,2))
+
 }
