@@ -57,7 +57,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"PartRun_July_8_2022"
+  SourceDB<-"TestRun_July_15_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -107,7 +107,7 @@
 #  ResStackHr  <- dbReadTable(con,'ResourceStackHour1')
   Link <- dbReadTable(con,'LinkYear1')
 #  CC <- dbReadTable(con,'CustomConstraint1')
-#  ZoneYr <- dbReadTable(con,'ZoneYear1')
+  ZoneYr <- dbReadTable(con,'ZoneYear1')
 #  ZoneMn <- dbReadTable(con,'ZoneMonth1')
   ZoneHr <- dbReadTable(con,'ZoneHour1')
   #LTRes <- dbReadTable(con,'LTResValue1')
@@ -153,11 +153,12 @@
 #                        tz = "MST")-(60*60)
 #  Link$Time_Period  <- as.Date(as.character(Link$Time_Period), 
 #                       format = "%Y")
-#  ZoneYr$Time_Period  <- as.Date(as.character(ZoneYr$Time_Period), 
-#                       format = "%Y")
+   ZoneYr$Time_Period  <- as.Date(as.character(ZoneYr$Time_Period), 
+                       format = "%Y")
 #  ZoneMn$Time_Period <- ym(ZoneMn$Time_Period)
   ZoneHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ZoneHr$Time_Period))), 
-                         tz = "MST")-(60*60)     
+                         tz = "MST")-(60*60)   
+  
 }
 
 ################################################################################
@@ -323,13 +324,14 @@
     
   # Define years to compare
     Yr4Sp <- c(2021,2022,2023,2024)
-    Yr2Sp <- c(2022, 2025)
+    Years2Disp <- c(2022,2025,2030,2034) # Years to Show
     
   # Set legend color schemes for contistancy
     ## Can change here
     { # Colours Outline Info
-      OUT_IMPORT <- "chocolate3"
+      OUT_IMPORT <- "hotpink3"
       OUT_COAL <- "snow4"
+      OUT_NGConv <- "mediumorchid4"
       OUT_COGEN <- "gray27"
       OUT_SCGT <- "midnightblue"
       OUT_NGCC <- "dodgerblue4"
@@ -341,8 +343,9 @@
       OUT_COal2Gas <- "mediumorchid4"
       
       # Colour Fill info
-      cOL_IMPORT <- "chocolate1" #"darkorchid1"
+      cOL_IMPORT <- "hotpink" #"darkorchid1"
       cOL_COAL <- "snow3"
+      cOL_NGConv <- "mediumorchid4"
       cOL_COGEN <- "gray47"
       cOL_SCGT <- "navy"
       cOL_NGCC <- "dodgerblue3"
@@ -360,12 +363,12 @@
 
       # Now Define Lists
       colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogen"=cOL_COGEN, 
-                 "SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
+                  "NGConv"=cOL_NGConv,"SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
-      Outline1 = c("Import"= OUT_IMPORT, "Coal"= OUT_COAL, "Cogen"=OUT_COGEN, 
-                   "SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
+      Outline1 = c("Import"= OUT_IMPORT, "Coal"= OUT_COAL,"Cogen"=OUT_COGEN,
+                   "NGConv"=OUT_NGConv,"SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
                    "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
                    "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
@@ -377,7 +380,8 @@
                    "Natural Gas"=OUT_NGCC, "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, 
                    "Wind"=OUT_WIND, "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
-      colours3 = c(cOL_WIND,cOL_SOLAR, cOL_Gas, COL_Gas1, cOL_STORAGE, cOL_OTHER)
+      colours3 = cc("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
+                    "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE,)
 
       
       colours4=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Coal to Gas"=cOL_COal2Gas,
@@ -402,6 +406,7 @@
   
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
+  windows(12,8)
   
 ## THE TOP FUNCTIONS
   # Gives stacked area chart for single week
@@ -418,10 +423,12 @@
   
   # Study Resources Built & Res capacity built
   Builtcol(BC)
-  BuiltMW(BC)
+    BuiltMW(BC)
+  BuildMW(BC)
   
   # Study Retirements 
   Retirecol(BC)
+  RetireMW(BC)
   
   # Show Yearly Output by resource in columns 
   Output_Comp(ResGroupYr,BC)
@@ -551,4 +558,5 @@
     windows(14,8)
     windows(10,8)
 
+    BuildMW(BC)
     
