@@ -47,7 +47,7 @@
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
-                   "ggpattern","here","beepr","showtext")
+                   "ggpattern","here","beepr","showtext","DescTools")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -57,7 +57,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_July_15_2022"
+  SourceDB<-"TestRun_July_18_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -380,7 +380,7 @@
                    "Natural Gas"=OUT_NGCC, "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, 
                    "Wind"=OUT_WIND, "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
-      colours3 = cc("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
+      colours3 = c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
                     "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE,)
 
       
@@ -407,10 +407,11 @@
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   windows(12,8)
+  Years2Disp <- c(2022,2024,2026,2028,2030) # Years to Show
   
 ## THE TOP FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2021,01,08,BC)
+  Week1(2027,01,08,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -423,17 +424,19 @@
   
   # Study Resources Built & Res capacity built
   Builtcol(BC)
-    BuiltMW(BC)
+    #BuiltMW(BC)
   BuildMW(BC)
   
   # Study Retirements 
-  Retirecol(BC)
   RetireMW(BC)
   
   # Show Yearly Output by resource in columns 
   Output_Comp(ResGroupYr,BC)
-  Years2Disp <- c(2022,2025,2030,2034) # Years to Show
   
+  #Shows Prices for simulation duration
+  Sim_dur(BC)
+
+    
 ################################################################################  
 ## BUT THERE ARE MORE
   
@@ -442,7 +445,7 @@
     day1(2029,01,08,BC)
     
     # Gives stacked area chart for single week
-    Week1(2021,01,08,BC)
+    Week1(2029,01,08,BC)
     
     # Gives weekly storage function
     Stor1(2021,01,08,BAU)
@@ -525,7 +528,7 @@
     comp_dur(2021,2022,BC)
     
     # Compare duration of hourly load from year 1 to year 2
-    load_dur(2021,2022,BC)
+    load_dur(2025,2030,BC)
     
     # Plot capacity factors 
     tech_cap(2021,2022,BC)
@@ -539,7 +542,7 @@
 ## NET ZERO FUNCTIONS
     Retirecol(BC)
     
-    RetirecMW(BC)
+    RetireMW(BC)
     
     Add_Ret(BC)   
     

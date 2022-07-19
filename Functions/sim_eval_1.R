@@ -322,7 +322,7 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
                          breaks = seq(0, MX, by = MX/4)) +
       guides(fill = guide_legend(nrow = 1)) +
       
-      labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource") +
+      labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",caption=SourceDB) +
       
       #Add colour
       scale_fill_manual(values = colours1) +
@@ -511,7 +511,7 @@ Week14 <- function(year, month, day, case) {
       scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
                          breaks = seq(0, MX, by = MX/4)) +
       
-      labs(title=paste("Resource Output, ",day_report),x = "Date", y = "Output (MWh)", fill = "Resource",colour = "Resource" ) +
+      labs(title=paste("Resource Output, ",day_report),x = "Date", y = "Output (MWh)", fill = "Resource",colour = "Resource",caption=SourceDB ) +
       
       #Add colour
       scale_fill_manual(values = colours1) +
@@ -620,7 +620,7 @@ Week14 <- function(year, month, day, case) {
             text = element_text(size = 15) 
             
       ) +
-      labs(y = "Pool Price ($/MWh)", x="Date",fill = "Resource") +
+      labs(y = "Pool Price ($/MWh)", x="Date",fill = "Resource",caption=SourceDB) +
       scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "day",date_labels = "%b-%e") +
       scale_y_continuous(expand=c(0,0), 
                          limits= c(0,MX),
@@ -692,7 +692,7 @@ Week14 <- function(year, month, day, case) {
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
       scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       
-      labs(x = "Date", y = "Generation (TWh)", fill = "Resource",colour="Resource") +
+      labs(x = "Date", y = "Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
       
       guides(fill = guide_legend(nrow = 1)) +
       
@@ -765,7 +765,7 @@ Week14 <- function(year, month, day, case) {
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
       scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       
-      labs(x = "Date", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource") +
+      labs(x = "Date", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
       
       guides(fill = guide_legend(nrow = 1)) +
       
@@ -822,7 +822,7 @@ Week14 <- function(year, month, day, case) {
       scale_x_date(expand=c(0,0),
                    breaks = "year",date_labels = "%Y") +
       
-      scale_y_continuous(expand=c(0,0), limits=c(0,MX),breaks = pretty_breaks(6)) +
+      scale_y_continuous(expand=c(0,0), limits=c(0,30000),breaks = pretty_breaks(6)) +
       
       labs(x = "Date", y = "Capacity (MW)", fill = "Resource",colour="Resource") +
     
@@ -1010,9 +1010,12 @@ Week14 <- function(year, month, day, case) {
     
     tot$Report_Year <- as.factor(tot$Report_Year)
     
+    tot <- tot %>%
+      filter(Report_Year %in% Years2Disp)
+    
     ggplot() +
       geom_line(data = tot, 
-                aes(x = perc, y = Price, colour = Report_Year), size = 1) +
+                aes(x = perc, y = Price, colour = Report_Year), size = 1.25) +
       facet_grid(cols = vars(Condition)) +
       
       theme_bw() +
@@ -1020,17 +1023,22 @@ Week14 <- function(year, month, day, case) {
       theme(text=element_text(family=Plot_Text)) +
       
       theme(panel.grid = element_blank(),
+            panel.spacing = unit(2, "lines"),
             axis.title.x = element_text(size = XTit_Sz,face="bold"),
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
-            text = element_text(size = 15)) +
+            text = element_text(size = 15),
+            legend.title = element_blank(),
+            panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray70")) +
             
-      labs(y = "Pool Price$/MWh", x = "Percentage of Time") +
-      #scale_color_manual(values = c("goldenrod1", "forestgreen", "cornflowerblue")) +
+      labs(y = "Pool Price ($/MWh)", x = "Percentage of Time",caption = SourceDB) +
+      
+      #scale_color_brewer(palette= "Dark2") +
+  
       scale_x_continuous(expand=c(0,0), 
-                         limits = c(0,1.1),
+                         limits = c(0,1),
                          labels = percent) +
       
-      scale_y_continuous(expand=c(0,0)) 
+      scale_y_continuous(expand=c(0,0),limits = c(0,1000),breaks = pretty_breaks(5)) 
   }
   
 ################################################################################

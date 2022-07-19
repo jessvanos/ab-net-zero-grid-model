@@ -255,8 +255,6 @@ Output_Comp <- function(input,case) {
   # Set the max for the plot
   MX <- plyr::round_any(max(abs(data$Output_MWH)/1000000), 10, f = ceiling)
   
- # data$Time_Period <- toString(data$Time_Period)
-  
     # Plot
   data %>%
     ggplot() +
@@ -389,6 +387,7 @@ RetireMW <- function(case) {
   
   #Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(Retdata$YEAR)
+  MinYr <- min(Retdata$YEAR)
   Retdata$End_Date  <- as.Date(Retdata$End_Date, 
                                format = "%m/%d/%Y")
   Retdata$End_Date <- format(Retdata$End_Date,format="%Y")
@@ -412,6 +411,8 @@ RetireMW <- function(case) {
   dyMX <- aggregate(Retdata["Capacity"], by=Retdata["End_Date"], sum)
   mxc <- round_any(max(dyMX$Capacity+11),500,f=ceiling)
   
+  Retdata$End_Date <- as.numeric(Retdata$End_Date)
+  
   #Plot data
   ggplot(Retdata) +
     aes(x=End_Date, y=Capacity, fill = Primary_Fuel, group = Primary_Fuel) +
@@ -431,11 +432,14 @@ RetireMW <- function(case) {
           legend.key.size = unit(1,"lines"),
           plot.caption=element_text(size=10),
           panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          text = element_text(size = 20)) +
+          text = element_text(size = 15)) +
     
     guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
     
-    labs(x = "Year", y = "Capacity Retired", fill = "Fuel Type")  +
+    labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
+    
+    scale_x_continuous(expand = c(0.01, 0.01),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
+    
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,(mxc)),breaks=breaks_pretty(6)) +
     
@@ -519,7 +523,7 @@ BuildMW <- function(case)
     
     guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
     
-    labs(x = "Year", y = "New Capacity (MW)", fill = "Fuel Type")  +
+    labs(x = "Year", y = "New Capacity (MW)", fill = "Fuel Type",caption=SourceDB)  +
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,(mxc)),breaks=breaks_pretty(6)) +
     scale_x_continuous(expand = c(0.01, 0.01),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
