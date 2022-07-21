@@ -43,6 +43,7 @@
   source(here('Functions','aeso_eval_1.R'))
   source(here('Functions','aseo_sim_comp_1.R')) 
   source(here('Functions','Net_Zero_eval.R'))
+  source(here('Functions','intertie_info.R'))
   
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
@@ -94,6 +95,7 @@
 #  ResMn <- dbReadTable(con,'ResourceMonth1')
   ResHr <- dbReadTable(con,'ResourceHour1') # This one takes eons
   ResSt <-dbReadTable(con,'ResourceStudy1')
+  ResEmYr <-dbReadTable(con,'ResourceEmissionsYear1')
   
   # Resource Group Tables
   ResGroupYr <- dbReadTable(con,'ResourceGroupYear1')
@@ -133,9 +135,13 @@
   ResYr$YEAR <- format(ResYr$YEAR,format="%Y") # Reformat for year only
   
 #  ResMn$Time_Period <- ym(ResMn$Time_Period)
+  
   ResHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResHr$Time_Period))), 
                         tz = "MST")-(60*60)
 
+  ResEmYr$YEAR  <- as.POSIXct(as.character(ResEmYr$Time_Period), 
+                            format = "%Y")
+  
   # Resource Group Tables
   ResGroupHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResGroupHr$Time_Period))), 
                         tz = "MST")-(60*60)
@@ -185,7 +191,18 @@
                            Name,Report_Year, Report_Month,
                            Run_ID))
     
-    #Hourly For individual resources
+    # #Hourly individual resources in BC or SK
+    # ResHr_Int <- ResHr
+    #   filter(Zone == -c("WECC_Alberta")) %>%
+    #     subset(., select = c(ID, Name, Beg_Date, End_Date, date, Capability, Capacity, 
+    #                          Dispatch_Cost, Incr_Cost, Fixed_Cost, Fuel_Cost, 
+    #                          Output_MWH, Percent_Marginal, Percent_Committed,
+    #                          Revenue, Variable_OM_Cost, Capacity_Factor, 
+    #                          Total_Emission_Cost, Total_Hours_Run, Condition, 
+    #                          Report_Year, Run_ID, Peak_Capacity, 
+    #                          Primary_Fuel,Zone))  
+    
+    #Hourly For individual resources in AB
     ResHr <- ResHr %>%
               filter(Zone == "WECC_Alberta") %>%
       subset(., select = c(ID, Name, Beg_Date, End_Date, date, Capability, Capacity, 
@@ -198,7 +215,7 @@
   }
   
   { #IMPORT/EXPORT 
-    # Select the Import/Export data
+    # Select the Import/Export data Hourly
     Import <- ZoneHr_Avg %>%
       subset(., select = c(date, Imports, Run_ID)) %>%
       'colnames<-'(c("date", "Output_MWH", "Run_ID")) %>%
@@ -207,6 +224,19 @@
     Export <- ZoneHr_Avg %>%
       subset(., select = c(date, Exports, Run_ID)) %>%
       'colnames<-'(c("date", "Output_MWH", "Run_ID")) %>%
+      add_column(ID = "Export")
+    
+    # Select Import/Export data Yearly
+    Import_Yr <- ZoneYr %>%
+      filter(Condition == "Average") %>%
+      subset(., select = c(Time_Period, Imports_Total, Run_ID,Name)) %>%
+      'colnames<-'(c("Time_Period", "Output_MWH", "Run_ID","Name")) %>%
+      add_column(ID = "Import")
+    
+    Export_Yr <- ZoneYr %>%
+      filter(Condition == "Average") %>%
+      subset(., select = c(Time_Period, Exports_Total, Run_ID,Name)) %>%
+      'colnames<-'(c("Time_Period", "Output_MWH", "Run_ID","Name")) %>%
       add_column(ID = "Export")
     
     #Fix Aurora sign convention if needed
@@ -359,20 +389,20 @@
 
       # Now Define Lists
       colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogen"=cOL_COGEN, 
-                  "NGConv"=cOL_NGConv,"SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
+                  "Coal-to-Gas"=cOL_NGConv,"SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
       Outline1 = c("Import"= OUT_IMPORT, "Coal"= OUT_COAL,"Cogen"=OUT_COGEN,
-                   "NGConv"=OUT_NGConv,"SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
+                   "Coal-to-Gas"=OUT_NGConv,"SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
                    "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
                    "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
-      colours2 = c("Coal"= cOL_COAL, "Coal to Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN, 
+      colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN, 
                    "Natural Gas"=cOL_NGCC,"Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
                    "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
-      Outline2 = c("Coal"= OUT_COAL, "Coal to Gas"=OUT_COal2Gas, "Cogen"=OUT_COGEN, 
+      Outline2 = c("Coal"= OUT_COAL, "Coal-to-Gas"=OUT_COal2Gas, "Cogen"=OUT_COGEN, 
                    "Natural Gas"=OUT_NGCC, "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, 
                    "Wind"=OUT_WIND, "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
@@ -380,12 +410,12 @@
                     "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE)
 
       
-      colours4=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Coal to Gas"=cOL_COal2Gas,
+      colours4=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas,
                  "Cogen"=cOL_COGEN,"Natural Gas"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
-      Outline4 = c("Import"= OUT_IMPORT, "Coal"=OUT_COAL, "Coal to Gas"=OUT_COal2Gas,
+      Outline4 = c("Import"= OUT_IMPORT, "Coal"=OUT_COAL, "Coal-to-Gas"=OUT_COal2Gas,
                    "Cogen"=OUT_COGEN,  "Natural Gas"=OUT_NGCC, 
                    "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
                    "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
@@ -403,11 +433,11 @@
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   windows(12,8)
-  Years2Disp <- c(2022,2023,2024,2025) # Years to Show
+  Years2Disp <- c(2022,2025,2030,2035) # Years to Show
   
-## THE TOP FUNCTIONS
+## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2025,01,08,BC)
+  Week1(2035,06,08,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -418,28 +448,31 @@
   # Yearly percentage of generation
   EvalPerc(ResGroupYr,BC)
   
-  # Study Resources Built & Res capacity built
-  Builtcol(BC)
-    #Build_A_MW(BC)
-  BuildMW(BC)
-  
-  # Study Retirements 
+  # Retiremtns by capacity (grouped by fuel type)
   RetireMW(BC)
   
-  # Show Yearly Output by resource in columns 
+  # Capacity built by Aurora over study period
+  Build_A_MW(BC)
+  
+  # All new capacity
+  BuildMW(BC)
+  
+  # Bar chart showing each resource groups yearly output
   Output_Comp(BC)
   
   #Shows Prices for simulation duration
   Sim_dur(BC)
   
-  # Shows imports/exports from AB as yearly totals
+  #Annual import and export from AB 
   Imp_Exp(BC)
 
+  #Imports and exports from BC adn SK
+  BC_SK_IE(BC)
     
 ################################################################################  
-## BUT THERE ARE MORE
+## BUT THERE ARE MORE ...
   
-## SIM FUNCTIONS
+## SIM FUNCTIONS (sim_eval_1)
 {  #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
     day1(2029,01,08,BC)
     
@@ -447,7 +480,7 @@
     Week1(2029,01,08,BC)
     
     # Gives weekly storage function
-    Stor1(2021,01,08,BAU)
+    Stor1(2021,01,08,BC)
     
     # Average Pool Price for one week
     week_price(2022,10,08,BC)
@@ -538,27 +571,46 @@
     
     AESOSim(2021,2022,BC)
 
-## NET ZERO FUNCTIONS
+## NET ZERO FUNCTIONS (Net_Zero_eval)
+    
+    # Number of units retired by fuel type
     Retirecol(BC)
     
+    # Retiremtns by capacity (grouped by fuel type)
     RetireMW(BC)
-    
-    Add_Ret(BC)   
     
     # Units Built over study period
     Builtcol(BC)
     
-    BuiltMW(BC)
+    # Capacity built by Aurora over study period
+    Build_A_MW(BC)
     
-    Output_Comp(ResGroupYr,BC)
-      Years2Disp <- c(2022,2025,2030,2035) # Years to Show
+    # All new capacity
+    BuildMW(BC)
     
-    #Clear plots
+    # Bar chart showing each resource groups yearly output
+    Output_Comp(BC)
     
-    dev.off(dev.list()["RStudioGD"])
+    # Shows demand in AB 
+    AnnualDemand(ZoneMn,BC)
+    
+
+    Imp_Exp2(BC)
+    
+## INTERTIE FUNCTIONS
+    #Annual import and export from AB 
+    Imp_Exp(BC)
+    
+    #Imports and exports from BC adn SK
+    BC_SK_IE(BC)
+    
+################################################################################
+## THESE ARE JUST SOME WINDOW SIZES AND STUFF
+      
+    dev.off(dev.list()["RStudioGD"]) #Clears all plots
+      
     windows(12,8)
     windows(14,8)
     windows(10,8)
 
-    BuildMW(BC)
     

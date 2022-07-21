@@ -53,7 +53,7 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
                                         "LTO_NatGas", "LTO_Hydro","LTO_Other",  
                                         "LTO_Wind", "LTO_Solar", "LTO_Storage"))
     # Replace ID value with name 
-    levels(case$ID) <- c("Coal", "Coal to Gas", "Cogen", "Natural Gas", "Hydro", "Other",
+    levels(case$ID) <- c("Coal", "Coal-to-Gas", "Cogen", "Natural Gas", "Hydro", "Other",
                          "Wind", "Solar", "Storage")   }
     return(case)  }
 }
@@ -92,7 +92,7 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
                                            "LTO_Hydro", "LTO_Other", 
                                           "LTO_Wind", "LTO_Solar", "LTO_Storage"))
       
-      levels(case$ID) <- c("Coal","Cogen", "NGConv", "SCGT", "NGCC", "Hydro", "Other",
+      levels(case$ID) <- c("Coal","Cogen", "Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
                            "Wind", "Solar", "Storage")  }
       return(case)  }
   }
@@ -182,7 +182,7 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
                                                             "WECC-Alberta NaturalGas-NonCycling","Water", "Solar", 
                                                             "Wind", "Storage", "Other, Bio, ZZ, WC, WH"))
     
-    levels(case$Primary_Fuel) <- c("Coal", "Cogen", "NGConv", "SCCT", "NGCC", "Hydro","Solar",
+    levels(case$Primary_Fuel) <- c("Coal", "Cogen", "Coal-to-Gas", "SCCT", "NGCC", "Hydro","Solar",
                                    "Wind", "Storage", "Other")  }
   return(case)  }
 }
@@ -263,7 +263,7 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
       filter(Run_ID == case)
     
     # Set levels to each category in order specified
-    data$ID <- factor(data$ID, levels=c("Import","Coal","Cogen", "NGConv", "SCGT", "NGCC", "Hydro", "Other",
+    data$ID <- factor(data$ID, levels=c("Import","Coal","Cogen", "Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
                                         "Wind", "Solar", "Storage"))
     ## SELECT A SINGLE WEEK
 
@@ -353,7 +353,7 @@ Week14 <- function(year, month, day, case) {
     filter(Run_ID == case)
   
   # Set levels to each category in order specified
-  data$ID <- factor(data$ID, levels=c("Import","Coal","Cogen","NGConv",  "SCGT", "NGCC", "Hydro", "Other",
+  data$ID <- factor(data$ID, levels=c("Import","Coal","Cogen","Coal-to-Gas",  "SCGT", "NGCC", "Hydro", "Other",
                                       "Wind", "Solar", "Storage"))
   ## SELECT A SINGLE WEEK
   
@@ -452,7 +452,7 @@ Week14 <- function(year, month, day, case) {
       filter(Run_ID == case)
     
     # Set levels to each category in order specified
-    data$ID <- factor(data$ID, levels=c("Import","Coal","Cogen","NGConv", "SCGT", "NGCC", "Hydro", "Other",
+    data$ID <- factor(data$ID, levels=c("Import","Coal","Cogen","Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
                                         "Wind", "Solar", "Storage"))
     # Get full date
     day_report <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
@@ -641,12 +641,11 @@ Week14 <- function(year, month, day, case) {
 ################################################################################
   
   Eval <- function(input,case) {
-    Imp <- Import %>%
-      filter(Run_ID == case) %>%
-      mutate(Time_Period = format(.$date, format="%Y-%m-%d")) %>%
-      group_by(Time_Period) %>%
-      summarise(Output_MWH = sum(Output_MWH)) %>%
-      mutate(ID = "Import")
+    Imp <- Import_Yr %>%
+      filter(Name == "WECC_Alberta") %>%
+      mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
+      select(ID, Time_Period, Output_MWH) %>%
+      mutate(ID = "Import") 
     
    # Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
    #                             format = "%Y")
@@ -714,11 +713,10 @@ Week14 <- function(year, month, day, case) {
   ################################################################################
   
   Evalyr <- function(input,case) {
-    Imp <- Import %>%
-      filter(Run_ID == case) %>%
-      mutate(Time_Period = format(.$date, format="%Y")) %>%
-      group_by(Time_Period) %>%
-      summarise(Output_MWH = sum(Output_MWH)) %>%
+    Imp <- Import_Yr %>%
+      filter(Name == "WECC_Alberta") %>%
+      mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
+      select(ID, Time_Period, Output_MWH) %>%
       mutate(ID = "Import") 
 
     Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
@@ -1143,5 +1141,4 @@ Week14 <- function(year, month, day, case) {
     
     ggdraw(add_sub(p1,paste("Simulation: ",SourceDB, sep = "")))
   }
-  
   

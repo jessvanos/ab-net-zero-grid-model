@@ -325,13 +325,13 @@ BuildMW <- function(case)
   # Bring in Resource Year Table and filter columns
   Builddata <- ResYr%>%
     sim_filt3(.) %>% #Filter to rename fuels
-    subset(., select=c(Name,Condition,Capacity,Peak_Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,YEAR)) %>%
+    subset(., select=c(Name,Condition,Capacity,Peak_Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,YEAR,Capacity_Factor)) %>%
     filter(Run_ID == case) %>%
     filter(Condition == "Average") 
   
   
   # Set levels to each category in order specified
-  Builddata$Primary_Fuel <- factor(Builddata$Primary_Fuel, levels=c("Coal", "Cogen", "NGConv", "SCCT", "NGCC", "Hydro","Solar",
+  Builddata$Primary_Fuel <- factor(Builddata$Primary_Fuel, levels=c("Coal", "Cogen", "Coal-to-Gas", "SCCT", "NGCC", "Hydro","Solar",
                                                                     "Wind", "Storage", "Other") )
   
   #Get Year max for run and filter for end dates BEFORE this date
@@ -346,7 +346,7 @@ BuildMW <- function(case)
     filter(.,Beg_Date <= MaxYr) %>%
     filter(.,Beg_Date >= MinYr) %>%
     filter(.,Capacity>0) %>% 
-    filter(YEAR==MaxYr)  
+    filter(YEAR==Beg_Date)  
   
   #Now group everything together
   Builddata <- Builddata%>%
@@ -387,7 +387,7 @@ BuildMW <- function(case)
                        limits = c(0,(mxc)),breaks=breaks_pretty(6)) +
     scale_x_continuous(expand = c(0.01, 0.01),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
     
-    scale_fill_manual(values=c("Cogen"=cOL_COGEN, "NGConv"=cOL_NGConv, 
+    scale_fill_manual(values=c("Cogen"=cOL_COGEN, "Coal-to-Gas"=cOL_NGConv, 
                                "SCCT"=cOL_SCGT, "NGCC"=cOL_NGCC,
                                "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER,
                                "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE))
@@ -409,11 +409,10 @@ BuildMW <- function(case)
 Output_Comp <- function(case) {
   
   # Add imports for each year together 
-  Imp <- Import %>%
-    filter(Run_ID == case) %>%
-    mutate(Time_Period = format(.$date, format="%Y")) %>%
-    group_by(Time_Period) %>%
-    summarise(Output_MWH = sum(Output_MWH)) %>%
+  Imp <- Import_Yr %>%
+    filter(Name == "WECC_Alberta") %>%
+    mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
+    select(ID, Time_Period, Output_MWH) %>%
     mutate(ID = "Import") 
   
   # Format the time period as a date
@@ -426,14 +425,15 @@ Output_Comp <- function(case) {
     select(ID, Time_Period, Output_MWH) %>%
     sim_filt(.) %>%
     rbind(.,Imp) 
-  
-  # Reorder the factor levels
-  data$ID<-fct_relevel(data$ID, "Import")
 
   # Get chosen years
   data$Time_Period <- format(data$Time_Period,format="%Y")
   data <- data %>%
     filter(Time_Period %in% Years2Disp)
+  
+  # re-order teh bars for asthetics
+  data$ID <- factor(data$ID,levels=c("Coal", "Import","Coal-to-Gas", "Cogen", "Natural Gas",
+                       "Wind","Other","Solar", "Hydro","Storage"),ordered=TRUE)
   
   # Set the max for the plot
   MX <- plyr::round_any(max(abs(data$Output_MWH)/1000000), 10, f = ceiling)
@@ -540,8 +540,8 @@ AnnualDemand <- function(input,case) {
 }
 
 ###############################################################################  
-## FUNCTION: Imp_Exp 
-## Plotting the built capacity for all new resources (resource table and new resource table)
+## FUNCTION: Imp_Exp2 
+## Old version of yearly total plot imp/exp
 ##
 ## INPUTS: 
 ##    case - Run_ID which you want to plot
@@ -550,7 +550,7 @@ AnnualDemand <- function(input,case) {
 ##    Export - All exports from AB
 ################################################################################
 
-Imp_Exp <- function(case) {
+Imp_Exp2 <- function(case) {
   Imp <- Import %>%
     filter(Run_ID == case) %>%
     mutate(date = format(.$date, format="%Y")) %>%
@@ -610,3 +610,21 @@ Imp_Exp <- function(case) {
     
     guides(fill = guide_legend(nrow = 1)) 
 }
+
+###############################################################################  
+## FUNCTION:  
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+################################################################################
+
+EmData <- ResGroupEmYr %>%
+  filter(Run_ID == case & Condition == "Average") %>%
+  sim_filt1(.) %>%
+  filter(Type =="CO2")
+
+EmResData <- ResEmYr %>%
+  filter(Run_ID == case & Condition == "Average") %>%
+  sim_filt1(.) %>%
+  filter(Type =="CO2")
