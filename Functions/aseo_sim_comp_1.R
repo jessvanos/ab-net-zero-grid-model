@@ -1,6 +1,6 @@
 ################################################################################
 # TITLE: aeso_sim_comp_1
-# DESCRIPTION: Functions To used to compare AURORA simulation data with AESO data
+# DESCRIPTION: Functions To used to compare simulation data with other data.
 
 # ORIGINAL AUTHOR: Taylor Pawlenchuk (Retrieved June 7, 2022)
 # EDITS & ADDITIONAL CONTENT: Jessica Van Os

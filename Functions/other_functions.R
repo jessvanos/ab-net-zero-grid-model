@@ -1,6 +1,6 @@
 ################################################################################
 # TITLE: other_functions
-# DESCRIPTION: Additional functions To use 
+# DESCRIPTION: Additional functions to use, not related the data itself.
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca

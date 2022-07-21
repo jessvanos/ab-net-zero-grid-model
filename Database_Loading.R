@@ -5,7 +5,7 @@
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: July 1, 2022
+# CREATED: May 2022; LAST EDIT: July 20, 2022
 
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
 #        Before running, create folder called "Data Files" withen project directory and populate it with AESO data. 
@@ -57,7 +57,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_July_18_2022"
+  SourceDB<-"PartRun_July_20_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -321,11 +321,7 @@
     gas1 <- "Gas1"
     gas0 <- "Gas0"
   }  
-    
-  # Define years to compare
-    Yr4Sp <- c(2021,2022,2023,2024)
-    Years2Disp <- c(2022,2025,2030,2034) # Years to Show
-    
+
   # Set legend color schemes for contistancy
     ## Can change here
     { # Colours Outline Info
@@ -381,7 +377,7 @@
                    "Wind"=OUT_WIND, "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
       colours3 = c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
-                    "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE,)
+                    "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE)
 
       
       colours4=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Coal to Gas"=cOL_COal2Gas,
@@ -407,11 +403,11 @@
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   windows(12,8)
-  Years2Disp <- c(2022,2024,2026,2028,2030) # Years to Show
+  Years2Disp <- c(2022,2023,2024,2025) # Years to Show
   
 ## THE TOP FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2027,01,08,BC)
+  Week1(2025,01,08,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -424,17 +420,20 @@
   
   # Study Resources Built & Res capacity built
   Builtcol(BC)
-    #BuiltMW(BC)
+    #Build_A_MW(BC)
   BuildMW(BC)
   
   # Study Retirements 
   RetireMW(BC)
   
   # Show Yearly Output by resource in columns 
-  Output_Comp(ResGroupYr,BC)
+  Output_Comp(BC)
   
   #Shows Prices for simulation duration
   Sim_dur(BC)
+  
+  # Shows imports/exports from AB as yearly totals
+  Imp_Exp(BC)
 
     
 ################################################################################  

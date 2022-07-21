@@ -1,10 +1,10 @@
 ################################################################################
 # TITLE: Net_Zero_eval
-# DESCRIPTION: Functions to evaluate electricity grid as it approaches possible net zero states
+# DESCRIPTION: Functions to evaluate the electricity grid as it approaches possible net zero states
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: July 4, 2022; LAST EDIT: July 12, 2022
+# CREATED: July 4, 2022; LAST EDIT: July 20, 2022
 
 ################################################################################
 ################################################################################  
@@ -93,272 +93,6 @@ Retirecol <- function(case) {
     
 }
 
-################################################################################  
-## FUNCTION: Builtcol
-## Plotting the resources built as a bar chart
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Build - Build table describing all new resources
-################################################################################
-
-# Stacked Area showing totals for Fuel Types
-Builtcol <- function(case) {
-  MaxIt <- max(Build$LT_Iteration)
-  
-  data <- Build %>%
-    filter(Run_ID == case & LT_Iteration == MaxIt 
-           &  Time_Period != "Study" )%>%
-    # filter(Fuel_Type=="WND") %>%
-    # filter(Units_Built>=1)
-    group_by(Fuel_Type, Time_Period) %>%
-    summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) 
-  
-  data$Fuel_Type <- factor(data$Fuel_Type, levels=c("Gas0","Gas1","OT", "WND", "SUN","PS"))
-  
-  levels(data$Fuel_Type) <- c( "CCCT gas/oil", "SCCT","Other","Wind", "Solar", "Storage")
-  
-  Tot <- data %>%
-    group_by(Time_Period) %>%
-    summarise(totu = sum(Units), totc = sum(Capacity))
-  
-  dyMX <- aggregate(Tot["totu"], by=Tot["Time_Period"], sum)
-  mxu <- round_any(max(dyMX$totu+1),10,f=ceiling)
-
-  ggplot(data) +
-    aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
-    geom_bar(position="stack", stat="identity", alpha=1) +
-    theme_bw() +
-    
-    #geom_text(position = position_stack(vjust = 0.5),colour="black") +
-    
-    theme(text=element_text(family=Plot_Text)) +
-    
-    theme(panel.grid = element_blank(),  
-          axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
-          axis.title.y = element_text(size = YTit_Sz, vjust=0),
-          panel.background = element_rect(fill = "transparent"),
-          plot.title = element_text(size = Tit_Sz),
-          legend.justification = c(0.5,0.5),
-          legend.position = ("bottom"),
-          legend.title=element_blank(), 
-          legend.key.size = unit(1,"lines"),
-          plot.caption=element_text(size=10),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          text = element_text(size = 20)) +
-    
-    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
-    
-    labs(x = "Date", y = "Units Built by Aurora", fill = "Fuel Type",
-         caption="Note: Units may be partially built to a certain capacity which is why numbers are not all even") +
-    scale_y_continuous(expand=c(0,0),
-                       limits = c(0,(mxu)),breaks=breaks_pretty(6)) +
-    
-    scale_fill_manual(values=c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
-                               "Wind"=cOL_WIND,"Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE))
-}
-
-################################################################################  
-## FUNCTION: BuiltMW 
-## Plotting the capacity of resources built
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Build - Build table describing all new resources
-################################################################################
-
-# Stacked Area showing totals for Fuel Types
-BuiltMW <- function(case) {
-  data <- Build %>%
-    filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
-             Time_Period != "Study")%>%
-    group_by(Fuel_Type, Time_Period) %>%
-    summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) 
-  
-  data$Fuel_Type <- factor(data$Fuel_Type, levels=c("Gas0","Gas1","OT", "WND", "SUN","PS"))
-  
-  levels(data$Fuel_Type) <- c( "CCCT gas/oil", "SCCT","Other","Wind", "Solar", "Storage")
-  
-  Tot <- data %>%
-    group_by(Time_Period) %>%
-    summarise(totc = sum(Capacity))
-  
-  dyMX <- aggregate(Tot["totc"], by=Tot["Time_Period"], sum)
-  mxc <- plyr::round_any(max(abs(Tot$totc)), 1000, f = ceiling)
-  
-  ggplot(data) +
-    aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-    geom_bar(position="stack", stat="identity", alpha=1) +
-    theme_bw() +
-    
-    theme(text=element_text(family=Plot_Text)) +
-    
-    theme(panel.grid = element_blank(), 
-          axis.title.x = element_text(size = XTit_Sz,face="bold"),
-          axis.title.y = element_text(size = YTit_Sz,face="bold"),
-          plot.title = element_text(size = Tit_Sz),
-          panel.background = element_rect(fill = "transparent"),
-          legend.justification = c(0.5,0.5),
-          legend.title=element_blank(),
-          legend.position = ("bottom"),
-          legend.key.size = unit(1,"lines"),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          text = element_text(size = 20)) +
-    
-    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
-    
-    labs(x = "Date", y = "Capacity Built (MW)", fill = "Fuel Type") +
-    scale_y_continuous(expand=c(0,0),
-                       limits = c(0,mxc)) +
-    #    scale_x_discrete(expand=c(0,0)) +
-    scale_fill_manual(values=c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
-                               "Wind"=cOL_WIND,"Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE))
-}
-
-################################################################################  
-## FUNCTION: Output_Comp 
-## Plotting the capacity of resources individually for selected years
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Build - Build table describing all new resources
-################################################################################
-
-Output_Comp <- function(input,case) {
-  Imp <- Import %>%
-    filter(Run_ID == case) %>%
-    mutate(Time_Period = format(.$date, format="%Y")) %>%
-    group_by(Time_Period) %>%
-    summarise(Output_MWH = sum(Output_MWH)) %>%
-    mutate(ID = "Import") 
-  
-  Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
-                              format = "%Y")
-  
-  # Filters for the desired case study
-  data <- input %>%
-    filter(Run_ID == case & Condition == "Average") %>%
-    select(ID, Time_Period, Output_MWH) %>%
-    sim_filt(.) %>%
-    rbind(.,Imp) 
-  
-  data$ID<-fct_relevel(data$ID, "Import")
-
-  # Get chosen dates
-  data$Time_Period <- format(data$Time_Period,format="%Y")
-  data <- data %>%
-    filter(Time_Period %in% Years2Disp)
-  
-  # Set the max for the plot
-  MX <- plyr::round_any(max(abs(data$Output_MWH)/1000000), 10, f = ceiling)
-  
-    # Plot
-  data %>%
-    ggplot() +
-    aes(Time_Period, (Output_MWH/1000000), fill = ID) +
-    geom_bar(position="dodge",stat="identity",alpha=1) +
-    
-    theme_bw() +
-    
-    theme(text=element_text(family=Plot_Text)) +
-    
-    theme(panel.grid = element_blank(),
-          axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size = XTit_Sz),
-          axis.title.y = element_text(size = YTit_Sz),
-          plot.title = element_text(size = Tit_Sz),
-          plot.subtitle = element_text(hjust = 0.5), 
-          panel.background = element_rect(fill = NA),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          legend.key.size = unit(1,"lines"), #Shrink legend
-          legend.position = "bottom",
-          legend.justification = c(0.5,0.5),
-          legend.title=element_blank(),
-          text = element_text(size = 15)) +
-    
-    scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
-    
-    labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource") +
-    
-    guides(fill = guide_legend(nrow = 1)) +
-    
-    scale_fill_manual(values = colours4) 
-  
-  
-  
-}
-################################################################################  
-## FUNCTION: AnnualDemand 
-## Plot average demand in Zone
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-##    input - ZoneYr, ZoneMn
-## TABLES REQUIRED: 
-##    Build - Build table describing all new resources
-################################################################################
-AnnualDemand <- function(input,case) {
-
-  # Select data
-  ZPrice <- input %>%
-    filter(Name == "WECC_Alberta") %>%
-    filter(Condition == "Average") %>%
-    filter(Run_ID==case) %>%
-    subset(., select = c(Time_Period, Price, Baseline_Demand, Demand, Demand_Total,
-                         Net_Load, Net_Load_Total, 
-                         Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity, 
-                         Run_ID, Imports, Exports))
-  
-  # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-  MX <- plyr::round_any(max(abs((ZPrice$Demand_Total/1000000))), 10, f = ceiling)
-  
-  # Title Formating
-  
-  
-  ## PLOT WITH AREA PLOT
-  
-  ggplot() +
-    
-    # Add hourly load line (black line on the top)
-    geom_line(data = ZPrice, 
-              aes(x = Time_Period, y = (Demand_Total/1000000)), size=1.5, colour = "black") +
-    
-    scale_x_date(expand=c(0,0),date_labels = "%Y", breaks = "year") +
-    
-    # Set the theme for the plot
-    theme_bw() +
-    theme(panel.grid = element_blank()) +
-    
-    theme(text=element_text(family=Plot_Text)) +
-    
-    theme(plot.title = element_text(size= Tit_Sz)) +
-    
-    theme(axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size= XTit_Sz),
-          axis.title.y = element_text(size= YTit_Sz),
-          panel.background = element_rect(fill = "transparent"),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.title=element_blank(),
-          legend.key = element_rect(colour = "transparent", fill = "transparent"),
-          legend.background = element_rect(fill='transparent',colour ='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          legend.key.size = unit(1,"lines"), #Shrink legend
-          legend.position = "bottom",
-          text = element_text(size= 15)) +
-    
-    scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
-                       breaks = seq(0, MX, by = MX/4)) +
-    
-    labs(x = "Year", y = "Average Total Demand (TWh)") 
-    
-
-}
-
-###############################################################################
-### ISSUES UNDER HERE 
 ################################################################################  
 ## FUNCTION: RetireMW 
 ## Plotting the resource capacity retired as a bar chart
@@ -450,10 +184,135 @@ RetireMW <- function(case) {
   
 }
 
+################################################################################  
+## FUNCTION: Builtcol
+## Plotting the resources built as a bar chart
+## This is not the best visual when partial builds are allowed! Partial builds limit 
+## the capacity but not the actual number of units 
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
+
+# Stacked Area showing totals for Fuel Types
+Builtcol <- function(case) {
+  MaxIt <- max(Build$LT_Iteration)
+  
+  data <- Build %>%
+    filter(Run_ID == case & LT_Iteration == MaxIt 
+           &  Time_Period != "Study" )%>%
+    # filter(Fuel_Type=="WND") %>%
+    # filter(Units_Built>=1)
+    group_by(Fuel_Type, Time_Period) %>%
+    summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) 
+  
+  data$Fuel_Type <- factor(data$Fuel_Type, levels=c("Gas0","Gas1","OT", "WND", "SUN","PS"))
+  
+  levels(data$Fuel_Type) <- c( "CCCT gas/oil", "SCCT","Other","Wind", "Solar", "Storage")
+  
+  Tot <- data %>%
+    group_by(Time_Period) %>%
+    summarise(totu = sum(Units), totc = sum(Capacity))
+  
+  dyMX <- aggregate(Tot["totu"], by=Tot["Time_Period"], sum)
+  mxu <- round_any(max(dyMX$totu+1),10,f=ceiling)
+
+  ggplot(data) +
+    aes(Time_Period, Units, fill = Fuel_Type, group = Fuel_Type) +
+    geom_bar(position="stack", stat="identity", alpha=1) +
+    theme_bw() +
+    
+    #geom_text(position = position_stack(vjust = 0.5),colour="black") +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),  
+          axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
+          axis.title.y = element_text(size = YTit_Sz, vjust=0),
+          panel.background = element_rect(fill = "transparent"),
+          plot.title = element_text(size = Tit_Sz),
+          legend.justification = c(0.5,0.5),
+          legend.position = ("bottom"),
+          legend.title=element_blank(), 
+          legend.key.size = unit(1,"lines"),
+          plot.caption=element_text(size=10),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          text = element_text(size = 20)) +
+    
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    
+    labs(x = "Date", y = "Units Built by Aurora", fill = "Fuel Type",
+         caption="Note: Units may be partially built to a certain capacity which is why numbers are not all even") +
+    scale_y_continuous(expand=c(0,0),
+                       limits = c(0,(mxu)),breaks=breaks_pretty(6)) +
+    
+    scale_fill_manual(values=c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
+                               "Wind"=cOL_WIND,"Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE))
+}
+
+################################################################################  
+## FUNCTION: Build_A_MW 
+## Plotting the capacity of resources built by Aurora (does not include AESO que projects)
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
+
+# Stacked Area showing totals for Fuel Types
+Build_A_MW <- function(case) {
+  data <- Build %>%
+    filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
+             Time_Period != "Study")%>%
+    group_by(Fuel_Type, Time_Period) %>%
+    summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) 
+  
+  data$Fuel_Type <- factor(data$Fuel_Type, levels=c("Gas0","Gas1","OT", "WND", "SUN","PS"))
+  
+  levels(data$Fuel_Type) <- c( "CCCT gas/oil", "SCCT","Other","Wind", "Solar", "Storage")
+  
+  Tot <- data %>%
+    group_by(Time_Period) %>%
+    summarise(totc = sum(Capacity))
+  
+  dyMX <- aggregate(Tot["totc"], by=Tot["Time_Period"], sum)
+  mxc <- plyr::round_any(max(abs(Tot$totc)), 1000, f = ceiling)
+  
+  ggplot(data) +
+    aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
+    geom_bar(position="stack", stat="identity", alpha=1) +
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(), 
+          axis.title.x = element_text(size = XTit_Sz,face="bold"),
+          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          plot.title = element_text(size = Tit_Sz),
+          panel.background = element_rect(fill = "transparent"),
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          legend.position = ("bottom"),
+          legend.key.size = unit(1,"lines"),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          text = element_text(size = 20)) +
+    
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    
+    labs(x = "Date", y = "Capacity Built (MW)", fill = "Fuel Type") +
+    scale_y_continuous(expand=c(0,0),
+                       limits = c(0,mxc)) +
+    #    scale_x_discrete(expand=c(0,0)) +
+    scale_fill_manual(values=c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
+                               "Wind"=cOL_WIND,"Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE))
+}
 
 ################################################################################  
 ## FUNCTION: BuildMW 
-## Plotting the built capacity for all new resources (resource table and new resource table)
+## Plotting the built capacity for ALL new resources (resource table and new resource table)
 ##
 ## INPUTS: 
 ##    case - Run_ID which you want to plot
@@ -487,7 +346,7 @@ BuildMW <- function(case)
     filter(.,Beg_Date <= MaxYr) %>%
     filter(.,Beg_Date >= MinYr) %>%
     filter(.,Capacity>0) %>% 
-  filter(YEAR==MaxYr)  
+    filter(YEAR==MaxYr)  
   
   #Now group everything together
   Builddata <- Builddata%>%
@@ -496,7 +355,7 @@ BuildMW <- function(case)
   
   #Max Units Built
   dyMX <- aggregate(Builddata["Capacity"], by=Builddata["Beg_Date"], sum)
-  mxc <- round_any(max(dyMX$Capacity+11),500,f=ceiling)
+  mxc <- round_any(max(dyMX$Capacity+11),1000,f=ceiling)
   
   Builddata$Beg_Date <- as.numeric(Builddata$Beg_Date)
   
@@ -532,6 +391,222 @@ BuildMW <- function(case)
                                "SCCT"=cOL_SCGT, "NGCC"=cOL_NGCC,
                                "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER,
                                "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE))
+  
+}
+
+################################################################################  
+## FUNCTION: Output_Comp 
+## Plotting the capacity of resources individually for selected years as
+## Side by side bar charts
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupYr - Resoruce group year output
+##    Import - All imports
+################################################################################
+
+Output_Comp <- function(case) {
+  
+  # Add imports for each year together 
+  Imp <- Import %>%
+    filter(Run_ID == case) %>%
+    mutate(Time_Period = format(.$date, format="%Y")) %>%
+    group_by(Time_Period) %>%
+    summarise(Output_MWH = sum(Output_MWH)) %>%
+    mutate(ID = "Import") 
+  
+  # Format the time period as a date
+  Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
+                              format = "%Y")
+  
+  # Filters for the desired case study and attached imports
+  data <- ResGroupYr %>%
+    filter(Run_ID == case & Condition == "Average") %>%
+    select(ID, Time_Period, Output_MWH) %>%
+    sim_filt(.) %>%
+    rbind(.,Imp) 
+  
+  # Reorder the factor levels
+  data$ID<-fct_relevel(data$ID, "Import")
+
+  # Get chosen years
+  data$Time_Period <- format(data$Time_Period,format="%Y")
+  data <- data %>%
+    filter(Time_Period %in% Years2Disp)
+  
+  # Set the max for the plot
+  MX <- plyr::round_any(max(abs(data$Output_MWH)/1000000), 10, f = ceiling)
+  
+    # Plot
+  data %>%
+    ggplot() +
+    aes(Time_Period, (Output_MWH/1000000), fill = ID) +
+    geom_bar(position="dodge",stat="identity",alpha=1) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = XTit_Sz),
+          axis.title.y = element_text(size = YTit_Sz),
+          plot.title = element_text(size = Tit_Sz),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
+    
+    labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource") +
+    
+    guides(fill = guide_legend(nrow = 1)) +
+    
+    scale_fill_manual(values = colours4) 
+  
+}
+
+################################################################################  
+## FUNCTION: AnnualDemand 
+## Plot average demand in Zone
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+##    input - ZoneYr, ZoneMn
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
+AnnualDemand <- function(input,case) {
+
+  # Select data
+  ZPrice <- input %>%
+    filter(Name == "WECC_Alberta") %>%
+    filter(Condition == "Average") %>%
+    filter(Run_ID==case) %>%
+    subset(., select = c(Time_Period, Price, Baseline_Demand, Demand, Demand_Total,
+                         Net_Load, Net_Load_Total, 
+                         Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity, 
+                         Run_ID, Imports, Exports))
+  
+  # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
+  MX <- plyr::round_any(max(abs((ZPrice$Demand_Total/1000000))), 10, f = ceiling)
+  
+  # Title Formating
+  
+  
+  ## PLOT WITH AREA PLOT
+  
+  ggplot() +
+    
+    # Add hourly load line (black line on the top)
+    geom_line(data = ZPrice, 
+              aes(x = Time_Period, y = (Demand_Total/1000000)), size=1.5, colour = "black") +
+    
+    scale_x_date(expand=c(0,0),date_labels = "%Y", breaks = "year") +
+    
+    # Set the theme for the plot
+    theme_bw() +
+    theme(panel.grid = element_blank()) +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(plot.title = element_text(size= Tit_Sz)) +
+    
+    theme(axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size= XTit_Sz),
+          axis.title.y = element_text(size= YTit_Sz),
+          panel.background = element_rect(fill = "transparent"),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          legend.title=element_blank(),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent',colour ='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          text = element_text(size= 15)) +
+    
+    scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
+                       breaks = seq(0, MX, by = MX/4)) +
+    
+    labs(x = "Year", y = "Average Total Demand (TWh)") 
+    
 
 }
 
+###############################################################################  
+## FUNCTION: Imp_Exp 
+## Plotting the built capacity for all new resources (resource table and new resource table)
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Import - All imports from AB
+##    Export - All exports from AB
+################################################################################
+
+Imp_Exp <- function(case) {
+  Imp <- Import %>%
+    filter(Run_ID == case) %>%
+    mutate(date = format(.$date, format="%Y")) %>%
+    group_by(date) %>%
+    summarise(Output_MWH = sum(Output_MWH)) %>%
+    mutate(ID = "Import") 
+  
+  Exp <- Export %>%
+    filter(Run_ID == case) %>%
+    mutate(date = format(.$date, format="%Y")) %>%
+    group_by(date) %>%
+    summarise(Output_MWH = sum(Output_MWH)) %>%
+    mutate(ID = "Export") 
+  
+
+  # Filters for the desired case study
+  data <- rbind(Imp,Exp) 
+  
+  # date$date  <- as.Date(as.character(Imp$date), 
+  #                             format = "%Y")
+  
+  # # Get chosen dates
+  # data$Time_Period <- format(data$Time_Period,format="%Y")
+  # data <- data %>%
+  #   filter(Time_Period %in% Years2Disp)
+  
+  # Set the max for the plot
+  MX <- plyr::round_any(max(abs(data$Output_MWH+11)/1000), 10, f = ceiling)
+  
+  # Plot
+  data %>%
+    ggplot() +
+    aes(date, (Output_MWH/1000), fill = ID) +
+    geom_bar(position="dodge",stat="identity",alpha=1) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = XTit_Sz),
+          axis.title.y = element_text(size = YTit_Sz),
+          plot.title = element_text(size = Tit_Sz),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,3000),breaks=pretty_breaks(6)) +
+    
+    labs(x = "Year", y = "Total Annual Imports and Exports (GWh)", fill = "Resource") +
+    
+    guides(fill = guide_legend(nrow = 1)) 
+}

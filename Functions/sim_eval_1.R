@@ -1,6 +1,6 @@
 ################################################################################
 # TITLE: sim_eval_1
-# DESCRIPTION: Functions To use for plotting and evaluating AURORA simulation data
+# DESCRIPTION: Functions To use for plotting and evaluating simulation data.
 
 # ORIGINAL AUTHOR: Taylor Pawlenchuk (Retrieved June 3, 2022)
 # EDITS & ADDITIONAL CONTENT: Jessica Van Os
