@@ -323,9 +323,9 @@ Build_A_MW <- function(case) {
 BuildMW <- function(case) 
 {
   # Bring in Resource Year Table and filter columns
-  Builddata <- ResYr%>%
+  Builddata <- ResSt%>%
     sim_filt3(.) %>% #Filter to rename fuels
-    subset(., select=c(Name,Condition,Capacity,Peak_Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,YEAR,Capacity_Factor)) %>%
+    subset(., select=c(Name,Condition,Capacity,Peak_Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,Capacity_Factor)) %>%
     filter(Run_ID == case) %>%
     filter(Condition == "Average") 
   
@@ -345,8 +345,7 @@ BuildMW <- function(case)
   Builddata <- Builddata%>%
     filter(.,Beg_Date <= MaxYr) %>%
     filter(.,Beg_Date >= MinYr) %>%
-    filter(.,Capacity>0) %>% 
-    filter(YEAR==Beg_Date)  
+    filter(.,Capacity>0)
   
   #Now group everything together
   Builddata <- Builddata%>%
@@ -411,6 +410,7 @@ Output_Comp <- function(case) {
   # Add imports for each year together 
   Imp <- Import_Yr %>%
     filter(Name == "WECC_Alberta") %>%
+    filter(Run_ID == case) %>%
     mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
     select(ID, Time_Period, Output_MWH) %>%
     mutate(ID = "Import") 
@@ -619,12 +619,12 @@ Imp_Exp2 <- function(case) {
 ## TABLES REQUIRED: 
 ################################################################################
 
-EmData <- ResGroupEmYr %>%
-  filter(Run_ID == case & Condition == "Average") %>%
-  sim_filt1(.) %>%
-  filter(Type =="CO2")
-
-EmResData <- ResEmYr %>%
-  filter(Run_ID == case & Condition == "Average") %>%
-  sim_filt1(.) %>%
-  filter(Type =="CO2")
+# EmData <- ResGroupEmYr %>%
+#   filter(Run_ID == case & Condition == "Average") %>%
+#   sim_filt1(.) %>%
+#   filter(Type =="CO2")
+# 
+# EmResData <- ResEmYr %>%
+#   filter(Run_ID == case & Condition == "Average") %>%
+#   sim_filt1(.) %>%
+#   filter(Type =="CO2")

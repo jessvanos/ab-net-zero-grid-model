@@ -44,11 +44,12 @@
   source(here('Functions','aseo_sim_comp_1.R')) 
   source(here('Functions','Net_Zero_eval.R'))
   source(here('Functions','intertie_info.R'))
+  source(here('Functions','net_zero_tables.R'))
   
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
-                   "ggpattern","here","beepr","showtext","DescTools")
+                   "ggpattern","here","beepr","showtext","DescTools","pivottabler")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -58,7 +59,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"PartRun_July_20_2022"
+  SourceDB<-"TestRun_July_22_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -433,7 +434,7 @@
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   windows(12,8)
-  Years2Disp <- c(2022,2025,2030,2035) # Years to Show
+  Years2Disp <- c(2021,2022,2023) # Years to Show
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
@@ -613,4 +614,10 @@
     windows(14,8)
     windows(10,8)
 
+######
+
+    
+ 
+    
+    
     
