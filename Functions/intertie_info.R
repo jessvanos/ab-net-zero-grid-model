@@ -9,7 +9,7 @@
 ################################################################################
 ###############################################################################  
 ## FUNCTION: Imp_Exp 
-## AB imports and exports ploted as yearly totals 
+## AB imports and exports plotted as yearly totals 
 ##
 ## INPUTS: 
 ##    case - Run_ID which you want to plot
@@ -85,6 +85,7 @@ Imp_Exp <- function(case) {
 ##    case - Run_ID which you want to plot
 ## TABLES REQUIRED: 
 ##    Import - Import table derived of zone average table
+##    Export - Export table dervied of zone average table
 ################################################################################
 
 BC_SK_IE <- function(case) {
@@ -157,7 +158,7 @@ BC_SK_IE <- function(case) {
 
 ################################################################################  
 ## FUNCTION: Evalyr_Int *Not Done 
-## Plotting year profiles of resource output
+## Plotting year profiles of BC/SK resource output
 ##
 ## INPUTS: 
 ##    input - ResgroupMnor ResGroupYr

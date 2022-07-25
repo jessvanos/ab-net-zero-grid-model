@@ -49,7 +49,8 @@
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
-                   "ggpattern","here","beepr","showtext","DescTools","pivottabler")
+                   "ggpattern","here","beepr","showtext","DescTools","pivottabler,
+                   openxlsx")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -59,7 +60,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_July_22_2022"
+  SourceDB<-"PartRun_July_20_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -76,10 +77,7 @@
 
 { BC <- "Base Case" 
   BAU <- "BAU" #Buisness as usualcase
-  AR <- "All Renewables" # Case with 100% renewables
-  CNZ <- "Constraint on Zero Emissions" 
-  CNZnc <- "Constraint on Zero Emissions (nc)"
-  RCO2 <- "Relaxed  CO2 Constraint"
+  CC <- "CarbonCredits"
 }
 
 ################################################################################
@@ -428,17 +426,21 @@
                         "#001933")
     }
 }
+
+  # Gives years to summarize info from 
+  Years2Disp <- c(2021,2022,2023,2024,2025) # Years to show in figures
+  Years2Pivot <- c(2021,2022,2023,2024,2025)  # Years to display in tables
+
   #For fun, make the code beep when its all done
   beep(3)
   
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   windows(12,8)
-  Years2Disp <- c(2021,2022,2023) # Years to Show
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2035,06,08,BC)
+  Week1(2021,06,08,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -604,6 +606,9 @@
     
     #Imports and exports from BC adn SK
     BC_SK_IE(BC)
+    
+## Table Functions
+    Report_P(Years2Pivot,BC)
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF
