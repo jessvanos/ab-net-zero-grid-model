@@ -93,31 +93,31 @@ BC_SK_IE <- function(case) {
     filter(Name == "WECC_BritishColumbia") %>%
     filter(Run_ID == case) %>%
     mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
-    mutate(ID = "BC Imports") 
+    mutate(ID = "AB Exports to BC") 
   
   Imp_SK <- Import_Yr %>%
     filter(Name == "MRO_Saskatchewan") %>%
     filter(Run_ID == case) %>%
     mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
-    mutate(ID = "SK Imports") 
+    mutate(ID = "AB Exports to SK") 
   
   Exp_BC <- Export_Yr %>%
     filter(Name == "WECC_BritishColumbia") %>%
     filter(Run_ID == case) %>%
     mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
-    mutate(ID = "BC Exports") 
+    mutate(ID = "AB Imports from BC") 
   
   Exp_SK <- Export_Yr %>%
     filter(Name == "MRO_Saskatchewan") %>%
     filter(Run_ID == case) %>%
     mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
     
-    mutate(ID = "SK Exports") 
+    mutate(ID = "AB Imports from SK") 
 
   data <-rbind(Imp_BC,Imp_SK,Exp_BC,Exp_SK)
   
   # Re-arrange
-  data$ID <- factor(data$ID,levels=c("BC Exports","BC Imports","SK Imports","SK Exports"),ordered=TRUE)
+  data$ID <- factor(data$ID,levels=c("AB Exports to BC","AB Exports to SK","AB Imports from BC","AB Imports from SK"),ordered=TRUE)
   
   
   # Set the max for the plot

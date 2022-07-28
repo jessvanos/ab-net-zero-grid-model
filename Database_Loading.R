@@ -5,7 +5,7 @@
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: July 20, 2022
+# CREATED: May 2022; LAST EDIT: July 25, 2022
 
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
 #        Before running, create folder called "Data Files" withen project directory and populate it with AESO data. 
@@ -49,8 +49,8 @@
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
-                   "ggpattern","here","beepr","showtext","DescTools","pivottabler,
-                   openxlsx")
+                   "ggpattern","here","beepr","showtext","DescTools","pivottabler",
+                   "openxlsx")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -60,7 +60,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"PartRun_July_20_2022"
+  SourceDB<-"TestRun_July_22_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -75,7 +75,7 @@
 ## DEFINE CASES TO STUDY (IE: RUN ID)
 ## Value can be found in the "Run_Id" column of any AURORA table
 
-{ BC <- "Base Case" 
+{ BC <- "BC" 
   BAU <- "BAU" #Buisness as usualcase
   CC <- "CarbonCredits"
 }
@@ -608,7 +608,7 @@
     BC_SK_IE(BC)
     
 ## Table Functions
-    Report_P(Years2Pivot,BC)
+    Report_P(Years2Pivot,CC)
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF

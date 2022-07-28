@@ -39,7 +39,22 @@ Report_P <- function(Years2Pivot,case) {
     pt$addRowDataGroups("Name", addTotal=FALSE) 
     pt$addColumnDataGroups("Time_Period", addTotal=FALSE) 
     pt$defineCalculation(calculationName="Price",summariseExpression=max("Price"),format="%#.2f")
+    pt$evaluatePivot()
+  
+  #Write the pivot table to an excel workbook
+  wb <- createWorkbook()
+  addWorksheet(wb, "Avg Price Data")
+  pt$writeToExcelWorksheet(wb=wb, wsName="Avg Price Data", 
+                           topRowNumber=1, leftMostColumnNumber=1, 
+                           applyStyles=TRUE, mapStylesFromCSS=TRUE)
+  
+  saveWorkbook(wb, here('Figures (Local)',paste("ZonePrice_",case,"_",SourceDB,".xlsx")), overwrite = TRUE)
+  
+  
   pt$renderPivot() # Display in viewer
+  
   } 
+  
+  
   
 }
