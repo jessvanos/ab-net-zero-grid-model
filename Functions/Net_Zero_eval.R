@@ -344,8 +344,8 @@ BuildMW <- function(case)
   
   Builddata <- Builddata%>%
     filter(.,Beg_Date <= MaxYr) %>%
-    filter(.,Beg_Date >= MinYr) %>%
-    filter(.,Capacity>0)
+    filter(.,Beg_Date >= MinYr) #%>%
+   # filter(.,Capacity>0)
   
   #Now group everything together
   Builddata <- Builddata%>%

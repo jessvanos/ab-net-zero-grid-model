@@ -715,12 +715,12 @@ Week14 <- function(year, month, day, case) {
   Evalyr <- function(input,case) {
     Imp <- Import_Yr %>%
       filter(Name == "WECC_Alberta") %>%
-      mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
+      filter(Run_ID == case) %>%
       select(ID, Time_Period, Output_MWH) %>%
       mutate(ID = "Import") 
 
-    Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
-                                 format = "%Y")
+    # Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
+    #                              format = "%Y")
     
     # Filters for the desired case study
     data <- input %>%

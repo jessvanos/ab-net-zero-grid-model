@@ -380,7 +380,7 @@
       cOL_SOLAR <- "gold"
       cOL_STORAGE <- "yellow4" 
       cOL_COal2Gas <- "mediumorchid4"
-      cOL_EXPORT <- "sienna1"
+      cOL_EXPORT <- "firebrick4"
       
       cOL_Gas <- "slateblue"
       COL_Gas1 <- "dodgerblue3"
@@ -443,7 +443,7 @@
   Week1(2021,06,08,BC)
   
   # Yearly Output
-  Evalyr(ResGroupYr,BC)
+  Evalyr(ResGroupYr,CC)
   
   # Yearly Capacity
   Evalcap(ResGroupYr,BC)
@@ -468,7 +468,8 @@
   
   #Annual import and export from AB 
   Imp_Exp(BC)
-
+  Imp_Exp2(2022,CC)
+  
   #Imports and exports from BC adn SK
   BC_SK_IE(BC)
     
@@ -608,7 +609,7 @@
     BC_SK_IE(BC)
     
 ## Table Functions
-    Report_P(Years2Pivot,CC)
+    Report_P(Years2Pivot,BC)
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF
