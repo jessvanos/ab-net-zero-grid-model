@@ -60,7 +60,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_July_22_2022"
+  SourceDB<-"TestRun_July_29_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -75,9 +75,11 @@
 ## DEFINE CASES TO STUDY (IE: RUN ID)
 ## Value can be found in the "Run_Id" column of any AURORA table
 
-{ BC <- "BC" 
+{ BC <- "Base Case" 
   BAU <- "BAU" #Buisness as usualcase
   CC <- "CarbonCredits"
+  BC1 <- "BC1"
+  BC2 <- "BC2"
 }
 
 ################################################################################
@@ -86,7 +88,7 @@
 ## It will just skip tables that are not there and all the ones after
 
 { # Fuel tables
-#  FuelYr <- dbReadTable(con,'FuelYear1')
+   FuelYr <- dbReadTable(con,'FuelYear1')
 #  FuelMn <- dbReadTable(con,'FuelMonth1')
   
   # Resource Tables
@@ -440,13 +442,13 @@
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2021,06,08,BC)
+  Week1(2021,01,08,BC2)
   
   # Yearly Output
-  Evalyr(ResGroupYr,CC)
+  Evalyr(ResGroupYr,BC2)
   
   # Yearly Capacity
-  Evalcap(ResGroupYr,BC)
+  Evalcap(ResGroupYr,BC1)
   
   # Yearly percentage of generation
   EvalPerc(ResGroupYr,BC)
@@ -455,20 +457,20 @@
   RetireMW(BC)
   
   # Capacity built by Aurora over study period
-  Build_A_MW(BC)
+  Build_A_MW(BC1)
   
   # All new capacity
-  BuildMW(BC)
+  BuildMW(BC2)
   
   # Bar chart showing each resource groups yearly output
-  Output_Comp(BC)
+  Output_Comp(BC2)
   
   #Shows Prices for simulation duration
   Sim_dur(BC)
   
   #Annual import and export from AB 
-  Imp_Exp(BC)
-  Imp_Exp2(2022,CC)
+  Imp_Exp(BC1)
+  Imp_Exp2(2024,BC2)
   
   #Imports and exports from BC adn SK
   BC_SK_IE(BC)
@@ -609,7 +611,7 @@
     BC_SK_IE(BC)
     
 ## Table Functions
-    Report_P(Years2Pivot,BC)
+    Report_P(Years2Pivot,BC1)
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF
