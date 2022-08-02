@@ -60,7 +60,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_July_29_2022"
+  SourceDB<-"TestRun_Aug_2_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -442,13 +442,13 @@
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2021,01,08,BC2)
+  Week1(2022,01,08,BC)
   
   # Yearly Output
-  Evalyr(ResGroupYr,BC2)
+  Evalyr(ResGroupYr,BC)
   
   # Yearly Capacity
-  Evalcap(ResGroupYr,BC1)
+  Evalcap(ResGroupYr,BC)
   
   # Yearly percentage of generation
   EvalPerc(ResGroupYr,BC)
@@ -457,20 +457,20 @@
   RetireMW(BC)
   
   # Capacity built by Aurora over study period
-  Build_A_MW(BC1)
+  Build_A_MW(BC)
   
   # All new capacity
-  BuildMW(BC2)
+  BuildMW(BC)
   
   # Bar chart showing each resource groups yearly output
-  Output_Comp(BC2)
+  Output_Comp(BC)
   
   #Shows Prices for simulation duration
   Sim_dur(BC)
   
   #Annual import and export from AB 
-  Imp_Exp(BC1)
-  Imp_Exp2(2024,BC2)
+  Imp_Exp(BC)
+  Imp_Exp2(2025,BC)
   
   #Imports and exports from BC adn SK
   BC_SK_IE(BC)
@@ -611,7 +611,7 @@
     BC_SK_IE(BC)
     
 ## Table Functions
-    Report_P(Years2Pivot,BC1)
+    Report_P(Years2Pivot,BC)
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF

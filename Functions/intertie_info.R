@@ -106,14 +106,6 @@ Imp_Exp2 <- function(year,case) {
   # Filters for the desired case study
   data <- rbind(Imp,Exp) 
   
-  # data$Time_Period  <- as.Date(as.character(data$Time_Period), 
-  #                              format = "%Y")
-  
-  # # Get chosen dates
-  # data$Time_Period <- format(data$Time_Period,format="%Y")
-  # data <- data %>%
-  #   filter(Time_Period %in% Years2Disp)
-  
   # Set the max for the plot
   MX <- plyr::round_any(max(abs(Imp$Output_MWH+11)), 200, f = ceiling)
   MN <- plyr::round_any(max(abs(Exp$Output_MWH+11))*-1, 200, f = floor)
@@ -141,7 +133,7 @@ Imp_Exp2 <- function(year,case) {
           legend.title=element_blank(),
           text = element_text(size = 15)) +
     
-    scale_y_continuous(expand=c(0,0),limits = c(MN,MX),breaks=pretty_breaks(8)) +
+    scale_y_continuous(expand=c(0,0),limits = c(-1700,1700),breaks=pretty_breaks(12)) +
     
     scale_x_datetime(expand=c(0,0),date_labels = "%b" ,breaks = "month") +
     
@@ -238,49 +230,110 @@ BC_SK_IE <- function(case) {
   
 }
 
-################################################################################  
-## FUNCTION: Evalyr_Int *Not Done 
-## Plotting year profiles of BC/SK resource output
-##
-## INPUTS: 
-##    input - ResgroupMnor ResGroupYr
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Import - Import table derived of zone average table
 ################################################################################
+## FUNCTIONS: AESO_SimP_Int
+## Plot comparison between actual and simulated data price for 1 week
+##
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################
+AESO_SimP2_Int <- function(year,case) {
+  
+  #Firt get Sim Data
+  # Filters for the desired case study
+  data <- ZoneHr_Avg%>%
+    filter(Run_ID == case)
+  
+  # Select only a single year using function WkTime
+  ZPrice <- YrTime(data,year)
+  
+  # Set the max and min for the plot
+  MXa <- plyr::round_any(max(abs(ZPrice$Price)+10), 10, f = ceiling)
 
-Evalyr_Int <- function(prov,case) {
- 
-  # Plot
-  data %>%
-    ggplot() +
-    aes(Time_Period, (Output_MWH/1000000), fill = ID, colour=ID) +
-    geom_area(alpha=1, size=.5) +
+  #Max min for date (x-axis)
+  day_MN <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
+  day_MX <- as.POSIXct(paste(31,12,year, sep = "/"), format="%d/%m/%Y")
+  
+  # Get intertie info 
+  ZoneBC<- ZoneHr %>%
+    filter(Name == "WECC_BritishColumbia") %>%
+    filter(Condition == "Average") %>%
+    subset(., select = c(date, Price, Baseline_Demand, Demand, Demand_Total,
+                         Net_Load, Net_Load_Total, Marginal_Resource, 
+                         Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity, 
+                         Run_ID, Imports, Exports)) %>%
+    filter(Run_ID == case)
+  
+      ZPriceBC <- YrTime(ZoneBC,year)
+      MXb <- plyr::round_any(max(abs(ZPriceBC$Price)+10), 10, f = ceiling)
+      
+  
+  ZoneSK<- ZoneHr %>%
+    filter(Name == "MRO_Saskatchewan") %>%
+    filter(Condition == "Average") %>%
+    subset(., select = c(date, Price, Baseline_Demand, Demand, Demand_Total,
+                         Net_Load, Net_Load_Total, Marginal_Resource, 
+                         Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity, 
+                         Run_ID, Imports, Exports)) %>%
+    filter(Run_ID == case)
+  
+      ZPriceSK <- YrTime(ZoneSK,year)
+      MXc <- plyr::round_any(max(abs(ZPriceSK$Price)+10), 10, f = ceiling)
+      
+  
+  # Set the max for the plot
+  MX <-max(MXa,MXb,MXc)
+  
+  # Plot the data    
+  ggplot() +
+
+    geom_line(data = ZPriceSK, 
+              aes(x=date, y=Price, color="SK"), 
+              size = 1) +
     
+    geom_line(data = ZPriceBC, 
+              aes(x=date, y=Price, color="BC"), 
+              size = 1.5) +
+    
+    
+    geom_line(data = ZPrice, 
+              aes(x = date, y = Price,colour = "AB"), 
+              size = 0.75) +
+    
+
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
     
-    theme(panel.grid = element_blank(),
-          axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size = XTit_Sz),
-          axis.title.y = element_text(size = YTit_Sz),
+    theme(panel.background = element_rect(fill = "transparent"),
+          axis.text.x=element_text(vjust=-1),
+          axis.title.x = element_text(vjust=-1,size= XTit_Sz,face="bold"),
+          axis.text.y=element_text(hjust=-0.5),
+          axis.title.y = element_text(vjust=2,size= YTit_Sz,face="bold"),
+          panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'grey'),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid = element_blank(),
+          plot.background = element_rect(fill = "transparent", color = NA),
           plot.title = element_text(size = Tit_Sz),
-          plot.subtitle = element_text(hjust = 0.5), 
-          panel.background = element_rect(fill = NA),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          legend.key.size = unit(1,"lines"), #Shrink legend
+          text = element_text(size = 15),
           legend.position = "bottom",
-          legend.justification = c(0.5,0.5),
-          legend.title=element_blank(),
-          text = element_text(size = 15)) +
+          legend.background = element_rect(fill='transparent',colour ='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent")
+          
+    ) +
     
-    scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
-    scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
+    scale_colour_manual("", 
+                        breaks = c("AB","BC","SK"),
+                        values = c("darkred","darkblue","chartreuse4")) +
     
-    labs(x = "Date", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
+    labs(title=year, y = "Average Hourly Pool Price ($/MWh)", x="Date",fill = "Resource",caption = SourceDB) +
+    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "month",date_labels = "%b") +
     
-    guides(fill = guide_legend(nrow = 1))
-  
-  
+    scale_y_continuous(expand=c(0,0), 
+                       limits= c(0,MX),
+                       breaks = seq(0, 1000, by = 100)
+                       
+    )
 }
