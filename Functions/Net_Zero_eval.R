@@ -611,20 +611,4 @@ Imp_Exp2 <- function(case) {
     guides(fill = guide_legend(nrow = 1)) 
 }
 
-###############################################################################  
-## FUNCTION:  
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-################################################################################
 
-# EmData <- ResGroupEmYr %>%
-#   filter(Run_ID == case & Condition == "Average") %>%
-#   sim_filt1(.) %>%
-#   filter(Type =="CO2")
-# 
-# EmResData <- ResEmYr %>%
-#   filter(Run_ID == case & Condition == "Average") %>%
-#   sim_filt1(.) %>%
-#   filter(Type =="CO2")

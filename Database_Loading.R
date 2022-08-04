@@ -60,7 +60,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Aug_2_2022"
+  SourceDB<-"TestRun_Aug_3_2022_d"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -106,9 +106,12 @@
 #  ResGroupEmSt <- dbReadTable(con,'ResourceGroupEmissionsStudy1')
   
   # Other Tables
-#  ResStackYr <- dbReadTable(con,'ResourceStackYear1')
-#  ResStackHr  <- dbReadTable(con,'ResourceStackHour1')
-  Link <- dbReadTable(con,'LinkYear1')
+  ResStackYr <- dbReadTable(con,'ResourceStackYear1')
+  ResStackHr  <- dbReadTable(con,'ResourceStackHour1')
+  LinkYr <- dbReadTable(con,'LinkYear1')
+# LinkMn <- dbReadTable(con,'LinkMonth1')
+  LinkHr <- dbReadTable(con,'LinkHour1')
+  
 #  CC <- dbReadTable(con,'CustomConstraint1')
   ZoneYr <- dbReadTable(con,'ZoneYear1')
 #  ZoneMn <- dbReadTable(con,'ZoneMonth1')
@@ -154,12 +157,18 @@
                         format = "%Y")
   
   # Other Tables
-#  ResStackYr$Time_Period  <- as.Date(as.character(ResStackYr$Time_Period), 
-#                        format = "%Y")
-#  ResStackHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResStackHr$Time_Period))), 
-#                        tz = "MST")-(60*60)
-#  Link$Time_Period  <- as.Date(as.character(Link$Time_Period), 
-#                       format = "%Y")
+  ResStackYr$Time_Period  <- as.Date(as.character(ResStackYr$Time_Period), 
+                        format = "%Y")
+  ResStackHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResStackHr$Time_Period))), 
+                        tz = "MST")-(60*60)
+  
+   LinkYr$Time_Period  <- as.Date(as.character(LinkYr$Time_Period), 
+                        format = "%Y")
+   LinkMn$Time_Period <- ym(LinkMn$Time_Period)
+   LinkHr$Time_Period <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",LinkHr$Time_Period))), 
+                             tz = "MST")-(60*60) 
+   
+   
    ZoneYr$Time_Period  <- as.Date(as.character(ZoneYr$Time_Period), 
                        format = "%Y")
 #  ZoneMn$Time_Period <- ym(ZoneMn$Time_Period)
@@ -442,7 +451,10 @@
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2022,01,08,BC)
+  Week1(2021,01,08,BC)
+  
+  # Grid of weekly output
+  year_weeks(2021,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -470,7 +482,7 @@
   
   #Annual import and export from AB 
   Imp_Exp(BC)
-  Imp_Exp2(2025,BC)
+  Imp_Exp2(2021,BC)
   
   #Imports and exports from BC adn SK
   BC_SK_IE(BC)
@@ -483,7 +495,7 @@
     day1(2029,01,08,BC)
     
     # Gives stacked area chart for single week
-    Week1(2029,01,08,BC)
+    Week1(2021,01,08,BC)
     
     # Gives weekly storage function
     Stor1(2021,01,08,BC)
@@ -600,7 +612,6 @@
     # Shows demand in AB 
     AnnualDemand(ZoneMn,BC)
     
-
     Imp_Exp2(BC)
     
 ## INTERTIE FUNCTIONS
@@ -621,6 +632,7 @@
     windows(12,8)
     windows(14,8)
     windows(10,8)
+    windows(18,12)
 
 ######
 
