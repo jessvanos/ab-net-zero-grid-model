@@ -60,7 +60,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Aug_3_2022_d"
+  SourceDB<-"TestRun_Aug_4_2022_d"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -121,6 +121,7 @@
   Study <- dbReadTable(con,'LTStudyLog1')
   
   # Get rid of Unused R memory to keep speed up
+  
   gc()   
 } 
 
@@ -451,10 +452,10 @@
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2021,01,08,BC)
+  Week1(2022,01,08,BC)
   
   # Grid of weekly output
-  year_weeks(2021,BC)
+  year_weeks(2022,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -477,14 +478,19 @@
   # Bar chart showing each resource groups yearly output
   Output_Comp(BC)
   
-  #Shows Prices for simulation duration
+  # Shows Prices for simulation duration
   Sim_dur(BC)
   
-  #Annual import and export from AB 
+  # Annual import and export from AB 
   Imp_Exp(BC)
+  
+  # Import and export for full year from AB
   Imp_Exp2(2021,BC)
   
-  #Imports and exports from BC adn SK
+  # Price and Trade monthly
+  MN_Trade_Price(2021,01,BC)
+  
+  #Imports and exports from BC and SK yearly totals
   BC_SK_IE(BC)
     
 ################################################################################  
@@ -560,7 +566,7 @@
     AESO_SimP(2022,04,08,BC)
     
     #Plot the full year pool price
-    AESO_SimP2(2022,BC)
+    AESO_SimP2(2021,BC)
     
     #Show difference between pool price for year in graph
     year_comp(2021,BC)
@@ -633,6 +639,8 @@
     windows(14,8)
     windows(10,8)
     windows(18,12)
+    
+    windows(16,12)
 
 ######
 

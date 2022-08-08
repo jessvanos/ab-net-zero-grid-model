@@ -464,6 +464,9 @@ Output_Comp <- function(case) {
     
     scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
     
+  #  geom_text(aes(label = sprintf("%0.1f",Output_MWH/1000000)),
+  #            position = position_dodge(width = 1),vjust=-0.5) +
+
     labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource") +
     
     guides(fill = guide_legend(nrow = 1)) +
@@ -538,77 +541,4 @@ AnnualDemand <- function(input,case) {
     
 
 }
-
-###############################################################################  
-## FUNCTION: Imp_Exp2 
-## Old version of yearly total plot imp/exp
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Import - All imports from AB
-##    Export - All exports from AB
-################################################################################
-
-Imp_Exp2 <- function(case) {
-  Imp <- Import %>%
-    filter(Run_ID == case) %>%
-    mutate(date = format(.$date, format="%Y")) %>%
-    group_by(date) %>%
-    summarise(Output_MWH = sum(Output_MWH)) %>%
-    mutate(ID = "Import") 
-  
-  Exp <- Export %>%
-    filter(Run_ID == case) %>%
-    mutate(date = format(.$date, format="%Y")) %>%
-    group_by(date) %>%
-    summarise(Output_MWH = sum(Output_MWH)) %>%
-    mutate(ID = "Export") 
-  
-
-  # Filters for the desired case study
-  data <- rbind(Imp,Exp) 
-  
-  # date$date  <- as.Date(as.character(Imp$date), 
-  #                             format = "%Y")
-  
-  # # Get chosen dates
-  # data$Time_Period <- format(data$Time_Period,format="%Y")
-  # data <- data %>%
-  #   filter(Time_Period %in% Years2Disp)
-  
-  # Set the max for the plot
-  MX <- plyr::round_any(max(abs(data$Output_MWH+11)/1000), 10, f = ceiling)
-  
-  # Plot
-  data %>%
-    ggplot() +
-    aes(date, (Output_MWH/1000), fill = ID) +
-    geom_bar(position="dodge",stat="identity",alpha=1) +
-    
-    theme_bw() +
-    
-    theme(text=element_text(family=Plot_Text)) +
-    
-    theme(panel.grid = element_blank(),
-          axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size = XTit_Sz),
-          axis.title.y = element_text(size = YTit_Sz),
-          plot.title = element_text(size = Tit_Sz),
-          plot.subtitle = element_text(hjust = 0.5), 
-          panel.background = element_rect(fill = NA),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          legend.key.size = unit(1,"lines"), #Shrink legend
-          legend.position = "bottom",
-          legend.justification = c(0.5,0.5),
-          legend.title=element_blank(),
-          text = element_text(size = 15)) +
-    
-    scale_y_continuous(expand=c(0,0),limits = c(0,3000),breaks=pretty_breaks(6)) +
-    
-    labs(x = "Year", y = "Total Annual Imports and Exports (GWh)", fill = "Resource") +
-    
-    guides(fill = guide_legend(nrow = 1)) 
-}
-
 

@@ -458,7 +458,7 @@ year_comp <- function(year,case) {
 }
 
 ################################################################################
-## FUNCTIONS: year_comp 
+## FUNCTIONS: year_dif 
 ## Bar plot showing the difference between AESO and Sim
 ##
 ## INPUTS:

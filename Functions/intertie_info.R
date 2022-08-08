@@ -230,85 +230,60 @@ BC_SK_IE <- function(case) {
   
 }
 
-################################################################################
-## FUNCTIONS: AESO_SimP_Int
-## Plot comparison between actual and simulated data price for 1 week
+###############################################################################  
+## FUNCTION: MN_Trade_Price
+## Get trade and price each month to compare
 ##
-## INPUTS:
-##    year, month, day - Date to plot, the week will start on the day chosen
+## INPUTS: 
 ##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Import_Yr - All imports from AB
+##    Export_Yr - All exports from AB
 ################################################################################
-AESO_SimP2_Int <- function(year,case) {
+
+MN_Trade_Price <- function(year,month,case) {
+ 
+  # Min for date (x-axis)
+  day_MN <- as.POSIXct(paste(01,month,year, sep = "/"), format="%d/%m/%Y")
   
-  #Firt get Sim Data
-  # Filters for the desired case study
+  # Max for date
+  day_MX <- as.POSIXct(paste(01,month+1,year, sep = "/"), format="%d/%m/%Y")
+  day_MX <- ceiling_date(day_MX, "month") - 1
+  
+  # Filters for the desired case study and data in that month
   data <- ZoneHr_Avg%>%
-    filter(Run_ID == case)
+    filter(Run_ID == case) %>%
+    filter(date>=day_MN) %>%
+    filter(date<=day_MX) 
   
   # Select only a single year using function WkTime
   ZPrice <- YrTime(data,year)
   
   # Set the max and min for the plot
-  MXa <- plyr::round_any(max(abs(ZPrice$Price)+10), 10, f = ceiling)
+  MXp <- plyr::round_any(max(abs(ZPrice$Price)+13), 10, f = ceiling)
+  MNp <- plyr::round_any(min(ZPrice$Price)-13, 10, f = floor)
 
-  #Max min for date (x-axis)
-  day_MN <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
-  day_MX <- as.POSIXct(paste(31,12,year, sep = "/"), format="%d/%m/%Y")
-  
-  # Get intertie info 
-  ZoneBC<- ZoneHr %>%
-    filter(Name == "WECC_BritishColumbia") %>%
-    filter(Condition == "Average") %>%
-    subset(., select = c(date, Price, Baseline_Demand, Demand, Demand_Total,
-                         Net_Load, Net_Load_Total, Marginal_Resource, 
-                         Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity, 
-                         Run_ID, Imports, Exports)) %>%
-    filter(Run_ID == case)
-  
-      ZPriceBC <- YrTime(ZoneBC,year)
-      MXb <- plyr::round_any(max(abs(ZPriceBC$Price)+10), 10, f = ceiling)
-      
-  
-  ZoneSK<- ZoneHr %>%
-    filter(Name == "MRO_Saskatchewan") %>%
-    filter(Condition == "Average") %>%
-    subset(., select = c(date, Price, Baseline_Demand, Demand, Demand_Total,
-                         Net_Load, Net_Load_Total, Marginal_Resource, 
-                         Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity, 
-                         Run_ID, Imports, Exports)) %>%
-    filter(Run_ID == case)
-  
-      ZPriceSK <- YrTime(ZoneSK,year)
-      MXc <- plyr::round_any(max(abs(ZPriceSK$Price)+10), 10, f = ceiling)
-      
-  
-  # Set the max for the plot
-  MX <-max(MXa,MXb,MXc)
+  # Color for plot background
+  rect_data <- data.frame(xmin=min(day_MN),
+                          xmax=max(day_MX),
+                          ymin=c(0,63.91,76.69),
+                          ymax=c(63.91,76.69,MXp),
+                          col=c(NA,"blue","green"))
   
   # Plot the data    
-  ggplot() +
-
-    geom_line(data = ZPriceSK, 
-              aes(x=date, y=Price, color="SK"), 
-              size = 1) +
-    
-    geom_line(data = ZPriceBC, 
-              aes(x=date, y=Price, color="BC"), 
-              size = 1.5) +
-    
+  PricePlot <- ggplot() +
     
     geom_line(data = ZPrice, 
-              aes(x = date, y = Price,colour = "AB"), 
-              size = 0.75) +
+              aes(x = date, y = Price,colour = "Simulated (AURORA)"), 
+              size = 1) +
     
-
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
     
     theme(panel.background = element_rect(fill = "transparent"),
           axis.text.x=element_text(vjust=-1),
-          axis.title.x = element_text(vjust=-1,size= XTit_Sz,face="bold"),
+          axis.title.x = element_blank(),
           axis.text.y=element_text(hjust=-0.5),
           axis.title.y = element_text(vjust=2,size= YTit_Sz,face="bold"),
           panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'grey'),
@@ -318,22 +293,117 @@ AESO_SimP2_Int <- function(year,case) {
           plot.background = element_rect(fill = "transparent", color = NA),
           plot.title = element_text(size = Tit_Sz),
           text = element_text(size = 15),
-          legend.position = "bottom",
+          legend.position = "none",
+          legend.text = element_blank(),
           legend.background = element_rect(fill='transparent',colour ='transparent'),
           legend.box.background = element_rect(fill='transparent', colour = "transparent")
           
     ) +
     
     scale_colour_manual("", 
-                        breaks = c("AB","BC","SK"),
-                        values = c("darkred","darkblue","chartreuse4")) +
+                        breaks = c("Simulated (AURORA)"),
+                        values = c("darkred")) +
     
-    labs(title=year, y = "Average Hourly Pool Price ($/MWh)", x="Date",fill = "Resource",caption = SourceDB) +
-    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "month",date_labels = "%b") +
+    labs(title=paste(year,",",month.name[month]), y = "Pool Price ($/MWh)") +
+    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "week",date_labels = "%e") +
     
     scale_y_continuous(expand=c(0,0), 
-                       limits= c(0,MX),
-                       breaks = seq(0, 1000, by = 100)
-                       
-    )
+                       limits= c(MNp,MXp),
+                       breaks=pretty_breaks(6)) +
+                         
+    geom_rect(data=rect_data, aes(xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,fill=col),alpha=0.1)+
+                      scale_fill_identity()                  
+    
+ # NOW TRADE INFO
+  
+  #Imports from BC
+  Imp_BC <- LinkHr %>%
+    filter(Condition=="Average") %>%
+    filter(Zone_Out=="WECC_BritishColumbia") %>%
+    filter(Zone_In=="WECC_Alberta") %>%
+    filter(Run_ID == case) %>%
+    mutate(Year = format(.$Time_Period, format="%Y")) %>%
+    filter(Year==year)
+  
+  # Exports to BC
+  Exp_BC <- LinkHr %>%
+    filter(Condition=="Average") %>%
+    filter(Zone_Out=="WECC_Alberta") %>%
+    filter(Zone_In=="WECC_BritishColumbia") %>%
+    filter(Run_ID == case) %>%
+    mutate(Year = format(.$Time_Period, format="%Y")) %>%
+    filter(Year==year) %>%
+    mutate(Net_Load=Net_Load*-1)
+  
+  # Imports from SK
+  Imp_SK <- LinkHr %>%
+    filter(Condition=="Average") %>%
+    filter(Zone_Out=="MRO_Saskatchewan") %>%
+    filter(Zone_In=="WECC_Alberta") %>%
+    filter(Run_ID == case) %>%
+    mutate(Year = format(.$Time_Period, format="%Y")) %>%
+    filter(Year==year)
+  
+  # Exports to SK
+  Exp_SK <- LinkHr %>%
+    filter(Condition=="Average") %>%
+    filter(Zone_Out=="WECC_Alberta") %>%
+    filter(Zone_In=="MRO_Saskatchewan") %>%
+    filter(Run_ID == case) %>%
+    mutate(Year = format(.$Time_Period, format="%Y")) %>%
+    filter(Year==year)  %>%
+    mutate(Net_Load=Net_Load*-1)
+  
+  
+  # Put all data together and filter week
+  data <-rbind(Exp_SK,Exp_BC,Imp_BC,Imp_SK) %>%
+    filter(Time_Period>=day_MN) %>%
+    filter(Time_Period<=day_MX) 
+  
+  # Set the max for the plot
+  MX <- plyr::round_any(max(data$Net_Load+11), 200, f = ceiling)
+  MN <- plyr::round_any(min(data$Net_Load+11)*-1, 200, f = floor)
+  
+  # Plot Trade
+  TradePlot <- ggplot() +
+    geom_area(data = data, aes(x = Time_Period, y = Net_Load, fill = ID), 
+              alpha=1, size=0.5) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = XTit_Sz),
+          axis.title.y = element_text(size = YTit_Sz),
+          plot.title = element_text(size = Tit_Sz),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(-1300,1300),breaks=pretty_breaks(8)) +
+    
+    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "month",date_labels = "%b") +
+    
+    labs(x = "Date", y = "AB Hourly Trade (MWh)") +
+    
+    scale_fill_manual(values = c("AB_BC"= "dodgerblue4","AB_SK"="springgreen4","BC_AB"="dodgerblue","SK_AB"="springgreen")) +
+
+    guides(fill = guide_legend(nrow = 1)) 
+  
+  # Get Trade legend
+  legend <- get_legend(TradePlot)
+  TradePlot <- TradePlot + theme(legend.position ="none")
+  
+  # Arrange all the plots together
+  grid.arrange(PricePlot,TradePlot,legend,
+               ncol=1,nrow=3, 
+               heights=c(1, 1,0.1))
+  
 }
