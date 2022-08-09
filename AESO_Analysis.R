@@ -40,96 +40,274 @@
   
   # Import functions from files, take from the functions folder in R project
   source(here('Functions','other_functions.R'))
+  source(here('Functions','intertie_info.R'))
   
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
                     "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
                     "ggpattern","here","beepr","showtext","DescTools","pivottabler",
-                    "openxlsx")
+                    "openxlsx","Hmisc")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
   
 }
-
 ################################################################################
-## LOAD FROM EXCELL SHEET AND WRITE TO .R FILE
-  # ImpExp <- read_csv("Hourly_Metered_Volumes_and_Pool_Price_and_AIL.csv")
-  # saveRDS(ImpExp, file = "AESO_IMP_EXP.RData")
+## GENERAL SET UP
+# Available Fonts for plotting, can choose different one and change Plot_Text if needed
+# Uses local computer font files (search font in search bar to confirm font names)
+  
+  font_add(family="Times",regular="times.ttf")
+  Plot_Text <- 'Times'
+  
+  # Years to show in duration curve
+  Years2See <- c(2010,2012,2014,2016,2018,2020,2022)
 
 ################################################################################
 ## LOAD FROM >R FILE INTO WORKSPACE
-  Imp_Exp <- readRDS(here("Data Files","AESO_IMP_EXP.RData"))
-  
-  #Replease all NA values with zero
-  Imp_Exp[is.na(Imp_Exp)] <- 0
 
-################################################################################
-## SEASONAL DATA
-  IE_Winter <- Imp_Exp %>%
-    filter(Season=="Winter")%>%
+  Imp_Exp <- readRDS(here("Data Files","AESO_IMP_EXP_edit.RData")) 
+  
+ { Imp_Exp$date <- as.POSIXct(Imp_Exp$Date_Begin_Local,tz="",format="%m/%d/%Y %H:%M")
+  
+  Imp_Exp<- Imp_Exp %>%
     select(.,-c("Date_Begin_GMT","DAY_AHEAD_POOL_PRICE"))
   
-  IE_Spring <- Imp_Exp %>%
-    filter(Season=="Spring")%>%
-    select(.,-c("Date_Begin_GMT","DAY_AHEAD_POOL_PRICE"))
-  
-  IE_Summer <- Imp_Exp %>%
-    filter(Season=="Summer")%>%
-    select(.,-c("Date_Begin_GMT","DAY_AHEAD_POOL_PRICE"))
-  
-  IE_Fall <- Imp_Exp %>%
-    filter(Season=="Fall")%>%
-    select(.,-c("Date_Begin_GMT","DAY_AHEAD_POOL_PRICE"))
-  
-  
+  #Reformat Day as day of year
+  Imp_Exp$Day <- format(Imp_Exp$date,"%j")
+  Imp_Exp$Week <- format(Imp_Exp$date,"%W") }
   
 ################################################################################
-## MONTHLY DATA
+## LOAD FROM EXCELL SHEET AND WRITE TO .R FILE
+  #  ImpExp <- read_csv("Hourly_Metered_Volumes_and_Pool_Price_and_AIL.csv")
+  # 
+  # 
+  # #Replease all NA values with zero
+  # Imp_Exp[is.na(Imp_Exp)] <- 0
+  # 
+  # Imp_Exp <- Imp_Exp %>%
+  #   mutate(EXPORT_BC_MT=EXPORT_BC+EXPORT_MT) %>%
+  #   rename(IMPORT_BC_MT=BC_MT)
+  # 
+  # 
+  # saveRDS(Imp_Exp, file = here("Data Files","AESO_IMP_EXP_edit.RData"))
+
+################################################################################
+## CORELATION
+## Pearson corelation - looks at linear corelation between variables
+## Check price and import/export correlation
+# 
+# # Peek at data
+#   head(Imp_Exp)
+#   
+#   # Defualt Pearson Corelation test (2 sided)
+#   cor.test(Imp_Exp$ACTUAL_POOL_PRICE,Imp_Exp$IMPORT_BC_MT)
+#   
+#   # Give Each Season a numerical Value 
+#   Imp_Exp <-Imp_Exp %>%
+#     mutate(Season2)
+#     
+#     Imp_Exp$Season2[Imp_Exp$Season=="Winter"] <-1
+#     Imp_Exp$Season2[Imp_Exp$Season=="Spring"] <-2
+#     Imp_Exp$Season2[Imp_Exp$Season=="Summer"] <-3
+#     Imp_Exp$Season2[Imp_Exp$Season=="Fall"] <-4
+#   
+#   #Create set of varibales intrested in
+#   set <-c("ACTUAL_POOL_PRICE","ACTUAL_AIL","Season2","Month","IMPORT_BC_MT","EXPORT_BC_MT","IMPORT_SK","EXPORT_SK")
+#   
+#   # New dataframe with just these filtered out
+#   matrix <- Imp_Exp[set]
+#   matrix2 <-rcorr(as.matrix(matrix),type="pearson")
+#   print(matrix2)
+#   
+#   plot(Imp_Exp$IMPORT_BC_MT,Imp_Exp$Month)
+#   abline(lm(Imp_Exp$ACTUAL_POOL_PRICE~Imp_Exp$IMPORT_BC_MT))
+#   
+#   chart.Correlation(matrix)
+
+
+################################################################################
+## FILTER DATA FOR TABLES OF AVERAGES
+  ## DATA FILTER: BC_MT
+
+  IE_BC <-Imp_Exp%>%
+    select(.,c("date","Day","Week","Month","Season","Year","ACTUAL_AIL","ACTUAL_POOL_PRICE","IMPORT_BC_MT","EXPORT_BC_MT"))%>%
+    mutate(Month=month.name[Month]) %>%
+    filter(Year<2022)
+
+  # Now, filter out the hours where import happened only 
+  IE_BC2 <- IE_BC %>%
+    filter(IMPORT_BC_MT>0) 
   
+ ## DATA FILTER: SK
+
+  IE_SK <-Imp_Exp%>%
+    select(.,c("date","Day","Week","Month","Season","Year","ACTUAL_AIL","ACTUAL_POOL_PRICE","IMPORT_SK","EXPORT_SK"))%>%
+    mutate(Month=month.name[Month]) %>%
+    filter(Year<2022)
+  
+  # Now, filter out the hours where import happened only 
+  IE_SK2 <- IE_SK %>%
+    filter(IMPORT_SK>0)
   
 ################################################################################
-## PRICE BASED DATA
+## MONTHLY AVERAGES 
+  # Create Table that gives monthly average pool price for imports
+  pt1 <- PivotTable$new() 
+  { pt1$addData(IE_BC2)
+    pt1$addColumnDataGroups("Month", addTotal=FALSE)
+    pt1$addRowDataGroups("Year", addTotal=FALSE) 
+    pt1$defineCalculation(calculationName="MeanPrice", caption="Mean Price", 
+                          summariseExpression="mean(ACTUAL_POOL_PRICE)", 
+                          format="%.2f") 
+    pt1$evaluatePivot()
+    pt1$renderPivot() # Display in viewer
+  }
+  
+  pt2 <- PivotTable$new() 
+  { pt2$addData(IE_SK2)
+    pt2$addColumnDataGroups("Month", addTotal=FALSE)
+    pt2$addRowDataGroups("Year", addTotal=FALSE) 
+    pt2$defineCalculation(calculationName="MeanPrice", caption="Mean Price", 
+                         summariseExpression="mean(ACTUAL_POOL_PRICE)", 
+                         format="%.2f")    
+    pt2$evaluatePivot()
+    pt2$renderPivot() # Display in viewer
+  }
+  
+################################################################################
+  ## SEASONAL AVERAGES
 
+  ## SEASONAL DATA ANALYSIS: bc
+  pt3 <- PivotTable$new() 
+  { pt3$addData(IE_BC2)
+    pt3$addColumnDataGroups("Season", addTotal=FALSE)
+    pt3$addRowDataGroups("Year", addTotal=FALSE) 
+    pt3$defineCalculation(calculationName="MeanPrice", caption="Mean Price", 
+                         summariseExpression="mean(ACTUAL_POOL_PRICE)", 
+                         format="%.2f")    
+    pt3$evaluatePivot()
+    pt3$renderPivot() # Display in viewer
+  }
+  
+  ## SEASONAL DATA ANALYSIS: SK
+    pt4 <- PivotTable$new() 
+  { pt4$addData(IE_SK2)
+    pt4$addColumnDataGroups("Season", addTotal=FALSE)
+    pt4$addRowDataGroups("Year", addTotal=FALSE) 
+    pt4$defineCalculation(calculationName="MeanPrice", caption="Mean Price", 
+                         summariseExpression="mean(ACTUAL_POOL_PRICE)", 
+                         format="%.2f")    
+    pt4$evaluatePivot()
+    pt4$renderPivot() # Display in viewer
+    }
+    
+################################################################################
+## DAILY AVERAGES
+    
+    ## SEASONAL DATA ANALYSIS: bc
+    pt5 <- PivotTable$new() 
+    { pt5$addData(IE_BC2)
+      pt5$addColumnDataGroups("Day", addTotal=FALSE)
+      pt5$addRowDataGroups("Year", addTotal=FALSE) 
+      pt5$defineCalculation(calculationName="MeanPrice", caption="Mean Price", 
+                            summariseExpression="mean(ACTUAL_POOL_PRICE)", 
+                            format="%.2f")    
+      pt5$evaluatePivot()
+      pt5$renderPivot() # Display in viewer
+    }
+    
+    ## SEASONAL DATA ANALYSIS: SK
+    pt6 <- PivotTable$new() 
+    { pt6$addData(IE_SK2)
+      pt6$addColumnDataGroups("Day", addTotal=FALSE)
+      pt6$addRowDataGroups("Year", addTotal=FALSE) 
+      pt6$defineCalculation(calculationName="MeanPrice", caption="Mean Price", 
+                            summariseExpression="mean(ACTUAL_POOL_PRICE)", 
+                            format="%.2f")    
+      pt6$evaluatePivot()
+      pt6$renderPivot() # Display in viewer
+    }
+    
+################################################################################
+## WEEK AVERAGES
+    
+    ## WEEK DATA ANALYSIS: bc
+    pt7 <- PivotTable$new() 
+    { pt7$addData(IE_BC2)
+      pt7$addColumnDataGroups("Week", addTotal=FALSE)
+      pt7$addRowDataGroups("Year", addTotal=FALSE) 
+      pt7$defineCalculation(calculationName="MeanPrice", caption="Mean Price", 
+                            summariseExpression="mean(ACTUAL_POOL_PRICE)", 
+                            format="%.2f")    
+      pt7$evaluatePivot()
+      pt7$renderPivot() # Display in viewer
+    }
+    
+    ## WEEK DATA ANALYSIS: SK
+    pt8 <- PivotTable$new() 
+    { pt8$addData(IE_SK2)
+      pt8$addColumnDataGroups("Week", addTotal=FALSE)
+      pt8$addRowDataGroups("Year", addTotal=FALSE) 
+      pt8$defineCalculation(calculationName="MeanPrice", caption="Mean Price", 
+                            summariseExpression="mean(ACTUAL_POOL_PRICE)", 
+                            format="%.2f")    
+      pt8$evaluatePivot()
+      pt8$renderPivot() # Display in viewer
+    }
+    
+################################################################################
+## Check overall pattern with gas prices
+    #First, create all or nothing 
+    ## DATA FILTER: BC_MT
+    
+    IE_BC_check <-Imp_Exp%>%
+      select(.,c("date","Day","Week","Month","Season","Year","ACTUAL_AIL","ACTUAL_POOL_PRICE","IMPORT_BC_MT","EXPORT_BC_MT"))%>%
+      mutate(Month=month.name[Month])
+      
+    
+    IE_BC_check$TradeBC[IE_BC_check$IMPORT_BC_MT>0]<-1
+    IE_BC_check$IMPORT_BC_MT[IE_BC_check$IMPORT_BC_MT<0]<-0 
+    IE_BC_check$EXPORT_BC_MT[IE_BC_check$EXPORT_BC_MT>0]<--1
+      
+    ## DATA FILTER: SK
+    
+    IE_SK_check <-Imp_Exp%>%
+      select(.,c("date","Day","Week","Month","Season","Year","ACTUAL_AIL","ACTUAL_POOL_PRICE","IMPORT_SK","EXPORT_SK"))%>%
+      mutate(Month=month.name[Month]) 
+
+    IE_SK_check$IMPORT_SK[IE_SK_check$IMPORT_SK>0]<-1
+    IE_SK_check$IMPORT_SK[IE_SK_check$IMPORT_SK<0]<-0
+    IE_SK_check$EXPORT_SK[IE_SK_check$EXPORT_SK>0]<--1
+    
+
+    
 
 ################################################################################
-## PLOT ACTUAL DURATION CURVES
-  tot <- Imp_Exp%>%
-    group_by(Year)%>%
-    mutate(perc = 1-ecdf(ACTUAL_POOL_PRICE)(ACTUAL_POOL_PRICE))
-  
-  tot$Year <- as.factor(tot$Year)
-  
-  tot <- tot %>%
-    filter(Year %in% c(2012,2014,2016,2018,2020,2022))
-  
-  ggplot() +
-    geom_line(data = tot, 
-              aes(x = perc, y = ACTUAL_POOL_PRICE, colour = Year), size = 1) +
+## FUNCTION CALL
+    #AESO Duration Curve
+    Duration_AESO(Years2See)
     
-    theme_bw() +
+    #Full year of trade
+    Trade_Yr_AESO(2016)
     
-    theme(text=element_text(family=Plot_Text)) +
+    #Month of trade
+    Trade_Mn_AESO(2021,01,Imp_Exp)
+    TradeOnly_Mn_AESO(2021,12,Imp_Exp)
+                  
+    T_month_all(01)
+    T_month_all(02)
+    T_month_all(03)
+    T_month_all(04)
+    T_month_all(05)
+    T_month_all(06)
+    T_month_all(07)
+    T_month_all(08)
+    T_month_all(09)
+    T_month_all(10)
+    T_month_all(11)
+    T_month_all(12)
     
-    theme(panel.grid = element_blank(),
-          panel.spacing = unit(2, "lines"),
-          axis.title.x = element_text(size = 15,face="bold"),
-          axis.title.y = element_text(size = 15,face="bold"),
-          text = element_text(size = 15),
-          legend.title = element_blank(),
-          legend.position = "right",
-          panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray70")) +
     
-    labs(y = "Hourly Pool Price ($/MWh)", x = "Percentage of Time",colour = "Year",
-         caption = "Hourly Metered Volumes and Pool Price and AIL data 2010 to 2022") +
-    
-    scale_color_brewer(palette= "Dark2") +
-    
-    scale_x_continuous(expand=c(0,0), 
-                       limits = c(0,1),
-                       labels = percent) +
-    
-    scale_y_continuous(expand=c(0,0),limits = c(0,1000),breaks = pretty_breaks(5))  
 
-
-
-
+    
+    

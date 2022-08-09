@@ -60,7 +60,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Aug_4_2022_d"
+  SourceDB<-"TestRun_Aug_8_2022_a"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -455,7 +455,7 @@
   Week1(2022,01,08,BC)
   
   # Grid of weekly output
-  year_weeks(2022,BC)
+  year_weeks(2021,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -481,17 +481,18 @@
   # Shows Prices for simulation duration
   Sim_dur(BC)
   
-  # Annual import and export from AB 
-  Imp_Exp(BC)
+  # Annual import and export from AB as a bar chart
+  Imp_Exp1(BC)
   
   # Import and export for full year from AB
   Imp_Exp2(2021,BC)
   
   # Price and Trade monthly
-  MN_Trade_Price(2021,01,BC)
+  MN_Trade_Price(2022,02,BC)
+      Trade_Mn_AESO(2022,02,Imp_Exp)
   
   #Imports and exports from BC and SK yearly totals
-  BC_SK_IE(BC)
+  BC_SK_IE(year,BC)
     
 ################################################################################  
 ## BUT THERE ARE MORE ...
