@@ -828,7 +828,15 @@ Duration_AESO <-function(Years2See) {
     scale_y_continuous(expand=c(0,0),limits = c(0,1000),breaks = pretty_breaks(5))  
 }
 
-###############################
+
+###############################################################################  
+## FUNCTION: T_month_all 
+## All trade for each month over several years
+##
+## INPUTS: 
+##    Years2See - Year to show in duration curve
+################################################################################ 
+
 T_month_all <- function(month) {
   
   
@@ -931,3 +939,783 @@ T_month_all <- function(month) {
   
   
 }
+
+###############################################################################  
+################################################################################
+## HR FIT FUNCTIONS
+################################################################################
+############################################################################### 
+
+###############################################################################  
+## FUNCTION: HR_Mn_BC 
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################  
+
+HR_Mn_BC <- function(year,month,HRcalc) {
+  
+  # Min for date (x-axis)
+  day_MN <- as.POSIXct(paste(01,month,year, sep = "/"), format="%d/%m/%Y")
+  
+  if (month <12) {
+    # Max for date
+    day_MX <- as.POSIXct(paste(01,month+1,year, sep = "/"), format="%d/%m/%Y")
+    day_MX <- ceiling_date(day_MX, "month") - 1 
+    
+  }else {
+    day_MX <- as.POSIXct(paste(31,month,year, sep = "/"), format="%d/%m/%Y") }
+  
+  
+  #Imports
+  HR_BC_Imp <- HRcalc %>%
+    select(.,c("date","Month","Year","IMPORT_BC_MT","T_HR_IMPORT_BC")) %>%
+    rename(IMPORT_LOAD=IMPORT_BC_MT) %>%
+    rename(Theo_HR=T_HR_IMPORT_BC) %>%
+        mutate(ID ="BC_AB")%>%
+    filter(date>=day_MN) %>%
+    filter(date<=day_MX) 
+  
+  #Exports
+  HR_BC_Exp <- HRcalc %>%
+    select(.,c("date","Month","Year","EXPORT_BC_MT","T_HR_EXPORT_BC")) %>%
+    rename(IMPORT_LOAD=EXPORT_BC_MT) %>%
+    rename(Theo_HR=T_HR_EXPORT_BC) %>%
+    mutate(ID ="AB_BC")%>%
+    filter(date>=day_MN) %>%
+    filter(date<=day_MX) 
+  
+  # Get mean values to plot
+  h_line1 <- median(HR_BC_Imp$Theo_HR, na.rm=TRUE)
+  h_line2 <- median(HR_BC_Exp$Theo_HR, na.rm=TRUE)
+  
+  # Plot Trade
+  ggplot() +
+    geom_point(data = HR_BC_Imp, aes(x = date, y = Theo_HR, colour = ID), 
+              alpha=1, size=1) +
+
+    geom_point(data = HR_BC_Exp, aes(x = date, y = Theo_HR, colour = ID), 
+               alpha=1, size=1) +
+    
+    geom_hline(yintercept =h_line2 , color='darkred', lty='dashed', lwd=1.5) +
+    geom_hline(yintercept = h_line1, color='dodgerblue4', lty='dashed', lwd=1.5) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size = 15),
+          plot.title = element_text(size = 15),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,30000),breaks=pretty_breaks(8)) +
+    
+    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "7 day",date_labels = "%e") +
+    
+    labs(x = "Date", y = "Theoretical HR (Btu/kWh)",title=year) +
+    
+    scale_colour_manual(values = c("AB_BC"= "red","BC_AB"="dodgerblue")) +
+    
+    guides(fill = guide_legend(nrow = 1)) 
+  
+}
+
+###############################################################################  
+## FUNCTION: HR_Mn_SK 
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################  
+
+HR_Mn_SK <- function(year,month,HRcalc) {
+  
+  # Min for date (x-axis)
+  day_MN <- as.POSIXct(paste(01,month,year, sep = "/"), format="%d/%m/%Y")
+  day_lab <-as.POSIXct(paste(05,month,year, sep = "/"), format="%d/%m/%Y")
+  
+  if (month <12) {
+    # Max for date
+    day_MX <- as.POSIXct(paste(01,month+1,year, sep = "/"), format="%d/%m/%Y")
+    day_MX <- ceiling_date(day_MX, "month") - 1 
+    
+  }else {
+    day_MX <- as.POSIXct(paste(31,month,year, sep = "/"), format="%d/%m/%Y") }
+  
+  
+  #Imports
+  
+  HR_SK_Imp <- HRcalc %>%
+    select(.,c("date","Month","Year","IMPORT_SK","T_HR_IMPORT_SK")) %>%
+    rename(IMPORT_LOAD=IMPORT_SK) %>%
+    rename(Theo_HR=T_HR_IMPORT_SK) %>%
+    mutate(ID ="SK_AB")%>%
+    filter(date>=day_MN) %>%
+    filter(date<=day_MX) 
+  
+  #Exports
+  
+  HR_SK_Exp <- HRcalc %>%
+    select(.,c("date","Month","Year","EXPORT_SK","T_HR_EXPORT_SK")) %>%
+    rename(IMPORT_LOAD=EXPORT_SK) %>%
+    rename(Theo_HR=T_HR_EXPORT_SK) %>%
+    mutate(ID ="AB_SK")%>%
+    filter(date>=day_MN) %>%
+    filter(date<=day_MX) 
+  
+  # Get mean values to plot
+  h_line3 <- round(median(HR_SK_Imp$Theo_HR, na.rm=TRUE),digits=0)
+  h_line4 <- round(median(HR_SK_Exp$Theo_HR, na.rm=TRUE),digits=0)
+  
+  # Plot Trade
+  ggplot() +
+    geom_point(data = HR_SK_Imp, aes(x = date, y = Theo_HR, colour = ID), 
+              alpha=1, size=1) +
+    
+    # geom_text(
+    #   aes(x = day_lab, y = h_line3+500, label = h_line3,colour='darkgreen',fontface="bold",size=3)) +
+
+    geom_point(data = HR_SK_Exp, aes(x = date, y = Theo_HR, colour = ID), 
+               alpha=1, size=1) +
+    
+    geom_hline(yintercept = h_line4, color='darkred', lty='dashed', lwd=1.5)  +
+    geom_hline(yintercept = h_line3, color='darkgreen', lty='dashed', lwd=1.5) +
+    # geom_text(
+    #   aes(x = day_lab, y = h_line4+500, label = h_line4,colour='darkred',size=3)) +
+    # 
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size = 15),
+          plot.title = element_text(size = 15),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,30000),breaks=pretty_breaks(8)) +
+    
+    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "7 day",date_labels = "%e") +
+    
+    labs(x = "Date", y = "Theoretical HR (Btu/kWh)",title=year) +
+    
+    scale_colour_manual(values = c("AB_SK"="red","SK_AB"="springgreen")) +
+    
+    guides(fill = guide_legend(nrow = 1)) 
+  
+}
+
+###############################################################################  
+## FUNCTION: HR_YR_BC 
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################  
+
+HR_YR_BC <- function(year) {
+  
+
+  #Imports
+  HR_BC_Imp <- HRcalc %>%
+    select(.,c("date","Month","Year","IMPORT_BC_MT","T_HR_IMPORT_BC")) %>%
+    rename(IMPORT_LOAD=IMPORT_BC_MT) %>%
+    rename(Theo_HR=T_HR_IMPORT_BC) %>%
+    mutate(ID ="BC_AB")%>%
+    filter(Year==year) 
+  
+  #Exports
+  HR_BC_Exp <- HRcalc %>%
+    select(.,c("date","Month","Year","EXPORT_BC_MT","T_HR_EXPORT_BC")) %>%
+    rename(IMPORT_LOAD=EXPORT_BC_MT) %>%
+    rename(Theo_HR=T_HR_EXPORT_BC) %>%
+    mutate(ID ="AB_BC")%>%
+    filter(Year==year) 
+  
+  # Get mean values to plot
+  h_line1 <- median(HR_BC_Imp$Theo_HR, na.rm=TRUE)
+  h_line2 <- median(HR_BC_Exp$Theo_HR, na.rm=TRUE)
+  
+  # Plot Trade
+  ggplot() +
+    geom_point(data = HR_BC_Imp, aes(x = date, y = Theo_HR, colour = ID), 
+               alpha=1, size=0.5) +
+    
+    geom_point(data = HR_BC_Exp, aes(x = date, y = Theo_HR, colour = ID), 
+               alpha=1, size=0.5) +
+    
+    geom_hline(yintercept =h_line2 , color='darkred', lty='dashed', lwd=1) +
+    geom_hline(yintercept = h_line1, color='dodgerblue4', lty='dashed', lwd=1) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size = 15),
+          plot.title = element_text(size = 15),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          legend.text=element_text(size = 15),
+          text = element_text(size = 10)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,30000),breaks=pretty_breaks(8)) +
+    
+    scale_x_datetime(expand=c(0,0),breaks = "month",date_labels = "%b") +
+    
+    labs(x = "Date", y = "Theoretical HR (Btu/kWh)",title=year) +
+    
+    scale_colour_manual(values = c("AB_BC"= "red","BC_AB"="dodgerblue")) +
+    
+    guides(fill = guide_legend(nrow = 1)) 
+  
+}
+
+###############################################################################  
+## FUNCTION: HR_Yr_SK 
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################  
+
+HR_Yr_SK <- function(year) {
+
+  #Imports
+  
+  HR_SK_Imp <- HRcalc %>%
+    select(.,c("date","Month","Year","IMPORT_SK","T_HR_IMPORT_SK")) %>%
+    rename(IMPORT_LOAD=IMPORT_SK) %>%
+    rename(Theo_HR=T_HR_IMPORT_SK) %>%
+    mutate(ID ="SK_AB")%>%
+    filter(Year==year)
+  
+  #Exports
+  
+  HR_SK_Exp <- HRcalc %>%
+    select(.,c("date","Month","Year","EXPORT_SK","T_HR_EXPORT_SK")) %>%
+    rename(IMPORT_LOAD=EXPORT_SK) %>%
+    rename(Theo_HR=T_HR_EXPORT_SK) %>%
+    mutate(ID ="AB_SK")%>%
+    filter(Year==year)
+  
+  # Get mean values to plot
+  h_line3 <- round(median(HR_SK_Imp$Theo_HR, na.rm=TRUE),digits=0)
+  h_line4 <- round(median(HR_SK_Exp$Theo_HR, na.rm=TRUE),digits=0)
+  
+  # Plot Trade
+  ggplot() +
+    geom_point(data = HR_SK_Imp, aes(x = date, y = Theo_HR, colour = ID), 
+               alpha=1, size=0.5) +
+    
+    # geom_text(
+    #   aes(x = day_lab, y = h_line3+500, label = h_line3,colour='darkgreen',fontface="bold",size=3)) +
+    
+    geom_point(data = HR_SK_Exp, aes(x = date, y = Theo_HR, colour = ID), 
+               alpha=1, size=0.5) +
+    
+    geom_hline(yintercept = h_line4, color='darkred', lty='dashed', lwd=1)  +
+    geom_hline(yintercept = h_line3, color='darkgreen', lty='dashed', lwd=1) +
+    # geom_text(
+    #   aes(x = day_lab, y = h_line4+500, label = h_line4,colour='darkred',size=3)) +
+    # 
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size = 15),
+          plot.title = element_text(size = 15),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          legend.text=element_text(size = 15),
+          text = element_text(size = 10)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,30000),breaks=pretty_breaks(8)) +
+    
+    scale_x_datetime(expand=c(0,0),breaks = "month",date_labels = "%b") +
+    
+    labs(x = "Date", y = "Theoretical HR (Btu/kWh)",title=year) +
+    
+    scale_colour_manual(values = c("AB_SK"="red","SK_AB"="springgreen")) +
+    
+    guides(fill = guide_legend(nrow = 1)) 
+  
+}
+###############################################################################  
+## FUNCTION: HR_month_BC_all 
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################ 
+
+HR_month_BC_all <- function(month) {
+  
+  
+  # Create a graph for each month of the year
+  p1 <- HR_Mn_BC(2010,month,HRcalc) +
+    theme(axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  
+  p2 <- HR_Mn_BC(2011,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p3 <- HR_Mn_BC(2012,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p4 <- HR_Mn_BC(2013,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p5 <- HR_Mn_BC(2014,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p6 <- HR_Mn_BC(2015,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p7 <- HR_Mn_BC(2016,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p8 <- HR_Mn_BC(2017,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p9 <- HR_Mn_BC(2018,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p10 <- HR_Mn_BC(2019,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p11 <- HR_Mn_BC(2020,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p12 <- HR_Mn_BC(2021,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  # Get a common legend
+  legend <- get_legend(p1)
+  p1 <- p1 + theme(legend.position ="none")
+  
+  # Plot Labels
+  yleft <- textGrob("Theoretical HR (Btu/kWh", rot = 90, gp = gpar(fontsize = 15))
+  bottom <- textGrob("Date", gp = gpar(fontsize = 15))
+  
+  # Cheat way to put an x title in
+  xtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 6,
+             label = "Date") + 
+    theme_void()
+  
+  # Label the source and year
+  xsubtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 4,
+             label = paste("Month:",month.name[month],", AESO Data")) + 
+    theme_void()
+  
+  #Create a big window
+  windows(18,12)
+  
+  # Arrange all the plots
+  grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(xtitle),
+               plot_grid(legend),
+               plot_grid(xsubtitle),
+               ncol=1,nrow=6, 
+               heights=c(1, 1,1,0.1,0.2,0.1),
+               left=yleft)
+  
+  
+}
+
+###############################################################################  
+## FUNCTION: HR_month_SK_all 
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################ 
+
+HR_month_SK_all <- function(month) {
+  
+  
+  # Create a graph for each month of the year
+  p1 <- HR_Mn_SK(2010,month,HRcalc) +
+    theme(axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  
+  p2 <- HR_Mn_SK(2011,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p3 <- HR_Mn_SK(2012,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p4 <- HR_Mn_SK(2013,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p5 <- HR_Mn_SK(2014,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p6 <- HR_Mn_SK(2015,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p7 <- HR_Mn_SK(2016,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p8 <- HR_Mn_SK(2017,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p9 <- HR_Mn_SK(2018,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p10 <- HR_Mn_SK(2019,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p11 <- HR_Mn_SK(2020,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p12 <- HR_Mn_SK(2021,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  # Get a common legend
+  legend <- get_legend(p1)
+  p1 <- p1 + theme(legend.position ="none")
+  
+  # Plot Labels
+  yleft <- textGrob("Theoretical HR (Btu/kWh", rot = 90, gp = gpar(fontsize = 15))
+  bottom <- textGrob("Date", gp = gpar(fontsize = 15))
+  
+  # Cheat way to put an x title in
+  xtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 6,
+             label = "Date") + 
+    theme_void()
+  
+  # Label the source and year
+  xsubtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 4,
+             label = paste("Month:",month.name[month],", AESO Data")) + 
+    theme_void()
+  
+  #Create a big window
+  windows(18,12)
+  
+  # Arrange all the plots
+  grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(xtitle),
+               plot_grid(legend),
+               plot_grid(xsubtitle),
+               ncol=1,nrow=6, 
+               heights=c(1, 1,1,0.1,0.2,0.1),
+               left=yleft)
+  
+  
+}
+
+###############################################################################  
+## FUNCTION: HR_year_BC_all 
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################ 
+
+HR_year_BC_all <- function() {
+  
+  
+  # Create a graph for each month of the year
+  p1 <- HR_YR_BC(2010) +
+    theme(axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p2 <- HR_YR_BC(2011) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p3 <- HR_YR_BC(2012) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p4 <- HR_YR_BC(2013) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p5 <- HR_YR_BC(2014) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p6 <- HR_YR_BC(2015) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p7 <- HR_YR_BC(2016) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p8 <- HR_YR_BC(2017) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p9 <- HR_YR_BC(2018) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p10 <- HR_YR_BC(2019) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p11 <- HR_YR_BC(2020) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p12 <- HR_YR_BC(2021) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  # Get a common legend
+  legend <- get_legend(p1)
+  p1 <- p1 + theme(legend.position ="none")
+  
+  # Plot Labels
+  yleft <- textGrob("Theoretical HR (Btu/kWh", rot = 90, gp = gpar(fontsize = 15))
+  bottom <- textGrob("Date", gp = gpar(fontsize = 15))
+  
+  # Cheat way to put an x title in
+  xtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 6,
+             label = "Month") + 
+    theme_void()
+  
+  # Label the source and year
+  xsubtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 4,
+             label = " AESO Data") + 
+    theme_void()
+  
+  #Create a big window
+  windows(20,12)
+  
+  # Arrange all the plots
+  grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(xtitle),
+               plot_grid(legend),
+               plot_grid(xsubtitle),
+               ncol=1,nrow=6, 
+               heights=c(1, 1,1,0.1,0.2,0.1),
+               left=yleft)
+  
+  
+}
+
+###############################################################################  
+## FUNCTION: HR_year_SK_all 
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################ 
+
+HR_year_SK_all <- function() {
+  
+  
+  # Create a graph for each month of the year
+  p1 <- HR_Yr_SK(2010) +
+    theme(axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p2 <- HR_Yr_SK(2011) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p3 <- HR_Yr_SK(2012) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p4 <- HR_Yr_SK(2013) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p5 <- HR_Yr_SK(2014) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p6 <- HR_Yr_SK(2015) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p7 <- HR_Yr_SK(2016) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p8 <- HR_Yr_SK(2017) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p9 <- HR_Yr_SK(2018) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p10 <- HR_Yr_SK(2019) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p11 <- HR_Yr_SK(2020) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p12 <- HR_Yr_SK(2021) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  # Get a common legend
+  legend <- get_legend(p1)
+  p1 <- p1 + theme(legend.position ="none")
+  
+  # Plot Labels
+  yleft <- textGrob("Theoretical HR (Btu/kWh", rot = 90, gp = gpar(fontsize = 15))
+  bottom <- textGrob("Date", gp = gpar(fontsize = 15))
+  
+  # Cheat way to put an x title in
+  xtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 6,
+             label = "Month") + 
+    theme_void()
+  
+  # Label the source and year
+  xsubtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 4,
+             label = " AESO Data") + 
+    theme_void()
+  
+  #Create a big window
+  windows(20,12)
+  
+  # Arrange all the plots
+  grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(xtitle),
+               plot_grid(legend),
+               plot_grid(xsubtitle),
+               ncol=1,nrow=6, 
+               heights=c(1, 1,1,0.1,0.2,0.1),
+               left=yleft)
+  
+  
+}
+

@@ -77,8 +77,23 @@
   Imp_Exp$Week <- format(Imp_Exp$date,"%W") }
   
 ################################################################################
+## LOAD FROM >R FILE INTO WORKSPACE
+  
+  HRcalc <- readRDS(here("Data Files","HRcalc.RData")) 
+  
+  { HRcalc$date <- as.POSIXct(HRcalc$Date_Begin_Local,tz="",format="%Y-%m-%d %H:%M")
+    
+    HRcalc<- HRcalc %>%
+      select(.,-c("DAY_AHEAD_POOL_PRICE")) }
+    
+    #Reformat Day as day of year
+    HRcalc$Day <- format(HRcalc$date,"%j")
+    HRcalc$Week <- format(HRcalc$date,"%W") 
+    HRcalc$Month2 <- format(HRcalc$date,"%b")
+  
+################################################################################
 ## LOAD FROM EXCELL SHEET AND WRITE TO .R FILE
-  #  ImpExp <- read_csv("Hourly_Metered_Volumes_and_Pool_Price_and_AIL.csv")
+    # HRcalc <- read_csv("IMPEXP_HRcalcs.csv")
   # 
   # 
   # #Replease all NA values with zero
@@ -89,7 +104,7 @@
   #   rename(IMPORT_BC_MT=BC_MT)
   # 
   # 
-  # saveRDS(Imp_Exp, file = here("Data Files","AESO_IMP_EXP_edit.RData"))
+   # saveRDS(HRcalc, file = here("HRcalc.RData"))
 
 ################################################################################
 ## CORELATION
@@ -256,34 +271,118 @@
     }
     
 ################################################################################
-## Check overall pattern with gas prices
-    #First, create all or nothing 
-    ## DATA FILTER: BC_MT
-    
-    IE_BC_check <-Imp_Exp%>%
-      select(.,c("date","Day","Week","Month","Season","Year","ACTUAL_AIL","ACTUAL_POOL_PRICE","IMPORT_BC_MT","EXPORT_BC_MT"))%>%
-      mutate(Month=month.name[Month])
-      
-    
-    IE_BC_check$TradeBC[IE_BC_check$IMPORT_BC_MT>0]<-1
-    IE_BC_check$IMPORT_BC_MT[IE_BC_check$IMPORT_BC_MT<0]<-0 
-    IE_BC_check$EXPORT_BC_MT[IE_BC_check$EXPORT_BC_MT>0]<--1
-      
-    ## DATA FILTER: SK
-    
-    IE_SK_check <-Imp_Exp%>%
-      select(.,c("date","Day","Week","Month","Season","Year","ACTUAL_AIL","ACTUAL_POOL_PRICE","IMPORT_SK","EXPORT_SK"))%>%
-      mutate(Month=month.name[Month]) 
+## HR SUMMARIES
+  
+# Want to find mean HR in each month for all data
 
-    IE_SK_check$IMPORT_SK[IE_SK_check$IMPORT_SK>0]<-1
-    IE_SK_check$IMPORT_SK[IE_SK_check$IMPORT_SK<0]<-0
-    IE_SK_check$EXPORT_SK[IE_SK_check$EXPORT_SK>0]<--1
+    BC_I_HR <- HRcalc %>%
+      group_by(Year,Month)%>%
+      summarise(across(T_HR_IMPORT_BC, median, na.rm = TRUE)) %>%
+      ungroup() %>%
+      group_by(Month)%>%
+      summarise(across(T_HR_IMPORT_BC, mean, na.rm = TRUE)) %>%
+      rename(Mean_HR=T_HR_IMPORT_BC) %>%
+      mutate_if(is.numeric, round, 0) %>%
+      ungroup() %>%
+      mutate(ID="BC_AB")
     
-
+    BC_E_HR <- HRcalc %>%
+      group_by(Year,Month)%>%
+      summarise(across(T_HR_EXPORT_BC, median, na.rm = TRUE)) %>%
+      ungroup() %>%
+      group_by(Month)%>%
+      summarise(across(T_HR_EXPORT_BC, mean, na.rm = TRUE)) %>%
+      rename(Mean_HR=T_HR_EXPORT_BC) %>%
+      mutate_if(is.numeric, round, 0) %>%
+      ungroup() %>%
+      mutate(ID="AB_BC")
     
-
+    SK_I_HR <- HRcalc %>%
+      group_by(Year,Month)%>%
+      summarise(across(T_HR_IMPORT_SK, median, na.rm = TRUE)) %>%
+      ungroup() %>%
+      group_by(Month)%>%
+      summarise(across(T_HR_IMPORT_SK, mean, na.rm = TRUE)) %>%
+      rename(Mean_HR=T_HR_IMPORT_SK) %>%
+      mutate_if(is.numeric, round, 0) %>%
+      ungroup() %>%
+      mutate(ID="SK_AB")
+    
+    SK_E_HR <- HRcalc %>%
+      group_by(Year,Month)%>%
+      summarise(across(T_HR_EXPORT_SK, median, na.rm = TRUE)) %>%
+      ungroup() %>%
+      group_by(Month)%>%
+      summarise(across(T_HR_EXPORT_SK, mean, na.rm = TRUE)) %>%
+      rename(Mean_HR=T_HR_EXPORT_SK) %>%
+      mutate_if(is.numeric, round, 0) %>%
+      ungroup() %>%
+      mutate(ID="AB_SK")
+    
+   NewData <- rbind(BC_I_HR,BC_E_HR,SK_I_HR,SK_E_HR)
+   
+   NewData$Month <- month.name[as.numeric(NewData$Month)]
+    
+   ptHR <- PivotTable$new() 
+   { ptHR$addData(NewData)
+     ptHR$addColumnDataGroups("Month", addTotal=FALSE)
+     ptHR$addRowDataGroups("ID", addTotal=FALSE) 
+     ptHR$defineCalculation(calculationName="HR", caption="HR", 
+                           summariseExpression="max(Mean_HR)", 
+                           format="%.0f")    
+     ptHR$evaluatePivot()
+     ptHR$renderPivot() # Display in viewer
+   }
+   
+   # Now, each year
+   
+   BC_I_HR2 <- HRcalc %>%
+     group_by(Year)%>%
+     summarise(across(T_HR_IMPORT_BC, median, na.rm = TRUE)) %>%
+     ungroup() %>%
+     rename(Mean_HR=T_HR_IMPORT_BC) %>%
+     mutate_if(is.numeric, round, 0) %>%
+     mutate(ID="BC_AB")
+   
+   BC_E_HR2 <- HRcalc %>%
+     group_by(Year)%>%
+     summarise(across(T_HR_EXPORT_BC, median, na.rm = TRUE)) %>%
+     ungroup() %>%
+     rename(Mean_HR=T_HR_EXPORT_BC) %>%
+     mutate_if(is.numeric, round, 0) %>%
+     mutate(ID="AB_BC")
+   
+   SK_I_HR2 <- HRcalc %>%
+     group_by(Year)%>%
+     summarise(across(T_HR_IMPORT_SK, median, na.rm = TRUE)) %>%
+     ungroup() %>%
+     rename(Mean_HR=T_HR_IMPORT_SK) %>%
+     mutate_if(is.numeric, round, 0) %>%
+     mutate(ID="SK_AB")
+   
+   SK_E_HR2 <- HRcalc %>%
+     group_by(Year)%>%
+     summarise(across(T_HR_EXPORT_SK, median, na.rm = TRUE)) %>%
+     ungroup() %>%
+     rename(Mean_HR=T_HR_EXPORT_SK) %>%
+     mutate_if(is.numeric, round, 0) %>%
+     mutate(ID="AB_SK")
+   
+   NewData <- rbind(BC_I_HR2,BC_E_HR2,SK_I_HR2,SK_E_HR2)
+   
+   ptHR <- PivotTable$new() 
+   { ptHR$addData(NewData)
+     ptHR$addColumnDataGroups("Year", addTotal=FALSE)
+     ptHR$addRowDataGroups("ID", addTotal=FALSE) 
+     ptHR$defineCalculation(calculationName="HR", caption="HR", 
+                            summariseExpression="mean(Mean_HR)", 
+                            format="%.0f")    
+     ptHR$evaluatePivot()
+     ptHR$renderPivot() # Display in viewer
+   }
+   
 ################################################################################
-## FUNCTION CALL
+## FUNCTION CALL AESO
     #AESO Duration Curve
     Duration_AESO(Years2See)
     
@@ -307,7 +406,12 @@
     T_month_all(11)
     T_month_all(12)
     
+################################################################################
+## FUNCTION CALL HR    
+    HR_month_SK_all(04)
+    HR_month_BC_all(12)
     
-
+    HR_year_SK_all()
+    HR_year_BC_all
     
     
