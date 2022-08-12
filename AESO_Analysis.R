@@ -85,6 +85,9 @@
     
     HRcalc<- HRcalc %>%
       select(.,-c("DAY_AHEAD_POOL_PRICE")) }
+  
+    #Replace all NA values with zero
+  HRcalc[HRcalc==0] <- NA
     
     #Reformat Day as day of year
     HRcalc$Day <- format(HRcalc$date,"%j")
@@ -276,45 +279,49 @@
 # Want to find mean HR in each month for all data
 
     BC_I_HR <- HRcalc %>%
+      filter(ACTUAL_POOL_PRICE<500) %>%
       group_by(Year,Month)%>%
       summarise(across(T_HR_IMPORT_BC, median, na.rm = TRUE)) %>%
+      rename(Med_HR=T_HR_IMPORT_BC) %>%
       ungroup() %>%
       group_by(Month)%>%
-      summarise(across(T_HR_IMPORT_BC, mean, na.rm = TRUE)) %>%
-      rename(Mean_HR=T_HR_IMPORT_BC) %>%
+      summarise(across(Med_HR, mean, na.rm = TRUE)) %>%
       mutate_if(is.numeric, round, 0) %>%
       ungroup() %>%
       mutate(ID="BC_AB")
     
     BC_E_HR <- HRcalc %>%
+      filter(ACTUAL_POOL_PRICE<500) %>%
       group_by(Year,Month)%>%
       summarise(across(T_HR_EXPORT_BC, median, na.rm = TRUE)) %>%
+      rename(Med_HR=T_HR_EXPORT_BC) %>%
       ungroup() %>%
       group_by(Month)%>%
-      summarise(across(T_HR_EXPORT_BC, mean, na.rm = TRUE)) %>%
-      rename(Mean_HR=T_HR_EXPORT_BC) %>%
+      summarise(across(Med_HR, mean, na.rm = TRUE)) %>%
       mutate_if(is.numeric, round, 0) %>%
       ungroup() %>%
       mutate(ID="AB_BC")
     
     SK_I_HR <- HRcalc %>%
+      filter(ACTUAL_POOL_PRICE<500) %>%
       group_by(Year,Month)%>%
       summarise(across(T_HR_IMPORT_SK, median, na.rm = TRUE)) %>%
+      rename(Med_HR=T_HR_IMPORT_SK) %>%
       ungroup() %>%
       group_by(Month)%>%
-      summarise(across(T_HR_IMPORT_SK, mean, na.rm = TRUE)) %>%
-      rename(Mean_HR=T_HR_IMPORT_SK) %>%
+      summarise(across(Med_HR, mean, na.rm = TRUE)) %>%
       mutate_if(is.numeric, round, 0) %>%
       ungroup() %>%
       mutate(ID="SK_AB")
     
     SK_E_HR <- HRcalc %>%
+      filter(ACTUAL_POOL_PRICE<500) %>%
       group_by(Year,Month)%>%
       summarise(across(T_HR_EXPORT_SK, median, na.rm = TRUE)) %>%
+      rename(Med_HR=T_HR_EXPORT_SK) %>%
       ungroup() %>%
       group_by(Month)%>%
-      summarise(across(T_HR_EXPORT_SK, mean, na.rm = TRUE)) %>%
-      rename(Mean_HR=T_HR_EXPORT_SK) %>%
+      summarise(across(Med_HR, mean, na.rm = TRUE)) %>%
       mutate_if(is.numeric, round, 0) %>%
       ungroup() %>%
       mutate(ID="AB_SK")
@@ -328,41 +335,99 @@
      ptHR$addColumnDataGroups("Month", addTotal=FALSE)
      ptHR$addRowDataGroups("ID", addTotal=FALSE) 
      ptHR$defineCalculation(calculationName="HR", caption="HR", 
-                           summariseExpression="max(Mean_HR)", 
+                           summariseExpression="max(Med_HR)", 
                            format="%.0f")    
      ptHR$evaluatePivot()
      ptHR$renderPivot() # Display in viewer
    }
    
+   # Want to find mean HR in each month for all data
+   
+  BC_I_HR <- HRcalc %>%
+     filter(ACTUAL_POOL_PRICE<500) %>%
+     group_by(Year,Month)%>%
+     summarise(across(T_HR_IMPORT_BC, median, na.rm = TRUE)) %>%
+     rename(Med_HR=T_HR_IMPORT_BC) %>%
+     mutate_if(is.numeric, round, 0) %>%
+     ungroup() %>%
+     mutate(ID="BC_AB")
+   
+   BC_E_HR <- HRcalc %>%
+     filter(ACTUAL_POOL_PRICE<500) %>%
+     group_by(Year,Month)%>%
+     summarise(across(T_HR_EXPORT_BC, median, na.rm = TRUE)) %>%
+     rename(Med_HR=T_HR_EXPORT_BC) %>%
+     mutate_if(is.numeric, round, 0) %>%
+     ungroup() %>%
+     mutate(ID="AB_BC")
+   
+   SK_I_HR <- HRcalc %>%
+     filter(ACTUAL_POOL_PRICE<500) %>%
+     group_by(Year,Month)%>%
+     summarise(across(T_HR_IMPORT_SK, median, na.rm = TRUE)) %>%
+     rename(Med_HR=T_HR_IMPORT_SK) %>%
+     mutate_if(is.numeric, round, 0) %>%
+     ungroup() %>%
+     mutate(ID="SK_AB")
+   
+   SK_E_HR <- HRcalc %>%
+     filter(ACTUAL_POOL_PRICE<500) %>%
+     group_by(Year,Month)%>%
+     summarise(across(T_HR_EXPORT_SK, median, na.rm = TRUE)) %>%
+     rename(Med_HR=T_HR_EXPORT_SK) %>%
+     mutate_if(is.numeric, round, 0) %>%
+     ungroup() %>%
+     mutate(ID="AB_SK")
+   
+   NewData <- rbind(BC_I_HR,BC_E_HR,SK_I_HR,SK_E_HR)
+   
+   NewData$Month <- month.name[as.numeric(NewData$Month)]
+   
+   ptHR <- PivotTable$new() 
+   { ptHR$addData(NewData)
+     ptHR$addColumnDataGroups("Month", addTotal=FALSE)
+     ptHR$addRowDataGroups("ID", addTotal=FALSE) 
+     ptHR$addRowDataGroups("Year", addTotal=FALSE) 
+     ptHR$defineCalculation(calculationName="HR", caption="HR", 
+                            summariseExpression="max(Med_HR)", 
+                            format="%.0f")    
+     ptHR$evaluatePivot()
+     ptHR$renderPivot() # Display in viewer
+   } 
+   
    # Now, each year
    
    BC_I_HR2 <- HRcalc %>%
+     filter(ACTUAL_POOL_PRICE<500) %>%
      group_by(Year)%>%
-     summarise(across(T_HR_IMPORT_BC, median, na.rm = TRUE)) %>%
+     summarise(across(T_HR_IMPORT_BC, mean, na.rm = TRUE)) %>%
      ungroup() %>%
      rename(Mean_HR=T_HR_IMPORT_BC) %>%
      mutate_if(is.numeric, round, 0) %>%
      mutate(ID="BC_AB")
    
    BC_E_HR2 <- HRcalc %>%
+     filter(ACTUAL_POOL_PRICE<500) %>%
      group_by(Year)%>%
-     summarise(across(T_HR_EXPORT_BC, median, na.rm = TRUE)) %>%
+     summarise(across(T_HR_EXPORT_BC, mean, na.rm = TRUE)) %>%
      ungroup() %>%
      rename(Mean_HR=T_HR_EXPORT_BC) %>%
      mutate_if(is.numeric, round, 0) %>%
      mutate(ID="AB_BC")
    
    SK_I_HR2 <- HRcalc %>%
+     filter(ACTUAL_POOL_PRICE<500) %>%
      group_by(Year)%>%
-     summarise(across(T_HR_IMPORT_SK, median, na.rm = TRUE)) %>%
+     summarise(across(T_HR_IMPORT_SK, mean, na.rm = TRUE)) %>%
      ungroup() %>%
      rename(Mean_HR=T_HR_IMPORT_SK) %>%
      mutate_if(is.numeric, round, 0) %>%
      mutate(ID="SK_AB")
    
    SK_E_HR2 <- HRcalc %>%
+     filter(ACTUAL_POOL_PRICE<500) %>%
      group_by(Year)%>%
-     summarise(across(T_HR_EXPORT_SK, median, na.rm = TRUE)) %>%
+     summarise(across(T_HR_EXPORT_SK, mean, na.rm = TRUE)) %>%
      ungroup() %>%
      rename(Mean_HR=T_HR_EXPORT_SK) %>%
      mutate_if(is.numeric, round, 0) %>%
@@ -412,6 +477,6 @@
     HR_month_BC_all(12)
     
     HR_year_SK_all()
-    HR_year_BC_all
+    HR_year_BC_all()
     
     

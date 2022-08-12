@@ -263,9 +263,13 @@ MN_Trade_Price <- function(year,month,case) {
   # Min for date (x-axis)
   day_MN <- as.POSIXct(paste(01,month,year, sep = "/"), format="%d/%m/%Y")
   
-  # Max for date
-  day_MX <- as.POSIXct(paste(01,month+1,year, sep = "/"), format="%d/%m/%Y")
-  day_MX <- ceiling_date(day_MX, "month") - 1
+  if (month <12) {
+    # Max for date
+    day_MX <- as.POSIXct(paste(01,month+1,year, sep = "/"), format="%d/%m/%Y")
+    day_MX <- ceiling_date(day_MX, "month") - 1 
+    
+  }else {
+    day_MX <- as.POSIXct(paste(31,month,year, sep = "/"), format="%d/%m/%Y") }
   
   # Filters for the desired case study and data in that month
   data <- ZoneHr_Avg%>%
@@ -431,6 +435,109 @@ MN_Trade_Price <- function(year,month,case) {
   
 }
 ###############################################################################  
+## FUNCTION: MN_TradeOnly 
+## AB imports and exports and pool price for specific month
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################
+
+MN_TradeOnly <- function(year,month,case) {
+
+  # Min for date (x-axis)
+  day_MN <- as.POSIXct(paste(01,month,year, sep = "/"), format="%d/%m/%Y")
+  
+  if (month <12) {
+    # Max for date
+    day_MX <- as.POSIXct(paste(01,month+1,year, sep = "/"), format="%d/%m/%Y")
+    day_MX <- ceiling_date(day_MX, "month") - 1 
+    
+  }else {
+    day_MX <- as.POSIXct(paste(31,month,year, sep = "/"), format="%d/%m/%Y") }
+  
+#Imports from BC
+Imp_BC <- LinkHr %>%
+  filter(Condition=="Average") %>%
+  filter(Zone_Out=="WECC_BritishColumbia") %>%
+  filter(Zone_In=="WECC_Alberta") %>%
+  filter(Run_ID == case) %>%
+  mutate(Year = format(.$Time_Period, format="%Y")) %>%
+  filter(Year==year)
+
+# Exports to BC
+Exp_BC <- LinkHr %>%
+  filter(Condition=="Average") %>%
+  filter(Zone_Out=="WECC_Alberta") %>%
+  filter(Zone_In=="WECC_BritishColumbia") %>%
+  filter(Run_ID == case) %>%
+  mutate(Year = format(.$Time_Period, format="%Y")) %>%
+  filter(Year==year) %>%
+  mutate(Net_Load=Net_Load*-1)
+
+# Imports from SK
+Imp_SK <- LinkHr %>%
+  filter(Condition=="Average") %>%
+  filter(Zone_Out=="MRO_Saskatchewan") %>%
+  filter(Zone_In=="WECC_Alberta") %>%
+  filter(Run_ID == case) %>%
+  mutate(Year = format(.$Time_Period, format="%Y")) %>%
+  filter(Year==year)
+
+# Exports to SK
+Exp_SK <- LinkHr %>%
+  filter(Condition=="Average") %>%
+  filter(Zone_Out=="WECC_Alberta") %>%
+  filter(Zone_In=="MRO_Saskatchewan") %>%
+  filter(Run_ID == case) %>%
+  mutate(Year = format(.$Time_Period, format="%Y")) %>%
+  filter(Year==year)  %>%
+  mutate(Net_Load=Net_Load*-1)
+
+
+# Put all data together and filter week
+data <-rbind(Exp_SK,Exp_BC,Imp_BC,Imp_SK) %>%
+  filter(Time_Period>=day_MN) %>%
+  filter(Time_Period<=day_MX) 
+
+# Set the max for the plot
+MX <- plyr::round_any(max(data$Net_Load+11), 200, f = ceiling)
+MN <- plyr::round_any(min(data$Net_Load+11)*-1, 200, f = floor)
+
+# Plot Trade
+ggplot() +
+  geom_area(data = data, aes(x = Time_Period, y = Net_Load, fill = ID), 
+            alpha=1, size=0.5) +
+  
+  theme_bw() +
+  
+  theme(text=element_text(family=Plot_Text)) +
+  
+  theme(panel.grid = element_blank(),
+        axis.text.x = element_text(vjust = 1),
+        axis.title.x = element_text(size = XTit_Sz),
+        axis.title.y = element_text(size = YTit_Sz),
+        plot.title = element_text(size = Tit_Sz),
+        plot.subtitle = element_text(hjust = 0.5), 
+        panel.background = element_rect(fill = NA),
+        panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+        legend.key.size = unit(1,"lines"), #Shrink legend
+        legend.position = "bottom",
+        legend.justification = c(0.5,0.5),
+        legend.title=element_blank(),
+        text = element_text(size = 15)) +
+  
+  scale_y_continuous(expand=c(0,0),limits = c(-1300,1300),breaks=pretty_breaks(8)) +
+  
+  scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "7 day",date_labels = "%e") +
+  
+  labs(x = "Date", y = "AB Hourly Trade (MWh)",title=SourceDB) +
+  
+  scale_fill_manual(values = c("AB_BC"= "dodgerblue4","AB_SK"="springgreen4","BC_AB"="dodgerblue","SK_AB"="springgreen")) +
+  
+  guides(fill = guide_legend(nrow = 1)) 
+}
+###############################################################################  
 ################################################################################
 ## AESO INTERTIE FUNCTIONS
 ################################################################################
@@ -450,9 +557,13 @@ Trade_Mn_AESO <- function(year,month,Imp_Exp) {
   # Min for date (x-axis)
   day_MN <- as.POSIXct(paste(01,month,year, sep = "/"), format="%d/%m/%Y")
   
-  # Max for date
-  day_MX <- as.POSIXct(paste(01,month+1,year, sep = "/"), format="%d/%m/%Y")
-  day_MX <- ceiling_date(day_MX, "month") - 1
+  if (month <12) {
+    # Max for date
+    day_MX <- as.POSIXct(paste(01,month+1,year, sep = "/"), format="%d/%m/%Y")
+    day_MX <- ceiling_date(day_MX, "month") - 1 
+    
+  }else {
+    day_MX <- as.POSIXct(paste(31,month,year, sep = "/"), format="%d/%m/%Y") }
   
   # Filters for data in that month
   PData <- Imp_Exp %>%
@@ -617,10 +728,16 @@ TradeOnly_Mn_AESO <- function(year,month,Imp_Exp) {
   }else {
     day_MX <- as.POSIXct(paste(31,month,year, sep = "/"), format="%d/%m/%Y") }
   
- 
+  Imp_Exp[is.na(Imp_Exp)] <- 0
+  
+  Imp_Exp <- Imp_Exp %>%
+    filter(date>=day_MN) %>%
+    filter(date<=day_MX) 
+  
   #Imports from BC
   Imp_BC <- Imp_Exp %>%
     select(.,c("IMPORT_BC_MT","Date_Begin_Local","date")) %>%
+    filter(IMPORT_BC_MT>-1) %>%
     rename(Net_Load=IMPORT_BC_MT) %>%
     mutate(ID ="BC_AB")
   
@@ -633,7 +750,8 @@ TradeOnly_Mn_AESO <- function(year,month,Imp_Exp) {
   
   Imp_SK <- Imp_Exp %>%
     select(.,c("IMPORT_SK","Date_Begin_Local","date")) %>%
-    rename(Net_Load=IMPORT_SK) %>%
+    filter(IMPORT_SK>-1) %>%
+        rename(Net_Load=IMPORT_SK) %>%
     mutate(ID ="SK_AB")
   
   # Exports to BC
@@ -645,13 +763,7 @@ TradeOnly_Mn_AESO <- function(year,month,Imp_Exp) {
   
   
   # Put all data together and filter week
-  data <-rbind(Exp_SK,Exp_BC,Imp_BC,Imp_SK) %>%
-    filter(date>=day_MN) %>%
-    filter(date<=day_MX) 
-  
-  # Set the max for the plot
-  MX <- plyr::round_any(max(data$Net_Load+11), 200, f = ceiling)
-  MN <- plyr::round_any(min(data$Net_Load+11)*-1, 200, f = floor)
+  data <-rbind(Exp_SK,Exp_BC,Imp_BC,Imp_SK) 
   
   # Plot Trade
   ggplot() +
@@ -680,7 +792,7 @@ TradeOnly_Mn_AESO <- function(year,month,Imp_Exp) {
     
     scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "7 day",date_labels = "%e") +
     
-    labs(x = "Date", y = "AB Hourly Trade (MWh)",title=year) +
+    labs(x = "Date", y = "AB Hourly Trade (MWh)",title="AESO Data") +
     
     scale_fill_manual(values = c("AB_BC"= "dodgerblue4","AB_SK"="springgreen4","BC_AB"="dodgerblue","SK_AB"="springgreen")) +
     
@@ -696,7 +808,7 @@ TradeOnly_Mn_AESO <- function(year,month,Imp_Exp) {
 ##    year - Year to check
 ################################################################################  
 
-Trade_Yr_AESO <- function(year) {
+Trade_Yr_AESO <- function(year,Imp_Exp) {
   
   # Filters for data in that month
   PData <- Imp_Exp %>%
@@ -1718,4 +1830,76 @@ HR_year_SK_all <- function() {
   
   
 }
+
+###############################################################################  
+################################################################################
+## AESO SIM COMPARE INTERTIE FUNCTIONS
+################################################################################
+############################################################################### 
+mn_Trade_Comp <- function(year,month,case,HRcalc) {
+  
+  SimPlot <- MN_TradeOnly(year,month,case) +
+    theme(axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  AESOPlot <- TradeOnly_Mn_AESO(year,month,HRcalc) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+    
+  # Get Trade legend
+  legend <- get_legend(SimPlot)
+  SimPlot <- SimPlot + theme(legend.position ="none")
+  
+  gA <- ggplotGrob(SimPlot)
+  gB<- ggplotGrob(AESOPlot)
+  
+  # # Arrange all the plots together
+  # maxHeight = grid::unit.pmax(gA$heights[2:5], gB$heights[2:5])
+  # 
+  # gA$heights[2:5] <- as.list(maxHeight)
+  # gB$heights[2:5] <- as.list(maxHeight)
+  
+  # Plot Labels
+
+  yleft <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 5,
+             angle = 90,
+             label = "AB Hourly Trade (MWh)") + 
+    theme_void()
+  
+  # Cheat way to put an x title in
+  xtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 5,
+             label = "Month") + 
+    theme_void()
+  
+  # Label the source and year
+  xsubtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 4,
+             label = paste("Time Period:",month.name[month],",",year)) + 
+    theme_void()
+  
+  windows(12,6)
+  
+  grid.arrange(gA, gB, 
+               plot_grid(xtitle),
+               plot_grid(legend),
+               plot_grid(xsubtitle),
+               plot_grid(yleft),
+               ncol=3,nrow=4, 
+               layout_matrix = rbind(c(6,1,2), c(3,3,3),c(4,4,4),c(5,5,5)),
+               heights=c(1, 0.1,0.1,0.1),
+               widths=c(0.1, 1,1))
+  
+
+}
+
+
+
+
+
 

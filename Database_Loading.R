@@ -60,7 +60,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Aug_8_2022_a"
+  SourceDB<-"TestRun_Aug_4_2022_d"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -255,6 +255,23 @@
       Export$Output_MWH <- Export$Output_MWH * -1   }
   }
 }  
+################################################################################
+## LOAD AESO TRADE INFO FROM R FILE INTO WORKSPACE
+
+HRcalc <- readRDS(here("Data Files","HRcalc.RData")) 
+
+{ HRcalc$date <- as.POSIXct(HRcalc$Date_Begin_Local,tz="",format="%Y-%m-%d %H:%M")
+  
+  HRcalc<- HRcalc %>%
+    select(.,-c("DAY_AHEAD_POOL_PRICE")) }
+
+#Replace all NA values with zero
+HRcalc[HRcalc==0] <- NA
+
+#Reformat Day as day of year
+HRcalc$Day <- format(HRcalc$date,"%j")
+HRcalc$Week <- format(HRcalc$date,"%W") 
+HRcalc$Month2 <- format(HRcalc$date,"%b")
 
 ################################################################################
 ## BRING IN OTHER DATA FROM AESO FILES & FORMAT
@@ -488,12 +505,15 @@
   Imp_Exp2(2021,BC)
   
   # Price and Trade monthly
-  MN_Trade_Price(2022,02,BC)
-      Trade_Mn_AESO(2022,02,Imp_Exp)
+  MN_Trade_Price(2021,02,BC)
+      Trade_Mn_AESO(2022,02,HRcalc)
   
   #Imports and exports from BC and SK yearly totals
   BC_SK_IE(year,BC)
-    
+  
+  # Month Compare Trade
+  mn_Trade_Comp(2022,05,BC,HRcalc)
+
 ################################################################################  
 ## BUT THERE ARE MORE ...
   
