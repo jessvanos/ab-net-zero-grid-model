@@ -87,13 +87,14 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
         filter(ID=="LTO_Wind")  }
       
     # Combine the grouped data
-    { case <- rbind(Coal, Cogen, NGConv, SCCT, CCCT, Hydro, Solar, Wind, Storage, Other)
-      case$ID <- factor(case$ID, levels=c("LTO_Coal", "LTO_Cogen","AB_NGCONV", "AB_SCCT_noncogen", "AB_CCCT_noncogen",
+    { case <- rbind(NGConv, SCCT, CCCT, Hydro, Solar, Wind, Storage, Other,Coal, Cogen )
+      case$ID <- factor(case$ID, levels=c("AB_NGCONV", "AB_SCCT_noncogen", "AB_CCCT_noncogen",
                                            "LTO_Hydro", "LTO_Other", 
-                                          "LTO_Wind", "LTO_Solar", "LTO_Storage"))
+                                          "LTO_Wind", "LTO_Solar", "LTO_Storage", 
+                                          "LTO_Coal","LTO_Cogen"))
       
-      levels(case$ID) <- c("Coal","Cogen", "Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
-                           "Wind", "Solar", "Storage")  }
+      levels(case$ID) <- c("Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
+                           "Wind", "Solar", "Storage","Coal", "Cogen")  }
       return(case)  }
   }
 
@@ -263,8 +264,8 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
       filter(Run_ID == case)
     
     # Set levels to each category in order specified
-    data$ID <- factor(data$ID, levels=c("Import","Coal","Cogen", "Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
-                                        "Wind", "Solar", "Storage"))
+    data$ID <- factor(data$ID, levels=c("Import", "Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
+                                        "Wind", "Solar", "Storage","Coal","Cogen"))
     ## SELECT A SINGLE WEEK
 
     # Select only a single week from the zone Hourly, and Export data
@@ -486,7 +487,7 @@ Week12 <- function(year, month, day, case) {
   # # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
   # MX <- plyr::round_any(max(abs(MXtime$MX))+500, 100, f = ceiling)
 
-  MX <- 13000
+  MX <- 15000
   # Title Formating
   wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
   wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")

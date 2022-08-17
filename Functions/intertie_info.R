@@ -389,7 +389,7 @@ MN_Trade_Price <- function(year,month,case) {
   # Plot Trade
   TradePlot <- ggplot() +
     geom_area(data = data, aes(x = Time_Period, y = Net_Load, fill = ID), 
-              alpha=1, size=0.5) +
+              alpha=0.7, size=0.5) +
     
     theme_bw() +
     
@@ -507,7 +507,7 @@ MN <- plyr::round_any(min(data$Net_Load+11)*-1, 200, f = floor)
 # Plot Trade
 ggplot() +
   geom_area(data = data, aes(x = Time_Period, y = Net_Load, fill = ID), 
-            alpha=1, size=0.5) +
+            alpha=0.7, size=0.5) +
   
   theme_bw() +
   
@@ -531,12 +531,124 @@ ggplot() +
   
   scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "7 day",date_labels = "%e") +
   
-  labs(x = "Date", y = "AB Hourly Trade (MWh)",title=SourceDB) +
+  labs(x = "Date", y = "AB Hourly Trade (MWh)",title=month.abb[month]) +
   
   scale_fill_manual(values = c("AB_BC"= "dodgerblue4","AB_SK"="springgreen4","BC_AB"="dodgerblue","SK_AB"="springgreen")) +
   
   guides(fill = guide_legend(nrow = 1)) 
 }
+
+###############################################################################  
+## FUNCTION: T_month_all_Sim 
+## All trade for each month over one year
+##
+## INPUTS: 
+##    Years2See - Year to show in duration curve
+################################################################################ 
+
+T_month_all_Sim <- function(year,case) {
+  
+  
+  # Create a graph for each month of the year
+  p1 <- MN_TradeOnly(year,01,case) +
+    theme(axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  
+  p2 <- MN_TradeOnly(year,02,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p3 <- MN_TradeOnly(year,03,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p4 <- MN_TradeOnly(year,04,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p5 <- MN_TradeOnly(year,05,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p6 <- MN_TradeOnly(year,06,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p7 <- MN_TradeOnly(year,07,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p8 <- MN_TradeOnly(year,08,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p9 <- MN_TradeOnly(year,09,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p10 <- MN_TradeOnly(year,10,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p11 <- MN_TradeOnly(year,11,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p12 <- MN_TradeOnly(year,12,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  # Get a common legend
+  legend <- get_legend(p1)
+  p1 <- p1 + theme(legend.position ="none")
+  
+  # Plot Labels
+  yleft <- textGrob("Output (MWh)", rot = 90, gp = gpar(fontsize = 15))
+  bottom <- textGrob("Date", gp = gpar(fontsize = 15))
+  
+  # Cheat way to put an x title in
+  xtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 6,
+             label = "Date") + 
+    theme_void()
+  
+  # Label the source and year
+  xsubtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 5,
+             label = paste("Year:",year,",",SourceDB)) + 
+    theme_void()
+  
+  #Create a big window
+  windows(18,12)
+  
+  # Arrange all the plots
+  grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(xtitle),
+               plot_grid(legend),
+               plot_grid(xsubtitle),
+               ncol=1,nrow=6, 
+               heights=c(1, 1,1,0.1,0.2,0.1),
+               left=yleft)
+  
+  
+}
+
 ###############################################################################  
 ################################################################################
 ## AESO INTERTIE FUNCTIONS
@@ -659,7 +771,7 @@ Trade_Mn_AESO <- function(year,month,Imp_Exp) {
   # Plot Trade
   TradePlot <- ggplot() +
     geom_area(data = data, aes(x = date, y = Net_Load, fill = ID), 
-              alpha=1, size=0.5) +
+              alpha=0.7, size=0.5) +
     
     theme_bw() +
     
@@ -768,7 +880,7 @@ TradeOnly_Mn_AESO <- function(year,month,Imp_Exp) {
   # Plot Trade
   ggplot() +
     geom_area(data = data, aes(x = date, y = Net_Load, fill = ID), 
-              alpha=1, size=0.5) +
+              alpha=0.7, size=0.5) +
     
     theme_bw() +
     
@@ -792,7 +904,7 @@ TradeOnly_Mn_AESO <- function(year,month,Imp_Exp) {
     
     scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "7 day",date_labels = "%e") +
     
-    labs(x = "Date", y = "AB Hourly Trade (MWh)",title="AESO Data") +
+    labs(x = "Date", y = "AB Hourly Trade (MWh)",title=paste(month.abb[month])) +
     
     scale_fill_manual(values = c("AB_BC"= "dodgerblue4","AB_SK"="springgreen4","BC_AB"="dodgerblue","SK_AB"="springgreen")) +
     
@@ -943,72 +1055,72 @@ Duration_AESO <-function(Years2See) {
 
 ###############################################################################  
 ## FUNCTION: T_month_all 
-## All trade for each month over several years
+## All trade for each month over one year
 ##
 ## INPUTS: 
 ##    Years2See - Year to show in duration curve
 ################################################################################ 
 
-T_month_all <- function(month) {
+T_month_all <- function(year,Imp_Exp) {
   
   
   # Create a graph for each month of the year
-  p1 <- TradeOnly_Mn_AESO(2010,month,Imp_Exp) +
+  p1 <- TradeOnly_Mn_AESO(year,01,Imp_Exp) +
     theme(axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
   
-  p2 <- TradeOnly_Mn_AESO(2011,month,Imp_Exp) +
+  p2 <- TradeOnly_Mn_AESO(year,02,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
-  p3 <- TradeOnly_Mn_AESO(2012,month,Imp_Exp) +
+  p3 <- TradeOnly_Mn_AESO(year,03,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
-  p4 <- TradeOnly_Mn_AESO(2013,month,Imp_Exp) +
+  p4 <- TradeOnly_Mn_AESO(year,04,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
-  p5 <- TradeOnly_Mn_AESO(2014,month,Imp_Exp) +
+  p5 <- TradeOnly_Mn_AESO(year,05,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
-  p6 <- TradeOnly_Mn_AESO(2015,month,Imp_Exp) +
+  p6 <- TradeOnly_Mn_AESO(year,06,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
-  p7 <- TradeOnly_Mn_AESO(2016,month,Imp_Exp) +
+  p7 <- TradeOnly_Mn_AESO(year,07,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
-  p8 <- TradeOnly_Mn_AESO(2017,month,Imp_Exp) +
+  p8 <- TradeOnly_Mn_AESO(year,08,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
-  p9 <- TradeOnly_Mn_AESO(2018,month,Imp_Exp) +
+  p9 <- TradeOnly_Mn_AESO(year,09,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
-  p10 <- TradeOnly_Mn_AESO(2019,month,Imp_Exp) +
+  p10 <- TradeOnly_Mn_AESO(year,10,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
-  p11 <- TradeOnly_Mn_AESO(2020,month,Imp_Exp) +
+  p11 <- TradeOnly_Mn_AESO(year,11,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
   
-  p12 <- TradeOnly_Mn_AESO(2021,month,Imp_Exp) +
+  p12 <- TradeOnly_Mn_AESO(year,12,Imp_Exp) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
           axis.title.x=element_blank())
@@ -1031,8 +1143,8 @@ T_month_all <- function(month) {
   # Label the source and year
   xsubtitle <- ggplot() +
     annotate("text", x = 10,  y = 10,
-             size = 4,
-             label = paste("Month:",month.name[month],", AESO Data")) + 
+             size = 5,
+             label = paste("Year:",year,", AESO Data")) + 
     theme_void()
   
   #Create a big window
@@ -1840,12 +1952,14 @@ mn_Trade_Comp <- function(year,month,case,HRcalc) {
   
   SimPlot <- MN_TradeOnly(year,month,case) +
     theme(axis.title.y=element_blank(),
-          axis.title.x=element_blank())
+          axis.title.x=element_blank(),
+          plot.title = element_blank())
   
   AESOPlot <- TradeOnly_Mn_AESO(year,month,HRcalc) +
     theme(legend.position ="none",
           axis.title.y=element_blank(),
-          axis.title.x=element_blank())
+          axis.title.x=element_blank(),
+          plot.title = element_blank())
     
   # Get Trade legend
   legend <- get_legend(SimPlot)
@@ -1883,6 +1997,20 @@ mn_Trade_Comp <- function(year,month,case,HRcalc) {
              label = paste("Time Period:",month.name[month],",",year)) + 
     theme_void()
   
+  # Title 1
+  title1 <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 5,
+             label = SourceDB) + 
+    theme_void()
+  
+  # Title 2
+  title2 <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 5,
+             label = "AESO Data") + 
+    theme_void()
+  
   windows(12,6)
   
   grid.arrange(gA, gB, 
@@ -1890,14 +2018,15 @@ mn_Trade_Comp <- function(year,month,case,HRcalc) {
                plot_grid(legend),
                plot_grid(xsubtitle),
                plot_grid(yleft),
-               ncol=3,nrow=4, 
-               layout_matrix = rbind(c(6,1,2), c(3,3,3),c(4,4,4),c(5,5,5)),
-               heights=c(1, 0.1,0.1,0.1),
+               plot_grid(title1),
+               plot_grid(title2),
+               ncol=3,nrow=5, 
+               layout_matrix = rbind(c(NA,7,8),c(6,1,2), c(3,3,3),c(4,4,4),c(5,5,5)),
+               heights=c(0.1,1, 0.1,0.1,0.1),
                widths=c(0.1, 1,1))
   
 
 }
-
 
 
 

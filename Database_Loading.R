@@ -5,7 +5,7 @@
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: July 25, 2022
+# CREATED: May 2022; LAST EDIT: August 12, 2022
 
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
 #        Before running, create folder called "Data Files" withen project directory and populate it with AESO data. 
@@ -60,7 +60,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Aug_4_2022_d"
+  SourceDB<-"TestRun_Aug_17_2022_b"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -107,7 +107,7 @@
   
   # Other Tables
   ResStackYr <- dbReadTable(con,'ResourceStackYear1')
-  ResStackHr  <- dbReadTable(con,'ResourceStackHour1')
+#  ResStackHr  <- dbReadTable(con,'ResourceStackHour1')
   LinkYr <- dbReadTable(con,'LinkYear1')
 # LinkMn <- dbReadTable(con,'LinkMonth1')
   LinkHr <- dbReadTable(con,'LinkHour1')
@@ -130,8 +130,8 @@
 ## Adds a column which is formated in a way that R can understand for dates and times
 
 {  # Fuel Tables
-#  FuelYr$Time_Period <- as.Date(as.character(FuelYr$Time_Period), 
-#                       format = "%Y")
+  FuelYr$Time_Period <- as.Date(as.character(FuelYr$Time_Period), 
+                       format = "%Y")
 #  FuelMn$Time_Period <- ym(FuelMn$Time_Period)
   
   # Resource Tables
@@ -160,8 +160,8 @@
   # Other Tables
   ResStackYr$Time_Period  <- as.Date(as.character(ResStackYr$Time_Period), 
                         format = "%Y")
-  ResStackHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResStackHr$Time_Period))), 
-                        tz = "MST")-(60*60)
+ # ResStackHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResStackHr$Time_Period))), 
+ #                       tz = "MST")-(60*60)
   
    LinkYr$Time_Period  <- as.Date(as.character(LinkYr$Time_Period), 
                         format = "%Y")
@@ -386,7 +386,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       OUT_IMPORT <- "hotpink3"
       OUT_COAL <- "snow4"
       OUT_NGConv <- "mediumorchid4"
-      OUT_COGEN <- "gray27"
+      OUT_COGEN <- "gray32"
       OUT_SCGT <- "midnightblue"
       OUT_NGCC <- "dodgerblue4"
       OUT_OTHER <- "darkgreen"
@@ -457,8 +457,8 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2021,2022,2023,2024,2025) # Years to show in figures
-  Years2Pivot <- c(2021,2022,2023,2024,2025)  # Years to display in tables
+  Years2Disp <- c(2021,2022,2025,2030,2034) # Years to show in figures
+  Years2Pivot <- c(2022,2025,2030,2034)  # Years to display in tables
 
   #For fun, make the code beep when its all done
   beep(3)
@@ -469,10 +469,10 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2022,01,08,BC)
+  Week1(2025,01,08,BC)
   
   # Grid of weekly output
-  year_weeks(2021,BC)
+  year_weeks(2034,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -505,14 +505,18 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   Imp_Exp2(2021,BC)
   
   # Price and Trade monthly
-  MN_Trade_Price(2021,02,BC)
+  MN_Trade_Price(2022,10,BC)
       Trade_Mn_AESO(2022,02,HRcalc)
   
   #Imports and exports from BC and SK yearly totals
   BC_SK_IE(year,BC)
   
   # Month Compare Trade
-  mn_Trade_Comp(2022,05,BC,HRcalc)
+  mn_Trade_Comp(2021,04,BC,HRcalc)
+  
+  #Full Year output
+  T_month_all_Sim(2021,BC)
+  T_month_all(2019,HRcalc)
 
 ################################################################################  
 ## BUT THERE ARE MORE ...

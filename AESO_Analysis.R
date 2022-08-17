@@ -446,6 +446,62 @@
      ptHR$renderPivot() # Display in viewer
    }
    
+###############################################################################
+   
+   # Intertie cap 
+   
+   BC_I_HR <- HRcalc %>%
+     filter(IMPORT_BC_MT>10) %>%
+     mutate(Perc=IMPORT_BC_MT/1100) %>%
+     group_by(Month)%>%
+     summarise(across(Perc, max, na.rm = TRUE)) %>%
+     mutate_if(is.numeric, round, 5) %>%
+     ungroup() %>%
+     mutate(ID="BC_AB")
+   
+   BC_E_HR <- HRcalc %>%
+     filter(EXPORT_BC_MT>10) %>%
+     mutate(Perc=EXPORT_BC_MT/1100) %>%
+     group_by(Month)%>%
+     summarise(across(Perc, max, na.rm = TRUE)) %>%
+     mutate_if(is.numeric, round, 5) %>%
+     ungroup() %>%
+     mutate(ID="AB_BC")
+   
+   SK_I_HR <- HRcalc %>%
+     filter(IMPORT_SK>10) %>%
+     mutate(Perc=IMPORT_SK/153) %>%
+     group_by(Month)%>%
+     summarise(across(Perc, max, na.rm = TRUE)) %>%
+     mutate_if(is.numeric, round, 5) %>%
+     ungroup() %>%
+     mutate(ID="SK_AB")
+   
+   SK_E_HR <- HRcalc %>%
+     filter(EXPORT_SK>10) %>%
+     mutate(Perc=EXPORT_SK/153) %>%
+     group_by(Month)%>%
+     summarise(across(Perc, max, na.rm = TRUE)) %>%
+     mutate_if(is.numeric, round, 5) %>%
+     ungroup() %>%
+     mutate(ID="AB_SK")
+   
+   NewData <- rbind(BC_I_HR,BC_E_HR,SK_I_HR,SK_E_HR)
+   
+   NewData$Month <- month.name[as.numeric(NewData$Month)]
+   
+   ptCap <- PivotTable$new() 
+   { ptCap$addData(NewData)
+     ptCap$addColumnDataGroups("Month", addTotal=FALSE)
+     ptCap$addRowDataGroups("ID", addTotal=FALSE) 
+     ptCap$defineCalculation(calculationName="HR", caption="HR", 
+                            summariseExpression="max(Perc)", 
+                            format="%.5f")    
+     ptCap$evaluatePivot()
+     ptCap$renderPivot() # Display in viewer
+   }
+   
+
 ################################################################################
 ## FUNCTION CALL AESO
     #AESO Duration Curve
