@@ -4,7 +4,7 @@
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: July 4, 2022; LAST EDIT: July 20, 2022
+# CREATED: July 4, 2022; LAST EDIT: August 19, 2022
 
 ################################################################################
 ################################################################################  
@@ -39,13 +39,20 @@ Retirecol <- function(case) {
                               format = "%m/%d/%Y")
   Retdata$End_Date <- format(Retdata$End_Date,format="%Y")
   
+  # Replace the capacity with the peak / actual capacity and not just what is available
+  for (i in 1:length(Retdata$Capacity)) {
+    if (Retdata[i,"Capacity"]<Retdata[i,"Peak_Capacity"]) {
+      Retdata[i,"Capacity"] <- Retdata[i,"Peak_Capacity"]
+    }
+  }
+  
   # Now filter data for resources that end before the study is over
   #Further filter peak capacity >0 (it is not yet retired), and end date = time period (to ensure you dont get doubles)
   Retdata <- Retdata%>%
     filter(.,End_Date <= MaxYr) %>%
     filter(.,Capacity>0) %>% 
-    filter(End_Date==Time_Period)
-  
+    filter(End_Date==Time_Period) 
+
   # Add a column to describe the new resources 
   Retdata$RetUnits <- 1  
   
@@ -126,12 +133,24 @@ RetireMW <- function(case) {
                                format = "%m/%d/%Y")
   Retdata$End_Date <- format(Retdata$End_Date,format="%Y")
   
+  # Replace the capacity with the peak / actual capacity and not just what is available
+  for (i in 1:length(Retdata$Capacity)) {
+    if (Retdata[i,"Capacity"]<Retdata[i,"Peak_Capacity"]) {
+      Retdata[i,"Capacity"] <- Retdata[i,"Peak_Capacity"]
+    }
+  }
+  
   # Now filter data for resources that end before the study is over
   #Further filter peak capacity >0 (it is not yet retired), and end date = time period (to ensure you dont get doubles)
   Retdata <- Retdata%>%
     filter(.,End_Date <= MaxYr) %>%
     filter(.,Capacity>0) %>% 
     filter(End_Date==Time_Period)
+  
+  # Pull out the names of retired units
+  RetiredUnits <- Retdata[,c("Name","Capacity","Primary_Fuel","End_Date")]
+  RetiredUnits <- RetiredUnits[order(RetiredUnits$End_Date),]
+  print(RetiredUnits)
   
   # Add a column to describe the new resources 
   Retdata$RetUnits <- 1  
@@ -262,8 +281,9 @@ Builtcol <- function(case) {
 ##    Build - Build table describing all new resources
 ################################################################################
 
-# Stacked Area showing totals for Fuel Types
+# Stacked Bars showing totals for Fuel Types
 Build_A_MW <- function(case) {
+  
   data <- Build %>%
     filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
              Time_Period != "Study")%>%
@@ -323,16 +343,16 @@ Build_A_MW <- function(case) {
 BuildMW <- function(case) 
 {
   # Bring in Resource Year Table and filter columns
-  Builddata <- ResSt%>%
+  Builddata <- ResYr%>%
     sim_filt3(.) %>% #Filter to rename fuels
-    subset(., select=c(Name,Condition,Capacity,Peak_Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,Capacity_Factor)) %>%
+    subset(., select=c(Name,Condition,Capacity,Peak_Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,Time_Period,Capacity_Factor)) %>%
     filter(Run_ID == case) %>%
     filter(Condition == "Average") 
   
   
   # Set levels to each category in order specified
-  Builddata$Primary_Fuel <- factor(Builddata$Primary_Fuel, levels=c("Coal", "Cogen", "Coal-to-Gas", "SCCT", "NGCC", "Hydro","Solar",
-                                                                    "Wind", "Storage", "Other") )
+  Builddata$Primary_Fuel <- factor(Builddata$Primary_Fuel, levels=c("Coal-to-Gas", "SCCT", "NGCC", "Hydro",
+                                                                    "Wind","Solar", "Storage", "Other","Coal", "Cogen") )
   
   #Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(ResYr$YEAR)
@@ -345,7 +365,15 @@ BuildMW <- function(case)
   Builddata <- Builddata%>%
     filter(.,Beg_Date <= MaxYr) %>%
     filter(.,Beg_Date >= MinYr) %>%
-    filter(.,Capacity>0)
+    filter(.,Capacity>0) %>%
+    filter(Beg_Date==Time_Period)
+  
+  # Replace the capacity with the peak / actual capacity and not just what is available
+  for (i in 1:length(Builddata$Capacity)) {
+    if (Builddata[i,"Capacity"]<Builddata[i,"Peak_Capacity"]) {
+      Builddata[i,"Capacity"] <- Builddata[i,"Peak_Capacity"]
+    }
+  }
   
   #Now group everything together
   Builddata <- Builddata%>%

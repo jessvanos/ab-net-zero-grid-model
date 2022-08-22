@@ -60,7 +60,7 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Aug_17_2022_b"
+  SourceDB<-"PartRun_Aug_17_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -457,8 +457,8 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2021,2022,2025,2030,2034) # Years to show in figures
-  Years2Pivot <- c(2022,2025,2030,2034)  # Years to display in tables
+  Years2Disp <- c(2022,2024,2026,2028,2030) # Years to show in figures
+  Years2Pivot <- c(2022,2024,2026,2028,2030)  # Years to display in tables
 
   #For fun, make the code beep when its all done
   beep(3)
@@ -469,10 +469,10 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2025,01,08,BC)
+  Week1(2030,01,08,BC)
   
   # Grid of weekly output
-  year_weeks(2034,BC)
+  year_weeks(2030,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -502,22 +502,25 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   Imp_Exp1(BC)
   
   # Import and export for full year from AB
-  Imp_Exp2(2021,BC)
+  Imp_Exp2(2022,BC)
   
   # Price and Trade monthly
   MN_Trade_Price(2022,10,BC)
       Trade_Mn_AESO(2022,02,HRcalc)
   
   #Imports and exports from BC and SK yearly totals
-  BC_SK_IE(year,BC)
+  BC_SK_IE(2022,BC)
   
   # Month Compare Trade
   mn_Trade_Comp(2021,04,BC,HRcalc)
   
   #Full Year output
-  T_month_all_Sim(2021,BC)
+  T_month_all_Sim(2022,BC)
   T_month_all(2019,HRcalc)
 
+  # Price Table
+  Report_P(Years2Pivot,BC)
+  
 ################################################################################  
 ## BUT THERE ARE MORE ...
   
