@@ -281,18 +281,19 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
     ## SELECT A SINGLE WEEK
 
     # Select only a single week from the zone Hourly, and Export data
-    WK <- WkTime(data,year,month,day)
+    WK <- WkTime(data,year,month,day)%>%
+      filter(Run_ID == case)
     ZPrice <- WkTime(ZoneHr_Avg,year,month,day) %>%
       filter(Run_ID == case)
     Expo <- WkTime(Export,year,month,day) %>%
       filter(Run_ID == case)
     
     # Get y-max, demand to meet + exports
-    WK$MX <- ZPrice$Demand + Expo$Output_MWH
+    Max <- ZPrice$Demand + Expo$Output_MWH
     
     # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-    MX <- plyr::round_any(max(abs(WK$MX))+500, 100, f = ceiling)
-    MN <- plyr::round_any(min(WK$Output_MWH), 100, f = floor)
+    MX <- plyr::round_any(max(abs(Max))+500, 100, f = ceiling)
+    MN <- plyr::round_any(min(Max), 100, f = floor)
     
     ## PLOT WITH AREA PLOT
     
@@ -324,13 +325,15 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
+            plot.title = element_text(),
             text = element_text(size= 15)
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
                          breaks = seq(0, MX, by = MX/4)) +
       guides(fill = guide_legend(nrow = 1)) +
       
-      labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",caption=SourceDB) +
+      labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",
+           title=year,caption=SourceDB) +
       
       #Add colour
       scale_fill_manual(values = colours1) +
@@ -483,9 +486,6 @@ Week12 <- function(year, month, day, case) {
     filter(Run_ID == case)
   Expo <- WkTime(Export,year,month,day) %>%
     filter(Run_ID == case)
-  
-  # Get y-max, demand to meet + exports
-  WK$MX <- ZPrice$Demand + Expo$Output_MWH
   
   # # Set the max and min for the plot
   # MX1 <- WkTime(WK,year,01,day)

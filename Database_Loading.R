@@ -5,14 +5,16 @@
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: August 12, 2022
+# CREATED: May 2022; LAST EDIT: August 23, 2022
 
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
 #        Before running, create folder called "Data Files" withen project directory and populate it with AESO data. 
 #        Once this file is run through completion, can call any functions with environment that is loaded.
+################################################################################
 
 ################################################################################
 ## LOAD REQUIRED PACKAGES AND SOURCE FUNCTIONS
+################################################################################
  {# Package Info
     # tidyverse: Data science package
     # ggplot: Used for graphical packages and aestheticc
@@ -58,9 +60,10 @@
 
 ################################################################################
 ## CONNECT TO MICROSOFT SQL SERVER
+################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"PartRun_Aug_17_2022"
+  SourceDB<-"TestRun_Aug_24_2022_a"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -74,6 +77,7 @@
 ################################################################################
 ## DEFINE CASES TO STUDY (IE: RUN ID)
 ## Value can be found in the "Run_Id" column of any AURORA table
+################################################################################
 
 { BC <- "Base Case" 
   BAU <- "BAU" #Buisness as usualcase
@@ -86,6 +90,7 @@
 ## READ TABLES FROM DATABASE INTO ENVIRONMENT
 ## Can edit to select required tables only, DOUBLE CHECK all tables are in databse
 ## It will just skip tables that are not there and all the ones after
+################################################################################
 
 { # Fuel tables
    FuelYr <- dbReadTable(con,'FuelYear1')
@@ -128,6 +133,7 @@
 ################################################################################
 ## REFLECT PROPER TIME PERIODS
 ## Adds a column which is formated in a way that R can understand for dates and times
+################################################################################
 
 {  # Fuel Tables
   FuelYr$Time_Period <- as.Date(as.character(FuelYr$Time_Period), 
@@ -165,7 +171,7 @@
   
    LinkYr$Time_Period  <- as.Date(as.character(LinkYr$Time_Period), 
                         format = "%Y")
-   LinkMn$Time_Period <- ym(LinkMn$Time_Period)
+ #  LinkMn$Time_Period <- ym(LinkMn$Time_Period)
    LinkHr$Time_Period <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",LinkHr$Time_Period))), 
                              tz = "MST")-(60*60) 
    
@@ -180,6 +186,7 @@
 
 ################################################################################
 ## FILTER TABLES TO GET RID OF COLUMNS I DONT CARE ABOUT & PULL OUT IMPORT/EXPORT
+################################################################################
 { 
   { # HOURLY DATA
     # Resourse Group Hourly Tables, choose specific columns
@@ -257,13 +264,14 @@
 }  
 ################################################################################
 ## LOAD AESO TRADE INFO FROM R FILE INTO WORKSPACE
+################################################################################
 
 HRcalc <- readRDS(here("Data Files","HRcalc.RData")) 
 
 { HRcalc$date <- as.POSIXct(HRcalc$Date_Begin_Local,tz="",format="%Y-%m-%d %H:%M")
   
   HRcalc<- HRcalc %>%
-    select(.,-c("DAY_AHEAD_POOL_PRICE")) }
+    select(.,-c("DAY_AHEAD_POOL_PRICE")) 
 
 #Replace all NA values with zero
 HRcalc[HRcalc==0] <- NA
@@ -272,9 +280,10 @@ HRcalc[HRcalc==0] <- NA
 HRcalc$Day <- format(HRcalc$date,"%j")
 HRcalc$Week <- format(HRcalc$date,"%W") 
 HRcalc$Month2 <- format(HRcalc$date,"%b")
-
+}
 ################################################################################
 ## BRING IN OTHER DATA FROM AESO FILES & FORMAT
+################################################################################
 
 { # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
   merit <- readRDS(here("Data Files","Leach_MeritData.RData"))
@@ -297,6 +306,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 
 ################################################################################
 ## FURTHER FORMAT AND MANIPULATE NRG DATA
+################################################################################
 
 {   # Create a demand table. Summarize takes median of Demand, AIL, and Price for each time period 
     demand <- nrgstream_gen %>%
@@ -352,6 +362,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 
 ################################################################################
 ## PLOT SETTINGS
+################################################################################
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
@@ -457,7 +468,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2022,2024,2026,2028,2030) # Years to show in figures
+  Years2Disp <- c(2021,2022,2023,2024,2026,2028,2030) # Years to show in figures
   Years2Pivot <- c(2022,2024,2026,2028,2030)  # Years to display in tables
 
   #For fun, make the code beep when its all done
@@ -465,14 +476,15 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
+  ################################################################################
   windows(12,8)
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2030,01,08,BC)
+  Week1(2024,10,08,BC)
   
   # Grid of weekly output
-  year_weeks(2030,BC)
+  year_weeks(2024,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -488,9 +500,11 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
   # Capacity built by Aurora over study period
   Build_A_MW(BC)
+  Build_A_Totals(BC)
   
   # All new capacity
   BuildMW(BC)
+  Build_Totals(BC)
   
   # Bar chart showing each resource groups yearly output
   Output_Comp(BC)
@@ -515,14 +529,15 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   mn_Trade_Comp(2021,04,BC,HRcalc)
   
   #Full Year output
-  T_month_all_Sim(2022,BC)
-  T_month_all(2019,HRcalc)
+  T_month_all_Sim(2021,BC)
+  T_month_all(2021,HRcalc)
 
   # Price Table
   Report_P(Years2Pivot,BC)
   
 ################################################################################  
 ## BUT THERE ARE MORE ...
+################################################################################
   
 ## SIM FUNCTIONS (sim_eval_1)
 {  #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
@@ -660,6 +675,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF
+################################################################################
       
     dev.off(dev.list()["RStudioGD"]) #Clears all plots
       
@@ -670,7 +686,6 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     
     windows(16,12)
 
-######
 
     
  

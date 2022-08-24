@@ -296,7 +296,8 @@ Build_A_MW <- function(case) {
   
   Tot <- data %>%
     group_by(Time_Period) %>%
-    summarise(totc = sum(Capacity))
+    summarise(totc = sum(Capacity)) %>%
+    ungroup()
   
   dyMX <- aggregate(Tot["totc"], by=Tot["Time_Period"], sum)
   mxc <- plyr::round_any(max(abs(Tot$totc)), 1000, f = ceiling)
@@ -328,6 +329,7 @@ Build_A_MW <- function(case) {
     #    scale_x_discrete(expand=c(0,0)) +
     scale_fill_manual(values=c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
                                "Wind"=cOL_WIND,"Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE))
+  
 }
 
 ################################################################################  
@@ -343,7 +345,7 @@ Build_A_MW <- function(case) {
 BuildMW <- function(case) 
 {
   # Bring in Resource Year Table and filter columns
-  Builddata <- ResYr%>%
+  data <- ResYr%>%
     sim_filt3(.) %>% #Filter to rename fuels
     subset(., select=c(Name,Condition,Capacity,Peak_Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,Time_Period,Capacity_Factor)) %>%
     filter(Run_ID == case) %>%
@@ -351,34 +353,66 @@ BuildMW <- function(case)
   
   
   # Set levels to each category in order specified
-  Builddata$Primary_Fuel <- factor(Builddata$Primary_Fuel, levels=c("Coal-to-Gas", "SCCT", "NGCC", "Hydro",
+  data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Coal-to-Gas", "SCCT", "NGCC", "Hydro",
                                                                     "Wind","Solar", "Storage", "Other","Coal", "Cogen") )
+ 
+   # Replace the capacity with the peak / actual capacity and not just what is available
+  for (i in 1:length(data$Capacity)) {
+    if (data[i,"Capacity"] < data[i,"Peak_Capacity"]) {
+      data[i,"Capacity"] <- data[i,"Peak_Capacity"]
+    }
+  }
   
+  ## Find any plants that had capacity increases
+          # Start by filtering out the plants with changing capacity
+          Capinc <- data %>%
+            filter(.,Capacity>0) %>% # Remove 0 capacity instances
+            group_by(Name) %>% 
+            summarise(Capacity,Time_Period,Primary_Fuel) %>%
+            distinct(.,Name,Capacity, .keep_all= TRUE) %>% #Remove instances or the same capacity for the same name
+            filter(!Name %like% "%New Resource%") %>%# Remove new resources (accounted for already)
+            filter(Name %in% dput(Capinc$Name[duplicated(Capinc$Name)])) # Filter for names which are duplicated, keep those
+          
+          # Now summarze the capcity difference
+          Capinc2 <- Capinc %>%
+            group_by(Name) %>% 
+            summarise(diff(Capacity),Primary_Fuel,max(Time_Period)) %>%
+            distinct(.,Name, .keep_all= TRUE) 
+          
+          # Rename the columns again
+          names(Capinc2) <- c("Name",'Capacity','Primary_Fuel','Beg_Date')
+          
+          # Sort by fuel type
+          Capinc2 <- Capinc2 %>%
+            filter(Capacity>0) %>% #Fail safe
+
   #Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(ResYr$YEAR)
   MinYr <- min(ResYr$YEAR)
   
-  Builddata$Beg_Date  <- as.Date(Builddata$Beg_Date, 
+  data$Beg_Date  <- as.Date(data$Beg_Date, 
                                  format = "%m/%d/%Y")
-  Builddata$Beg_Date <- format(Builddata$Beg_Date,format="%Y")
+  data$Beg_Date <- format(data$Beg_Date,format="%Y")
   
-  Builddata <- Builddata%>%
+  Builddata <- data %>%
     filter(.,Beg_Date <= MaxYr) %>%
     filter(.,Beg_Date >= MinYr) %>%
     filter(.,Capacity>0) %>%
-    filter(Beg_Date==Time_Period)
+    filter(Beg_Date==Time_Period) %>%
+    select(., c("Name","Capacity","Primary_Fuel","Beg_Date"))
   
-  # Replace the capacity with the peak / actual capacity and not just what is available
-  for (i in 1:length(Builddata$Capacity)) {
-    if (Builddata[i,"Capacity"]<Builddata[i,"Peak_Capacity"]) {
-      Builddata[i,"Capacity"] <- Builddata[i,"Peak_Capacity"]
-    }
-  }
+  Builddata <-rbind(Builddata,Capinc2)
+    
+  # Pull out the names of built units
+  BuiltUnits <- Builddata[order(BuiltUnits$Beg_Date),]
+  print(BuiltUnits)
   
   #Now group everything together
   Builddata <- Builddata%>%
     group_by(Primary_Fuel, Beg_Date) %>%
     summarise(Capacity = sum(Capacity))
+  
+  Builddatarbind()
   
   #Max Units Built
   dyMX <- aggregate(Builddata["Capacity"], by=Builddata["Beg_Date"], sum)

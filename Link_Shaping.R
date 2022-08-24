@@ -3,34 +3,21 @@
 ###############################################################################################
 # packages load
 ###############################################################################################
-{ library(tidyverse)
-  library(lubridate)
-  library(httr)
-  library(janitor)
-  library(ggplot2)
-  library(grid)
-  library(gtable)
-  library(gridExtra)
-  library(odbc)
-  library(ggpubr)
-  library(cowplot)
-  library(scales)
-  library(dplyr)
-  library(reshape2)
-  library(zoo)
-  library(ggpattern)
-  library(showtext)
-  library(pivottabler)
-  library(openxlsx)
-  library(Hmisc)
-  library(DescTools)
-  library(writexl)
-  library(car)
+{ library(here)
+  
+  # Get functions from file
+  source(here('Functions','other_functions.R'))
+  
+  # Packages required
+  packs_to_load = c("httr","janitor","tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
+                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
+                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
+                    "openxlsx","Hmisc","writexl","car")
+  
+  # Function to check for packages, install if not present, and load
+  packs_check(packs_to_load)
+  
 }
-
-yhour <- function(time) {
-  (yday(time) - 1) * 24 + hour(time)
-}  
 
 ###############################################################################################
 ## Leach Functions
@@ -101,9 +88,8 @@ update_itc_data<-function(){
 ###############################################################################################
 # Load the ITC data
 ###############################################################################################
-setwd("C:/Users/jessv/Documents (computer)/R stuff")
 # Load the ITC data
-{  load("aeso_itc_data.RData")
+{  load(here('Data Files',"aeso_itc_data.RData"))
   
   # Re-name the dataset
   ITC <- itc_data 
@@ -117,20 +103,21 @@ setwd("C:/Users/jessv/Documents (computer)/R stuff")
   ITC$Date <- format(ITC$date,"%Y-%m-%d")
   # Get year
   ITC$Year <- (format(ITC$date,"%Y"))
-  # Get day
+  # Get day (1-365)
   ITC$Day <- format(ITC$date,"%j")
   
   # Combine date and time, remove white space
   ITC$Hr <-paste((ITC$he),":00:00")
   ITC$Hr <- gsub(" ", "", ITC$Hr, fixed = TRUE)
   
+  # Full date
   ITC$Fdate <- as.POSIXct(paste(ITC$Date,ITC$Hr), format="%Y-%m-%d %H:%M:%S",tz='MST')
   
   # Re-order the columns and rename them
   ITC2 <- ITC[, c(15, 1,12, 13, 2, 3:4,9:10)]
   names(ITC2) <- c('Fdate','date',"Year",'Day','he','SKImp_c','SKExp_c','BCMTExp_c','BCMTImp_c')
   
-  # For easy later Referece
+  # For easy later Reference
   { SKI <- 'SKImp_c'
     SKE <- 'SKExp_c'
     BCI <- 'BCMTImp_c'
@@ -174,7 +161,7 @@ Capab_yr <- function(data,yearMin,yearMax) {
   
   # Plot for chosen series
   p1 <- ggplot(ITC3) +
-    geom_point(aes(x=YrHour, y=data,color=Year),size=0.5,na.rm = TRUE)+
+    geom_point(aes(x=YrHour, y=data,color=Year),size=1,na.rm = TRUE)+
     
     theme_bw() +
     
@@ -200,7 +187,7 @@ Capab_yr <- function(data,yearMin,yearMax) {
     labs(x = "Hour of Year", y = "Link Capacity", title=subt)
   
   # Create a big pop out window to see it
-  windows(20,10)
+  windows(20,8)
   plot(p1)
   
   
@@ -225,16 +212,6 @@ YEAR <- 2018
   
   (100*ZeroHours)/AllHours
 }
-
-#Get all the data for everything except BC Imports
-AuroraData <- ITC2 %>%
-  filter(Year==YEAR) %>%
-  select(.,c('date','he','SKImp_c','SKExp_c','BCMTExp_c','BCMTImp_c')) 
-
-names(AuroraData)<-c('Date','Hour','SKImp','SKExp','BCMTExp','BCMTImp')
-
-AuroraData$Date <- format(AuroraData$Date,"%m/%d/%Y")
-write_xlsx(AuroraData,"C:\\Users\\jessv\\Documents (computer)/R stuff\\Capabilitydata2018.xlsx")
 
 ###############################################################################################
 ## Monthly capability plot, years colored
@@ -482,7 +459,7 @@ Capab_Stats <- function(yearMN,yearMX) {
 ###############################################################################################  
 Capab_yr(SKE,2018,2018)
 Capab_yr(SKI,2018,2018)
-Capab_yr(BCE,2015,2021)
+Capab_yr(BCE,2016,2022)
 Capab_yr(BCI,2018,2018)
 
 Capab_Allmn(SKE)
@@ -491,19 +468,18 @@ Capab_Allmn(BCE)
 Capab_Allmn(BCI)
 
 Capab_Stats(2018,2018)  
+
 ###############################################################################################
-## Load the actual data
-###############################################################################################
-Act <- readRDS("aeso_act.RData")
+## Print data to excel
+############################################################################################### 
+YEAR2PRINT <- 2018
 
-#Select what I need, ignore other stuff
-Act <- Act %>%
-  select(.,Date_Begin_Local,ACTUAL_POOL_PRICE,ACTUAL_AIL,EXPORT_BC,EXPORT_MT,EXPORT_BC_MT,EXPORT_SK,IMPORT_BC,IMPORT_MT,IMPORT_BC_MT,IMPORT_SK)
+AuroraData <- ITC2 %>%
+  filter(Year==YEAR2PRINT) %>%
+  select(.,c('date','he','SKImp_c','SKExp_c','BCMTExp_c','BCMTImp_c')) 
 
-# Format as date
-Act$Date_Begin_Local <- as.POSIXct(Act$Date_Begin_Local,tz="",format="%Y-%m-%d %H:%M")
-# Format as hour ending 
-Act$he2 <- as.numeric(format(Act$Date_Begin_Local,"%H"))+1
-# Date as value between 1-365
-Act$date2 <- format(Act$Date_Begin_Local,"%Y-%m-%d")
+names(AuroraData)<-c('Date','Hour','SKImp','SKExp','BCMTExp','BCMTImp')
 
+AuroraData$Date <- format(AuroraData$Date,"%m/%d/%Y")
+write_xlsx(AuroraData,here("Data Files","Capabilitydata2018.xlsx"))
+           

@@ -47,3 +47,15 @@ imsave_loc <- function(name) {
   ggsave(plot=last_plot(),path = here("Figures (Local)"), 
          filename = paste(name,".png", sep = ""),
          width = 12, height=8, units=c("cm"),dpi=300, bg = "transparent")  }
+
+################################################################################
+## FUNCTION: yhour
+## Get the hour of year associated with a date in the form "%Y-%m-%d %H:%M:%S"
+## EX: Jan 1 at 1:00 = 0001, Dec 31 at 23:00 = 8760
+##
+## INPUTS: 
+##    d_time - Date and time to transform to hour of year 
+################################################################################
+yhour <- function(d_time) {
+  (yday(d_time) - 1) * 24 + hour(d_time)
+}
