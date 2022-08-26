@@ -63,7 +63,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Aug_24_2022_a"
+  SourceDB<-"TestRun_Aug_26_2022_a"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -462,6 +462,14 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       colours5 = c(cOL_COAL, cOL_COGEN, cOL_Gas, COL_Gas1, COL_Gas2,
                    cOL_HYDRO, cOL_SOLAR, cOL_WIND, cOL_STORAGE,cOL_OTHER)
       
+      colours6=c("Coal"=cOL_COAL, "Cogen"=cOL_COGEN, 
+                 "Coal-to-Gas"=cOL_NGConv,"SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
+                 "Other"=cOL_OTHER)
+      
+      Outline6 = c("Coal"= OUT_COAL,"Cogen"=OUT_COGEN,
+                   "Coal-to-Gas"=OUT_NGConv,"SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
+                   "Other"=OUT_OTHER)
+      
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
     }
@@ -481,7 +489,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2024,10,08,BC)
+  Week1(2022,12,22,BC)
   
   # Grid of weekly output
   year_weeks(2024,BC)
@@ -534,6 +542,11 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 
   # Price Table
   Report_P(Years2Pivot,BC)
+  
+  # Annual emissions in stacked area chart
+  AnnualEmStack(case)
+  # Annual emissions in individual lines
+  AnnualEmLine(case)
   
 ################################################################################  
 ## BUT THERE ARE MORE ...
@@ -662,6 +675,11 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     AnnualDemand(ZoneMn,BC)
     
     Imp_Exp2(BC)
+    
+    # Annual emissions in stacked area chart
+    AnnualEmLine(case)
+    # Annual emissions in individual lines
+    AnnualEmLine(case)
     
 ## INTERTIE FUNCTIONS
     #Annual import and export from AB 

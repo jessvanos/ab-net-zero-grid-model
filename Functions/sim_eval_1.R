@@ -105,17 +105,10 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
 ################################################################################
 
 { sim_filt2 <- function(inputdata) {
-  # Filter the data by resource
   {Coal <- inputdata %>%
     filter(Primary_Fuel=="Coal Canada West") 
   Cogen  <- inputdata %>%
     filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
-  Gas  <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas-NonCycling")
-  Gas1 <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas")
-  Gas2 <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
   Other <- inputdata %>%
     filter(Primary_Fuel=="Other, Bio, ZZ, WC, WH")
   Hydro <- inputdata %>%
@@ -125,19 +118,32 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
   Storage <- inputdata %>%    
     filter(Primary_Fuel=="Storage")
   Wind <- inputdata %>%
-    filter(Primary_Fuel=="Wind")  }
+    filter(Primary_Fuel=="Wind")  
+  CCCT <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas")
+  
+  # More tricky to separate ones
+  NG2AB <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
+  
+  NGConv <- NG2AB[NG2AB$Name %like% "%Retrofit%",] # Separate retrofits
+  NGConv$Primary_Fuel<- "NGConv"
+  
+  SCCT <- NG2AB[NG2AB$ID %like% "%Simple%",]  # Separate Simple Cycle
+  SCCT$Primary_Fuel<- "NG-SCCT"
+  }
   
   # Combine the grouped data
-  { case <- rbind(Gas, Gas1, Gas2, Hydro, Solar, Wind, Storage, Other,Coal, Cogen)
+  { case <- rbind(NGConv, SCCT, CCCT, Hydro, Solar, Wind, Storage, Other, Coal, Cogen)
     
-    case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c( 
-                                        "WECC-Alberta NaturalGas-NonCycling","WECC-Alberta NaturalGas",
-                                        "WECC-Alberta NaturalGas-Peaking","Water", "Solar", 
-                                        "Wind", "Storage", "Other, Bio, ZZ, WC, WH",
-                                        "Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
+    case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
+      "NGConv","NG-SCCT",
+      "WECC-Alberta NaturalGas","Water", 
+      "Wind", "Solar", "Storage", "Other, Bio, ZZ, WC, WH",
+      "Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
     
-    levels(case$Primary_Fuel) <- c("NG - NonCycling", "NG", "NG - Peaking", "Hydro","Solar",
-                         "Wind", "Storage", "Other","Coal", "Cogen")  }
+    levels(case$Primary_Fuel) <- c("Coal-to-Gas", "SCCT", "NGCC", "Hydro",
+                                   "Wind","Solar", "Storage", "Other","Coal", "Cogen") }
   return(case)  }
 }
 
@@ -152,20 +158,6 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
     filter(Primary_Fuel=="Coal Canada West") 
   Cogen  <- inputdata %>%
     filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
-  CCCT  <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas-NonCycling")
-  Gas2 <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
-  
-  NGConv <- Gas2[Gas2$Name %like% "%Retrofit%",] # Seperate retrofits
-  NGConv$Primary_Fuel<- "NGConv"
-  
-  SCCT1 <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas")
-  SCCT2 <- Gas2[Gas2$ID %like% "%Simple%",]  # Seperate Simple Cycle
-  SCCT <- rbind(SCCT1,SCCT2)
-  SCCT$Primary_Fuel<- "NG-SCCT"
-  
   Other <- inputdata %>%
     filter(Primary_Fuel=="Other, Bio, ZZ, WC, WH")
   Hydro <- inputdata %>%
@@ -175,14 +167,27 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
   Storage <- inputdata %>%    
     filter(Primary_Fuel=="Storage")
   Wind <- inputdata %>%
-    filter(Primary_Fuel=="Wind")  }
+    filter(Primary_Fuel=="Wind")  
+  CCCT <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas")
+  
+  # More tricky to separate ones
+  NG2AB <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
+  
+  NGConv <- NG2AB[NG2AB$Name %like% "%Retrofit%",] # Separate retrofits
+  NGConv$Primary_Fuel<- "NGConv"
+  
+  SCCT <- NG2AB[NG2AB$ID %like% "%Simple%",]  # Separate Simple Cycle
+  SCCT$Primary_Fuel<- "NG-SCCT"
+  }
   
   # Combine the grouped data
   { case <- rbind(NGConv, SCCT, CCCT, Hydro, Solar, Wind, Storage, Other,Coal, Cogen)
     
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c( 
                                                             "NGConv","NG-SCCT",
-                                                            "WECC-Alberta NaturalGas-NonCycling","Water", 
+                                                            "WECC-Alberta NaturalGas","Water", 
                                                             "Wind", "Solar", "Storage", "Other, Bio, ZZ, WC, WH",
                                                             "Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
     

@@ -29,9 +29,8 @@ Retirecol <- function(case) {
 
   
   # Set levels to each category in order specified
-  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Coal", "Cogen", "NG - NonCycling", 
-                                                                "NG", "NG - Peaking", "Hydro","Solar",
-                                                                "Wind", "Storage", "Other"))
+  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("NGCC", "SCCT", "Hydro","Solar",
+                                                                "Wind", "Storage", "Other","Coal", "Cogen"))
   
   #Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(Retdata$YEAR)
@@ -93,12 +92,12 @@ Retirecol <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,(mxu)),breaks=breaks_pretty(6)) +
     
-    scale_fill_manual(values=c("Coal" =cOL_COAL, "Cogen"=cOL_COGEN, "NG - NonCycling"=cOL_Gas, 
-                               "NG"=COL_Gas1, "NG - Peaking"=COL_Gas2,
+    scale_fill_manual(values=c("Coal" =cOL_COAL, "Cogen"=cOL_COGEN,  
+                               "NGCC"=cOL_NGCC, "SCGT"=cOL_SCGT,
                                "Hydro"=cOL_HYDRO, "Solar"=cOL_SOLAR, 
                                "Wind"=cOL_WIND, "Storage"=cOL_STORAGE,"Other"=cOL_OTHER))
     
-}
+} 
 
 ################################################################################  
 ## FUNCTION: RetireMW 
@@ -122,9 +121,8 @@ RetireMW <- function(case) {
   
   
   # Set levels to each category in order specified
-  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Coal", "Cogen", "NG - NonCycling", 
-                                                                "NG", "NG - Peaking", "Hydro","Solar",
-                                                                "Wind", "Storage", "Other"))
+  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Coal-to-Gas", "SCCT", "NGCC", "Hydro",
+                                                               "Wind","Solar", "Storage", "Other","Coal", "Cogen"))
   
   #Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(Retdata$YEAR)
@@ -196,10 +194,10 @@ RetireMW <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,(mxc)),breaks=breaks_pretty(6)) +
     
-    scale_fill_manual(values=c("Coal" =cOL_COAL, "Cogen"=cOL_COGEN, "NG - NonCycling"=cOL_Gas, 
-                               "NG"=COL_Gas1, "NG - Peaking"=COL_Gas2,
-                               "Hydro"=cOL_HYDRO, "Solar"=cOL_SOLAR, 
-                               "Wind"=cOL_WIND, "Storage"=cOL_STORAGE,"Other"=cOL_OTHER))
+    scale_fill_manual(values=c("Coal"=cOL_COAL,"Cogen"=cOL_COGEN, "Coal-to-Gas"=cOL_NGConv, 
+                                "SCCT"=cOL_SCGT, "NGCC"=cOL_NGCC,
+                                "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER,
+                                "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE))
   
 }
 
@@ -363,56 +361,47 @@ BuildMW <- function(case)
     }
   }
   
-  ## Find any plants that had capacity increases
-          # Start by filtering out the plants with changing capacity
-          Capinc <- data %>%
-            filter(.,Capacity>0) %>% # Remove 0 capacity instances
-            group_by(Name) %>% 
-            summarise(Capacity,Time_Period,Primary_Fuel) %>%
-            distinct(.,Name,Capacity, .keep_all= TRUE) %>% #Remove instances or the same capacity for the same name
-            filter(!Name %like% "%New Resource%") %>%# Remove new resources (accounted for already)
-            filter(Name %in% dput(Capinc$Name[duplicated(Capinc$Name)])) # Filter for names which are duplicated, keep those
-          
-          # Now summarze the capcity difference
-          Capinc2 <- Capinc %>%
-            group_by(Name) %>% 
-            summarise(diff(Capacity),Primary_Fuel,max(Time_Period)) %>%
-            distinct(.,Name, .keep_all= TRUE) 
-          
-          # Rename the columns again
-          names(Capinc2) <- c("Name",'Capacity','Primary_Fuel','Beg_Date')
-          
-          # Sort by fuel type
-          Capinc2 <- Capinc2 %>%
-            filter(Capacity>0) %>% #Fail safe
-
-  #Get Year max for run and filter for end dates BEFORE this date
+  # Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(ResYr$YEAR)
   MinYr <- min(ResYr$YEAR)
   
+  # Give current date so that already built are not listed as new additions
+  CurDate <- as.Date("08/10/2022", 
+                     format = "%m/%d/%Y")
+  data$FiltDate  <- as.Date(data$Beg_Date, 
+                            format = "%m/%d/%Y")
+  
+  # Format start date as year
   data$Beg_Date  <- as.Date(data$Beg_Date, 
                                  format = "%m/%d/%Y")
   data$Beg_Date <- format(data$Beg_Date,format="%Y")
   
+  #Filter
   Builddata <- data %>%
     filter(.,Beg_Date <= MaxYr) %>%
-    filter(.,Beg_Date >= MinYr) %>%
+    filter(.,FiltDate > CurDate) %>%
     filter(.,Capacity>0) %>%
     filter(Beg_Date==Time_Period) %>%
     select(., c("Name","Capacity","Primary_Fuel","Beg_Date"))
   
-  Builddata <-rbind(Builddata,Capinc2)
+  # Add cap increases manual
+  Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
+                     Capacity=c(800),
+                     Primary_Fuel=c("Cogen"),
+                     Beg_Date=c(2024))
+  
+  Builddata <-  rbind(Builddata,Capinc)
+  
+  
     
   # Pull out the names of built units
-  BuiltUnits <- Builddata[order(BuiltUnits$Beg_Date),]
+  BuiltUnits <- Builddata[order(Builddata$Beg_Date),]
   print(BuiltUnits)
   
   #Now group everything together
   Builddata <- Builddata%>%
     group_by(Primary_Fuel, Beg_Date) %>%
     summarise(Capacity = sum(Capacity))
-  
-  Builddatarbind()
   
   #Max Units Built
   dyMX <- aggregate(Builddata["Capacity"], by=Builddata["Beg_Date"], sum)
@@ -604,3 +593,134 @@ AnnualDemand <- function(input,case) {
 
 }
 
+################################################################################  
+## FUNCTION: AnnualEmStack
+## Plot annual emissions by resource group as as stacked chart
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupEmYr -Yearly resoruce group emissions
+################################################################################
+AnnualEmStack <- function(case) {
+  
+    # Filters for the desired case study
+    data <- ResGroupEmYr %>%
+      filter(Run_ID == case & Condition == "Average") %>%
+      filter(Type== "CO2") %>%
+      select(ID, Report_Year, Amount, Cost) %>%
+      sim_filt1(.)  %>%
+      filter(!ID=="Cogen") # Temp remove cogen
+    
+    data$Report_Year  <- as.numeric(data$Report_Year)
+    
+    # Get Year max for run
+    MaxYr <- as.numeric(max(data$Report_Year))
+    MinYr <- (min(data$Report_Year))
+    
+    # Set the max for the plot
+    dyMX <- aggregate(data["Amount"], by=data["Report_Year"], sum)
+    MX <- plyr::round_any(max(abs(dyMX$Amount/1000000)), 10, f = ceiling)
+    
+    # Plot
+    data %>%
+      ggplot() +
+      aes(Report_Year, (Amount/1000000), fill = ID, colour=ID) +
+      geom_area(alpha=1, size=.5) +
+      
+      theme_bw() +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
+      theme(panel.grid = element_blank(),
+            axis.text.x = element_text(vjust = 1),
+            axis.title.x = element_text(size = XTit_Sz),
+            axis.title.y = element_text(size = YTit_Sz),
+            plot.title = element_text(size = Tit_Sz),
+            plot.subtitle = element_text(hjust = 0.5), 
+            panel.background = element_rect(fill = NA),
+            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+            legend.key.size = unit(1,"lines"), #Shrink legend
+            legend.position = "bottom",
+            legend.justification = c(0.5,0.5),
+            legend.title=element_blank(),
+            text = element_text(size = 15)) +
+      
+      scale_x_continuous(expand = c(0, 0),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
+      
+      scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
+      
+      labs(x = "Year", y = "Annual Emissions (Mt Co2e)", fill = "Resource",colour="Resource",caption = SourceDB) +
+      
+      guides(fill = guide_legend(nrow = 1)) +
+      
+      scale_fill_manual(values = colours6) +
+      scale_colour_manual(values = Outline6)
+    
+}
+
+################################################################################  
+## FUNCTION: AnnualEmLine
+## Plot annual emissions by resource group as as stacked chart
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupEmYr -Yearly resoruce group emissions
+################################################################################
+AnnualEmLine <- function(case) {
+  
+  # Filters for the desired case study
+  data <- ResGroupEmYr %>%
+    filter(Run_ID == case & Condition == "Average") %>%
+    filter(Type== "CO2") %>%
+    select(ID, Report_Year, Amount, Cost) %>%
+    sim_filt1(.)  %>%
+    filter(!ID=="Cogen") # Temp remove cogen
+  
+  data$Report_Year  <- as.numeric(data$Report_Year)
+  
+  # Get Year max for run
+  MaxYr <- as.numeric(max(data$Report_Year))
+  MinYr <- (min(data$Report_Year))
+  
+  # Set the max for the plot
+  MX <- plyr::round_any(max(abs(data$Amount/1000000)), 10, f = ceiling)
+  
+  # Plot
+  data %>%
+    ggplot() +
+    aes(Report_Year, (Amount/1000000),colour=ID) +
+    geom_line(size=1.25,linetype="longdash",alpha = 0.8) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = XTit_Sz),
+          axis.title.y = element_text(size = YTit_Sz),
+          plot.title = element_text(size = Tit_Sz),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    guides(colour = guide_legend(nrow = 1)) +
+    
+    scale_x_continuous(expand = c(0, 0),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
+    
+    labs(x = "Year", y = "Annual Emissions (Mt Co2e)", fill = "Resource",colour="Resource",caption = SourceDB) +
+
+    
+    scale_colour_manual(values = Outline6)
+  
+  
+}
