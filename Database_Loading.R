@@ -1,15 +1,18 @@
 ################################################################################
 # TITLE: Database_Loading
-# DESCRIPTION:  Script loads database from Microsoft SQL Server and imports tables, it then imports AESO data
+# DESCRIPTION:  Script loads database from Microsoft SQL Server, it then imports other data from files, 
+# and calls functions to display plots and table.
 
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: August 23, 2022
+# CREATED: May 2022; LAST EDIT: September 6, 2022
 
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
-#        Before running, create folder called "Data Files" withen project directory and populate it with AESO data. 
-#        Once this file is run through completion, can call any functions with environment that is loaded.
+#        Before running, create folder called "Data Files" inside project directory and populate it with 
+#        any data you want to access. 
+#        Once this file is run through completion, can call any functions with environment that is loaded 
+#        (ie: you do not need to run it all again).
 ################################################################################
 
 ################################################################################
@@ -22,18 +25,21 @@
     # gtable: Grob tables, more tools
     # gridExtra: User functions for grid graphics
     # odbc: Driver for Database Loading
-    # ggpubr:
+    # ggpubr: Used to reformat plots from ggplot
     # DBI: Package for interface between database and R
     # lubridate: Allow time and data manipulation
     # cowplot: Quality features for ggplots
     # scales: Graphical mapping stuff
     # dplyr: Data manipulation package
-    # reshape2:
+    # reshape2: Restructure data
     # zoo: Used for time series indexing
     # ggpattern: Geoms for ggplot2
     # here: Package to set filepaths inside R project
     # beepr: Allows sound to paly when code is done
     # showtext: Allows fonts changes in ggplot
+    # DescTools: Stats tools 
+    # pivottabler: Allows pivot tables to easily be created in R
+    # openxlsx: Used to interact with xlsx files from R environment
   }
 
 { # Must load the here package in order to make sure internal project directories work
@@ -63,7 +69,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Aug_26_2022_a"
+  SourceDB<-"TestRun_Sep_6_2022_b"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -80,15 +86,13 @@
 ################################################################################
 
 { BC <- "Base Case" 
-  BAU <- "BAU" #Buisness as usualcase
+  NZ <- "Net Zero"
   CC <- "CarbonCredits"
-  BC1 <- "BC1"
-  BC2 <- "BC2"
 }
 
 ################################################################################
 ## READ TABLES FROM DATABASE INTO ENVIRONMENT
-## Can edit to select required tables only, DOUBLE CHECK all tables are in databse
+## Can edit to select required tables only, DOUBLE CHECK all tables are in database
 ## It will just skip tables that are not there and all the ones after
 ################################################################################
 
@@ -391,76 +395,115 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     gas0 <- "Gas0"
   }  
 
-  # Set legend color schemes for contistancy
+  # Set legend color schemes for constancy
     ## Can change here
-    { # Colours Outline Info
-      OUT_IMPORT <- "hotpink3"
-      OUT_COAL <- "snow4"
-      OUT_NGConv <- "mediumorchid4"
-      OUT_COGEN <- "gray32"
-      OUT_SCGT <- "midnightblue"
-      OUT_NGCC <- "dodgerblue4"
-      OUT_OTHER <- "darkgreen"
-      OUT_HYDRO <- "deepskyblue"
-      OUT_WIND <- "green4"
-      OUT_SOLAR <- "gold3"
-      OUT_STORAGE <- "yellow4"
-      OUT_COal2Gas <- "mediumorchid4"
-      
+    # To see a bunch of options, use this: 
+        # library("colorspace")
+        # hcl_palettes(plot = TRUE)
+    { 
+      # # Colors Outline Info
+      #   # Basic Groups
+      #     OUT_IMPORT <- "hotpink3" 
+      #     OUT_COAL <- "snow4"
+      #     OUT_COGEN <- "gray32"
+      #     OUT_HYDRO <- "deepskyblue"
+      #     OUT_OTHER <- "darkgreen"
+      #     OUT_WIND <- "green4"
+      #     OUT_SOLAR <- "gold3"
+      #     
+      #   # H2 groups
+      #     OUT_SCGT_H2 <- 
+      #     OUT_NGCC_H2 <- 
+      #     OUT_SCGT_Blend <- 
+      #     OUT_NGCC_Blend <- 
+      #     
+      #     # Gas Groups
+      #     OUT_COal2Gas <-  "#6D1C68" #"mediumorchid4"
+      #     OUT_NGConv <- "#6D1C68" #"mediumorchid4"
+      #     OUT_SCGT <- "midnightblue"
+      #     OUT_NGCC <- "dodgerblue4"
+      #     OUT_NGCC_CCS <-
+      #       
+      #     # Storage Groups
+      #     OUT_STORAGE <- "yellow4" 
+      #     OUT_Battery <-
+      #     OUT_CompAir <-
+      #     OUT_Pumped <-
+            
       # Colour Fill info
-      cOL_IMPORT <- "hotpink" #"darkorchid1"
-      cOL_COAL <- "snow3"
-      cOL_NGConv <- "mediumorchid4"
-      cOL_COGEN <- "gray47"
-      cOL_SCGT <- "navy"
-      cOL_NGCC <- "dodgerblue3"
-      cOL_HYDRO <- "lightskyblue"
-      cOL_OTHER <- "darkgreen"
-      cOL_WIND <- "green3"
-      cOL_SOLAR <- "gold"
-      cOL_STORAGE <- "yellow4" 
-      cOL_COal2Gas <- "mediumorchid4"
-      cOL_EXPORT <- "firebrick4"
-      
-      cOL_Gas <- "slateblue"
-      COL_Gas1 <- "dodgerblue3"
-      COL_Gas2 <- "navy"
+          # Basic Groups
+            cOL_IMPORT <- "hotpink" 
+            cOL_EXPORT <- "firebrick4"
+            cOL_COAL <- "snow3"
+            cOL_COGEN <- "gray47"
+            cOL_HYDRO <- "lightskyblue"
+            cOL_OTHER <- "darkgreen"
+            cOL_WIND <- "green3"
+            cOL_SOLAR <- "gold"
+            
+          # H2 groups (blues)
+            cOL_SCGT_H2 <- "#273871"
+            cOL_NGCC_H2 <- "#3573B9"
+            cOL_SCGT_Blend <- "#7FABD3"
+            cOL_NGCC_Blend <- "#C1DBEC"
+            COL_Blend <- "#C1DBEC" # may edit
+            COL_H2 <- "#3573B9"  # may edit
+            
+          # Gas Groups (Purples)
+            cOL_COal2Gas <-  "#611163" #"mediumorchid4"
+            cOL_NGConv <- "#611163" #"mediumorchid4"
+            cOL_SCGT <- "#312271"
+            cOL_NGCC <- "#6D60BB"
+            cOL_NGCC_CCS <- "#A79FE1"
+            COL_NatGas <-"#6D60BB" #Maybe edit
+            
+          # Storage Groups
+            cOL_STORAGE <- "yellow4" 
+              COL_Battery <-"#DA3500"
+              COL_CompAir <-"#F39300"
+              COL_Pumped <-"#F9D67E"
 
-      # Now Define Lists
-      colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogen"=cOL_COGEN, 
-                  "Coal-to-Gas"=cOL_NGConv,"SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
+   ## Now Define Lists
+      colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+                  "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                 "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                 "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                 "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
-      
-      Outline1 = c("Import"= OUT_IMPORT, "Coal"= OUT_COAL,"Cogen"=OUT_COGEN,
-                   "Coal-to-Gas"=OUT_NGConv,"SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
-                   "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
-                   "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
+
+      Outline1=colours1
+      # Outline1 = c("Import"= OUT_IMPORT, "Coal"= OUT_COAL,"Cogen"=OUT_COGEN,
+      #              "Coal-to-Gas"=OUT_NGConv,"SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
+      #              "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
+      #              "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN, 
-                   "Natural Gas"=cOL_NGCC,"Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
+                   "Natural Gas"=COL_NatGas,"Natual Gas and Hydrogen Blend"=COL_Blend,"Hydrogen"=COL_H2,
+                   "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
                    "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
-      
-      Outline2 = c("Coal"= OUT_COAL, "Coal-to-Gas"=OUT_COal2Gas, "Cogen"=OUT_COGEN, 
-                   "Natural Gas"=OUT_NGCC, "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, 
-                   "Wind"=OUT_WIND, "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
-      
-      colours3 = c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
-                    "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE)
+      Outline2=colours2
+      # Outline2 = c("Coal"= OUT_COAL, "Coal-to-Gas"=OUT_COal2Gas, "Cogen"=OUT_COGEN, 
+      #              "Natural Gas"=OUT_NGCC, "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, 
+      #              "Wind"=OUT_WIND, "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
+       
+      # colours3 = c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
+      #               "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE)
 
       
-      colours4=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas,
-                 "Cogen"=cOL_COGEN,"Natural Gas"=cOL_NGCC, 
-                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
-                 "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
+      colours4=c("Import"= cOL_IMPORT, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN, 
+                 "Natural Gas"=COL_NatGas,"Natual Gas and Hydrogen Blend"=COL_Blend,"Hydrogen"=COL_H2,
+                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
+                 "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
-      Outline4 = c("Import"= OUT_IMPORT, "Coal"=OUT_COAL, "Coal-to-Gas"=OUT_COal2Gas,
-                   "Cogen"=OUT_COGEN,  "Natural Gas"=OUT_NGCC, 
-                   "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
-                   "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
+      Outline4=colours4
+      # Outline4 = c("Import"= OUT_IMPORT, "Coal"=OUT_COAL, "Coal-to-Gas"=OUT_COal2Gas,
+      #              "Cogen"=OUT_COGEN,  "Natural Gas"=OUT_NGCC, 
+      #              "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
+      #              "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
-      colours5 = c(cOL_COAL, cOL_COGEN, cOL_Gas, COL_Gas1, COL_Gas2,
-                   cOL_HYDRO, cOL_SOLAR, cOL_WIND, cOL_STORAGE,cOL_OTHER)
+      # colours5 = c(cOL_COAL, cOL_COGEN, cOL_Gas, COL_Gas1, COL_Gas2,
+      #              cOL_HYDRO, cOL_SOLAR, cOL_WIND, cOL_STORAGE,cOL_OTHER)
       
       colours6=c("Coal"=cOL_COAL, "Cogen"=cOL_COGEN, 
                  "Coal-to-Gas"=cOL_NGConv,"SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
@@ -476,7 +519,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2021,2022,2023,2024,2026,2028,2030) # Years to show in figures
+  Years2Disp <- c(2022,2024,2026,2028,2030) # Years to show in figures
   Years2Pivot <- c(2022,2024,2026,2028,2030)  # Years to display in tables
 
   #For fun, make the code beep when its all done
@@ -489,10 +532,10 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2022,12,22,BC)
+  Week1(2022,09,08,BC)
   
   # Grid of weekly output
-  year_weeks(2024,BC)
+  year_weeks(2022,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)

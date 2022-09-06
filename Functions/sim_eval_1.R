@@ -42,20 +42,30 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
     Storage <- inputdata %>%    
       filter(ID=="LTO_Storage")
     Wind <- inputdata %>%
-      filter(ID=="LTO_Wind")   }
+      filter(ID=="LTO_Wind")  
+    H2 <-inputdata %>%
+      filter(ID=="LTO_H2") 
+    NGH2_Blend <-inputdata %>%
+      filter(ID %in% c("AB_CCCT_Blended","AB_SCCT_Blended") ) %>%
+      mutate(ID,"NGH2_Blend")
+
+    # Not added yet, can add if building
+    Nuclear <-inputdata %>%
+      filter(ID=="LTO_Nuclear") 
+    }
     
   # Combine the grouped data tables into one
-  { case <- rbind( Coal2Gas, NatGas, Hydro, Solar, Wind, Storage, Other,Coal,Cogen)
+  { case <- rbind( Coal2Gas, NatGas, NGH2_Blend,H2, Hydro, Solar, Wind, Storage, Other,Coal,Cogen)
     
     # Sort the table by case ID
     #A factor is a categorical variable 
-    case$ID <- factor(case$ID, levels=c( "LTO_Coal2Gas", 
-                                        "LTO_NatGas", "LTO_Hydro","LTO_Other",  
+    case$ID <- factor(case$ID, levels=c( "LTO_Coal2Gas", "LTO_NatGas","NGH2_Blend", 
+                                         "LTO_H2","LTO_Hydro","LTO_Other",  
                                         "LTO_Wind", "LTO_Solar", "LTO_Storage",
                                         "LTO_Coal", "LTO_Cogen"))
     # Replace ID value with name 
-    levels(case$ID) <- c("Coal-to-Gas", "Natural Gas", "Hydro", "Other",
-                         "Wind", "Solar", "Storage","Coal","Cogen")   }
+    levels(case$ID) <- c("Coal-to-Gas", "Natural Gas","Natual Gas and Hydrogen Blend","Hydrogen" , 
+                         "Hydro","Other","Wind", "Solar", "Storage","Coal","Cogen")   }
     return(case)  }
 }
   
@@ -68,14 +78,8 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
       # Filter the data by resource
       {Coal <- inputdata %>%
         filter(ID=="LTO_Coal")
-      NGConv <- inputdata %>%
-        filter(ID=="AB_NGCONV")
-      SCCT  <- inputdata %>%
-        filter(ID=="AB_SCCT_noncogen")
       Cogen  <- inputdata %>%
         filter(ID=="LTO_Cogen")
-      CCCT <- inputdata %>%
-        filter(ID=="AB_CCCT_noncogen")
       Other <- inputdata %>%
         filter(ID=="LTO_Other")
       Hydro <- inputdata %>%
@@ -85,17 +89,48 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
       Storage <- inputdata %>%    
         filter(ID=="LTO_Storage")
       Wind <- inputdata %>%
-        filter(ID=="LTO_Wind")  }
+        filter(ID=="LTO_Wind")  
       
+      NGConv <- inputdata %>%
+        filter(ID=="AB_NGCONV")
+      SCCT  <- inputdata %>%
+        filter(ID=="AB_SCCT_noncogen")
+      CCCT <- inputdata %>%
+        filter(ID=="AB_CCCT_noncogen")
+      CCCT_CCS <- inputdata %>%
+        filter(ID=="AB_CC90CCS_noncogen")
+      
+      SCCT_H2  <- inputdata %>%
+        filter(ID=="AB_SCCT_0NG100H2")
+      CCCT_H2 <- inputdata %>%
+        filter(ID=="AB_CCCT_0NG100H2")
+      SCCT_Blend  <- inputdata %>%
+        filter(ID=="AB_SCCT_Blended")
+      CCCT_Blend <- inputdata %>%
+        filter(ID=="AB_CCCT_Blended")
+      
+      }
+      
+    # Not added yet, can add if building
+    Nuclear <-inputdata %>%
+      filter(ID=="LTO_Nuclear") 
+    
     # Combine the grouped data
-    { case <- rbind(NGConv, SCCT, CCCT, Hydro, Solar, Wind, Storage, Other,Coal, Cogen )
-      case$ID <- factor(case$ID, levels=c("AB_NGCONV", "AB_SCCT_noncogen", "AB_CCCT_noncogen",
+    { case <- rbind(NGConv, SCCT_H2,CCCT_H2,SCCT_Blend,CCCT_Blend,
+                    SCCT, CCCT_CCS, CCCT, Hydro, Other,Wind, Solar, Storage, Coal, Cogen )
+      
+      case$ID <- factor(case$ID, levels=c("AB_NGCONV", "AB_SCCT_0NG100H2","AB_CCCT_0NG100H2",
+                                          "AB_SCCT_Blended","AB_CCCT_Blended",
+                                          "AB_SCCT_noncogen", "AB_CC90CCS_noncogen","AB_CCCT_noncogen",
                                            "LTO_Hydro", "LTO_Other", 
                                           "LTO_Wind", "LTO_Solar", "LTO_Storage", 
                                           "LTO_Coal","LTO_Cogen"))
       
-      levels(case$ID) <- c("Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
-                           "Wind", "Solar", "Storage","Coal", "Cogen")  }
+      levels(case$ID) <- c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                           "Blended  Simple Cycle","Blended  Combined Cycle",
+                           "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                           "Hydro", "Other",
+                           "Wind", "Solar", "Storage","Coal", "Cogeneration")  }
       return(case)  }
   }
 
@@ -281,8 +316,11 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
     data$Output_MWH[data$Output_MWH<0.001] <-0
     
     # Set levels to each category in order specified
-    data$ID <- factor(data$ID, levels=c("Import", "Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
-                                        "Wind", "Solar", "Storage","Coal","Cogen"))
+    data$ID <- factor(data$ID, levels=c("Import","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                  "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                  "Hydro", "Other",
+                                                  "Wind", "Solar", "Storage","Coal", "Cogeneration"))
     ## SELECT A SINGLE WEEK
 
     # Select only a single week from the zone Hourly, and Export data
@@ -335,7 +373,7 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
                          breaks = seq(0, MX, by = MX/4)) +
-      guides(fill = guide_legend(nrow = 1)) +
+      guides(fill = guide_legend(nrow = 2)) +
       
       labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",
            title=year,caption=SourceDB) +
@@ -369,8 +407,11 @@ Week14 <- function(year, month, day, case) {
     filter(Run_ID == case)
   
   # Set levels to each category in order specified
-  data$ID <- factor(data$ID, levels=c("Import","Coal-to-Gas",  "SCGT", "NGCC", "Hydro", "Other",
-                                      "Wind", "Solar", "Storage","Coal","Cogen"))
+  data$ID <- factor(data$ID, levels=c("Import","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                "Hydro", "Other",
+                                                "Wind", "Solar", "Storage","Coal", "Cogeneration"))
   ## SELECT A SINGLE WEEK
   
   data$Output_MWH[data$Output_MWH<0.001] <-0
@@ -438,7 +479,7 @@ Week14 <- function(year, month, day, case) {
     ) +
     scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
                        breaks = seq(MN, MX, by = MX/4)) +
-    guides(fill = guide_legend(nrow = 1)) +
+    guides(fill = guide_legend(nrow = 2)) +
     
     labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource") +
     
@@ -478,8 +519,11 @@ Week12 <- function(year, month, day, case) {
     filter(date <= wk_end)
   
   # Set levels to each category in order specified
-  data$ID <- factor(data$ID, levels=c("Import", "Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
-                                      "Wind", "Solar", "Storage","Coal","Cogen"))
+  data$ID <- factor(data$ID, levels=c("Import","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                "Hydro", "Other",
+                                                "Wind", "Solar", "Storage","Coal", "Cogeneration"))
   
   data$Output_MWH[data$Output_MWH<0.001] <-0
   
@@ -493,25 +537,27 @@ Week12 <- function(year, month, day, case) {
     filter(Run_ID == case)
   
   # # Set the max and min for the plot
-  # MX1 <- WkTime(WK,year,01,day)
-  # MX2 <- WkTime(WK,year,02,day)
-  # MX3 <- WkTime(WK,year,03,day)
-  # MX4 <- WkTime(WK,year,04,day)
-  # MX5 <- WkTime(WK,year,05,day)
-  # MX6 <- WkTime(WK,year,06,day)
-  # MX7 <- WkTime(WK,year,07,day)
-  # MX8 <- WkTime(WK,year,08,day)
-  # MX9 <- WkTime(WK,year,09,day)
-  # MX10 <- WkTime(WK,year,10,day)
-  # MX11<- WkTime(WK,year,11,day)
-  # MX12 <- WkTime(WK,year,12,day)
-  # 
-  # MXtime <- rbind(MX1, MX2, MX3, MX4, MX5, MX6, MX7, MX8, MX9, MX10, MX11, MX12)
+  ZPrice2 <- ZoneHr_Avg %>%
+    filter(Run_ID == case) 
+        ZPrice2$YEAR  <- as.POSIXct(as.character(ZPrice2$date), format = "%Y")
+        ZPrice2$YEAR <-(format(ZPrice2$YEAR,format="%Y")) # Reformat for year only
+  ZPrice2 <- ZPrice2 %>%
+        filter(YEAR == year)
+    
+  Expo2 <- Export%>%
+    filter(Run_ID == case)
+        Expo2$YEAR  <- as.POSIXct(as.character(Expo2$date), format = "%Y")
+        Expo2$YEAR <-(format(Expo2$YEAR,format="%Y")) # Reformat for year only
+  Expo2 <- Expo2 %>%
+        filter(YEAR == year)
+        
+  # Get y-max, demand to meet + exports
+  Max <- (ZPrice2$Demand + Expo2$Output_MWH) 
   
   # # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-  # MX <- plyr::round_any(max(abs(MXtime$MX))+500, 100, f = ceiling)
+  MX <- plyr::round_any(max(abs(Max))+500, 100, f = ceiling)
 
-  MX <- 15000
+  #MX <- 15000
 
   Mtitle=month.abb[month]
   
@@ -553,7 +599,7 @@ Week12 <- function(year, month, day, case) {
     
     labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",title=Mtitle) +
     
-    guides(fill = guide_legend(nrow = 1)) +
+    guides(fill = guide_legend(nrow = 2)) +
     
     #Add colour
     scale_fill_manual(values = colours1) +
@@ -583,8 +629,11 @@ Week12 <- function(year, month, day, case) {
       filter(Run_ID == case)
     
     # Set levels to each category in order specified
-    data$ID <- factor(data$ID, levels=c("Import","Coal-to-Gas", "SCGT", "NGCC", "Hydro", "Other",
-                                        "Wind", "Solar", "Storage","Coal","Cogen"))
+    data$ID <- factor(data$ID, levels=c("Import","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                   "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                   "Hydro", "Other",
+                                                   "Wind", "Solar", "Storage","Coal", "Cogeneration"))
     # Get full date
     day_report <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
     
@@ -637,7 +686,7 @@ Week12 <- function(year, month, day, case) {
             axis.title.y = element_text(size=YTit_Sz,face='bold'),
             text = element_text(size= Overall_Sz)
       ) +
-      guides(fill = guide_legend(nrow = 1)) +
+      guides(fill = guide_legend(nrow = 2)) +
       
       scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
                          breaks = seq(0, MX, by = MX/4)) +
@@ -824,7 +873,7 @@ Week12 <- function(year, month, day, case) {
       
       labs(x = "Date", y = "Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
       
-      guides(fill = guide_legend(nrow = 1)) +
+      guides(fill = guide_legend(nrow = 2)) +
       
       scale_fill_manual(values = colours4) +
       scale_colour_manual(values = Outline4)
@@ -896,7 +945,7 @@ Week12 <- function(year, month, day, case) {
       
       labs(x = "Date", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
       
-      guides(fill = guide_legend(nrow = 1)) +
+      guides(fill = guide_legend(nrow = 2)) +
       
       scale_fill_manual(values = colours4) +
       scale_colour_manual(values = Outline4)
@@ -955,7 +1004,7 @@ Week12 <- function(year, month, day, case) {
       
       labs(x = "Date", y = "Capacity (MW)", fill = "Resource",colour="Resource") +
     
-      guides(fill = guide_legend(nrow = 1)) +
+      guides(fill = guide_legend(nrow = 2)) +
       
       scale_fill_manual(values = colours2) +
       scale_colour_manual(values = Outline2) 
@@ -1016,7 +1065,7 @@ Week12 <- function(year, month, day, case) {
                          labels = scales::percent, 
                          breaks = sort(c(seq(0,1,length.out=5)))) +
       
-      guides(fill = guide_legend(nrow = 1)) +
+      guides(fill = guide_legend(nrow = 2)) +
       labs(x = "Date", y = "Percentage of Generation", fill = "Resource",colour="Resource") +
       scale_fill_manual(values = colours2) +
       scale_colour_manual(values = Outline2) 
