@@ -400,6 +400,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     # To see a bunch of options, use this: 
         # library("colorspace")
         # hcl_palettes(plot = TRUE)
+        #sequential_hcl(5,palette="oranges)
     { 
       # # Colors Outline Info
       #   # Basic Groups
@@ -452,16 +453,16 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
           # Gas Groups (Purples)
             cOL_COal2Gas <-  "#611163" #"mediumorchid4"
             cOL_NGConv <- "#611163" #"mediumorchid4"
-            cOL_SCGT <- "#312271"
+            cOL_SCGT <- "#3C2692"
             cOL_NGCC <- "#6D60BB"
             cOL_NGCC_CCS <- "#A79FE1"
             COL_NatGas <-"#6D60BB" #Maybe edit
             
           # Storage Groups
             cOL_STORAGE <- "yellow4" 
-              COL_Battery <-"#DA3500"
-              COL_CompAir <-"#F39300"
-              COL_Pumped <-"#F9D67E"
+              COL_Battery <-"#F7921E"
+              COL_CompAir <-"#D35000"
+              COL_Pumped <-"#802A07"
 
    ## Now Define Lists
       colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
@@ -487,8 +488,13 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       #              "Natural Gas"=OUT_NGCC, "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, 
       #              "Wind"=OUT_WIND, "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
        
-      # colours3 = c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
-      #               "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE)
+      colours3 = c("Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+                   "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                   "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                   "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                   "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
+                   "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                   "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
 
       
       colours4=c("Import"= cOL_IMPORT, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN, 
@@ -502,8 +508,14 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       #              "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
       #              "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
-      # colours5 = c(cOL_COAL, cOL_COGEN, cOL_Gas, COL_Gas1, COL_Gas2,
-      #              cOL_HYDRO, cOL_SOLAR, cOL_WIND, cOL_STORAGE,cOL_OTHER)
+      colours5 = c("Cogeneration"=cOL_COGEN, 
+                   "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                   "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                   "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                   "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
+                   "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                   "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
+                   "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
       
       colours6=c("Coal"=cOL_COAL, "Cogen"=cOL_COGEN, 
                  "Coal-to-Gas"=cOL_NGConv,"SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 

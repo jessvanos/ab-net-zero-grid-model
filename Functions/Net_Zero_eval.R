@@ -29,8 +29,11 @@ Retirecol <- function(case) {
 
   
   # Set levels to each category in order specified
-  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("NGCC", "SCCT", "Hydro","Solar",
-                                                                "Wind", "Storage", "Other","Coal", "Cogen"))
+  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                                "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                                "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                                "Hydro", "Other",
+                                                                "Wind", "Solar", "Storage","Coal", "Cogeneration"))
   
   #Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(Retdata$YEAR)
@@ -92,10 +95,7 @@ Retirecol <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,(mxu)),breaks=breaks_pretty(6)) +
     
-    scale_fill_manual(values=c("Coal" =cOL_COAL, "Cogen"=cOL_COGEN,  
-                               "NGCC"=cOL_NGCC, "SCGT"=cOL_SCGT,
-                               "Hydro"=cOL_HYDRO, "Solar"=cOL_SOLAR, 
-                               "Wind"=cOL_WIND, "Storage"=cOL_STORAGE,"Other"=cOL_OTHER))
+    scale_fill_manual(values=colours3)
     
 } 
 
@@ -121,8 +121,11 @@ RetireMW <- function(case) {
   
   
   # Set levels to each category in order specified
-  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Coal-to-Gas", "SCCT", "NGCC", "Hydro",
-                                                               "Wind","Solar", "Storage", "Other","Coal", "Cogen"))
+  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                                "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                                "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                                "Hydro", "Other",
+                                                                "Wind", "Solar", "Storage","Coal", "Cogeneration"))
   
   #Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(Retdata$YEAR)
@@ -185,7 +188,7 @@ RetireMW <- function(case) {
           panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           text = element_text(size = 15)) +
     
-    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
     
     labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
     
@@ -194,10 +197,7 @@ RetireMW <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,(mxc)),breaks=breaks_pretty(6)) +
     
-    scale_fill_manual(values=c("Coal"=cOL_COAL,"Cogen"=cOL_COGEN, "Coal-to-Gas"=cOL_NGConv, 
-                                "SCCT"=cOL_SCGT, "NGCC"=cOL_NGCC,
-                                "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER,
-                                "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE))
+    scale_fill_manual(values=colours3)
   
 }
 
@@ -351,8 +351,13 @@ BuildMW <- function(case)
   
   
   # Set levels to each category in order specified
-  data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Coal-to-Gas", "SCCT", "NGCC", "Hydro",
-                                                                    "Wind","Solar", "Storage", "Other","Coal", "Cogen") )
+  data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                          "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                          "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                          "Hydro", "Other",
+                                                          "Wind", "Solar", 
+                                                          "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
+                                                          "Cogeneration") )
  
    # Replace the capacity with the peak / actual capacity and not just what is available
   for (i in 1:length(data$Capacity)) {
@@ -430,17 +435,14 @@ BuildMW <- function(case)
           panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           text = element_text(size = 15)) +
     
-    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
     
     labs(x = "Year", y = "New Capacity (MW)", fill = "Fuel Type",caption=SourceDB)  +
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,(mxc)),breaks=breaks_pretty(6)) +
     scale_x_continuous(expand = c(0.01, 0.01),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
     
-    scale_fill_manual(values=c("Cogen"=cOL_COGEN, "Coal-to-Gas"=cOL_NGConv, 
-                               "SCCT"=cOL_SCGT, "NGCC"=cOL_NGCC,
-                               "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER,
-                               "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,"Storage"=cOL_STORAGE))
+    scale_fill_manual(values=colours5)
   
 }
 

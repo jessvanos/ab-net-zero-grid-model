@@ -224,7 +224,7 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
     
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
       "NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
-      "NG-SCCT","WECC-Alberta NaturalGas","CC-CCS",
+      "NG-SCCT","CC-CCS","WECC-Alberta NaturalGas",
       "Water", "Other, Bio, ZZ, WC, WH",
       "Wind", "Solar", "Storage", 
       "Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
@@ -240,51 +240,116 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
 ################################################################################
 ## FUNCTION: sim_filt3
 ## This function filters for the data that will be evaluated.  
+## Same as 2, with coal removed and storage into 3 components
 ################################################################################
 
 { sim_filt3 <- function(inputdata) {
-  # Filter the data by resource
-  {Coal <- inputdata %>%
-    filter(Primary_Fuel=="Coal Canada West") 
-  Cogen  <- inputdata %>%
-    filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
-  Other <- inputdata %>%
-    filter(Primary_Fuel=="Other, Bio, ZZ, WC, WH")
-  Hydro <- inputdata %>%
-    filter(Primary_Fuel=="Water")
-  Solar <- inputdata %>%
-    filter(Primary_Fuel=="Solar")
-  Storage <- inputdata %>%    
-    filter(Primary_Fuel=="Storage")
-  Wind <- inputdata %>%
-    filter(Primary_Fuel=="Wind")  
-  CCCT <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas")
-  
-  # More tricky to separate ones
-  NG2AB <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
-  
-  NGConv <- NG2AB[NG2AB$Name %like% "%Retrofit%",] # Separate retrofits
-  NGConv$Primary_Fuel<- "NGConv"
-  
-  SCCT <- NG2AB[NG2AB$ID %like% "%Simple%",]  # Separate Simple Cycle
-  SCCT$Primary_Fuel<- "NG-SCCT"
+  {
+    # Straight foreward part
+    Cogen  <- inputdata %>%
+      filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
+    Other <- inputdata %>%
+      filter(Primary_Fuel=="Other, Bio, ZZ, WC, WH")
+    Hydro <- inputdata %>%
+      filter(Primary_Fuel=="Water")
+    Solar <- inputdata %>%
+      filter(Primary_Fuel=="Solar")
+    Wind <- inputdata %>%
+      filter(Primary_Fuel=="Wind")  
+    Nuclear <-inputdata %>%
+      filter(Primary_Fuel=="Uranium") 
+    
+    # Get NG Units as defined in Resource Table
+    CCCT1 <- inputdata %>%
+      filter(Primary_Fuel=="WECC-Alberta NaturalGas")
+    # More tricky to separate ones
+    NG2AB <- inputdata %>%
+      filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
+    
+    NGConv <- NG2AB[NG2AB$Name %like% "%Retrofit%",] # Separate retrofits
+    NGConv$Primary_Fuel<- "NGConv"
+    
+    SCCT1 <- NG2AB[NG2AB$ID %like% "%Simple%",] %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
+    # Separate Simple Cycle
+    SCCT1$Primary_Fuel<- "NG-SCCT"
+    
+    # Units as defined by New Resources Table
+    #First split up the fuel types
+    NG100 <- inputdata %>%
+      filter(Primary_Fuel=="100-NaturalGas-0-Hydrogen") 
+    H2 <- inputdata %>%
+      filter(Primary_Fuel=="0-NaturalGas-100-Hydrogen")
+    Blend <- inputdata %>%
+      filter(Primary_Fuel %in% c("70-NaturalGas-30-Hydrogen",
+                                 "50-NaturalGas-50-Hydrogen",
+                                 "20-NaturalGas-80-Hydrogen"))
+    Storage <- inputdata %>%    
+      filter(Primary_Fuel=="Storage")
+    
+    # Combined units with CCS
+    CCC_CCS <- NG100[NG100$ID %like% "%2022CC90CCS%",]   %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
+    
+    # Combined NG units
+    CCCT2 <-NG100[NG100$ID %like% "%2022CC_100NG0H2%",] %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))  
+    CCCT <- rbind(CCCT1,CCCT2)
+    
+    # Simple NG units
+    SCCT2 <-NG100[NG100$ID %like% c("Frame","Aeroderivative"),]  %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT"))
+    SCCT <- rbind(SCCT1,SCCT2)
+    
+    # Blended Combined cycle
+    CC_Blend <-Blend[Blend$ID %like% c("2022CC_70NG30H2",
+                                       "2022CC_50NG50H2",
+                                       "2022CC_20NG80H2"),] %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-CC")) 
+    
+    # Blended Simple Cycle
+    SC_Blend <-Blend[Blend$ID %like% c("Frame","Aeroderivative"),] %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC"))  
+    
+    # H2 Combined cycle
+    CC_H2 <-H2[H2$ID %like% "2022CC_0NG100H2",] %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
+    
+    # H2 Simple cycle
+    SC_H2 <-H2[H2$ID %like% c("Frame","Aeroderivative"),]  %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC")) 
+    
+    # Storage Types
+    Stor_B <-Storage[Storage$ID %like% "Battery",]  %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Battery")) 
+    Stor_CA <-Storage[Storage$ID %like% "CompressedAir",]  %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CompressedAir")) 
+    Stor_HP <-Storage[Storage$ID %like% "HydroPumped",]  %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"HydroPumped")) 
   }
   
   # Combine the grouped data
-  { case <- rbind(NGConv, SCCT, CCCT, Hydro, Solar, Wind, Storage, Other,Coal, Cogen)
+  { case <- rbind(NGConv, SC_H2,CC_H2,SC_Blend,CC_Blend,
+                  SCCT, CCC_CCS,CCCT, Hydro, Other, Solar, Wind, Stor_B,Stor_CA, Stor_HP, Cogen)
     
-    case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c( 
-                                                            "NGConv","NG-SCCT",
-                                                            "WECC-Alberta NaturalGas","Water", 
-                                                            "Wind", "Solar", "Storage", "Other, Bio, ZZ, WC, WH",
-                                                            "Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
+    case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
+      "NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
+      "NG-SCCT","CC-CCS","WECC-Alberta NaturalGas",
+      "Water", "Other, Bio, ZZ, WC, WH",
+      "Wind", "Solar", 
+      "Battery", "CompressedAir","HydroPumped",
+      "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
     
-    levels(case$Primary_Fuel) <- c("Coal-to-Gas", "SCCT", "NGCC", "Hydro",
-                                   "Wind","Solar", "Storage", "Other","Coal", "Cogen")  }
+    levels(case$Primary_Fuel) <- c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                   "Blended  Simple Cycle","Blended  Combined Cycle",
+                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                   "Hydro", "Other",
+                                   "Wind", "Solar", 
+                                   "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
+                                   "Cogeneration") }
   return(case)  }
 }
+
 ################################################################################
 ## FUNCTION: HrTime
 ## Convert the date and select a subset for one day from the data pulled in
