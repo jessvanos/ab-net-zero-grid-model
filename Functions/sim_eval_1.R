@@ -140,7 +140,9 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
 ################################################################################
 
 { sim_filt2 <- function(inputdata) {
-  {Coal <- inputdata %>%
+  {
+  # Straight foreward part
+  Coal <- inputdata %>%
     filter(Primary_Fuel=="Coal Canada West") 
   Cogen  <- inputdata %>%
     filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
@@ -154,31 +156,84 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
     filter(Primary_Fuel=="Storage")
   Wind <- inputdata %>%
     filter(Primary_Fuel=="Wind")  
-  CCCT <- inputdata %>%
+  Nuclear <-inputdata %>%
+    filter(Primary_Fuel=="Uranium") 
+  
+  # Get NG Units as defined in Resource Table
+  CCCT1 <- inputdata %>%
     filter(Primary_Fuel=="WECC-Alberta NaturalGas")
-  
-  # More tricky to separate ones
-  NG2AB <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
-  
+        # More tricky to separate ones
+        NG2AB <- inputdata %>%
+          filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
+        
   NGConv <- NG2AB[NG2AB$Name %like% "%Retrofit%",] # Separate retrofits
-  NGConv$Primary_Fuel<- "NGConv"
+    NGConv$Primary_Fuel<- "NGConv"
+        
+  SCCT1 <- NG2AB[NG2AB$ID %like% "%Simple%",] %>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
+  # Separate Simple Cycle
+    SCCT1$Primary_Fuel<- "NG-SCCT"
   
-  SCCT <- NG2AB[NG2AB$ID %like% "%Simple%",]  # Separate Simple Cycle
-  SCCT$Primary_Fuel<- "NG-SCCT"
+  # Units as defined by New Resources Table
+    #First split up the fuel types
+    NG100 <- inputdata %>%
+      filter(Primary_Fuel=="100-NaturalGas-0-Hydrogen") 
+    H2 <- inputdata %>%
+      filter(Primary_Fuel=="0-NaturalGas-100-Hydrogen")
+    Blend <- inputdata %>%
+      filter(Primary_Fuel %in% c("70-NaturalGas-30-Hydrogen",
+                                 "50-NaturalGas-50-Hydrogen",
+                                 "20-NaturalGas-80-Hydrogen"))
+  # Combined units with CCS
+  CCC_CCS <- NG100[NG100$ID %like% "%2022CC90CCS%",]   %>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
+
+    # Combined NG units
+  CCCT2 <-NG100[NG100$ID %like% "%2022CC_100NG0H2%",] %>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))  
+  CCCT <- rbind(CCCT1,CCCT2)
+ 
+  # Simple NG units
+  SCCT2 <-NG100[NG100$ID %like% c("Frame","Aeroderivative"),]  %>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT"))
+  SCCT <- rbind(SCCT1,SCCT2)
+  
+  # Blended Combined cycle
+  CC_Blend <-Blend[Blend$ID %like% c("2022CC_70NG30H2",
+                                     "2022CC_50NG50H2",
+                                     "2022CC_20NG80H2"),] %>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-CC")) 
+
+  # Blended Simple Cycle
+  SC_Blend <-Blend[Blend$ID %like% c("Frame","Aeroderivative"),] %>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC"))  
+  
+  # H2 Combined cycle
+  CC_H2 <-H2[H2$ID %like% "2022CC_0NG100H2",] %>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
+
+  # H2 Simple cycle
+  SC_H2 <-H2[H2$ID %like% c("Frame","Aeroderivative"),]  %>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC")) 
+
   }
   
   # Combine the grouped data
-  { case <- rbind(NGConv, SCCT, CCCT, Hydro, Solar, Wind, Storage, Other, Coal, Cogen)
+  { case <- rbind(NGConv, SC_H2,CC_H2,SC_Blend,CC_Blend,
+                  SCCT, CCC_CCS,CCCT, Hydro, Other, Solar, Wind, Storage, Coal, Cogen)
     
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
-      "NGConv","NG-SCCT",
-      "WECC-Alberta NaturalGas","Water", 
-      "Wind", "Solar", "Storage", "Other, Bio, ZZ, WC, WH",
+      "NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
+      "NG-SCCT","WECC-Alberta NaturalGas","CC-CCS",
+      "Water", "Other, Bio, ZZ, WC, WH",
+      "Wind", "Solar", "Storage", 
       "Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
     
-    levels(case$Primary_Fuel) <- c("Coal-to-Gas", "SCCT", "NGCC", "Hydro",
-                                   "Wind","Solar", "Storage", "Other","Coal", "Cogen") }
+    levels(case$Primary_Fuel) <- c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                   "Blended  Simple Cycle","Blended  Combined Cycle",
+                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                   "Hydro", "Other",
+                                   "Wind", "Solar", "Storage","Coal", "Cogeneration") }
   return(case)  }
 }
 

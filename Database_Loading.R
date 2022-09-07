@@ -519,8 +519,8 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2022,2024,2026,2028,2030) # Years to show in figures
-  Years2Pivot <- c(2022,2024,2026,2028,2030)  # Years to display in tables
+  Years2Disp <- c(2022,2023,2024,2026,2028,2030) # Years to show in figures
+  Years2Pivot <- c(2022,2023,2024,2026,2028,2030)  # Years to display in tables
 
   #For fun, make the code beep when its all done
   beep(3)
@@ -529,6 +529,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   ################################################################################
   windows(12,8)
+  windows(8,12)
   
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
