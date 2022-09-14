@@ -47,22 +47,28 @@ Week_act <- function(year,month,day) {
   
   {
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "IMPORT", after = Inf)
-    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "COAL", after = Inf)
-    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "COGEN", after = Inf)
+    
+    
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "SCGT", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "NGCC", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "HYDRO", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "OTHER", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "WIND", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "SOLAR", after = Inf)
+    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "COAL", after = Inf)
+    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "COGEN", after = Inf)
   }
   
-  WK$Plant_Type <- factor(WK$Plant_Type, levels=c("IMPORT", "COAL", "COGEN", 
+  WK$Plant_Type <- factor(WK$Plant_Type, levels=c("IMPORT", 
                                                   "SCGT", "NGCC", "HYDRO", 
-                                                  "OTHER", "WIND", "SOLAR"))
+                                                  "OTHER", "WIND", "SOLAR", 
+                                                  "COAL", "COGEN"))
   
-  levels(WK$Plant_Type) <- c("Import","Coal", "Cogen", "SCGT", "NGCC", "Hydro", 
-                             "Other", "Wind", "Solar")
+  levels(WK$Plant_Type) <- c("Import","Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                            "Hydro", "Other",
+                            "Wind", "Solar", "Coal", "Cogeneration")
+  
+  
   
   dmd <- demand %>%
     filter(time >= wk_st & time <= wk_end)
@@ -103,7 +109,8 @@ Week_act <- function(year,month,day) {
     ) +
     guides(fill = guide_legend(nrow = 1)) +
     scale_y_continuous(expand=c(0,0)) +
-    labs(title = paste("AESO Data,", year), x = "Date", y = "Output (MWh)", fill = "Plant_Type", colour = "Plant_Type") +
+    labs(title = paste("AESO Data,", year), x = "Date", y = "Output (MWh)", fill = "Plant_Type", colour = "Plant_Type",
+         caption="NRG Stream Data") +
 
     #Add colour
     scale_fill_manual(values = colours1) +

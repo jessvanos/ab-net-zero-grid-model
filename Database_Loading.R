@@ -69,7 +69,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Sep_6_2022_b"
+  SourceDB<-"TestRun_Sep_13_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -123,7 +123,7 @@
   
 #  CC <- dbReadTable(con,'CustomConstraint1')
   ZoneYr <- dbReadTable(con,'ZoneYear1')
-#  ZoneMn <- dbReadTable(con,'ZoneMonth1')
+  ZoneMn <- dbReadTable(con,'ZoneMonth1')
   ZoneHr <- dbReadTable(con,'ZoneHour1')
   #LTRes <- dbReadTable(con,'LTResValue1')
   Build <- dbReadTable(con,'LTBuildReport1')
@@ -182,7 +182,7 @@
    
    ZoneYr$Time_Period  <- as.Date(as.character(ZoneYr$Time_Period), 
                        format = "%Y")
-#  ZoneMn$Time_Period <- ym(ZoneMn$Time_Period)
+  ZoneMn$Time_Period <- ym(ZoneMn$Time_Period)
   ZoneHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ZoneHr$Time_Period))), 
                          tz = "MST")-(60*60)   
   
@@ -464,7 +464,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
               COL_CompAir <-"#D35000"
               COL_Pumped <-"#802A07"
 
-   ## Now Define Lists
+   ## Now Define Lists to assign legends and colors in plots
       colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                   "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
                  "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
@@ -472,21 +472,13 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
                  "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
-
       Outline1=colours1
-      # Outline1 = c("Import"= OUT_IMPORT, "Coal"= OUT_COAL,"Cogen"=OUT_COGEN,
-      #              "Coal-to-Gas"=OUT_NGConv,"SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
-      #              "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
-      #              "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN, 
                    "Natural Gas"=COL_NatGas,"Natual Gas and Hydrogen Blend"=COL_Blend,"Hydrogen"=COL_H2,
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
                    "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       Outline2=colours2
-      # Outline2 = c("Coal"= OUT_COAL, "Coal-to-Gas"=OUT_COal2Gas, "Cogen"=OUT_COGEN, 
-      #              "Natural Gas"=OUT_NGCC, "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, 
-      #              "Wind"=OUT_WIND, "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
        
       colours3 = c("Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                    "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
@@ -497,16 +489,11 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
                    "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
 
       
-      colours4=c("Import"= cOL_IMPORT, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN, 
+      colours4=c("Import"= cOL_IMPORT, "Coal-to-Gas"=cOL_COal2Gas, "Coal"=cOL_COAL,"Cogen"=cOL_COGEN, 
                  "Natural Gas"=COL_NatGas,"Natual Gas and Hydrogen Blend"=COL_Blend,"Hydrogen"=COL_H2,
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
                  "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
-      
       Outline4=colours4
-      # Outline4 = c("Import"= OUT_IMPORT, "Coal"=OUT_COAL, "Coal-to-Gas"=OUT_COal2Gas,
-      #              "Cogen"=OUT_COGEN,  "Natural Gas"=OUT_NGCC, 
-      #              "Hydro"=OUT_HYDRO, "Other"=OUT_OTHER, "Wind"=OUT_WIND, 
-      #              "Solar"=OUT_SOLAR, "Storage"=OUT_STORAGE)
       
       colours5 = c("Cogeneration"=cOL_COGEN, 
                    "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
@@ -517,13 +504,12 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
                    "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
                    "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
       
-      colours6=c("Coal"=cOL_COAL, "Cogen"=cOL_COGEN, 
-                 "Coal-to-Gas"=cOL_NGConv,"SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
-                 "Other"=cOL_OTHER)
-      
-      Outline6 = c("Coal"= OUT_COAL,"Cogen"=OUT_COGEN,
-                   "Coal-to-Gas"=OUT_NGConv,"SCGT"=OUT_SCGT, "NGCC"=OUT_NGCC, 
-                   "Other"=OUT_OTHER)
+      colours6=c("Natural Gas"=COL_NatGas,"Natual Gas and Hydrogen Blend"=COL_Blend,"Hydrogen"=COL_H2,
+                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
+                 "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
+                 "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
+
+      Outline6 = colours6
       
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
@@ -531,8 +517,8 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2022,2023,2024,2026,2028,2030) # Years to show in figures
-  Years2Pivot <- c(2022,2023,2024,2026,2028,2030)  # Years to display in tables
+  Years2Disp <- c(2022,2023,2024,2026,2027) # Years to show in figures
+  Years2Pivot <- c(2022,2023,2024,2026,2027)  # Years to display in tables
 
   #For fun, make the code beep when its all done
   beep(3)
@@ -540,15 +526,14 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
   ################################################################################
-  windows(12,8)
-  windows(8,12)
-  
+  windows(14,10)
+
 ## THE MOST USEFULL FUNCTIONS
   # Gives stacked area chart for single week
-  Week1(2022,09,08,BC)
+  Week1(2022,04,08,BC)
   
   # Grid of weekly output
-  year_weeks(2022,BC)
+  year_weeks(2028,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -593,11 +578,14 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   mn_Trade_Comp(2021,04,BC,HRcalc)
   
   #Full Year output
-  T_month_all_Sim(2021,BC)
+  T_month_all_Sim(2022,BC)
   T_month_all(2021,HRcalc)
 
   # Price Table
   Report_P(Years2Pivot,BC)
+  
+  # Shows demand in AB 
+  AnnualDemand(ZoneMn,BC)
   
   # Annual emissions in stacked area chart
   AnnualEmStack(case)

@@ -46,9 +46,9 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
     H2 <-inputdata %>%
       filter(ID=="LTO_H2") 
     NGH2_Blend <-inputdata %>%
-      filter(ID %in% c("AB_CCCT_Blended","AB_SCCT_Blended") ) %>%
-      mutate(ID,"NGH2_Blend")
-
+      filter(ID %in% c("AB_CCCT_Blended","AB_SCCT_Blended") )
+    NGH2_Blend$ID<- "NGH2_Blend"
+    
     # Not added yet, can add if building
     Nuclear <-inputdata %>%
       filter(ID=="LTO_Nuclear") 
@@ -153,7 +153,7 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
   Solar <- inputdata %>%
     filter(Primary_Fuel=="Solar")
   Storage <- inputdata %>%    
-    filter(Primary_Fuel=="Storage")
+    filter(grepl("Storage",Primary_Fuel))
   Wind <- inputdata %>%
     filter(Primary_Fuel=="Wind")  
   Nuclear <-inputdata %>%
@@ -185,35 +185,40 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
                                  "50-NaturalGas-50-Hydrogen",
                                  "20-NaturalGas-80-Hydrogen"))
   # Combined units with CCS
-  CCC_CCS <- NG100[NG100$ID %like% "%2022CC90CCS%",]   %>%
+  CCC_CCS <- NG100 %>%
+    filter(grepl( "%2022CC90CCS%",Name)) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
 
     # Combined NG units
-  CCCT2 <-NG100[NG100$ID %like% "%2022CC_100NG0H2%",] %>%
+  CCCT2 <-NG100 %>%
+    filter(grepl( "%2022CC_100NG0H2%",Name)) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))  
   CCCT <- rbind(CCCT1,CCCT2)
  
   # Simple NG units
-  SCCT2 <-NG100[NG100$ID %like% c("Frame","Aeroderivative"),]  %>%
+  SCCT2 <-NG100 %>%
+    filter(grepl('2022Frame|2022Aeroderivative',Name)) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT"))
   SCCT <- rbind(SCCT1,SCCT2)
   
   # Blended Combined cycle
-  CC_Blend <-Blend[Blend$ID %like% c("2022CC_70NG30H2",
-                                     "2022CC_50NG50H2",
-                                     "2022CC_20NG80H2"),] %>%
+  CC_Blend <-Blend %>%
+    filter(grepl( '2022CC_70NG30H2|2022CC_50NG50H2|2022CC_20NG80H2',Name)) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-CC")) 
 
   # Blended Simple Cycle
-  SC_Blend <-Blend[Blend$ID %like% c("Frame","Aeroderivative"),] %>%
+  SC_Blend <-Blend %>%
+    filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC"))  
   
   # H2 Combined cycle
-  CC_H2 <-H2[H2$ID %like% "2022CC_0NG100H2",] %>%
+  CC_H2 <-H2 %>%
+    filter(grepl('2022CC_0NG100H2',Name)) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
 
   # H2 Simple cycle
-  SC_H2 <-H2[H2$ID %like% c("Frame","Aeroderivative"),]  %>%
+  SC_H2 <-H2 %>%
+    filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC")) 
 
   }
@@ -254,6 +259,8 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
       filter(Primary_Fuel=="Water")
     Solar <- inputdata %>%
       filter(Primary_Fuel=="Solar")
+    Storage <- inputdata %>%    
+      filter(grepl("Storage",Primary_Fuel))
     Wind <- inputdata %>%
       filter(Primary_Fuel=="Wind")  
     Nuclear <-inputdata %>%
@@ -284,48 +291,54 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
       filter(Primary_Fuel %in% c("70-NaturalGas-30-Hydrogen",
                                  "50-NaturalGas-50-Hydrogen",
                                  "20-NaturalGas-80-Hydrogen"))
-    Storage <- inputdata %>%    
-      filter(Primary_Fuel=="Storage")
-    
     # Combined units with CCS
-    CCC_CCS <- NG100[NG100$ID %like% "%2022CC90CCS%",]   %>%
+    CCC_CCS <- NG100 %>%
+      filter(grepl( "%2022CC90CCS%",Name)) %>%
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
     
     # Combined NG units
-    CCCT2 <-NG100[NG100$ID %like% "%2022CC_100NG0H2%",] %>%
+    CCCT2 <-NG100 %>%
+      filter(grepl( "%2022CC_100NG0H2%",Name)) %>%
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))  
     CCCT <- rbind(CCCT1,CCCT2)
     
     # Simple NG units
-    SCCT2 <-NG100[NG100$ID %like% c("Frame","Aeroderivative"),]  %>%
+    SCCT2 <-NG100 %>%
+      filter(grepl('2022Frame|2022Aeroderivative',Name)) %>%
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT"))
     SCCT <- rbind(SCCT1,SCCT2)
     
     # Blended Combined cycle
-    CC_Blend <-Blend[Blend$ID %like% c("2022CC_70NG30H2",
-                                       "2022CC_50NG50H2",
-                                       "2022CC_20NG80H2"),] %>%
+    CC_Blend <-Blend %>%
+      filter(grepl( '2022CC_70NG30H2|2022CC_50NG50H2|2022CC_20NG80H2',Name)) %>%
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-CC")) 
     
     # Blended Simple Cycle
-    SC_Blend <-Blend[Blend$ID %like% c("Frame","Aeroderivative"),] %>%
+    SC_Blend <-Blend %>%
+      filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC"))  
     
     # H2 Combined cycle
-    CC_H2 <-H2[H2$ID %like% "2022CC_0NG100H2",] %>%
+    CC_H2 <-H2 %>%
+      filter(grepl('2022CC_0NG100H2',Name)) %>%
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
     
     # H2 Simple cycle
-    SC_H2 <-H2[H2$ID %like% c("Frame","Aeroderivative"),]  %>%
+    SC_H2 <-H2 %>%
+      filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC")) 
     
     # Storage Types
-    Stor_B <-Storage[Storage$ID %like% "Battery",]  %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Battery")) 
-    Stor_CA <-Storage[Storage$ID %like% "CompressedAir",]  %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CompressedAir")) 
-    Stor_HP <-Storage[Storage$ID %like% "HydroPumped",]  %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"HydroPumped")) 
+    Stor_B <-    Storage %>%    
+      filter(Primary_Fuel=="Storage - Battery")
+    
+    Stor_HP <- Storage %>%    
+      filter(Primary_Fuel=="Storage - HydroPumped")
+    
+    Stor_CA <- Storage  %>%    
+      filter(Primary_Fuel=="Storage - CompressedAir") 
+    
+
   }
   
   # Combine the grouped data
@@ -337,7 +350,7 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
       "NG-SCCT","CC-CCS","WECC-Alberta NaturalGas",
       "Water", "Other, Bio, ZZ, WC, WH",
       "Wind", "Solar", 
-      "Battery", "CompressedAir","HydroPumped",
+      "Storage - Battery", "Storage - CompressedAir","Storage - HydroPumped",
       "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
     
     levels(case$Primary_Fuel) <- c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
@@ -347,6 +360,63 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
                                    "Wind", "Solar", 
                                    "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
                                    "Cogeneration") }
+  return(case)  }
+}
+
+################################################################################
+## FUNCTION: sim_filt4
+## This function filters for the data that will be evaluated.  
+## Same as 3, however only includes Aurora build options and is based on Fuel Type
+################################################################################
+
+{ sim_filt4 <- function(inputdata) {
+  {
+    # Straight foreward part
+    Other <- inputdata %>%
+      filter(Fuel_Type=="OT")
+    Hydro <- inputdata %>%
+      filter(Fuel_Type=="WAT")
+    Solar <- inputdata %>%
+      filter(Fuel_Type=="SUN")
+    Wind <- inputdata %>%
+      filter(Fuel_Type=="WND")  
+    Nuclear <-inputdata %>%
+      filter(Fuel_Type=="UR") 
+    
+    # Storage Types
+    Stor_B <-    inputdata %>%    
+      filter(Fuel_Type=="PS")
+        Stor_HP <- inputdata %>%    
+      filter(Fuel_Type=="PS3")
+        Stor_CA <- inputdata  %>%    
+      filter(Fuel_Type=="PS2") 
+    
+    # Units as defined by New Resources Table
+    #First split up the fuel types
+    H2 <- inputdata %>%
+      filter(Fuel_Type == "H2")
+    Blend <- inputdata %>%
+      filter(Fuel_Type == "GasB")
+    NG <-inputdata %>%
+      filter(grepl( 'Gas|Gas1|Gas2',Fuel_Type)) %>%
+      mutate(Fuel_Type=ifelse(is.na(Fuel_Type),NA,"NG")) 
+    
+  }
+  
+  # Combine the grouped data
+  { case <- rbind(H2,Blend,NG,
+                  Hydro, Other, Solar, Wind, Stor_B,Stor_CA, Stor_HP)
+    
+    case$Fuel_Type <- factor(case$Fuel_Type, levels=c(
+      "H2","GasB","NG",
+      "WAT", "OT",
+      "WND", "SUN", 
+      "PS", "PS2","PS3"))
+    
+    levels(case$Fuel_Type) <- c("Hydrogen","Natual Gas and Hydrogen Blend","Natural Gas", 
+                                   "Hydro", "Other",
+                                   "Wind", "Solar", 
+                                   "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro") }
   return(case)  }
 }
 
@@ -1040,7 +1110,7 @@ Week12 <- function(year, month, day, case) {
     data %>%
       ggplot() +
       aes(Time_Period, (Output_MWH/1000000), fill = ID, colour=ID) +
-      geom_area(alpha=1, size=.5) +
+      geom_area(alpha=0.7, size=.5) +
       
       theme_bw() +
       
@@ -1053,7 +1123,7 @@ Week12 <- function(year, month, day, case) {
             plot.title = element_text(size = Tit_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
             panel.background = element_rect(fill = NA),
-            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+            #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
             legend.justification = c(0.5,0.5),
@@ -1097,7 +1167,7 @@ Week12 <- function(year, month, day, case) {
     
     data %>%
       ggplot() +
-      geom_area(aes(Time_Period, (Capacity), fill = ID, colour=ID),alpha=1, size=.5) +
+      geom_area(aes(Time_Period, (Capacity), fill = ID, colour=ID),alpha=0.7, size=.5) +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -1108,7 +1178,7 @@ Week12 <- function(year, month, day, case) {
             axis.title.y = element_text(size = YTit_Sz,face="bold"),
             plot.title = element_text(size = Tit_Sz),
             panel.background = element_rect(fill = "transparent"),
-            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+            #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
             plot.subtitle = element_text(hjust = 0.5), 
             legend.position = "bottom",
             legend.key.size = unit(1,"lines"),

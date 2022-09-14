@@ -80,8 +80,13 @@ Build_Totals <- function(case) {
   
   
   # Set levels to each category in order specified
-  data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Coal-to-Gas", "SCCT", "NGCC", "Hydro",
-                                                          "Wind","Solar", "Storage", "Other","Coal", "Cogen") )
+  data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                          "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                          "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                          "Hydro", "Other",
+                                                          "Wind", "Solar", 
+                                                          "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
+                                                          "Cogeneration") )
   
   # Replace the capacity with the peak / actual capacity and not just what is available
   for (i in 1:length(data$Capacity)) {
@@ -156,12 +161,14 @@ Build_A_Totals <- function(case) {
              Time_Period != "Study")%>%
     group_by(Fuel_Type, Time_Period) %>%
     summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) %>%
+    sim_filt4(.) %>%
     ungroup() %>%
     mutate(Capacity=round(Capacity,digits = 0))
   
-  data$Fuel_Type <- factor(data$Fuel_Type, levels=c("Gas0","Gas1","OT", "WND", "SUN","PS"))
-  
-  levels(data$Fuel_Type) <- c( "CCCT gas/oil", "SCCT","Other","Wind", "Solar", "Storage")
+  levels(data$Fuel_Type) <- c("Hydrogen","Natual Gas and Hydrogen Blend","Natural Gas", 
+                              "Hydro", "Other",
+                              "Wind", "Solar", 
+                              "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")
   
   
   # Send to a pivot table
@@ -170,7 +177,7 @@ Build_A_Totals <- function(case) {
     pt$addData(data)
     pt$addColumnDataGroups("Fuel_Type", addTotal=FALSE)
     pt$addRowDataGroups("Time_Period", addTotal=FALSE) 
-    pt$defineCalculation(calculationName="Capacity",summariseExpression=max("Capacity"))
+    pt$defineCalculation(calculationName="Cap",summariseExpression=max("Capacity"))
     pt$evaluatePivot()
     
     pt$renderPivot() # Display in viewer

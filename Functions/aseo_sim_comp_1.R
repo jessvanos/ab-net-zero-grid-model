@@ -42,8 +42,7 @@ AESO_SimOP <- function(year,month,day,case) {
   sz <- 15
   
   p1 <- week_price(year,month,day,case) + 
-          labs(title = paste0("Simulated Data for ",year),
-               subtitle = paste0(SourceDB,", ",case)) +
+          labs(title = paste0("Simulated Data for ",year)) +
           theme(axis.title.x=element_blank(),
                 axis.text.x=element_blank(),
                 axis.title.y=element_text(size=sz, vjust=4),
@@ -60,8 +59,7 @@ AESO_SimOP <- function(year,month,day,case) {
                              breaks = seq(0, MXO, by = MXO/4)) 
 
   p3 <- wkPrice(year,month,day) + 
-          labs(title = paste0("AESO Data for ",year),
-               subtitle = "NRGStream Data") +
+          labs(title = paste0("AESO Data for ",year)) +
           theme(axis.title.x=element_blank(),
                 axis.text.x=element_blank(),
                 axis.title.y=element_blank(),

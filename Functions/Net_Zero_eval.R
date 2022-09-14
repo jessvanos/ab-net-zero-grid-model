@@ -170,7 +170,7 @@ RetireMW <- function(case) {
   #Plot data
   ggplot(Retdata) +
     aes(x=End_Date, y=Capacity, fill = Primary_Fuel, group = Primary_Fuel) +
-    geom_bar(position="stack", stat="identity", alpha=1) +
+    geom_bar(position="stack", stat="identity", alpha=0.8) +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -185,17 +185,17 @@ RetireMW <- function(case) {
           legend.title=element_blank(), 
           legend.key.size = unit(1,"lines"),
           plot.caption=element_text(size=10),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           text = element_text(size = 15)) +
     
-    guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+    guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
     
     labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
     
     scale_x_continuous(expand = c(0.01, 0.01),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
     
     scale_y_continuous(expand=c(0,0),
-                       limits = c(0,(mxc)),breaks=breaks_pretty(6)) +
+                       limits = c(0,(mxc)),breaks=breaks_pretty(5)) +
     
     scale_fill_manual(values=colours3)
   
@@ -286,11 +286,13 @@ Build_A_MW <- function(case) {
     filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
              Time_Period != "Study")%>%
     group_by(Fuel_Type, Time_Period) %>%
-    summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) 
-  
-  data$Fuel_Type <- factor(data$Fuel_Type, levels=c("Gas0","Gas1","OT", "WND", "SUN","PS"))
-  
-  levels(data$Fuel_Type) <- c( "CCCT gas/oil", "SCCT","Other","Wind", "Solar", "Storage")
+    summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) %>%
+    sim_filt4(.)
+
+  levels(data$Fuel_Type) <- c("Hydrogen","Natual Gas and Hydrogen Blend","Natural Gas", 
+                              "Hydro", "Other",
+                              "Wind", "Solar", 
+                              "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")
   
   Tot <- data %>%
     group_by(Time_Period) %>%
@@ -302,7 +304,7 @@ Build_A_MW <- function(case) {
   
   ggplot(data) +
     aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-    geom_bar(position="stack", stat="identity", alpha=1) +
+    geom_bar(position="stack", stat="identity", alpha=0.8) +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -316,17 +318,16 @@ Build_A_MW <- function(case) {
           legend.title=element_blank(),
           legend.position = ("bottom"),
           legend.key.size = unit(1,"lines"),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           text = element_text(size = 20)) +
     
-    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
     
     labs(x = "Date", y = "Capacity Built (MW)", fill = "Fuel Type") +
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,mxc)) +
     #    scale_x_discrete(expand=c(0,0)) +
-    scale_fill_manual(values=c("CCCT gas/oil"=cOL_NGCC, "SCCT"=cOL_SCGT,"Other"=cOL_OTHER,
-                               "Wind"=cOL_WIND,"Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE))
+    scale_fill_manual(values=colours5)
   
 }
 
@@ -417,7 +418,7 @@ BuildMW <- function(case)
   #Plot data
   ggplot(Builddata) +
     aes(x=Beg_Date, y=Capacity, fill = Primary_Fuel, group = Primary_Fuel) +
-    geom_bar(position="stack", stat="identity", alpha=1) +
+    geom_bar(position="stack", stat="identity", alpha=0.8) +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -432,7 +433,7 @@ BuildMW <- function(case)
           legend.title=element_blank(), 
           legend.key.size = unit(1,"lines"),
           plot.caption=element_text(size=10),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           text = element_text(size = 15)) +
     
     guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
@@ -485,8 +486,9 @@ Output_Comp <- function(case) {
     filter(Time_Period %in% Years2Disp)
   
   # re-order teh bars for asthetics
-  data$ID <- factor(data$ID,levels=c("Coal", "Import","Coal-to-Gas", "Cogen", "Natural Gas",
+  data$ID <- factor(data$ID,levels=c("Hydrogen" ,"Natual Gas and Hydrogen Blend","Coal", "Import","Coal-to-Gas", "Cogen", "Natural Gas",
                        "Wind","Other","Solar", "Hydro","Storage"),ordered=TRUE)
+  
   
   # Set the max for the plot
   MX <- plyr::round_any(max(abs(data$Output_MWH)/1000000), 10, f = ceiling)
@@ -495,7 +497,7 @@ Output_Comp <- function(case) {
   data %>%
     ggplot() +
     aes(Time_Period, (Output_MWH/1000000), fill = ID) +
-    geom_bar(position="dodge",stat="identity",alpha=1) +
+    geom_bar(position="dodge",stat="identity",alpha=0.8) +
     
     theme_bw() +
     
@@ -508,7 +510,7 @@ Output_Comp <- function(case) {
           plot.title = element_text(size = Tit_Sz),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           legend.key.size = unit(1,"lines"), #Shrink legend
           legend.position = "bottom",
           legend.justification = c(0.5,0.5),
@@ -522,7 +524,7 @@ Output_Comp <- function(case) {
 
     labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource") +
     
-    guides(fill = guide_legend(nrow = 1)) +
+    guides(fill = guide_legend(nrow = 3)) +
     
     scale_fill_manual(values = colours4) 
   
