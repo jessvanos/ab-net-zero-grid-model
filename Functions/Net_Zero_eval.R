@@ -598,7 +598,7 @@ AnnualDemand <- function(input,case) {
 }
 
 ################################################################################  
-## FUNCTION: AnnualEmStack
+## FUNCTION: AnnualEmStackCol
 ## Plot annual emissions by resource group as as stacked chart
 ##
 ## INPUTS: 
@@ -606,31 +606,32 @@ AnnualDemand <- function(input,case) {
 ## TABLES REQUIRED: 
 ##    ResGroupEmYr -Yearly resoruce group emissions
 ################################################################################
-AnnualEmStack <- function(case) {
+AnnualEmStackCol <- function(case) {
   
     # Filters for the desired case study
     data <- ResGroupEmYr %>%
       filter(Run_ID == case & Condition == "Average") %>%
       filter(Type== "CO2") %>%
       select(ID, Report_Year, Amount, Cost) %>%
-      sim_filt1(.)  %>%
-      filter(!ID=="Cogen") # Temp remove cogen
+      sim_filtEm(.)  %>%
+      filter(!ID=="Cogeneration") # Temp remove cogen
     
+    # Set the max for the plot
+    dyMX <- aggregate(data["Amount"], by=data["Report_Year"], sum)
+    MX <- plyr::round_any(max(abs(dyMX$Amount/1000000)+1), 5, f = ceiling)
+    
+    # Format years to assist plot
     data$Report_Year  <- as.numeric(data$Report_Year)
     
     # Get Year max for run
     MaxYr <- as.numeric(max(data$Report_Year))
     MinYr <- (min(data$Report_Year))
     
-    # Set the max for the plot
-    dyMX <- aggregate(data["Amount"], by=data["Report_Year"], sum)
-    MX <- plyr::round_any(max(abs(dyMX$Amount/1000000)), 10, f = ceiling)
-    
     # Plot
     data %>%
       ggplot() +
-      aes(Report_Year, (Amount/1000000), fill = ID, colour=ID) +
-      geom_area(alpha=1, size=.5) +
+      aes(Report_Year, (Amount/1000000), fill = ID) +
+      geom_bar(position="stack", stat="identity") +
       
       theme_bw() +
       
@@ -656,10 +657,9 @@ AnnualEmStack <- function(case) {
       
       labs(x = "Year", y = "Annual Emissions (Mt Co2e)", fill = "Resource",colour="Resource",caption = SourceDB) +
       
-      guides(fill = guide_legend(nrow = 1)) +
+      guides(fill = guide_legend(nrow = 2)) +
       
-      scale_fill_manual(values = colours6) +
-      scale_colour_manual(values = Outline6)
+      scale_fill_manual(values = colours7) 
     
 }
 
@@ -679,8 +679,8 @@ AnnualEmLine <- function(case) {
     filter(Run_ID == case & Condition == "Average") %>%
     filter(Type== "CO2") %>%
     select(ID, Report_Year, Amount, Cost) %>%
-    sim_filt1(.)  %>%
-    filter(!ID=="Cogen") # Temp remove cogen
+    sim_filtEm(.)  %>%
+    filter(!ID=="Cogeneration") # Temp remove cogen
   
   data$Report_Year  <- as.numeric(data$Report_Year)
   
@@ -689,13 +689,13 @@ AnnualEmLine <- function(case) {
   MinYr <- (min(data$Report_Year))
   
   # Set the max for the plot
-  MX <- plyr::round_any(max(abs(data$Amount/1000000)), 10, f = ceiling)
+  MX <- plyr::round_any(max(abs(data$Amount/1000000)+1), 2, f = ceiling)
   
   # Plot
   data %>%
     ggplot() +
     aes(Report_Year, (Amount/1000000),colour=ID) +
-    geom_line(size=1.25,linetype="longdash",alpha = 0.8) +
+    geom_line(size=1.25,linetype="longdash",alpha = 1) +
     
     theme_bw() +
     
@@ -715,7 +715,7 @@ AnnualEmLine <- function(case) {
           legend.title=element_blank(),
           text = element_text(size = 15)) +
     
-    guides(colour = guide_legend(nrow = 1)) +
+    guides(colour = guide_legend(nrow = 2)) +
     
     scale_x_continuous(expand = c(0, 0),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
     
@@ -724,7 +724,8 @@ AnnualEmLine <- function(case) {
     labs(x = "Year", y = "Annual Emissions (Mt Co2e)", fill = "Resource",colour="Resource",caption = SourceDB) +
 
     
-    scale_colour_manual(values = Outline6)
+    scale_colour_manual(values = Outline7)
   
   
 }
+

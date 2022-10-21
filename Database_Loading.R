@@ -53,6 +53,8 @@
   source(here('Functions','Net_Zero_eval.R'))
   source(here('Functions','intertie_info.R'))
   source(here('Functions','net_zero_tables.R'))
+  source(here('Functions','Res_Filters.R'))
+  source(here('Functions','Hourly_Functions.R')) # Annual hourly output for 12 days
   
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
@@ -69,7 +71,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Sep_13_2022"
+  SourceDB<-"TestRun_Oct_11_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -474,6 +476,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       Outline1=colours1
       
+      
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN, 
                    "Natural Gas"=COL_NatGas,"Natual Gas and Hydrogen Blend"=COL_Blend,"Hydrogen"=COL_H2,
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
@@ -511,14 +514,22 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 
       Outline6 = colours6
       
+      colours7=c("Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+                 "Coal-to-Gas"=cOL_NGConv, "Blended  Simple Cycle"=cOL_SCGT_Blend,
+                 "Blended  Combined Cycle"=cOL_NGCC_Blend,
+                 "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                 "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC)
+      
+      Outline7 = colours7
+      
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
     }
 }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2022,2023,2024,2026,2027) # Years to show in figures
-  Years2Pivot <- c(2022,2023,2024,2026,2027)  # Years to display in tables
+  Years2Disp <- c(2022,2024,2026,2028,2030) # Years to show in figures
+  Years2Pivot <- c(2022,2024,2026,2028,2030)  # Years to display in tables
 
   #For fun, make the code beep when its all done
   beep(3)
@@ -533,7 +544,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   Week1(2022,04,08,BC)
   
   # Grid of weekly output
-  year_weeks(2028,BC)
+  year_weeks(2024,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -588,9 +599,9 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   AnnualDemand(ZoneMn,BC)
   
   # Annual emissions in stacked area chart
-  AnnualEmStack(case)
+  AnnualEmStackCol(BC)
   # Annual emissions in individual lines
-  AnnualEmLine(case)
+  AnnualEmLine(BC)
   
 ################################################################################  
 ## BUT THERE ARE MORE ...
@@ -598,7 +609,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
 ## SIM FUNCTIONS (sim_eval_1)
 {  #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
-    day1(2029,01,08,BC)
+    day1(2027,01,12,BC)
     
     # Gives stacked area chart for single week
     Week1(2021,01,08,BC)
@@ -748,9 +759,10 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     
     windows(16,12)
 
-
+## Developing
+    YearOfDays(2022,3,BC,"ALL",14000)
+    YearOfDays(2030,3,BC,"WIND",10000)
     
- 
-    
-    
+    day1(2022,01,11,BC)
+    day2(2022,01,11,BC,"WIND",10000)
     

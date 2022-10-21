@@ -4,7 +4,7 @@
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: June 14, 2022; LAST EDIT: June 25, 2022
+# CREATED: June 14, 2022; LAST EDIT: September 15, 2022
 
 ################################################################################
 ## FUNCTION: packs_check
@@ -59,3 +59,12 @@ imsave_loc <- function(name) {
 yhour <- function(d_time) {
   (yday(d_time) - 1) * 24 + hour(d_time)
 }
+
+
+################################################################################
+## FUNCTION: round_any
+##
+## INPUTS: 
+##    
+################################################################################
+round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
