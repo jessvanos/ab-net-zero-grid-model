@@ -389,14 +389,14 @@ BuildMW <- function(case)
     filter(.,Capacity>0) %>%
     filter(Beg_Date==Time_Period) %>%
     select(., c("Name","Capacity","Primary_Fuel","Beg_Date"))
-  # 
-  # # Add cap increases manual
-  # Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
-  #                    Capacity=c(800),
-  #                    Primary_Fuel=c("Cogeneration"),
-  #                    Beg_Date=c(2024))
-  # 
-  # Builddata <-  rbind(Builddata,Capinc)
+
+  # Add cap increases manual
+  Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
+                     Capacity=c(800),
+                     Primary_Fuel=c("Cogeneration"),
+                     Beg_Date=c(2024))
+
+  Builddata <-  rbind(Builddata,Capinc)
   
   
     
