@@ -446,16 +446,16 @@
   
   # Combine the grouped data
   { case <- rbind(NGConv,SCCT_Blend,CCCT_Blend,
-                  SCCT, CCCT_CCS, CCCT, Coal, Cogen )
+                  SCCT, CCCT_CCS, CCCT, Coal, Cogen, Other )
     
     case$ID <- factor(case$ID, levels=c("AB_NGCONV",
                                         "AB_SCCT_Blended","AB_CCCT_Blended",
                                         "AB_SCCT_noncogen", "AB_CC90CCS_noncogen","AB_CCCT_noncogen",
-                                        "LTO_Coal","LTO_Cogen"))
+                                        "LTO_Coal","LTO_Cogen","LTO_Other"))
     
     levels(case$ID) <- c("Coal-to-Gas", 
                          "Blended  Simple Cycle","Blended  Combined Cycle",
                          "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                          "Coal", "Cogeneration")  }
+                          "Coal", "Cogeneration","Other")  }
   return(case)  }
 }

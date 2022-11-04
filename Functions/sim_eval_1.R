@@ -458,7 +458,19 @@ Week12 <- function(year, month, day, case) {
     DY$MX <- ZPrice$Demand + Expo$Output_MWH
     
     # Set the max and min for the plot Output axis (y), Set slightly above max ( round up to nearest 500)
-    MX <- plyr::round_any(max(abs(DY$MX)), 500, f = ceiling)
+    MX <- plyr::round_any(max(abs(DY$MX+11)), 500, f = ceiling)
+    
+    
+    # # Fill anoying gaps 
+    # 
+    # DATE <- unique(DY$date)
+    # ID_1 <- unique(DY$ID)
+    # 
+    # combinations <- expand.grid(date = DATE, ID = ID_1)
+    # 
+    # DY <- full_join(DY, combinations, by = c("date" = "date", "ID" = "ID")) %>%
+    #   mutate(Output_MWH = ifelse(is.na(Output_MWH), 0, Output_MWH)) %>%
+    #   arrange(date, ID)
     
     ## PLOT WITH AREA PLOT
     

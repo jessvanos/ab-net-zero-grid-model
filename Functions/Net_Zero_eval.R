@@ -371,8 +371,8 @@ BuildMW <- function(case)
   MaxYr <- max(ResYr$YEAR)
   MinYr <- min(ResYr$YEAR)
   
-  # Give current date so that already built are not listed as new additions
-  CurDate <- as.Date("08/10/2022", 
+  # Give start date so that already built are not listed as new additions
+  CurDate <- as.Date("01/01/2022", 
                      format = "%m/%d/%Y")
   data$FiltDate  <- as.Date(data$Beg_Date, 
                             format = "%m/%d/%Y")
@@ -389,14 +389,14 @@ BuildMW <- function(case)
     filter(.,Capacity>0) %>%
     filter(Beg_Date==Time_Period) %>%
     select(., c("Name","Capacity","Primary_Fuel","Beg_Date"))
-  
-  # Add cap increases manual
-  Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
-                     Capacity=c(800),
-                     Primary_Fuel=c("Cogen"),
-                     Beg_Date=c(2024))
-  
-  Builddata <-  rbind(Builddata,Capinc)
+  # 
+  # # Add cap increases manual
+  # Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
+  #                    Capacity=c(800),
+  #                    Primary_Fuel=c("Cogeneration"),
+  #                    Beg_Date=c(2024))
+  # 
+  # Builddata <-  rbind(Builddata,Capinc)
   
   
     
@@ -445,6 +445,8 @@ BuildMW <- function(case)
     
     scale_fill_manual(values=colours5)
   
+  # BuiltUnitsList <- list(BuiltUnits)
+  # return(BuiltUnitsList)
 }
 
 ################################################################################  
@@ -680,7 +682,7 @@ AnnualEmLine <- function(case) {
     filter(Type== "CO2") %>%
     select(ID, Report_Year, Amount, Cost) %>%
     sim_filtEm(.)  %>%
-    filter(!ID=="Cogeneration") # Temp remove cogen
+    filter(!ID=="Cogeneration") # Temp remove cogen for now
   
   data$Report_Year  <- as.numeric(data$Report_Year)
   
@@ -688,14 +690,25 @@ AnnualEmLine <- function(case) {
   MaxYr <- as.numeric(max(data$Report_Year))
   MinYr <- (min(data$Report_Year))
   
+  # Get total emissions per year
+  AllEm <- data %>%
+    group_by(Report_Year) %>%
+    summarise(.,Amount=sum(Amount),Cost=sum(Cost))%>%
+    ungroup() %>%
+    relocate(Report_Year, .before = Amount)  %>%
+    add_column(ID="Total Emissions",.before="Report_Year")
+    
+  CombData <-rbind(data,AllEm)
+  
+  
   # Set the max for the plot
-  MX <- plyr::round_any(max(abs(data$Amount/1000000)+1), 2, f = ceiling)
+  MX <- plyr::round_any(max(abs(CombData$Amount/1000000)+1), 1, f = ceiling)
   
   # Plot
-  data %>%
+  CombData %>%
     ggplot() +
-    aes(Report_Year, (Amount/1000000),colour=ID) +
-    geom_line(size=1.25,linetype="longdash",alpha = 1) +
+    geom_line(size=1.5,alpha = 1) +
+    aes(Report_Year, (Amount/1000000),colour = ID,linetype = ID) +
     
     theme_bw() +
     
@@ -708,24 +721,23 @@ AnnualEmLine <- function(case) {
           plot.title = element_text(size = Tit_Sz),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          legend.key.size = unit(1,"lines"), #Shrink legend
+          # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          #legend.key.size = unit(1,"lines"), #Shrink legend
           legend.position = "bottom",
           legend.justification = c(0.5,0.5),
           legend.title=element_blank(),
           text = element_text(size = 15)) +
     
-    guides(colour = guide_legend(nrow = 2)) +
-    
+    labs(x = "Year", y = "Annual Emissions (Mt Co2e)",colour="ID",linetype="ID",caption = paste(SourceDB,',','Cogen has been removed for this figure')) +
+  
     scale_x_continuous(expand = c(0, 0),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
     
     scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
     
-    labs(x = "Year", y = "Annual Emissions (Mt Co2e)", fill = "Resource",colour="Resource",caption = SourceDB) +
+    scale_colour_manual(name="Guide1",values = colours7) +
+    scale_linetype_manual(name="Guide1",values = Lines7)
 
     
-    scale_colour_manual(values = Outline7)
-  
   
 }
 

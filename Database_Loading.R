@@ -71,7 +71,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"TestRun_Oct_11_2022"
+  SourceDB<-"FullRun_Oct_25_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -514,13 +514,17 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 
       Outline6 = colours6
       
-      colours7=c("Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+      colours7=c("Total Emissions"="black","Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                  "Coal-to-Gas"=cOL_NGConv, "Blended  Simple Cycle"=cOL_SCGT_Blend,
                  "Blended  Combined Cycle"=cOL_NGCC_Blend,
                  "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
-                 "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC)
+                 "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, "Other"=cOL_OTHER)
       
-      Outline7 = colours7
+      Lines7=c("Total Emissions"=1,"Coal"=1, "Cogeneration"=6, 
+               "Coal-to-Gas"=2, "Blended  Simple Cycle"=5,
+               "Blended  Combined Cycle"=6,
+               "Natural Gas Combined Cycle + CCS"=2,
+               "Natural Gas Simple Cycle"=5, "Natural Gas Combined Cycle"=3, "Other"=4)
       
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
@@ -528,8 +532,8 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2022,2024,2026,2028,2030) # Years to show in figures
-  Years2Pivot <- c(2022,2024,2026,2028,2030)  # Years to display in tables
+  Years2Disp <- c(2022,2025,2030,2035) # Years to show in figures
+  Years2Pivot <- c(2022,2025,2030,2035)  # Years to display in tables
 
   #For fun, make the code beep when its all done
   beep(3)
@@ -609,7 +613,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
 ## SIM FUNCTIONS (sim_eval_1)
 {  #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
-    day1(2027,01,12,BC)
+    day1(2022,11,07,BC)
     
     # Gives stacked area chart for single week
     Week1(2021,01,08,BC)
@@ -763,6 +767,6 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     YearOfDays(2022,3,BC,"ALL",14000)
     YearOfDays(2030,3,BC,"WIND",10000)
     
-    day1(2022,01,11,BC)
+    day1(2032,01,09,BC)
     day2(2022,01,11,BC,"WIND",10000)
     
