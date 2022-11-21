@@ -274,7 +274,7 @@ xtitle <- ggplot() +
 xsubtitle <- ggplot() +
   annotate("text", x = 10,  y = 10,
            size = 4,
-           label = paste("Running Every Second Week, Every",day, "Year:",year,", Resource:",Restype,", Database:",SourceDB)) +
+           label = paste("Running Every Second Week, Showing",wday(day,label=TRUE, abbr=FALSE), ", Year:",year,", Resource:",Restype,", Database:",SourceDB)) +
   theme_void()
 
 #Create a big window

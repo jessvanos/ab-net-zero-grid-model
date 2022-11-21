@@ -70,7 +70,7 @@ Retirecol <- function(case) {
   #Plot data
   ggplot(Retdata) +
     aes(x=End_Date, y=Units, fill = Primary_Fuel, group = Primary_Fuel) +
-    geom_bar(position="stack", stat="identity", alpha=1) +
+    geom_bar(position="stack", stat="identity", alpha=0.7,color="black") +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -170,7 +170,7 @@ RetireMW <- function(case) {
   #Plot data
   ggplot(Retdata) +
     aes(x=End_Date, y=Capacity, fill = Primary_Fuel, group = Primary_Fuel) +
-    geom_bar(position="stack", stat="identity", alpha=0.8) +
+    geom_bar(position="stack", stat="identity", alpha=0.7,color='black') +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -197,7 +197,7 @@ RetireMW <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,(mxc)),breaks=breaks_pretty(5)) +
     
-    scale_fill_manual(values=colours3)
+    scale_fill_manual(values=colours3,drop = FALSE)
   
 }
 
@@ -304,7 +304,7 @@ Build_A_MW <- function(case) {
   
   ggplot(data) +
     aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-    geom_bar(position="stack", stat="identity", alpha=0.8) +
+    geom_bar(position="stack", stat="identity", alpha=0.7) +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -327,7 +327,7 @@ Build_A_MW <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,mxc)) +
     #    scale_x_discrete(expand=c(0,0)) +
-    scale_fill_manual(values=colours5)
+    scale_fill_manual(values=colours5,drop = FALSE)
   
 }
 
@@ -418,7 +418,7 @@ BuildMW <- function(case)
   #Plot data
   ggplot(Builddata) +
     aes(x=Beg_Date, y=Capacity, fill = Primary_Fuel, group = Primary_Fuel) +
-    geom_bar(position="stack", stat="identity", alpha=0.8) +
+    geom_bar(position="stack", stat="identity", alpha=0.7,color='black') +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -443,7 +443,7 @@ BuildMW <- function(case)
                        limits = c(0,(mxc)),breaks=breaks_pretty(6)) +
     scale_x_continuous(expand = c(0.01, 0.01),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
     
-    scale_fill_manual(values=colours5)
+    scale_fill_manual(values=colours5,drop = FALSE)
   
   # BuiltUnitsList <- list(BuiltUnits)
   # return(BuiltUnitsList)
@@ -499,7 +499,7 @@ Output_Comp <- function(case) {
   data %>%
     ggplot() +
     aes(Time_Period, (Output_MWH/1000000), fill = ID) +
-    geom_bar(position="dodge",stat="identity",alpha=0.8) +
+    geom_bar(position="dodge",stat="identity",alpha=0.7,'color'="black") +
     
     theme_bw() +
     
@@ -528,7 +528,7 @@ Output_Comp <- function(case) {
     
     guides(fill = guide_legend(nrow = 3)) +
     
-    scale_fill_manual(values = colours4) 
+    scale_fill_manual(values = colours4,drop = FALSE) 
   
 }
 
@@ -632,8 +632,8 @@ AnnualEmStackCol <- function(case) {
     # Plot
     data %>%
       ggplot() +
-      aes(Report_Year, (Amount/1000000), fill = ID) +
-      geom_bar(position="stack", stat="identity") +
+      aes(Report_Year, (Amount/1000000), fill = ID,) +
+      geom_bar(position="stack", stat="identity",alpha=0.7, size=.5, colour="black") +
       
       theme_bw() +
       
@@ -657,11 +657,11 @@ AnnualEmStackCol <- function(case) {
       
       scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       
-      labs(x = "Year", y = "Annual Emissions (Mt Co2e)", fill = "Resource",colour="Resource",caption = SourceDB) +
+      labs(x = "Year", y = "Annual Emissions (Mt Co2e)", fill = "Resource",colour="Resource",caption =paste(SourceDB,',','Cogen has been removed for this figure')) +
       
       guides(fill = guide_legend(nrow = 2)) +
       
-      scale_fill_manual(values = colours7) 
+      scale_fill_manual(values = colours7,drop = FALSE) 
     
 }
 
@@ -734,10 +734,62 @@ AnnualEmLine <- function(case) {
     
     scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
     
-    scale_colour_manual(name="Guide1",values = colours7) +
-    scale_linetype_manual(name="Guide1",values = Lines7)
+    scale_colour_manual(name="Guide1",values = colours7,drop = FALSE) +
+    scale_linetype_manual(name="Guide1",values = Lines7,drop = FALSE)
 
     
   
 }
 
+################################################################################  
+## FUNCTION: AnnualEmLine (original author: Taylor Pawlenchuk)
+## Plot annual emissions by resource group as as stacked chart
+##
+## INPUTS: 
+##    input - ResGroupYear
+## TABLES REQUIRED: 
+##    ResGroupYear -Yearly resoruce group emissions
+################################################################################
+
+Eval_diffcap <- function(input,case) {
+  
+  # Filters for the desired case study
+  data <- input %>%
+    filter(Run_ID == case & Condition == "Average") %>%
+    subset(.,select=c(ID, Time_Period, Capacity)) %>%
+    sim_filt5(.) %>%
+    group_by(ID) %>%
+    arrange(Time_Period) %>%
+    mutate(diff = Capacity - lag(Capacity, default = first(Capacity)))
+  
+  data$Time_Period <- as.factor(format(data$Time_Period, format="%Y"))
+  
+  Tot <- data %>%
+    group_by(Time_Period) %>%
+    summarise(maxy = sum(diff[which(diff>0)]), miny = sum(diff[which(diff<0)]))
+  
+  mny <- plyr::round_any(min(Tot$miny),1000, f=floor)
+  mxy <- plyr::round_any(max(Tot$maxy),1000, f=ceiling)
+  
+  mnx <- format(min(ResGroupMn$Time_Period), format="%Y")
+  mxx <- format(max(ResGroupMn$Time_Period), format="%Y")
+  
+  # Plot it all
+  data %>%
+    ggplot() +
+    aes(Time_Period, (diff), fill = ID) +
+    geom_col(alpha=0.7, size=.5, colour="black") +
+    theme_bw() +
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5), 
+          legend.justification = c(0,0.5)) +
+    scale_x_discrete(expand=c(0,0),
+                     limits = as.character(mnx:mxx)) +
+    scale_y_continuous(expand=c(0,0),
+                       limits = c((mny),(mxy))) +
+    scale_fill_manual(values=colours8,drop = FALSE) +
+
+    labs(x = "Date", y = "Yearly change in capacity (MW)", fill = "Resource",caption = paste(SourceDB))
+}

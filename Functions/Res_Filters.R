@@ -172,10 +172,7 @@
       filter(Primary_Fuel=="100-NaturalGas-0-Hydrogen") 
     H2 <- inputdata %>%
       filter(Primary_Fuel=="0-NaturalGas-100-Hydrogen")
-    Blend <- inputdata %>%
-      filter(Primary_Fuel %in% c("70-NaturalGas-30-Hydrogen",
-                                 "50-NaturalGas-50-Hydrogen",
-                                 "20-NaturalGas-80-Hydrogen"))
+
     # Combined units with CCS
     CCC_CCS <- NG100 %>%
       filter(grepl( "%2022CC90CCS%",Name)) %>%
@@ -194,14 +191,14 @@
     SCCT <- rbind(SCCT1,SCCT2)
     
     # Blended Combined cycle
-    CC_Blend <-Blend %>%
-      filter(grepl( '2022CC_70NG30H2|2022CC_50NG50H2|2022CC_20NG80H2',Name)) %>%
+    CC_Blend <-inputdata %>%
+      filter(Primary_Fuel %in% c('20-NaturalGas-80-Hydrogen Combined Cycle','50-NaturalGas-50-Hydrogen Combined Cycle','70-NaturalGas-30-Hydrogen Combined Cycle')) %>%
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-CC")) 
     
     # Blended Simple Cycle
-    SC_Blend <-Blend %>%
-      filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC"))  
+    SC_Blend <-inputdata %>%
+      filter(Primary_Fuel %in% c('20-NaturalGas-80-Hydrogen Simple Cycle','50-NaturalGas-50-Hydrogen Simple Cycle','70-NaturalGas-30-Hydrogen Simple Cycle')) %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC")) 
     
     # H2 Combined cycle
     CC_H2 <-H2 %>%
@@ -258,6 +255,16 @@
     Nuclear <-inputdata %>%
       filter(Primary_Fuel=="Uranium") 
     
+    # Blended Combined cycle
+    CC_Blend <-inputdata %>%
+      filter(Primary_Fuel %in% c('20-NaturalGas-80-Hydrogen Combined Cycle','50-NaturalGas-50-Hydrogen Combined Cycle','70-NaturalGas-30-Hydrogen Combined Cycle')) %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-CC")) 
+    
+    # Blended Simple Cycle
+    SC_Blend <-inputdata %>%
+      filter(Primary_Fuel %in% c('20-NaturalGas-80-Hydrogen Simple Cycle','50-NaturalGas-50-Hydrogen Simple Cycle','70-NaturalGas-30-Hydrogen Simple Cycle')) %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC")) 
+    
     # Get NG Units as defined in Resource Table
     CCCT1 <- inputdata %>%
       filter(Primary_Fuel=="WECC-Alberta NaturalGas")
@@ -270,6 +277,7 @@
     
     SCCT1 <- NG2AB[NG2AB$ID %like% "%Simple%",] %>%
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
+    
     # Separate Simple Cycle
     SCCT1$Primary_Fuel<- "NG-SCCT"
     
@@ -277,48 +285,36 @@
     #First split up the fuel types
     NG100 <- inputdata %>%
       filter(Primary_Fuel=="100-NaturalGas-0-Hydrogen") 
+
+              # Combined units with CCS
+              CCC_CCS <- NG100 %>%
+                filter(grepl( "%2022CC90CCS%",Name)) %>%
+                mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
+              
+              # Combined NG units
+              CCCT2 <-NG100 %>%
+                filter(grepl( "%2022CC_100NG0H2%",Name)) %>%
+                mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))  
+              CCCT <- rbind(CCCT1,CCCT2)
+              
+              # Simple NG units
+              SCCT2 <-NG100 %>%
+                filter(grepl('2022Frame|2022Aeroderivative',Name)) %>%
+                mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT"))
+              SCCT <- rbind(SCCT1,SCCT2)
+    
     H2 <- inputdata %>%
-      filter(Primary_Fuel=="0-NaturalGas-100-Hydrogen")
-    Blend <- inputdata %>%
-      filter(Primary_Fuel %in% c("70-NaturalGas-30-Hydrogen",
-                                 "50-NaturalGas-50-Hydrogen",
-                                 "20-NaturalGas-80-Hydrogen"))
-    # Combined units with CCS
-    CCC_CCS <- NG100 %>%
-      filter(grepl( "%2022CC90CCS%",Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
+      filter(Primary_Fuel=="0-NaturalGas-100-Hydrogen")         
     
-    # Combined NG units
-    CCCT2 <-NG100 %>%
-      filter(grepl( "%2022CC_100NG0H2%",Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))  
-    CCCT <- rbind(CCCT1,CCCT2)
-    
-    # Simple NG units
-    SCCT2 <-NG100 %>%
-      filter(grepl('2022Frame|2022Aeroderivative',Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT"))
-    SCCT <- rbind(SCCT1,SCCT2)
-    
-    # Blended Combined cycle
-    CC_Blend <-Blend %>%
-      filter(grepl( '2022CC_70NG30H2|2022CC_50NG50H2|2022CC_20NG80H2',Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-CC")) 
-    
-    # Blended Simple Cycle
-    SC_Blend <-Blend %>%
-      filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC"))  
-    
-    # H2 Combined cycle
-    CC_H2 <-H2 %>%
-      filter(grepl('2022CC_0NG100H2',Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
-    
-    # H2 Simple cycle
-    SC_H2 <-H2 %>%
-      filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC")) 
+              # H2 Combined cycle
+              CC_H2 <-H2 %>%
+                filter(grepl('2022CC_0NG100H2',Name)) %>%
+                mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
+              
+              # H2 Simple cycle
+              SC_H2 <-H2 %>%
+                filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
+                mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC")) 
     
     # Storage Types
     Stor_B <-    Storage %>%    
@@ -388,7 +384,8 @@
     H2 <- inputdata %>%
       filter(Fuel_Type == "H2")
     Blend <- inputdata %>%
-      filter(Fuel_Type == "GasB")
+      filter(grepl( 'GasB_CC|GasB_SC',Fuel_Type)) %>%
+      mutate(Fuel_Type=ifelse(is.na(Fuel_Type),NA,"GasB"))
     NG <-inputdata %>%
       filter(grepl( 'Gas|Gas1|Gas2',Fuel_Type)) %>%
       mutate(Fuel_Type=ifelse(is.na(Fuel_Type),NA,"NG")) 
@@ -412,6 +409,76 @@
   return(case)  }
 }
 
+################################################################################
+## FUNCTION: sim_filt5
+## This function filters for the data that will be evaluated.  
+################################################################################
+
+sim_filt5 <- function(inputdata) {
+  {
+    # Filter the data by resource, creates a table for each resource
+    {
+    Coal <- inputdata %>%
+      filter(ID=="LTO_Coal")
+    Cogen  <- inputdata %>%
+      filter(ID=="LTO_Cogen")
+    Other <- inputdata %>%
+      filter(ID=="LTO_Other")
+    Hydro <- inputdata %>%
+      filter(ID=="LTO_Hydro")
+    Solar <- inputdata %>%
+      filter(ID=="LTO_Solar")
+    Wind <- inputdata %>%
+      filter(ID=="LTO_Wind")  
+    
+    NGConv <- inputdata %>%
+      filter(ID=="AB_NGCONV")
+    SCCT  <- inputdata %>%
+      filter(ID=="AB_SCCT_noncogen")
+    CCCT <- inputdata %>%
+      filter(ID=="AB_CCCT_noncogen")
+    CCCT_CCS <- inputdata %>%
+      filter(ID=="AB_CC90CCS_noncogen")
+    
+    SCCT_H2  <- inputdata %>%
+      filter(ID=="AB_SCCT_0NG100H2")
+    CCCT_H2 <- inputdata %>%
+      filter(ID=="AB_CCCT_0NG100H2")
+    SCCT_Blend  <- inputdata %>%
+      filter(ID=="AB_SCCT_Blended")
+    CCCT_Blend <- inputdata %>%
+      filter(ID=="AB_CCCT_Blended")
+    
+    Stor_B <- inputdata %>%    
+      filter(ID=="Battery")
+    Stor_HP <- inputdata %>%    
+      filter(ID=="HydroPumped")
+    Stor_CA <- inputdata %>%    
+      filter(ID=="CompressedAir")
+    
+    # Not added yet, can add if building
+    Nuclear <-inputdata %>%
+      filter(ID=="LTO_Nuclear") 
+  }
+  
+  # Combine the grouped data
+  { case <- rbind(NGConv, SCCT_H2,CCCT_H2,SCCT_Blend,CCCT_Blend,
+                  SCCT, CCCT_CCS,CCCT, Hydro, Other, Wind, Solar, Stor_B,Stor_HP,Stor_CA,Nuclear,Coal,Cogen)
+                  
+    case$ID <- factor(case$ID, levels=c(
+      "AB_NGCONV","AB_SCCT_0NG100H2","AB_CCCT_0NG100H2","AB_SCCT_Blended","AB_CCCT_Blended",
+      "AB_SCCT_noncogen","AB_CC90CCS_noncogen","AB_CCCT_noncogen",
+      "LTO_Hydro","LTO_Other","LTO_Wind","LTO_Solar","Battery","HydroPumped","CompressedAir","LTO_Nuclear","LTO_Coal","LTO_Cogen"))
+    
+    levels(case$ID) <- c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                   "Blended  Simple Cycle","Blended  Combined Cycle",
+                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                   "Hydro", "Other","Wind", 
+                                   "Solar","Storage - Battery", "Storage - Pumped Hydro", "Storage - Compressed Air",
+                                   "Nuclear","Coal", "Cogeneration") }
+  return(case)  
+}
+}
 ################################################################################
 ## FUNCTION: sim_filtEm
 ## This function filters for emission releasing resources 
@@ -459,3 +526,4 @@
                           "Coal", "Cogeneration","Other")  }
   return(case)  }
 }
+

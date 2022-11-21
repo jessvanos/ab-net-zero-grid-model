@@ -694,7 +694,7 @@ Week12 <- function(year, month, day, case) {
       
       labs(x = "Date", y = "Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
       
-      guides(fill = guide_legend(nrow = 2)) +
+      guides(fill = guide_legend(nrow = 1)) +
       
       scale_fill_manual(values = colours4) +
       scale_colour_manual(values = Outline4)
@@ -740,8 +740,8 @@ Week12 <- function(year, month, day, case) {
     # Plot
     data %>%
       ggplot() +
-      aes(Time_Period, (Output_MWH/1000000), fill = ID, colour=ID) +
-      geom_area(alpha=0.7, size=.5) +
+      aes(Time_Period, (Output_MWH/1000000), fill = ID) +
+      geom_area(alpha=0.7, size=.5, colour="black") +
       
       theme_bw() +
       
@@ -766,10 +766,10 @@ Week12 <- function(year, month, day, case) {
       
       labs(x = "Date", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
       
-      guides(fill = guide_legend(nrow = 2)) +
+      guides(fill = guide_legend(nrow = 1)) +
       
-      scale_fill_manual(values = colours4) +
-      scale_colour_manual(values = Outline4)
+      scale_fill_manual(values = colours4,drop = FALSE) 
+      #scale_colour_manual(values = Outline4)
     
     
   }
@@ -798,7 +798,7 @@ Week12 <- function(year, month, day, case) {
     
     data %>%
       ggplot() +
-      geom_area(aes(Time_Period, (Capacity), fill = ID, colour=ID),alpha=0.7, size=.5) +
+      geom_area(aes(Time_Period, (Capacity), fill = ID, colour=ID),alpha=0.7, size=.5,color='black') +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -827,8 +827,7 @@ Week12 <- function(year, month, day, case) {
     
       guides(fill = guide_legend(nrow = 2)) +
       
-      scale_fill_manual(values = colours2) +
-      scale_colour_manual(values = Outline2) 
+      scale_fill_manual(values = colours2,drop = FALSE)
     
   }
  
@@ -855,7 +854,7 @@ Week12 <- function(year, month, day, case) {
     case_Time %>%
       ggplot() +
       geom_area(aes(Time_Period, Output_MWH, fill = ID,colour= ID),
-                position = "fill", alpha = 0.7, size=.5) +
+                position = "fill", alpha = 0.7, size=.5,color="black") +
       geom_vline(xintercept = as.Date(ISOdate(2035, 1,1)),
                  linetype = "dashed", color = "black", size = 1) +
       #    facet_wrap(~ Condition, nrow = 1) +
@@ -879,16 +878,16 @@ Week12 <- function(year, month, day, case) {
             # panel.ontop = TRUE,
             legend.key.size = unit(1,"lines"),
             legend.position = "bottom",
-            legend.justification = c(0,0.5)) +
+            legend.justification = c(0.5,0)) +
       
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
       scale_y_continuous(expand=c(0,0),
                          labels = scales::percent, 
                          breaks = sort(c(seq(0,1,length.out=5)))) +
       
-      guides(fill = guide_legend(nrow = 2)) +
+      guides(fill = guide_legend(nrow = 1)) +
       labs(x = "Date", y = "Percentage of Generation", fill = "Resource",colour="Resource") +
-      scale_fill_manual(values = colours2) +
+      scale_fill_manual(values = colours2,drop = FALSE) +
       scale_colour_manual(values = Outline2) 
       
   }

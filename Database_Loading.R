@@ -71,7 +71,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"FullRun_Oct_25_2022"
+  SourceDB<-"FullRun_Nov_17_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -443,6 +443,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
             cOL_OTHER <- "darkgreen"
             cOL_WIND <- "green3"
             cOL_SOLAR <- "gold"
+            cOL_NUCLEAR <- "black"
             
           # H2 groups (blues)
             cOL_SCGT_H2 <- "#273871"
@@ -526,6 +527,16 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
                "Natural Gas Combined Cycle + CCS"=2,
                "Natural Gas Simple Cycle"=5, "Natural Gas Combined Cycle"=3, "Other"=4)
       
+      # EVERYTHING
+      colours8 = c("Cogeneration"=cOL_COGEN, "Coal"=cOL_COAL,
+                   "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                   "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                   "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                   "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
+                   "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                   "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
+                   "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped,"Nuclear"=cOL_NUCLEAR)
+      
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
     }
@@ -569,6 +580,9 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   # All new capacity
   BuildMW(BC)
   Build_Totals(BC)
+  
+  # Difference in capacity
+  Eval_diffcap(ResGroupYr,BC)
   
   # Bar chart showing each resource groups yearly output
   Output_Comp(BC)
