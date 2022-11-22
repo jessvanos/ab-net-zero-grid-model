@@ -289,10 +289,10 @@ Build_A_MW <- function(case) {
     summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) %>%
     sim_filt4(.)
 
-  levels(data$Fuel_Type) <- c("Hydrogen","Natual Gas and Hydrogen Blend","Natural Gas", 
-                              "Hydro", "Other",
-                              "Wind", "Solar", 
-                              "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")
+  # levels(data$Fuel_Type) <- c("Hydrogen","Natual Gas and Hydrogen Blend","Natural Gas", 
+  #                             "Hydro", "Other",
+  #                             "Wind", "Solar", 
+  #                             "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")
   
   Tot <- data %>%
     group_by(Time_Period) %>%
@@ -304,7 +304,7 @@ Build_A_MW <- function(case) {
   
   ggplot(data) +
     aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-    geom_bar(position="stack", stat="identity", alpha=0.7) +
+    geom_bar(position="stack", stat="identity", alpha=0.6,color='black') +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -488,8 +488,9 @@ Output_Comp <- function(case) {
     filter(Time_Period %in% Years2Disp)
   
   # re-order teh bars for asthetics
-  data$ID <- factor(data$ID,levels=c("Hydrogen" ,"Natual Gas and Hydrogen Blend","Coal", "Import","Coal-to-Gas", "Cogen", "Natural Gas",
-                       "Wind","Other","Solar", "Hydro","Storage"),ordered=TRUE)
+  data$ID <- factor(data$ID,levels=c("Hydrogen" ,"Natual Gas and Hydrogen Blend",
+                                     "Coal", "Import","Coal-to-Gas", "Natural Gas + CCS","Cogen", "Natural Gas",
+                                      "Wind","Other","Solar", "Hydro","Storage"),ordered=TRUE)
   
   
   # Set the max for the plot
@@ -526,7 +527,7 @@ Output_Comp <- function(case) {
 
     labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource") +
     
-    guides(fill = guide_legend(nrow = 3)) +
+    guides(fill = guide_legend(nrow = 2)) +
     
     scale_fill_manual(values = colours4,drop = FALSE) 
   
@@ -742,8 +743,7 @@ AnnualEmLine <- function(case) {
 }
 
 ################################################################################  
-## FUNCTION: AnnualEmLine (original author: Taylor Pawlenchuk)
-## Plot annual emissions by resource group as as stacked chart
+## FUNCTION: Eval_diffcap (original author: Taylor Pawlenchuk)
 ##
 ## INPUTS: 
 ##    input - ResGroupYear

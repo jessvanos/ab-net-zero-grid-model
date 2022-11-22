@@ -24,6 +24,8 @@
     filter(ID=="LTO_Cogen")
   NatGas <- inputdata %>%
     filter(ID=="LTO_NatGas")
+  NatGas_CCS <- inputdata %>%
+    filter(ID=="AB_CC90CCS_noncogen")
   Other <- inputdata %>%
     filter(ID=="LTO_Other")
   Hydro <- inputdata %>%
@@ -46,16 +48,17 @@
   }
   
   # Combine the grouped data tables into one
-  { case <- rbind( Coal2Gas, NatGas, NGH2_Blend,H2, Hydro, Solar, Wind, Storage, Other,Coal,Cogen)
+  { case <- rbind( Coal2Gas, NatGas,NatGas_CCS, NGH2_Blend,H2, Hydro, Solar, Wind, Storage, Other,Coal,Cogen)
     
     # Sort the table by case ID
     #A factor is a categorical variable 
-    case$ID <- factor(case$ID, levels=c( "LTO_Coal2Gas", "LTO_NatGas","NGH2_Blend", 
+    case$ID <- factor(case$ID, levels=c( "LTO_Coal2Gas", "LTO_NatGas","AB_CC90CCS_noncogen",
+                                         "NGH2_Blend", 
                                          "LTO_H2","LTO_Hydro","LTO_Other",  
                                          "LTO_Wind", "LTO_Solar", "LTO_Storage",
                                          "LTO_Coal", "LTO_Cogen"))
     # Replace ID value with name 
-    levels(case$ID) <- c("Coal-to-Gas", "Natural Gas","Natual Gas and Hydrogen Blend","Hydrogen" , 
+    levels(case$ID) <- c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
                          "Hydro","Other","Wind", "Solar", "Storage","Coal","Cogen")   }
   return(case)  }
 }
@@ -157,14 +160,18 @@
     # More tricky to separate ones
     NG2AB <- inputdata %>%
       filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
-    
-    NGConv <- NG2AB[NG2AB$Name %like% "%Retrofit%",] # Separate retrofits
-    NGConv$Primary_Fuel<- "NGConv"
-    
-    SCCT1 <- NG2AB[NG2AB$ID %like% "%Simple%",] %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
-    # Separate Simple Cycle
-    SCCT1$Primary_Fuel<- "NG-SCCT"
+              
+              # Separate retrofits
+              NGConv1 <- NG2AB[NG2AB$Name %like% "%Retrofit%",] 
+              NGConv<-NGConv1 # Swt this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
+              NGConv$Primary_Fuel<- "NGConv"
+              
+              # Separate Simple Cycle
+              SCCT1 <- sqldf('SELECT * FROM NG2AB EXCEPT SELECT * FROM NGConv1') #Select left over 
+              SCCT1<-SCCT1 %>%
+                mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
+              
+              SCCT1$Primary_Fuel<- "NG-SCCT"
     
     # Units as defined by New Resources Table
     #First split up the fuel types
@@ -173,21 +180,19 @@
     H2 <- inputdata %>%
       filter(Primary_Fuel=="0-NaturalGas-100-Hydrogen")
 
-    # Combined units with CCS
-    CCC_CCS <- NG100 %>%
-      filter(grepl( "%2022CC90CCS%",Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
-    
-    # Combined NG units
-    CCCT2 <-NG100 %>%
-      filter(grepl( "%2022CC_100NG0H2%",Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))  
-    CCCT <- rbind(CCCT1,CCCT2)
-    
-    # Simple NG units
-    SCCT2 <-NG100 %>%
-      filter(grepl('2022Frame|2022Aeroderivative',Name)) %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT"))
+            # Combined units with CCS
+            CCC_CCS <- NG100[NG100$Name %like% "%2022CC90CCS%",] %>%
+              mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
+            
+            # Combined NG units
+            CCCT2 <-NG100[NG100$Name %like% "%2022CC_100NG0H2%",] %>%
+              mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))  
+            CCCT <- rbind(CCCT1,CCCT2)
+            
+            # Simple NG units
+            SCCT2 <-NG100 %>%
+              filter(grepl('2022Frame|2022Aeroderivative',Name)) %>%
+              mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT"))
     SCCT <- rbind(SCCT1,SCCT2)
     
     # Blended Combined cycle
@@ -201,8 +206,7 @@
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC")) 
     
     # H2 Combined cycle
-    CC_H2 <-H2 %>%
-      filter(grepl('2022CC_0NG100H2',Name)) %>%
+    CC_H2 <-H2[H2$Name %like% "%2022CC_0NG100H2%",] %>%
       mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
     
     # H2 Simple cycle
@@ -268,33 +272,35 @@
     # Get NG Units as defined in Resource Table
     CCCT1 <- inputdata %>%
       filter(Primary_Fuel=="WECC-Alberta NaturalGas")
+    
     # More tricky to separate ones
     NG2AB <- inputdata %>%
       filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
-    
-    NGConv <- NG2AB[NG2AB$Name %like% "%Retrofit%",] # Separate retrofits
-    NGConv$Primary_Fuel<- "NGConv"
-    
-    SCCT1 <- NG2AB[NG2AB$ID %like% "%Simple%",] %>%
-      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
-    
-    # Separate Simple Cycle
-    SCCT1$Primary_Fuel<- "NG-SCCT"
+            
+            # Separate retrofits
+            NGConv1 <- NG2AB[NG2AB$Name %like% "%Retrofit%",] 
+            NGConv<-NGConv1 # Swt this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
+              NGConv$Primary_Fuel<- "NGConv"
+            
+              # Separate Simple Cycle
+            SCCT1 <- sqldf('SELECT * FROM NG2AB EXCEPT SELECT * FROM NGConv1') #Select left over 
+            SCCT1<-SCCT1 %>%
+              mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
+            
+            SCCT1$Primary_Fuel<- "NG-SCCT"
     
     # Units as defined by New Resources Table
     #First split up the fuel types
     NG100 <- inputdata %>%
       filter(Primary_Fuel=="100-NaturalGas-0-Hydrogen") 
 
-              # Combined units with CCS
-              CCC_CCS <- NG100 %>%
-                filter(grepl( "%2022CC90CCS%",Name)) %>%
-                mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
-              
-              # Combined NG units
-              CCCT2 <-NG100 %>%
-                filter(grepl( "%2022CC_100NG0H2%",Name)) %>%
-                mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))  
+            # Combined units with CCS
+            CCC_CCS <- NG100[NG100$Name %like% "%2022CC90CCS%",] %>%
+              mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
+            
+            # Combined NG units
+            CCCT2 <-NG100[NG100$Name %like% "%2022CC_100NG0H2%",] %>%
+              mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))    
               CCCT <- rbind(CCCT1,CCCT2)
               
               # Simple NG units
@@ -307,8 +313,7 @@
       filter(Primary_Fuel=="0-NaturalGas-100-Hydrogen")         
     
               # H2 Combined cycle
-              CC_H2 <-H2 %>%
-                filter(grepl('2022CC_0NG100H2',Name)) %>%
+              CC_H2 <-H2[H2$Name %like% "%2022CC_0NG100H2%",] %>%
                 mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
               
               # H2 Simple cycle

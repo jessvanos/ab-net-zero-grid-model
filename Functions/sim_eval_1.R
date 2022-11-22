@@ -762,7 +762,7 @@ Week12 <- function(year, month, day, case) {
             text = element_text(size = 15)) +
       
       scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
-      scale_y_continuous(expand=c(0,0),limits = c(0,120),breaks=pretty_breaks(6)) +
+      scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       
       labs(x = "Date", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
       
@@ -887,8 +887,7 @@ Week12 <- function(year, month, day, case) {
       
       guides(fill = guide_legend(nrow = 1)) +
       labs(x = "Date", y = "Percentage of Generation", fill = "Resource",colour="Resource") +
-      scale_fill_manual(values = colours2,drop = FALSE) +
-      scale_colour_manual(values = Outline2) 
+      scale_fill_manual(values = colours2,drop = FALSE) 
       
   }
   
