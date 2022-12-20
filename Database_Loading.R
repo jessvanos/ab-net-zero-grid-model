@@ -6,7 +6,7 @@
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: November 4, 2022
+# CREATED: May 2022; LAST EDIT: December 1, 2022
 
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
 #        Before running, create folder called "Data Files" inside project directory and populate it with 
@@ -60,7 +60,7 @@
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
-                   "openxlsx")
+                   "openxlsx","sqldf")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -71,7 +71,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"FullRun_Nov_17_2022"
+  SourceDB<-"FullRun_Dec_15_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -553,10 +553,8 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   windows(14,10)
 
 ## THE MOST USEFULL FUNCTIONS
-  # Gives stacked area chart for single week
-  Week1(2022,04,08,BC)
   
-  # Grid of weekly output
+  # Grid of weekly output - need to edit for more than one week of data
   year_weeks(2024,BC)
   
   # Yearly Output
@@ -592,7 +590,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   Imp_Exp1(BC)
   
   # Import and export for full year from AB
-  Imp_Exp2(2022,BC)
+  Imp_Exp2(2025,BC)
   
   # Price and Trade monthly
   MN_Trade_Price(2022,10,BC)

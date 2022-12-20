@@ -630,78 +630,7 @@ Week12 <- function(year, month, day, case) {
       )
   }
   
-################################################################################  
-## FUNCTION: Eval 
-## Plotting month/year profiles of resource output
-##
-## INPUTS: 
-##    input - ResgroupMnor ResGroupYr
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Import - Import table derived of zone average table
-################################################################################
-  
-  Eval <- function(input,case) {
-    Imp <- Import_Yr %>%
-      filter(Name == "WECC_Alberta") %>%
-      mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
-      select(ID, Time_Period, Output_MWH) %>%
-      mutate(ID = "Import") 
-    
-   # Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
-   #                             format = "%Y")
-    
-    # Filters for the desired case study
-    data <- input %>%
-      filter(Run_ID == case & Condition == "Average") %>%
-      select(ID, Time_Period, Output_MWH) %>%
-      sim_filt(.) %>%
-      rbind(.,Imp) 
-    
-    data$ID<-fct_relevel(data$ID, "Import")
-    data$Time_Period <- as.Date(data$Time_Period)
-    
-    # Set the max for the plot
-    dyMX <- aggregate(data["Output_MWH"], by=data["Time_Period"], sum)
-    MX <- plyr::round_any(max(abs(dyMX$Output_MWH)/1000000), 20, f = ceiling)
-    
-    # Plot
-    data %>%
-      ggplot() +
-      aes(Time_Period, (Output_MWH/1000000), fill = ID, colour=ID) +
-      geom_area(alpha=1, size=.5) +
-      
-      theme_bw() +
-      
-      theme(text=element_text(family=Plot_Text)) +
-      
-      theme(panel.grid = element_blank(),
-            axis.text.x = element_text(vjust = 1),
-            axis.title.x = element_text(size = XTit_Sz),
-            axis.title.y = element_text(size = YTit_Sz),
-            plot.title = element_text(size = Tit_Sz),
-            plot.subtitle = element_text(hjust = 0.5), 
-            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-            panel.background = element_rect(fill = NA),
-            legend.key.size = unit(1,"lines"), #Shrink legend
-            legend.position = "bottom",
-            legend.justification = c(0.5,0.5),
-            legend.title=element_blank(),
-            text = element_text(size = 20)) +
-      
-      scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
-      scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
-      
-      labs(x = "Date", y = "Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
-      
-      guides(fill = guide_legend(nrow = 1)) +
-      
-      scale_fill_manual(values = colours4) +
-      scale_colour_manual(values = Outline4)
-    
 
-  }
-  
   ################################################################################  
   ## FUNCTION: Evalyr 
   ## Plotting year profiles of resource output
@@ -714,15 +643,14 @@ Week12 <- function(year, month, day, case) {
   ################################################################################
   
   Evalyr <- function(input,case) {
+    
+    # Get imports
     Imp <- Import_Yr %>%
       filter(Name == "WECC_Alberta") %>%
       filter(Run_ID == case) %>%
       select(ID, Time_Period, Output_MWH) %>%
       mutate(ID = "Import") 
 
-    # Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
-    #                              format = "%Y")
-    
     # Filters for the desired case study
     data <- input %>%
       filter(Run_ID == case & Condition == "Average") %>%
@@ -730,18 +658,26 @@ Week12 <- function(year, month, day, case) {
       sim_filt(.) %>%
       rbind(.,Imp) 
     
+    # Add imports to factor list
     data$ID<-fct_relevel(data$ID, "Import")
-    data$Time_Period <- as.Date(data$Time_Period,format="%Y")
+    
+    # Get year and format as a number (easier to plot!)
+    data$YEAR <- as.Date(data$Time_Period)
+    data$YEAR <- as.numeric(format(data$YEAR,"%Y"))
 
-    # Set the max for the plot
-    dyMX <- aggregate(data["Output_MWH"], by=data["Time_Period"], sum)
-    MX <- plyr::round_any(max(abs(dyMX$Output_MWH)/1000000), 20, f = ceiling)
+    # Get max and min year for plot
+    YearMX<-max(data$YEAR)
+    YearMN<-min(data$YEAR)
+    
+    # Set the max generation for the plot
+    GenMX <- aggregate(data["Output_MWH"], by=data["Time_Period"], sum)
+    MX <- plyr::round_any(max(abs(GenMX$Output_MWH)/1000000), 20, f = ceiling)
     
     # Plot
     data %>%
       ggplot() +
-      aes(Time_Period, (Output_MWH/1000000), fill = ID) +
-      geom_area(alpha=0.7, size=.5, colour="black") +
+      aes(YEAR, (Output_MWH/1000000), fill = ID) +
+      geom_area(alpha=0.7, linewidth=.5, colour="black") +
       
       theme_bw() +
       
@@ -754,23 +690,21 @@ Week12 <- function(year, month, day, case) {
             plot.title = element_text(size = Tit_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
             panel.background = element_rect(fill = NA),
-            #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
             legend.justification = c(0.5,0.5),
+            legend.text = element_text(size =15),
             legend.title=element_blank(),
             text = element_text(size = 15)) +
       
-      scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
+      scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
       scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       
       labs(x = "Date", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
       
-      guides(fill = guide_legend(nrow = 1)) +
+      guides(fill = guide_legend(nrow = 2)) +
       
       scale_fill_manual(values = colours4,drop = FALSE) 
-      #scale_colour_manual(values = Outline4)
-    
     
   }
 ################################################################################  
@@ -790,6 +724,14 @@ Week12 <- function(year, month, day, case) {
       select(ID, Time_Period, Capacity) %>%
       sim_filt(.)
     
+    # Get year and format as a number (easier to plot!)
+    data$YEAR <- as.Date(data$Time_Period)
+    data$YEAR <- as.numeric(format(data$YEAR,"%Y"))
+    
+    # Get max and min year for plot
+    YearMX<-max(data$YEAR)
+    YearMN<-min(data$YEAR)
+    
     # Set the max and min for the plot Output axis (y)
     # Set the max for the plot
     ppMX <-  aggregate(data["Capacity"], by=data["Time_Period"], sum)
@@ -798,7 +740,7 @@ Week12 <- function(year, month, day, case) {
     
     data %>%
       ggplot() +
-      geom_area(aes(Time_Period, (Capacity), fill = ID, colour=ID),alpha=0.7, size=.5,color='black') +
+      geom_area(aes(YEAR, (Capacity), fill = ID, colour=ID),alpha=0.7, size=.5,color='black') +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -818,8 +760,7 @@ Week12 <- function(year, month, day, case) {
             legend.justification = c(0.5,0.5),
             text = element_text(size = 15)) +
       
-      scale_x_date(expand=c(0,0),
-                   breaks = "year",date_labels = "%Y") +
+      scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
       
       scale_y_continuous(expand=c(0,0), limits=c(0,MX),breaks = pretty_breaks(6)) +
       
@@ -851,17 +792,25 @@ Week12 <- function(year, month, day, case) {
     # Remove negative generation (Storage)
     case_Time$Output_MWH[case_Time$Output_MWH < 0] <- NA
     
+    # Get year and format as a number (easier to plot!)
+    case_Time$YEAR <- as.Date(case_Time$Time_Period)
+    case_Time$YEAR <- as.numeric(format(case_Time$YEAR,"%Y"))
+    
+    # Get max and min year for plot
+    YearMX<-max(case_Time$YEAR)
+    YearMN<-min(case_Time$YEAR)
+    
     case_Time %>%
       ggplot() +
-      geom_area(aes(Time_Period, Output_MWH, fill = ID,colour= ID),
+      geom_area(aes(YEAR, Output_MWH, fill = ID,colour= ID),
                 position = "fill", alpha = 0.7, size=.5,color="black") +
-      geom_vline(xintercept = as.Date(ISOdate(2035, 1,1)),
+      
+      geom_vline(xintercept = as.numeric(2035),
                  linetype = "dashed", color = "black", size = 1) +
-      #    facet_wrap(~ Condition, nrow = 1) +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
-      
+    
       theme(panel.grid = element_blank(),
             axis.text.x = element_text(),
             plot.title = element_text(hjust = 0.5),
@@ -874,18 +823,16 @@ Week12 <- function(year, month, day, case) {
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent',colour='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            # panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'gray70'),
-            # panel.ontop = TRUE,
             legend.key.size = unit(1,"lines"),
             legend.position = "bottom",
             legend.justification = c(0.5,0)) +
       
-      scale_x_date(expand=c(0,0),breaks = "year",date_labels = "%Y") +
+      scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
       scale_y_continuous(expand=c(0,0),
                          labels = scales::percent, 
                          breaks = sort(c(seq(0,1,length.out=5)))) +
       
-      guides(fill = guide_legend(nrow = 1)) +
+      guides(fill = guide_legend(nrow = 2)) +
       labs(x = "Date", y = "Percentage of Generation", fill = "Resource",colour="Resource") +
       scale_fill_manual(values = colours2,drop = FALSE) 
       

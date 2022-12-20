@@ -744,6 +744,7 @@ AnnualEmLine <- function(case) {
 
 ################################################################################  
 ## FUNCTION: Eval_diffcap (original author: Taylor Pawlenchuk)
+## The first year of data does not have a prior capacity to compare to, so it is not used.
 ##
 ## INPUTS: 
 ##    input - ResGroupYear
@@ -763,15 +764,18 @@ Eval_diffcap <- function(input,case) {
     mutate(diff = Capacity - lag(Capacity, default = first(Capacity)))
   
   data$Time_Period <- as.factor(format(data$Time_Period, format="%Y"))
-  
+
+  # Sum all up
   Tot <- data %>%
     group_by(Time_Period) %>%
     summarise(maxy = sum(diff[which(diff>0)]), miny = sum(diff[which(diff<0)]))
   
+  # Capacity limits for plot
   mny <- plyr::round_any(min(Tot$miny),1000, f=floor)
   mxy <- plyr::round_any(max(Tot$maxy),1000, f=ceiling)
   
-  mnx <- format(min(ResGroupMn$Time_Period), format="%Y")
+  # Year limits for plot. Add 365 to get the year after the first
+  mnx <- format(min(ResGroupMn$Time_Period)+365, format="%Y")
   mxx <- format(max(ResGroupMn$Time_Period), format="%Y")
   
   # Plot it all
