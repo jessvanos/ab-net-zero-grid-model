@@ -372,8 +372,7 @@ Week12 <- function(year, month, day, case) {
   ## PLOT WITH AREA PLOT
   
   ggplot() +
-    geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID, colour = ID), 
-              alpha=0.7, size=0.5) +
+    geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID, colour=ID),alpha=0.7, size=.25,color='black') +
     
     # Add hourly load line (black line on the top)
     geom_line(data = ZPrice, 
@@ -410,10 +409,7 @@ Week12 <- function(year, month, day, case) {
     guides(fill = guide_legend(nrow = 2)) +
     
     #Add colour
-    scale_fill_manual(values = colours1) +
-    
-    # Make outline the same as fill colors
-    scale_colour_manual(values = Outline1)
+    scale_fill_manual(values = colours1)
 }
 ################################################################################
 ## FUNCTION: day1

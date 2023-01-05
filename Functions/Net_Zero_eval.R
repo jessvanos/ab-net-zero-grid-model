@@ -617,11 +617,13 @@ AnnualEmStackCol <- function(case) {
       filter(Type== "CO2") %>%
       select(ID, Report_Year, Amount, Cost) %>%
       sim_filtEm(.)  %>%
+      mutate(Amount=Amount*0.90718474)%>% # Convert Ton to Tonne
       filter(!ID=="Cogeneration") # Temp remove cogen
     
     # Set the max for the plot
-    dyMX <- aggregate(data["Amount"], by=data["Report_Year"], sum)
-    MX <- plyr::round_any(max(abs(dyMX$Amount/1000000)+1), 5, f = ceiling)
+    YearMX <- aggregate(data["Amount"], by=data["Report_Year"], sum)
+    YearMX$Amount <-YearMX$Amount/1000000
+    MX <- plyr::round_any(max(abs(YearMX$Amount+1)), 5, f = ceiling)
     
     # Format years to assist plot
     data$Report_Year  <- as.numeric(data$Report_Year)
@@ -629,6 +631,10 @@ AnnualEmStackCol <- function(case) {
     # Get Year max for run
     MaxYr <- as.numeric(max(data$Report_Year))
     MinYr <- (min(data$Report_Year))
+    
+    # Print the result out for 2035 
+    message("Total Annaul Emissions (Mt)")
+    print(YearMX)
     
     # Plot
     data %>%
@@ -683,6 +689,7 @@ AnnualEmLine <- function(case) {
     filter(Type== "CO2") %>%
     select(ID, Report_Year, Amount, Cost) %>%
     sim_filtEm(.)  %>%
+    mutate(Amount=Amount*0.90718474)%>% # Convert Ton to Tonne
     filter(!ID=="Cogeneration") # Temp remove cogen for now
   
   data$Report_Year  <- as.numeric(data$Report_Year)

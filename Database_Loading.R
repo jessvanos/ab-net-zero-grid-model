@@ -71,7 +71,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"FullRun_Dec_15_2022"
+  SourceDB<-"NZ_Jan_03_2022"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -140,6 +140,7 @@
 ## REFLECT PROPER TIME PERIODS
 ## Adds a column which is formated in a way that R can understand for dates and times
 ################################################################################
+
 
 {  # Fuel Tables
   FuelYr$Time_Period <- as.Date(as.character(FuelYr$Time_Period), 
@@ -555,7 +556,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 ## THE MOST USEFULL FUNCTIONS
   
   # Grid of weekly output - need to edit for more than one week of data
-  year_weeks(2024,BC)
+  year_weeks(2035,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
