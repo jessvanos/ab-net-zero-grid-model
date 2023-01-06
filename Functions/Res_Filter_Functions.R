@@ -1,6 +1,6 @@
 ################################################################################
-# TITLE: Res_Filters
-# DESCRIPTION: Functions to select and sort certain resource groups for other functions to use
+# TITLE: Res_Filter_Functions
+# DESCRIPTION: Functions to select and sort certain resource groups for other functions to use. A collection of filters.
 
 # ORIGINAL AUTHOR: Taylor Pawlenchuk (Retrieved June 3, 2022)
 # EDITS & ADDITIONAL CONTENT: Jessica Van Os

@@ -1,5 +1,5 @@
 ################################################################################
-# TITLE: net_zero_tables
+# TITLE: Table_Functions
 # DESCRIPTION: Functions To use for summarizing data
 
 # AUTHOR: Jessica Van Os
@@ -54,8 +54,6 @@ Report_P <- function(Years2Pivot,case) {
   pt$renderPivot() # Display in viewer
   
   } 
-  
-  
   
 }
 

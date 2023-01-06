@@ -2,12 +2,12 @@
 # TITLE: Database_Loading
 # DESCRIPTION:  Script loads database from Microsoft SQL Server, it then imports other data from files, 
 # and calls functions to display plots and table.
-
-
+#
+#
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: December 1, 2022
-
+# CREATED: May 2022; LAST EDIT: January 6, 2023
+#
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
 #        Before running, create folder called "Data Files" inside project directory and populate it with 
 #        any data you want to access. 
@@ -45,16 +45,18 @@
 { # Must load the here package in order to make sure internal project directories work
   library(here)
   
-  # Import functions from files, take from the functions folder in R project
-  source(here('Functions','other_functions.R'))
-  source(here('Functions','sim_eval_1.R'))
-  source(here('Functions','aeso_eval_1.R'))
-  source(here('Functions','aseo_sim_comp_1.R')) 
-  source(here('Functions','Net_Zero_eval.R'))
-  source(here('Functions','intertie_info.R'))
-  source(here('Functions','net_zero_tables.R'))
-  source(here('Functions','Res_Filters.R'))
-  source(here('Functions','Hourly_Functions.R')) # Annual hourly output for 12 days
+  # Import functions from other R files, take from the functions folder in R project
+  source(here('Functions','Output_Gen_Functions.R'))  # Output and generation plots as well as other misc plots
+  source(here('Functions','Emission_Functions.R'))    # Emission plots
+  source(here('Functions','Price_Functions.R'))       # Plots related to prices
+  source(here('Functions','Build_Retire_Functions.R'))# Plots on new and retired resources
+  source(here('Functions','Intertie_Functions.R'))    # Plots on trade information and BC/MT/SK information
+  source(here('Functions','Table_Functions.R'))       # Summary pivot tables
+  source(here('Functions','Res_Filter_Functions.R'))  # Filtering by resource type, required for plots
+  source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
+  source(here('Functions','Developing_Functions.R'))  # Under construction functions
+  source(here('Functions','aeso_eval_1.R'))           #
+  source(here('Functions','aseo_sim_comp_1.R'))       #
   
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
@@ -270,7 +272,7 @@
   }
 }  
 ################################################################################
-## LOAD AESO TRADE INFO FROM R FILE INTO WORKSPACE
+## LOAD AESO TRADE INFO FROM R FILE INTO WORKSPACE (OPTIONAL)
 ################################################################################
 
 HRcalc <- readRDS(here("Data Files","HRcalc.RData")) 
@@ -289,7 +291,7 @@ HRcalc$Week <- format(HRcalc$date,"%W")
 HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 ################################################################################
-## BRING IN OTHER DATA FROM AESO FILES & FORMAT
+## BRING IN OTHER DATA FROM AESO FILES & FORMAT (OPTIONAL)
 ################################################################################
 
 { # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
@@ -312,7 +314,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 
 ################################################################################
-## FURTHER FORMAT AND MANIPULATE NRG DATA
+## FURTHER FORMAT AND MANIPULATE NRG DATA (OPTIONAL)
 ################################################################################
 
 {   # Create a demand table. Summarize takes median of Demand, AIL, and Price for each time period 
@@ -405,34 +407,6 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
         # hcl_palettes(plot = TRUE)
         #sequential_hcl(5,palette="oranges)
     { 
-      # # Colors Outline Info
-      #   # Basic Groups
-      #     OUT_IMPORT <- "hotpink3" 
-      #     OUT_COAL <- "snow4"
-      #     OUT_COGEN <- "gray32"
-      #     OUT_HYDRO <- "deepskyblue"
-      #     OUT_OTHER <- "darkgreen"
-      #     OUT_WIND <- "green4"
-      #     OUT_SOLAR <- "gold3"
-      #     
-      #   # H2 groups
-      #     OUT_SCGT_H2 <- 
-      #     OUT_NGCC_H2 <- 
-      #     OUT_SCGT_Blend <- 
-      #     OUT_NGCC_Blend <- 
-      #     
-      #     # Gas Groups
-      #     OUT_COal2Gas <-  "#6D1C68" #"mediumorchid4"
-      #     OUT_NGConv <- "#6D1C68" #"mediumorchid4"
-      #     OUT_SCGT <- "midnightblue"
-      #     OUT_NGCC <- "dodgerblue4"
-      #     OUT_NGCC_CCS <-
-      #       
-      #     # Storage Groups
-      #     OUT_STORAGE <- "yellow4" 
-      #     OUT_Battery <-
-      #     OUT_CompAir <-
-      #     OUT_Pumped <-
             
       # Colour Fill info
           # Basic Groups
@@ -476,7 +450,6 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
                  "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
-      Outline1=colours1
       
       
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN, 
@@ -550,7 +523,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
-  ################################################################################
+################################################################################
   windows(14,10)
 
 ## THE MOST USEFULL FUNCTIONS
@@ -619,11 +592,14 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   AnnualEmLine(BC)
   
 ################################################################################  
-## BUT THERE ARE MORE ...
+## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS LISTED
+################################################################################
+
+################################################################################
+## Output and Generation Functions (Output_Gen_Functions)
 ################################################################################
   
-## SIM FUNCTIONS (sim_eval_1)
-{  #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
+    #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
     day1(2022,11,07,BC)
     
     # Gives stacked area chart for single week
@@ -632,11 +608,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     # Gives weekly storage function
     Stor1(2021,01,08,BC)
     
-    # Average Pool Price for one week
-    week_price(2022,10,08,BC)
-    
     # Gives overall picture of Output over time period
-    Eval(ResGroupMn,BC)
     Evalyr(ResGroupYr,BC)
     
     # Gives overall picture of capacity over time period
@@ -652,25 +624,23 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     # Lets you get where units could have been built 
     Slack(BC,wind)
     
-    #Shows Prices for simulation duration
-    Sim_dur(BC)
-}
-## COMBINED SIM FUNCTIONS
-    
-    # Plot over 4 years defined in plotting section (2x2 grid)
-    Week4(01,08,BAU)
-    
     #Plot Pool price and output for a week 
     PrOt(2023,10,08,BAU)
 
-    # New units, new capacity, and output for the duration
-    EvalOut(ResGroupMn,BAU)
+################################################################################    
+## Price Functions (Price_Functions)
+################################################################################
     
-    #Compare available units and built units
-    BuildUnits(BAU, wind)
+    # Average Pool Price for one week
+    week_price(2022,10,08,BC)
     
-    
+    #Shows Prices for simulation duration
+    Sim_dur(BC)  
+  
+################################################################################
 ## AESO FUNCTIONS
+################################################################################
+    
     #AESO Output
     Week_act(2020,01,08)
     
@@ -680,8 +650,10 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     # AESO Week Price and output in one
     AESO_PrOt(2021,01,08)
     
-##  AESO SIM COMPARE FUNCTIONS
-
+################################################################################
+##  AESO and Sim Compare Functions
+################################################################################
+    
     # Prices and Output for noth AESO and Sim
     AESO_SimOP(2022,04,08,BC)
     
@@ -721,7 +693,9 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     
     AESOSim(2021,2022,BC)
 
-## NET ZERO FUNCTIONS (Net_Zero_eval)
+################################################################################
+## Build and Reture Functions (Build_Retire_Functions)
+################################################################################
     
     # Number of units retired by fuel type
     Retirecol(BC)
@@ -746,20 +720,43 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     
     Imp_Exp2(BC)
     
+    #Compare available units and built units
+    BuildUnits(BAU, wind)
+    
+################################################################################
+## Emission Functions (Emission_Functions)
+################################################################################
+    
     # Annual emissions in stacked area chart
     AnnualEmLine(case)
     # Annual emissions in individual lines
     AnnualEmLine(case)
     
-## INTERTIE FUNCTIONS
+################################################################################
+## Intertie Functions (Intertie_Functions)
+################################################################################
+    
     #Annual import and export from AB 
     Imp_Exp(BC)
     
-    #Imports and exports from BC adn SK
+    #Imports and exports from BC and SK
     BC_SK_IE(BC)
     
-## Table Functions
+################################################################################
+## Table Functions (Table_Functions)
+################################################################################
+    
     Report_P(Years2Pivot,BC)
+   
+################################################################################
+## Developing Functions (Developing_Functions)
+################################################################################
+    
+    YearOfDays(2022,3,BC,"ALL",14000)
+    YearOfDays(2030,3,BC,"WIND",10000)
+    
+    day1(2032,01,09,BC)
+    day2(2022,01,11,BC,"WIND",10000)    
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF
@@ -767,17 +764,12 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       
     dev.off(dev.list()["RStudioGD"]) #Clears all plots
       
+    # Different window sizes for figures
     windows(12,8)
     windows(14,8)
     windows(10,8)
     windows(18,12)
-    
     windows(16,12)
 
-## Developing
-    YearOfDays(2022,3,BC,"ALL",14000)
-    YearOfDays(2030,3,BC,"WIND",10000)
-    
-    day1(2032,01,09,BC)
-    day2(2022,01,11,BC,"WIND",10000)
+
     

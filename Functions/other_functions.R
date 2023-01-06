@@ -1,10 +1,11 @@
 ################################################################################
-# TITLE: other_functions
-# DESCRIPTION: Additional functions to use, not related the data itself.
-
+# TITLE: Other_Functions
+# DESCRIPTION: Additional functions to use, not related to plotting.
+#
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: June 14, 2022; LAST EDIT: September 15, 2022
+# CREATED: June 14, 2022; LAST EDIT: January 6, 2023
+################################################################################
 
 ################################################################################
 ## FUNCTION: packs_check
@@ -63,8 +64,86 @@ yhour <- function(d_time) {
 
 ################################################################################
 ## FUNCTION: round_any
+## Use to round value to a certain accuracy
 ##
 ## INPUTS: 
-##    
+##    x - Value to round
+##    accuracy - Accuracy to round to
 ################################################################################
 round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
+
+
+################################################################################
+#
+# TO USE IN PLOTING FUNCTIONS SECTION
+#
+################################################################################
+
+################################################################################
+## FUNCTION: HrTime
+## Convert the date and select a subset for one day from the data pulled in
+################################################################################
+
+{ HrTime <- function(data, year, month, day) {
+  subset(data,
+         (date >= paste(year,"-", month, "-", day," 00:00:00", sep = "") & 
+            date <= 
+            paste(year,"-", month, "-", (day)," 24:00:00", sep = "")))  }
+}
+
+################################################################################
+## FUNCTION: WkTime
+## Convert the date and select a subset for one week from the data pulled in
+################################################################################
+
+{ WkTime <- function(data, year, month, day) {
+  
+  #Set start and end dates of week  
+  wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
+  wk_end <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
+  
+  #Create subset for specified week
+  subset(data,
+         (date >= wk_st & date <= wk_end)) 
+  
+}
+}
+
+################################################################################
+## FUNCTION: YrDay_Time
+## Convert the date and select a subset for specific year and day
+################################################################################
+
+{ YrDay_Time <- function(data, year,day) {
+  
+  # Create column for year 
+  data$YEAR <- format(data$date,format="%Y") # Reformat for year only
+  
+  year <- format(as.character(year), 
+                 format = "%Y")
+  
+  #Create subset for specified days in year
+  data <- data %>%
+    filter(.,YEAR==year) %>%    # Filter year out
+    filter(.,wday(date) == day)  #Filter for day specified only
+  
+}
+}
+
+################################################################################
+## FUNCTION: YrTime
+## Convert the date and select a subset for one week from the data pulled in
+################################################################################
+
+{ YrTime <- function(data, year) {
+  
+  #Set start and end dates of week  
+  yr_st <- as.POSIXct(paste(01,01,year, sep = "/"), format="%d/%m/%Y")
+  yr_end <- as.POSIXct(paste(31,12,year, sep = "/"), format="%d/%m/%Y")
+  
+  #Create subset for specified week
+  subset(data,
+         (date >= yr_st & date <= yr_end)) 
+  
+}
+}

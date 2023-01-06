@@ -1,12 +1,13 @@
 ################################################################################
-# TITLE: Net_Zero_eval
+# TITLE: Build_Retire_Functions
 # DESCRIPTION: Functions to evaluate the electricity grid as it approaches possible net zero states
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: July 4, 2022; LAST EDIT: August 19, 2022
+# CREATED: July 4, 2022; LAST EDIT: January 6, 2023
 
 ################################################################################
+
 ################################################################################  
 ## FUNCTION: Retirecol
 ## Plotting the resources retired as a bar chart
@@ -450,306 +451,6 @@ BuildMW <- function(case)
 }
 
 ################################################################################  
-## FUNCTION: Output_Comp 
-## Plotting the capacity of resources individually for selected years as
-## Side by side bar charts
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    ResGroupYr - Resoruce group year output
-##    Import - All imports
-################################################################################
-
-Output_Comp <- function(case) {
-  
-  # Add imports for each year together 
-  Imp <- Import_Yr %>%
-    filter(Name == "WECC_Alberta") %>%
-    filter(Run_ID == case) %>%
-    mutate(Time_Period = format(.$Time_Period, format="%Y")) %>%
-    select(ID, Time_Period, Output_MWH) %>%
-    mutate(ID = "Import") 
-  
-  # Format the time period as a date
-  Imp$Time_Period  <- as.Date(as.character(Imp$Time_Period), 
-                              format = "%Y")
-  
-  # Filters for the desired case study and attached imports
-  data <- ResGroupYr %>%
-    filter(Run_ID == case & Condition == "Average") %>%
-    select(ID, Time_Period, Output_MWH) %>%
-    sim_filt(.) %>%
-    rbind(.,Imp) 
-
-  # Get chosen years
-  data$Time_Period <- format(data$Time_Period,format="%Y")
-  data <- data %>%
-    filter(Time_Period %in% Years2Disp)
-  
-  # re-order teh bars for asthetics
-  data$ID <- factor(data$ID,levels=c("Hydrogen" ,"Natual Gas and Hydrogen Blend",
-                                     "Coal", "Import","Coal-to-Gas", "Natural Gas + CCS","Cogen", "Natural Gas",
-                                      "Wind","Other","Solar", "Hydro","Storage"),ordered=TRUE)
-  
-  
-  # Set the max for the plot
-  MX <- plyr::round_any(max(abs(data$Output_MWH)/1000000), 10, f = ceiling)
-  
-    # Plot
-  data %>%
-    ggplot() +
-    aes(Time_Period, (Output_MWH/1000000), fill = ID) +
-    geom_bar(position="dodge",stat="identity",alpha=0.7,'color'="black") +
-    
-    theme_bw() +
-    
-    theme(text=element_text(family=Plot_Text)) +
-    
-    theme(panel.grid = element_blank(),
-          axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size = XTit_Sz),
-          axis.title.y = element_text(size = YTit_Sz),
-          plot.title = element_text(size = Tit_Sz),
-          plot.subtitle = element_text(hjust = 0.5), 
-          panel.background = element_rect(fill = NA),
-          # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          legend.key.size = unit(1,"lines"), #Shrink legend
-          legend.position = "bottom",
-          legend.justification = c(0.5,0.5),
-          legend.title=element_blank(),
-          text = element_text(size = 15)) +
-    
-    scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
-    
-  #  geom_text(aes(label = sprintf("%0.1f",Output_MWH/1000000)),
-  #            position = position_dodge(width = 1),vjust=-0.5) +
-
-    labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource") +
-    
-    guides(fill = guide_legend(nrow = 2)) +
-    
-    scale_fill_manual(values = colours4,drop = FALSE) 
-  
-}
-
-################################################################################  
-## FUNCTION: AnnualDemand 
-## Plot average demand in Zone
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-##    input - ZoneYr, ZoneMn
-## TABLES REQUIRED: 
-##    Build - Build table describing all new resources
-################################################################################
-AnnualDemand <- function(input,case) {
-
-  # Select data
-  ZPrice <- input %>%
-    filter(Name == "WECC_Alberta") %>%
-    filter(Condition == "Average") %>%
-    filter(Run_ID==case) %>%
-    subset(., select = c(Time_Period, Price, Baseline_Demand, Demand, Demand_Total,
-                         Net_Load, Net_Load_Total, 
-                         Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity, 
-                         Run_ID, Imports, Exports))
-  
-  # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-  MX <- plyr::round_any(max(abs((ZPrice$Demand_Total/1000000))), 10, f = ceiling)
-  
-  # Title Formating
-  
-  
-  ## PLOT WITH AREA PLOT
-  
-  ggplot() +
-    
-    # Add hourly load line (black line on the top)
-    geom_line(data = ZPrice, 
-              aes(x = Time_Period, y = (Demand_Total/1000000)), size=1.5, colour = "black") +
-    
-    scale_x_date(expand=c(0,0),date_labels = "%Y", breaks = "year") +
-    
-    # Set the theme for the plot
-    theme_bw() +
-    theme(panel.grid = element_blank()) +
-    
-    theme(text=element_text(family=Plot_Text)) +
-    
-    theme(plot.title = element_text(size= Tit_Sz)) +
-    
-    theme(axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size= XTit_Sz),
-          axis.title.y = element_text(size= YTit_Sz),
-          panel.background = element_rect(fill = "transparent"),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.title=element_blank(),
-          legend.key = element_rect(colour = "transparent", fill = "transparent"),
-          legend.background = element_rect(fill='transparent',colour ='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          legend.key.size = unit(1,"lines"), #Shrink legend
-          legend.position = "bottom",
-          text = element_text(size= 15)) +
-    
-    scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
-                       breaks = seq(0, MX, by = MX/4)) +
-    
-    labs(x = "Year", y = "Average Total Demand (TWh)") 
-    
-
-}
-
-################################################################################  
-## FUNCTION: AnnualEmStackCol
-## Plot annual emissions by resource group as as stacked chart
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    ResGroupEmYr -Yearly resoruce group emissions
-################################################################################
-AnnualEmStackCol <- function(case) {
-  
-    # Filters for the desired case study
-    data <- ResGroupEmYr %>%
-      filter(Run_ID == case & Condition == "Average") %>%
-      filter(Type== "CO2") %>%
-      select(ID, Report_Year, Amount, Cost) %>%
-      sim_filtEm(.)  %>%
-      mutate(Amount=Amount*0.90718474)%>% # Convert Ton to Tonne
-      filter(!ID=="Cogeneration") # Temp remove cogen
-    
-    # Set the max for the plot
-    YearMX <- aggregate(data["Amount"], by=data["Report_Year"], sum)
-    YearMX$Amount <-YearMX$Amount/1000000
-    MX <- plyr::round_any(max(abs(YearMX$Amount+1)), 5, f = ceiling)
-    
-    # Format years to assist plot
-    data$Report_Year  <- as.numeric(data$Report_Year)
-    
-    # Get Year max for run
-    MaxYr <- as.numeric(max(data$Report_Year))
-    MinYr <- (min(data$Report_Year))
-    
-    # Print the result out for 2035 
-    message("Total Annaul Emissions (Mt)")
-    print(YearMX)
-    
-    # Plot
-    data %>%
-      ggplot() +
-      aes(Report_Year, (Amount/1000000), fill = ID,) +
-      geom_bar(position="stack", stat="identity",alpha=0.7, size=.5, colour="black") +
-      
-      theme_bw() +
-      
-      theme(text=element_text(family=Plot_Text)) +
-      
-      theme(panel.grid = element_blank(),
-            axis.text.x = element_text(vjust = 1),
-            axis.title.x = element_text(size = XTit_Sz),
-            axis.title.y = element_text(size = YTit_Sz),
-            plot.title = element_text(size = Tit_Sz),
-            plot.subtitle = element_text(hjust = 0.5), 
-            panel.background = element_rect(fill = NA),
-            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-            legend.key.size = unit(1,"lines"), #Shrink legend
-            legend.position = "bottom",
-            legend.justification = c(0.5,0.5),
-            legend.title=element_blank(),
-            text = element_text(size = 15)) +
-      
-      scale_x_continuous(expand = c(0, 0),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
-      
-      scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
-      
-      labs(x = "Year", y = "Annual Emissions (Mt Co2e)", fill = "Resource",colour="Resource",caption =paste(SourceDB,',','Cogen has been removed for this figure')) +
-      
-      guides(fill = guide_legend(nrow = 2)) +
-      
-      scale_fill_manual(values = colours7,drop = FALSE) 
-    
-}
-
-################################################################################  
-## FUNCTION: AnnualEmLine
-## Plot annual emissions by resource group as as stacked chart
-##
-## INPUTS: 
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    ResGroupEmYr -Yearly resoruce group emissions
-################################################################################
-AnnualEmLine <- function(case) {
-  
-  # Filters for the desired case study
-  data <- ResGroupEmYr %>%
-    filter(Run_ID == case & Condition == "Average") %>%
-    filter(Type== "CO2") %>%
-    select(ID, Report_Year, Amount, Cost) %>%
-    sim_filtEm(.)  %>%
-    mutate(Amount=Amount*0.90718474)%>% # Convert Ton to Tonne
-    filter(!ID=="Cogeneration") # Temp remove cogen for now
-  
-  data$Report_Year  <- as.numeric(data$Report_Year)
-  
-  # Get Year max for run
-  MaxYr <- as.numeric(max(data$Report_Year))
-  MinYr <- (min(data$Report_Year))
-  
-  # Get total emissions per year
-  AllEm <- data %>%
-    group_by(Report_Year) %>%
-    summarise(.,Amount=sum(Amount),Cost=sum(Cost))%>%
-    ungroup() %>%
-    relocate(Report_Year, .before = Amount)  %>%
-    add_column(ID="Total Emissions",.before="Report_Year")
-    
-  CombData <-rbind(data,AllEm)
-  
-  
-  # Set the max for the plot
-  MX <- plyr::round_any(max(abs(CombData$Amount/1000000)+1), 1, f = ceiling)
-  
-  # Plot
-  CombData %>%
-    ggplot() +
-    geom_line(size=1.5,alpha = 1) +
-    aes(Report_Year, (Amount/1000000),colour = ID,linetype = ID) +
-    
-    theme_bw() +
-    
-    theme(text=element_text(family=Plot_Text)) +
-    
-    theme(panel.grid = element_blank(),
-          axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size = XTit_Sz),
-          axis.title.y = element_text(size = YTit_Sz),
-          plot.title = element_text(size = Tit_Sz),
-          plot.subtitle = element_text(hjust = 0.5), 
-          panel.background = element_rect(fill = NA),
-          # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          #legend.key.size = unit(1,"lines"), #Shrink legend
-          legend.position = "bottom",
-          legend.justification = c(0.5,0.5),
-          legend.title=element_blank(),
-          text = element_text(size = 15)) +
-    
-    labs(x = "Year", y = "Annual Emissions (Mt Co2e)",colour="ID",linetype="ID",caption = paste(SourceDB,',','Cogen has been removed for this figure')) +
-  
-    scale_x_continuous(expand = c(0, 0),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
-    
-    scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
-    
-    scale_colour_manual(name="Guide1",values = colours7,drop = FALSE) +
-    scale_linetype_manual(name="Guide1",values = Lines7,drop = FALSE)
-
-    
-  
-}
-
-################################################################################  
 ## FUNCTION: Eval_diffcap (original author: Taylor Pawlenchuk)
 ## The first year of data does not have a prior capacity to compare to, so it is not used.
 ##
@@ -758,6 +459,8 @@ AnnualEmLine <- function(case) {
 ## TABLES REQUIRED: 
 ##    ResGroupYear -Yearly resoruce group emissions
 ################################################################################
+
+# **NOTE: Issue with first year - need to reformat?**
 
 Eval_diffcap <- function(input,case) {
   
@@ -803,4 +506,133 @@ Eval_diffcap <- function(input,case) {
     scale_fill_manual(values=colours8,drop = FALSE) +
 
     labs(x = "Date", y = "Yearly change in capacity (MW)", fill = "Resource",caption = paste(SourceDB))
+}
+
+################################################################################  
+## FUNCTION: Units
+## Unit specific bar chart showing builds by unit for certain resource type.
+## ex: "WND"
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+##    Fuel - Fuel type matching Fuel_ID 
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
+
+Units <- function(case, Fuel) {
+  
+  data <- Build %>%
+    filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
+             Time_Period == "Study" & Fuel_Type == Fuel) 
+  
+  data %>%
+    ggplot() +
+    aes(Name, Units_Built,fill = Fuel_Type) + 
+    geom_col() +
+    labs(x = "Plant Name", y = "Units Built") +
+    scale_y_continuous(expand = c(0,0),
+                       limits = c(0,(max(data$Units_Built)+1))) +
+    
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          axis.title.x = element_text(size = XTit_Sz,face="bold"),
+          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          plot.title = element_text(size = Tit_Sz),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          panel.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.key.size = unit(1,"lines"), 
+          legend.background = element_rect(fill='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          text = element_text(size = 15),
+          panel.border = element_rect(colour = "black", fill = "transparent"), 
+          panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")) +
+    
+    
+    scale_fill_manual(values="gray") +
+    
+    theme(text=element_text(family=Plot_Text))
+}
+
+################################################################################  
+## FUNCTION: Slack
+## Unit specific bar chart showing units not built (or available) for certain resource type.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+##    Fuel - Fuel type matching Fuel_ID 
+## TABLES REQUIRED: 
+##    Build - Build table describing all new resources
+################################################################################
+
+Slack <- function(case, Fuel) {
+  data <- Build %>%
+    filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
+             Time_Period == "Study" & Fuel_Type == Fuel) 
+  
+  data %>%
+    ggplot() +
+    aes(Name, Max_Limit_Slack,fill = Fuel_Type) + 
+    geom_col() +
+    labs(x = "Plant Name", y = "Units Available") +
+    scale_y_continuous(expand = c(0,0),
+                       limits = c(0,(max(data$Max_Limit_Slack)+1))) +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          axis.title.x = element_text(size = XTit_Sz,face="bold"),
+          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          plot.title = element_text(size = Tit_Sz),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.key.size = unit(1,"lines"), 
+          legend.background = element_rect(fill='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          text = element_text(size = 15),
+          panel.border = element_rect(colour = "black", fill = "transparent"), 
+          panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")) +  
+    
+    scale_fill_manual(values="gray") +
+    
+    theme(text=element_text(family=Plot_Text))
+}
+
+################################################################################
+## FUNCTION: BuildUnits
+## Show units built compared to available ones for a resource type
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################  
+
+BuildUnits <- function(case, Fuel) {
+  p1 <- Units(case,Fuel)+
+    theme(axis.title.x = element_blank(),
+          axis.text.x = element_blank(),
+          legend.position ="none")
+  
+  p2 <- Slack(case,Fuel)  +
+    theme(legend.position ="none")
+  
+  p3 <- plot_grid(p1, p2, ncol = 1, align="v", axis = "l", rel_heights = c(1,1))
+  
+  ggdraw(add_sub(p3,paste("Simulation: ",SourceDB,"; ", "Fuel Type:",Fuel, sep = "")))
+}
+
+BuildUnits2 <- function(case, Fuel) {
+  p1 <- plot_grid(Units2(case,Fuel)+theme(axis.title.x = element_blank(),
+                                          axis.text.x = element_blank(),
+                                          text = element_text(size= 15)),
+                  Slack2(case,Fuel)+theme(text = element_text(size= 15)),
+                  ncol = 1, align="v", axis = "l",rel_heights = c(1,1.5))
+  
+  ggdraw(add_sub(p1,paste("Simulation: ",SourceDB, sep = "")))
 }

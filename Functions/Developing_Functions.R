@@ -1,4 +1,14 @@
 ################################################################################
+# TITLE: Developing_Functions
+# DESCRIPTION: Functions I am still working to build, not yet categorized. 
+
+# AUTHOR: Jessica Van Os
+# CONTACT: jvanos@ualberta.ca
+# CREATED: January 6, 2023; LAST EDIT: January 6, 2023
+#
+################################################################################
+
+################################################################################
 ## FUNCTION: day2
 ## Plots output for a single day given the case study
 ##

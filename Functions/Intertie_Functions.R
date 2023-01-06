@@ -1,7 +1,8 @@
 ################################################################################
-# TITLE: intertie_info
-# DESCRIPTION: Functions To use for plotting and evaluating intertie activities
-
+# TITLE: Intertie_Functions
+# DESCRIPTION: Functions To use for plotting and evaluating intertie activitie. 
+# Information on trade and what is happening in BC/MT/SK.
+#
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
 # CREATED: July 21, 2022; LAST EDIT: August 7, 2022
@@ -16,7 +17,7 @@
 
 ###############################################################################  
 ## FUNCTION: Imp_Exp1
-## AB imports and exports plotted as yearly totals 
+## AB imports and exports plotted as yearly totals. 
 ##
 ## INPUTS: 
 ##    case - Run_ID which you want to plot
@@ -79,17 +80,20 @@ Imp_Exp1 <- function(case) {
     
     scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
     
-    labs(x = "Year", y = "Total Annual Imports and Exports (GWh)", fill = "Resource") +
+    labs(x = "Year", y = "Total Annual Imports and Exports (GWh)", fill = "Resource",caption=paste("Database: ",SourceDB)) +
     
-    guides(fill = guide_legend(nrow = 1)) 
+    guides(fill = guide_legend(nrow = 1)) +
+    
+    scale_fill_manual(values=c("Export"="gray21","Import"="gray71"))
 }
 
 ###############################################################################  
 ## FUNCTION: Imp_Exp2
-## AB imports and exports plotted as annual chart 
+## AB imports and exports plotted as annual chart, shows hourly patterns. 
 ##
 ## INPUTS: 
 ##    case - Run_ID which you want to plot
+##    year - Year to show trade patterns
 ## TABLES REQUIRED: 
 ##    Import_Yr - All imports from AB
 ##    Export_Yr - All exports from AB
@@ -144,11 +148,11 @@ Imp_Exp2 <- function(year,case) {
     
     scale_x_datetime(expand=c(0,0),date_labels = "%b" ,breaks = "month") +
     
-    labs(x = "Date", y = "AB Hourly Imports and Exports (MWh)",caption = SourceDB, title=year) +
+    labs(x = "Date", y = "AB Hourly Imports and Exports (MWh)",caption=paste("Database: ",SourceDB), title=year) +
     
-    scale_fill_manual(values = c("Import"= cOL_IMPORT,"Export"=cOL_EXPORT)) +
+    guides(fill = guide_legend(nrow = 1)) +
     
-    guides(fill = guide_legend(nrow = 1)) 
+    scale_fill_manual(values=c("Export"="gray21","Import"="gray71"))
 }
 
 ################################################################################  
@@ -436,7 +440,7 @@ MN_Trade_Price <- function(year,month,case) {
 }
 ###############################################################################  
 ## FUNCTION: MN_TradeOnly 
-## AB imports and exports and pool price for specific month
+## AB imports and exports and pool price for specific month.
 ##
 ## INPUTS: 
 ##    year - Year to check
@@ -540,7 +544,7 @@ ggplot() +
 
 ###############################################################################  
 ## FUNCTION: T_month_all_Sim 
-## All trade for each month over one year
+## All trade for each month over one year.
 ##
 ## INPUTS: 
 ##    Years2See - Year to show in duration curve
@@ -652,6 +656,7 @@ T_month_all_Sim <- function(year,case) {
 ###############################################################################  
 ################################################################################
 ## AESO INTERTIE FUNCTIONS
+##  Functions use AESO data to visualize trade patterns
 ################################################################################
 ###############################################################################  
 
