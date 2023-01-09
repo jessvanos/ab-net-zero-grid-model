@@ -115,3 +115,98 @@ Sim_dur <- function(case) {
     
     scale_y_continuous(expand=c(0,0),limits = c(0,1000),breaks = pretty_breaks(5)) 
 }
+
+################################################################################
+## FUNCTION: AvgMn_price
+## Plots monthly average pool price with average internal load
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+AvgMn_price <- function(case) {
+  
+  # Source function written by Dr. Leach
+  source("DrLeach_Code.R")
+  
+  # Filter the zone hourly table for specific case
+  data <- ZoneHr %>%
+    mutate(year = year(date),
+           time = date) %>%
+    filter(Run_ID == case,
+           year >= 2022 & year <= 2040,
+           Condition != "Average",
+           Name == "WECC_Alberta") %>%
+    subset(.,select=-c(Condition,Marginal_Resource,date,Run_ID,Name,Report_Year))
+  
+  # Call function to sort hourly data into groups
+  peak_data_Sim<-data %>%
+    #    filter(!is.na(actual_posted_pool_price),!is.na(actual_ail))%>%
+    assign_date_time_days()%>%
+    assign_peaks()%>%
+    group_by(year,month) %>%
+    summarize(ail=mean(Demand,na.rm = T),peak_ail=max(Demand),trough_ail=min(Demand),
+              q75_price=quantile(Price, probs=c(.95)),
+              q25_price=quantile(Price, probs=c(.05)),
+              q75_ail=quantile(Demand, probs=c(.95)),
+              q25_ail=quantile(Demand, probs=c(.05)),
+              mean_peak_price=sum(Price*Demand*(on_peak==TRUE),
+                                  na.rm = T)/sum(Demand*(on_peak==TRUE),
+                                                 na.rm = T),
+              mean_off_peak_price=sum(Price*Demand*(on_peak==FALSE),
+                                      na.rm = T)/sum(Demand*(on_peak==FALSE),
+                                                     na.rm = T),
+              mean_peak_ail=sum(Demand*(on_peak==TRUE),
+                                na.rm = T)/sum((on_peak==TRUE),
+                                               na.rm = T),
+              mean_off_peak_ail=sum(Demand*(on_peak==FALSE),
+                                    na.rm = T)/sum((on_peak==FALSE),
+                                                   na.rm = T),
+              mean_price=sum(Price*Demand,
+                             na.rm = T)/sum(Demand,na.rm = T),
+              peak_price=max(Price),
+              trough_price=min(Price)
+    )%>%  
+    mutate(date=ymd(paste(year,month,1,sep="-")),
+           sit = paste0("Simulation ",SourceDB))
+  
+  # Plot the data
+  top_panel<-ggplot(peak_data_Sim) +
+    geom_line(aes(date,mean_price,linetype="A"),size=.85)+#,color="black")+
+    geom_line(aes(date,mean_off_peak_price,linetype="B"),size=.85)+#,color="blue")+
+    geom_ribbon(aes(date,ymax=q75_price,ymin=q25_price,fill=sit),alpha=.5)+
+    geom_hline(yintercept=0) +
+    scale_color_manual("",values = c("black","royalblue4"))+
+    scale_fill_manual("",values = c("grey50","royalblue"),
+                      labels="Two-tailed 90th\npercentile range")+
+    scale_linetype_manual("",values = c("solid","11"),
+                          labels=c("Peak \nperiod average","Off-peak \nperiod average"))+
+    scale_x_date(expand=c(0,0),breaks="1 year",labels = date_format("%Y",tz="America/Denver"))+
+    scale_y_continuous(expand=c(0,0))+
+    expand_limits(y=0)+ #make sure you get the zero line
+    guides(linetype = guide_legend(override.aes = list(color = c("black","blue"))),color="none")+
+    theme_bw() +
+    theme(legend.position="bottom",
+          legend.box.spacing = unit(0, "pt"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid = element_blank(),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          text = element_text(size= 15),
+          legend.text = element_text(colour="black", size = 12, face = "bold"),
+          #axis.title.y = element_text(margin = margin(t = 0, r = 5, b = 0, l = 0, unit = "pt")),
+    )+
+    labs(y="Pool Prices ($/MWh)",x="",
+         title=paste("Alberta Hourly Wholesale Power Prices and Alberta Internal Load",sep=""),caption=SourceDB) + 
+    
+    guides(fill=guide_legend(nrow=2,byrow=TRUE))
+  
+  # Finally, show the plot
+  top_panel
+}

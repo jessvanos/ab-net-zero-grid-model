@@ -40,6 +40,7 @@
     # DescTools: Stats tools 
     # pivottabler: Allows pivot tables to easily be created in R
     # openxlsx: Used to interact with xlsx files from R environment
+    # timeDate: Used for time zone information and holidays.
   }
 
 { # Must load the here package in order to make sure internal project directories work
@@ -62,7 +63,7 @@
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
-                   "openxlsx","sqldf")
+                   "openxlsx","sqldf","timeDate")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -529,7 +530,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 ## THE MOST USEFULL FUNCTIONS
   
   # Grid of weekly output - need to edit for more than one week of data
-  year_weeks(2035,BC)
+  year_weeks(2034,BC)
   
   # Yearly Output
   Evalyr(ResGroupYr,BC)
@@ -545,8 +546,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
   # Capacity built by Aurora over study period
   Build_A_MW(BC)
-  Build_A_Totals(BC)
-  
+
   # All new capacity
   BuildMW(BC)
   Build_Totals(BC)
@@ -591,6 +591,9 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   # Annual emissions in individual lines
   AnnualEmLine(BC)
   
+  
+  # Average monthly prices
+  AvgMn_price(BC)
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS LISTED
 ################################################################################
