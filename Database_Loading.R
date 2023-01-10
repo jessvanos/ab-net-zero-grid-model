@@ -74,7 +74,8 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"NZ_Jan_03_2022"
+  #SourceDB<-"NZ_Jan_03_2022"
+  SourceDB<-"BAU_Jan_09_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -92,7 +93,6 @@
 
 { BC <- "Base Case" 
   NZ <- "Net Zero"
-  CC <- "CarbonCredits"
 }
 
 ################################################################################
@@ -527,6 +527,10 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 ################################################################################
   windows(14,10)
 
+  windows(16,10)
+  
+  windows(16,8)
+  
 ## THE MOST USEFULL FUNCTIONS
   
   # Grid of weekly output - need to edit for more than one week of data
@@ -590,7 +594,6 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   AnnualEmStackCol(BC)
   # Annual emissions in individual lines
   AnnualEmLine(BC)
-  
   
   # Average monthly prices
   AvgMn_price(BC)

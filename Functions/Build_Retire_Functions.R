@@ -160,11 +160,12 @@ RetireMW <- function(case) {
   #Now group everything together
   Retdata <- Retdata%>%
     group_by(Primary_Fuel, End_Date) %>%
-    summarise(Units = sum(RetUnits), Capacity = sum(Peak_Capacity))
+    summarise(Units = sum(RetUnits), Capacity = sum(Peak_Capacity)) %>%
+    mutate(Capacity=Capacity*-1)
   
   #Max Units Built
   dyMX <- aggregate(Retdata["Capacity"], by=Retdata["End_Date"], sum)
-  mxc <- round_any(max(dyMX$Capacity+11),500,f=ceiling)
+  mxc <- round_any(min(dyMX$Capacity+11),500,f=ceiling)
   
   Retdata$End_Date <- as.numeric(Retdata$End_Date)
   
@@ -193,10 +194,11 @@ RetireMW <- function(case) {
     
     labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
     
-    scale_x_continuous(expand = c(0.01, 0.01),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
+    scale_x_continuous(expand = c(0.01, 0.01),limits=c(as.numeric(MinYr), as.numeric(MaxYr)),
+                       breaks=seq(MinYr, MaxYr, by=1),position = "top") +
     
     scale_y_continuous(expand=c(0,0),
-                       limits = c(0,(mxc)),breaks=breaks_pretty(5)) +
+                       limits = c((mxc),0),breaks=breaks_pretty(5)) +
     
     scale_fill_manual(values=colours3,drop = FALSE)
   

@@ -179,9 +179,9 @@ AvgMn_price <- function(case) {
     geom_hline(yintercept=0) +
     scale_color_manual("",values = c("black","royalblue4"))+
     scale_fill_manual("",values = c("grey50","royalblue"),
-                      labels="Two-tailed 90th\npercentile range")+
+                      labels="Two-tailed 90th percentile range")+
     scale_linetype_manual("",values = c("solid","11"),
-                          labels=c("Peak \nperiod average","Off-peak \nperiod average"))+
+                          labels=c("Peak period average","Off-peak period average"))+
     scale_x_date(expand=c(0,0),breaks="1 year",labels = date_format("%Y",tz="America/Denver"))+
     scale_y_continuous(expand=c(0,0))+
     expand_limits(y=0)+ #make sure you get the zero line
@@ -199,11 +199,12 @@ AvgMn_price <- function(case) {
           legend.background = element_rect(fill='transparent'),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
           text = element_text(size= 15),
-          legend.text = element_text(colour="black", size = 12, face = "bold"),
+          legend.text = element_text(colour="black", size = 12),
+          plot.title = element_text(hjust = 0.5),
           #axis.title.y = element_text(margin = margin(t = 0, r = 5, b = 0, l = 0, unit = "pt")),
     )+
     labs(y="Pool Prices ($/MWh)",x="",
-         title=paste("Alberta Hourly Wholesale Power Prices and Alberta Internal Load",sep=""),caption=SourceDB) + 
+         title=paste("Alberta Hourly Wholesale Power Prices",sep=""),caption=SourceDB) + 
     
     guides(fill=guide_legend(nrow=2,byrow=TRUE))
   
