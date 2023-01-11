@@ -82,14 +82,14 @@ Retirecol <- function(case) {
           panel.background = element_rect(fill = "transparent"),
           plot.title = element_blank(),
           legend.justification = c(0.5,0.5),
-          legend.position = ("bottom"),
+          legend.position = ("right"),
           legend.title=element_blank(), 
           legend.key.size = unit(1,"lines"),
           plot.caption=element_text(size=10),
           panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           text = element_text(size = 15)) +
     
-    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    #guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
     
     labs(x = "End Date", y = "Units Retired", fill = "Fuel Type",
          caption="Note: Retirement is classified by fuel type here")  +
@@ -183,14 +183,14 @@ RetireMW <- function(case) {
           panel.background = element_rect(fill = "transparent"),
           plot.title = element_blank(),
           legend.justification = c(0.5,0.5),
-          legend.position = ("bottom"),
+          legend.position = ("right"),
           legend.title=element_blank(), 
           legend.key.size = unit(1,"lines"),
           plot.caption=element_text(size=10),
           #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           text = element_text(size = 15)) +
     
-    guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
+    #guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
     
     labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
     
@@ -432,14 +432,14 @@ BuildMW <- function(case)
           panel.background = element_rect(fill = "transparent"),
           plot.title = element_blank(),
           legend.justification = c(0.5,0.5),
-          legend.position = ("bottom"),
+          legend.position = ("right"),
           legend.title=element_blank(), 
           legend.key.size = unit(1,"lines"),
           plot.caption=element_text(size=10),
           #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           text = element_text(size = 15)) +
     
-    guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
+    #guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
     
     labs(x = "Year", y = "New Capacity (MW)", fill = "Fuel Type",caption=SourceDB)  +
     scale_y_continuous(expand=c(0,0),

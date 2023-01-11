@@ -525,6 +525,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
 ################################################################################
+  
   windows(14,10)
 
   windows(16,10)
@@ -545,7 +546,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   # Yearly percentage of generation
   EvalPerc(ResGroupYr,BC)
   
-  # Retiremtns by capacity (grouped by fuel type)
+  # Retirements by capacity (grouped by fuel type)
   RetireMW(BC)
   
   # Capacity built by Aurora over study period
@@ -597,6 +598,12 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
   # Average monthly prices
   AvgMn_price(BC)
+  
+  poolprice_2year(2022,2023,BC)
+  
+  AvgYr_poolprice(BC)
+  
+  CFcompare(2022,2035,BC)
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS LISTED
 ################################################################################

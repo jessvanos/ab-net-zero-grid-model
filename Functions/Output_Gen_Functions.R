@@ -632,6 +632,82 @@
   }
   
 ################################################################################
+## FUNCTION: CFcompare
+## Compares capacity factor for two chosen years. Modified from Taylor Pawlenchuk.
+##
+## INPUTS: 
+##    year1 - First year
+##    Year2 - Seond year
+##    case - case to see 
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Hourly resource group tables
+################################################################################
+  CFcompare <- function(year1, year2, case) {
+    # Plots the capacity factor by technology for AESO and Sim
+    # Like AESO Market Report 2021 Figure 15
+    
+    Sim <- ResGroupHr_sub %>%
+      sim_filt1(.) %>%
+      group_by(Report_Year, ID) %>%
+      summarise(Cap = mean(Capacity_Factor))
+    
+    colnames(Sim) <- c("Year", "Plant_Type", "Cap")
+    
+    Sim$Plant_Type <- factor(Sim$Plant_Type, levels=c("Import","Solar","Wind", "Other", "Hydro", 
+                                                      "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                      "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                      "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                      "Coal-to-Gas", 
+                                                      "Coal", "Cogeneration","Storage"))
+    # Filter for year
+    Sim <- Sim %>%
+      filter(Year %in% c(year1,year2))
+    
+    sz <- 15
+    
+    ggplot() +
+      geom_col(data = Sim, position = "dodge", alpha = 0.7, width = 0.7,
+               aes(x = Plant_Type, y = Cap,
+                   fill=as.factor(Year)
+               )) +
+      #facet_grid(~Year) +
+      theme_bw() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+            axis.title.x = element_blank(),
+            axis.text = element_text(size = sz),
+            axis.title = element_text(size = sz),
+            plot.title = element_text(size = sz+2),
+            legend.text = element_text(size = sz),
+            panel.grid = element_blank(),
+            legend.title = element_blank(),
+            
+            # For transparent background
+            panel.background = element_rect(fill = "transparent"),
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            panel.spacing = unit(1.5, "lines"),
+            plot.background = element_rect(fill = "transparent", color = NA),
+            legend.key = element_rect(colour = "transparent", fill = "transparent"),
+            legend.background = element_rect(fill='transparent'),
+            legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+      ) +
+      labs(y = "Capacity Factor", 
+           #title = "AESO Data vs Simulation",
+           #subtitle = DB
+      ) +
+      scale_fill_manual(values = c("grey50","black")) +
+      #scale_fill_manual(values = colours1) +
+      #    scale_x_continuous(expand=c(0,0), 
+      #                       limits = c(0,1.1),
+      #                       labels = percent) +
+      scale_y_continuous(expand=c(0,0),
+                         limits = c(0,1),
+                         breaks = seq(0,1, by = 0.2)
+      )
+  } 
+  
+  
+################################################################################
 #
 # COMBINED PLOTS SECTION
 # Combined plots and supporting functions
