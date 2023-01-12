@@ -40,20 +40,20 @@ Report_P <- function(Years2Pivot,case) {
     pt$defineCalculation(calculationName="Avg Price",summariseExpression="mean(Price,na.rm=TRUE)",format="%#.2f")
     pt$renderPivot()
   } 
+  
   #Write the pivot table to an excel workbook
-  # wb <- createWorkbook()
-  # addWorksheet(wb, "Avg Price Data")
-  # pt$writeToExcelWorksheet(wb=wb, wsName="Avg Price Data", 
-  #                          topRowNumber=1, leftMostColumnNumber=1, 
-  #                          applyStyles=TRUE, mapStylesFromCSS=TRUE)
-  # 
-  # saveWorkbook(wb, here('Figures (Local)',paste("ZonePrice_",case,"_",SourceDB,".xlsx")), overwrite = TRUE)
-  # 
-  # 
-  # pt$renderPivot() # Display in viewer
+  wb <- createWorkbook()
+  addWorksheet(wb, "Avg Price Data")
+  pt$writeToExcelWorksheet(wb=wb, wsName="Avg Price Data",
+                           topRowNumber=1, leftMostColumnNumber=1,
+                           applyStyles=TRUE, mapStylesFromCSS=TRUE)
+
+  # Folder Name
+  FoldName <-paste('Data_',SourceDB)
   
-  
-  
+  # Save to folder called Tables (Local) on computer. Allow overwrite is version already exists with this name
+  saveWorkbook(wb, here('Tables (Local)',paste("ZonePrice_",SourceDB,".csv")), overwrite = TRUE)
+
 }
 
 ###############################################################################  
@@ -140,6 +140,17 @@ Build_Totals <- function(case) {
    
     pt$renderPivot() # Display in viewer
   }
+  
+  #Write the pivot table to an excel workbook
+  wb <- createWorkbook()
+  addWorksheet(wb, "New Resources (MW)")
+  pt$writeToExcelWorksheet(wb=wb, wsName="New Resources (MW)",
+                           topRowNumber=1, leftMostColumnNumber=1,
+                           applyStyles=TRUE, mapStylesFromCSS=TRUE)
+  
+  # Save to folder called Tables (Local) on computer. Allow overwrite is version already exists with this name
+  saveWorkbook(wb, here('Tables (Local)',paste("New_Resources_Total_MW_",SourceDB,".csv")), overwrite = TRUE)
+  
 }
 
 ###############################################################################  
@@ -181,3 +192,13 @@ Build_A_Totals <- function(case) {
     pt$renderPivot() # Display in viewer
   }
 }
+
+###############################################################################  
+## FUNCTION: BuildMW_Totals
+## Report the capacity built for each fuel type in the study by year
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Zone_Yr - Yearly zone information
+################################################################################

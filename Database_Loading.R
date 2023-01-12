@@ -74,8 +74,8 @@
 ################################################################################
 
 { #Input Database Name below:
-  #SourceDB<-"NZ_Jan_03_2022"
-  SourceDB<-"BAU_Jan_09_2023"
+  SourceDB<-"NZ_Jan_03_2022"
+  #SourceDB<-"BAU_Jan_10_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -530,7 +530,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 
   windows(16,10)
   
-  windows(16,8)
+  windows(16,6)
   
 ## THE MOST USEFULL FUNCTIONS
   

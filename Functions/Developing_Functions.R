@@ -920,4 +920,32 @@ Revenue <- function(case) {
     
 }
 
+################################################################################
+## FUNCTION: 
+## 
+##
+## INPUTS: 
+##    
+## TABLES REQUIRED: 
+##    
+################################################################################
+
+# Take data from table and subset columns
+data <- ZoneYr %>%
+  mutate(year = year(Time_Period),
+         time = Time_Period) %>%
+  filter(Run_ID == case,
+         Condition != "Average",
+         Name == "WECC_Alberta") %>%
+  mutate(Report_Year=as.numeric(Report_Year)) %>%
+  subset(.,select=c(Name,year,Price,Demand, Demand_Total,
+                    Net_Load, Net_Load_Total,Production_Cost_Total,Fixed_Cost_Total,Report_Year))
+
+
+
+
+
+
+
+
 
