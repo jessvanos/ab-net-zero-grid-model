@@ -941,11 +941,44 @@ data <- ZoneYr %>%
   subset(.,select=c(Name,year,Price,Demand, Demand_Total,
                     Net_Load, Net_Load_Total,Production_Cost_Total,Fixed_Cost_Total,Report_Year))
 
+################################################################################
+## FUNCTION: 
+## 
+##
+## INPUTS: 
+##    
+## TABLES REQUIRED: 
+##    
+################################################################################
 
+DataHr <- ResHr %>%
+  mutate(year = year(date),
+         time = date) %>%
+  filter(Run_ID == case,
+         Condition == "Average",
+         Zone == "WECC_Alberta") %>%
+  filter(grepl('ANRN',ID)) %>%
+  mutate(Report_Year=as.numeric(Report_Year)) %>%
+  subset(.,select=c(ID,Name,Report_Year,date,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
+                    Fuel_Usage,Primary_Fuel,
+                    Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
+                    Revenue,Energy_Revenue_MWh,Value,Value_MWh,
+                    Used_For_Op_Reserve, Forced_Outage,Maint_Outage,Total_Hours_Run,Beg_Date,End_Date))
 
+gc()
 
-
-
-
-
-
+DataYr <- ResYr %>%
+  filter(Run_ID == case,
+         Condition == "Average",
+         Zone == "WECC_Alberta") %>%
+  filter(grepl('New Resource',Name)) %>%
+  mutate(Report_Year=as.numeric(YEAR)) %>%
+  filter(Capacity>0) %>%
+  subset(.,select=c(Name,Report_Year,date,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
+                    Fuel_Usage,Primary_Fuel,
+                    Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
+                    Revenue,Energy_Revenue_MWh,Value,Value_MWh,
+                    Used_For_Op_Reserve, Forced_Outage,Maint_Outage,Total_Hours_Run,Beg_Date,End_Date))
+  
+  
+  

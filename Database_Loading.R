@@ -55,7 +55,7 @@
   source(here('Functions','Table_Functions.R'))       # Summary pivot tables
   source(here('Functions','Res_Filter_Functions.R'))  # Filtering by resource type, required for plots
   source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
-  source(here('Functions','Developing_Functions.R'))  # Under construction functions
+  #source(here('Functions','Developing_Functions.R'))  # Under construction functions
   source(here('Functions','aeso_eval_1.R'))           #
   source(here('Functions','aseo_sim_comp_1.R'))       #
   
@@ -74,7 +74,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"NZ_Jan_03_2022"
+  SourceDB<-"BAU_Jan_12_2022"
   #SourceDB<-"BAU_Jan_10_2023"
   
   #Connect to database specified (via server, user, and password)
@@ -234,11 +234,13 @@
     ResHr <- ResHr %>%
               filter(Zone == "WECC_Alberta") %>%
       subset(., select = c(ID, Name, Beg_Date, End_Date, date, Capability, Capacity, 
-                           Dispatch_Cost, Incr_Cost, Fixed_Cost, Fuel_Cost, 
+                           Dispatch_Cost, Incr_Cost, Fixed_Cost, Fuel_Cost,Fuel_Usage, 
                            Output_MWH, Percent_Marginal, Percent_Committed,
-                           Revenue, Variable_OM_Cost, Capacity_Factor, 
+                           Revenue,Energy_Revenue_MWh,Value,Value_MWh, 
+                           Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Startup_Cost,Build_Cost,Capacity_Factor, 
                            Total_Emission_Cost, Total_Hours_Run, Condition, 
                            Report_Year, Run_ID, Peak_Capacity, 
+                           Used_For_Op_Reserve, Forced_Outage,Maint_Outage,
                            Primary_Fuel,Zone))   
   }
   
