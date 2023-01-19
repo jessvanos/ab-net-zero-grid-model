@@ -205,7 +205,7 @@ Build_A_Totals <- function(case) {
 
 ################################################################################
 ## FUNCTION: WriteAllTables
-## Filters and writes all data to cvs files for excel. 
+## Filters and writes all data to cvs files for excel input. 
 ##
 ## INPUTS: 
 ##    
@@ -214,17 +214,61 @@ Build_A_Totals <- function(case) {
 ################################################################################
 
 # Filter for resource hourly information over entire study period
-Hourly_Resource_Info <- ResHr %>%
-  mutate(year = year(date),
-         time = date) %>%
-  filter(Run_ID == case,
-         Condition == "Average",
-         Zone == "WECC_Alberta") %>%
-  mutate(Report_Year=as.numeric(Report_Year)) %>%
-  subset(.,select=c(Name,Report_Year,date,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
-                    Fuel_Usage,Primary_Fuel,
-                    Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
-                    Revenue,Energy_Revenue_MWh,Value,Value_MWh,
-                    Used_For_Op_Reserve, Forced_Outage,Maint_Outage,Total_Hours_Run,Beg_Date,End_Date))
 
+# INDIVIDUAL RESOURCE OUTPUTS
 
+  # Hourly Resource info
+  DataHr <- ResHr %>%
+    mutate(year = year(date),
+           time = date) %>%
+    filter(Run_ID == case,
+           Condition == "Average",
+           Zone == "WECC_Alberta") %>%
+    sim_filt5(.) %>%
+    mutate(Report_Year=as.numeric(Report_Year),
+           Simulation_Name=paste(SourceDB)) %>%
+    subset(.,select=c(ID,Name,Report_Year,date,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
+                      Fuel_Usage,Primary_Fuel,
+                      Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
+                      Revenue,Energy_Revenue_MWh,Value,Value_MWh,
+                      Used_For_Op_Reserve, Forced_Outage,Maint_Outage,Total_Hours_Run,Beg_Date,End_Date,Simulation_Name))
+
+gc()
+
+  # Annual Resource info
+  DataYr <- ResYr %>%
+    filter(Run_ID == case,
+           Condition == "Average",
+           Zone == "WECC_Alberta") %>%
+    sim_filt5(.) %>%
+    mutate(Report_Year=as.numeric(YEAR),
+           Simulation_Name=paste(SourceDB)) %>%
+    filter(Capacity>0) %>%
+    subset(.,select=c(Name,Report_Year,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
+                      Fuel_Usage,Primary_Fuel,
+                      Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
+                      Revenue,Energy_Revenue_MWh,Value,Value_MWh,
+                      Used_For_Op_Reserve, Forced_Outage,Maint_Outage,Total_Hours_Run,Beg_Date,End_Date,Simulation_Name))
+  
+# RESOURCE GROUP OUTPUTS
+  
+  # Resource groups over entire year
+  DataGrYr <- ResGroupYr%>%
+    sim_filt(.) %>% #Filter to rename fuels
+    filter(Run_ID == case) %>%
+    filter(Condition == "Average") %>%
+    mutate(Time_Period=as.numeric(Time_Period),
+           Simulation_Name=paste(SourceDB)) %>%
+    subset(., select=c(Name,ID,Time_Period,Condition,Output,Output_MWH,Capacity,
+                       Dispatch_Cost,Net_Cost,Fixed_Cost,Variable_OM_Cost,Variable_OM_Cost_Base,Fixed_Cost_Aux1,
+                       Fuel_Usage,Percent_Marginal,Percent_Committed,Revenue,Energy_Revenue,
+                       Total_Fuel_Cost,Value,Forced_Outage,Maint_Outage,Spin_Reserve,Total_Hours_Run,
+                       Capacity_Factor,Storage_Charging_Cost,Simulation_Name)) 
+    
+  
+# EMISSIONS OUTPUTS
+  
+# ZONE OUTPUTS
+  
+# TRADE OUTPUTS
+  

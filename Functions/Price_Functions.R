@@ -105,7 +105,7 @@ Sim_dur <- function(case) {
           legend.title = element_blank(),
           panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray70")) +
     
-    labs(y = "Pool Price ($/MWh)", x = "Percentage of Time",caption = SourceDB) +
+    labs(y = "Pool Price ($/MWh)", x = "Percentage of Time for Hourly Pool Price",caption = SourceDB) +
     
     #scale_color_brewer(palette= "Dark2") +
     
@@ -135,7 +135,7 @@ AvgMn_price <- function(case) {
     mutate(year = year(date),
            time = date) %>%
     filter(Run_ID == case,
-           year >= 2022 & year <= 2040,
+           year >= 2022 & year <= 2035,
            Condition != "Average",
            Name == "WECC_Alberta") %>%
     subset(.,select=-c(Condition,Marginal_Resource,date,Run_ID,Name,Report_Year))
@@ -173,17 +173,19 @@ AvgMn_price <- function(case) {
   
   # Plot the data
   top_panel<-ggplot(peak_data_Sim) +
-    geom_line(aes(date,mean_price,linetype="A"),size=.85)+#,color="black")+
-    geom_line(aes(date,mean_off_peak_price,linetype="B"),size=.85)+#,color="blue")+
+    geom_line(aes(date,mean_price,linetype="A"),size=.85,color="black")+
+    geom_line(aes(date,mean_off_peak_price,linetype="B"),size=.85,color="blue")+
     geom_ribbon(aes(date,ymax=q75_price,ymin=q25_price,fill=sit),alpha=.5)+
-    geom_hline(yintercept=0) +
+    geom_hline(yintercept=0,linetype=5) +
     scale_color_manual("",values = c("black","royalblue4"))+
     scale_fill_manual("",values = c("grey50","royalblue"),
                       labels="Two-tailed 90th percentile range")+
     scale_linetype_manual("",values = c("solid","11"),
                           labels=c("Peak period average","Off-peak period average"))+
+    
     scale_x_date(expand=c(0,0),breaks="1 year",labels = date_format("%Y",tz="America/Denver"))+
-    scale_y_continuous(expand=c(0,0))+
+    scale_y_continuous(expand=c(0,0),limits=c(-10,1050))+
+    
     expand_limits(y=0)+ #make sure you get the zero line
     guides(linetype = guide_legend(override.aes = list(color = c("black","blue"))),color="none")+
     theme_bw() +
@@ -313,7 +315,7 @@ Sim <- ZoneHr_All %>%
 Sim$YEAR <- as.numeric(format(Sim$Report_Year))
 
 # Get max and min year for plot
-YearMX<-max(Sim$YEAR)
+YearMX<-max(Sim$YEAR)-5
 YearMN<-min(Sim$YEAR)
 
 # Set font size and limits for plot
@@ -323,7 +325,7 @@ Upplim <- round_any(max(Sim$Price)+11,100)
 ggplot() +
   geom_line(data = Sim,
             aes(x = YEAR, y = Price, colour = Condition,linetype= Condition), 
-            size = 1) +
+            size = 2) +
   theme_bw() +
   theme(axis.text = element_text(size = sz),
         axis.title = element_text(size = sz+5),

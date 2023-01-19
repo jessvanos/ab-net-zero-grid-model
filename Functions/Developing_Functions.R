@@ -921,8 +921,8 @@ Revenue <- function(case) {
 }
 
 ################################################################################
-## FUNCTION: 
-## 
+## FUNCTION: System_Cost
+## Describes the average system costs incured
 ##
 ## INPUTS: 
 ##    
@@ -930,16 +930,96 @@ Revenue <- function(case) {
 ##    
 ################################################################################
 
+System_Cost<- function(case) {
+  
 # Take data from table and subset columns
-data <- ZoneYr %>%
+ZnData <- ZoneYr %>%
   mutate(year = year(Time_Period),
          time = Time_Period) %>%
   filter(Run_ID == case,
-         Condition != "Average",
+         Condition == "Average",
          Name == "WECC_Alberta") %>%
   mutate(Report_Year=as.numeric(Report_Year)) %>%
   subset(.,select=c(Name,year,Price,Demand, Demand_Total,
-                    Net_Load, Net_Load_Total,Production_Cost_Total,Fixed_Cost_Total,Report_Year))
+                    Net_Load, Net_Load_Total,
+                    Production_Cost_Total,Fixed_Cost_Total,
+                    Report_Year)) %>%
+  mutate(Scenario=SourceDB,
+         Production_Cost_M=Production_Cost_Total/1000,
+         Fixed_Cost_M=Fixed_Cost_Total/1000)
+
+# DESCRIPTIONS
+  # Demand - Average hourly demand
+  # Demand Total - Total demand for year
+  # Net_Load - Average net load served
+  # Production_Cost_Total - In Can$000. Sum of Startup cost,Fuel cost,Emissions cost, Variable O&M
+  #                         cost for all resources
+  # Fixed_Cost_Total - Fixed costs for units (summed). 
+
+# Get max and min year for plot
+YearMX<-max(ZnData$year)-5
+YearMN<-min(ZnData$year)
+
+Upplim <- round_any(max(ZnData$Production_Cost_M,ZnData$Fixed_Cost_M)+111,1000)
+Lowlim <- round_any(min(ZnData$Production_Cost_M,ZnData$Fixed_Cost_M)+111,1000)
+
+# Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+ZnData <- ZnData%>%
+  filter(year<=YearMX)
+
+# Re-arrange the data
+PCost <-ZnData %>%
+  mutate(Cost=Production_Cost_M,
+         Type="Production Cost")%>%
+  subset(.,select=c(year,Cost,Type,Scenario))
+
+FCost <-ZnData %>%
+  mutate(Cost=Fixed_Cost_M,
+         Type="Fixed Cost")%>%
+  subset(.,select=c(year,Cost,Type,Scenario))
+
+totalcosts<- rbind(PCost,FCost)
+
+ggplot() +
+  geom_line(data = totalcosts,
+            aes(x = year, y = Cost, colour = Type),
+            size = 2) +
+  
+  # Add line at y=0
+  geom_hline(yintercept=0, color = "black")+
+  
+  theme_bw() +
+  theme(text=element_text(size=GenText_Sz),
+        axis.text = element_text(),
+        axis.title.y = element_text(size = YTit_Sz),
+        axis.text.x = element_text(angle = 45, hjust=1, size = XTit_Sz),
+        plot.title = element_text(size = Tit_Sz),
+        legend.text = element_text(size = Leg_Sz),
+        panel.grid = element_blank(),
+        legend.title = element_blank(),
+        legend.position = "bottom",
+        panel.background = element_rect(fill = "transparent"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.spacing = unit(1.5, "lines"),
+        plot.background = element_rect(fill = "transparent", color = NA),
+        legend.key = element_rect(colour = "transparent", fill = "transparent"),
+        legend.background = element_rect(fill='transparent'),
+        legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+  ) +
+  labs(y = "Total Cost ($ Million)", x="Year",
+       caption = paste("Total production cost is a sum of startup costs, fuel costs, 
+                       emission costs, and variable O&M costs for all resources opperating in a given year\n",
+                       SourceDB)) +
+
+  scale_color_manual(values = c("Production Cost"="grey","Fixed Cost"="Black")) +
+  
+  scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
+  
+  scale_y_continuous(expand=c(0,0),labels = scales::comma,limits=c(Lowlim,Upplim),n.breaks = 5, 
+  )
+
+}
 
 ################################################################################
 ## FUNCTION: 

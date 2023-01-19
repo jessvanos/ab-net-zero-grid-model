@@ -284,7 +284,7 @@
 ##    Import - Import table derived of zone average table
 ################################################################################
   
-  Evalyr <- function(input,case) {
+  Evalyr <- function(case) {
     
     # Get imports
     Imp <- Import_Yr %>%
@@ -294,7 +294,7 @@
       mutate(ID = "Import") 
 
     # Filters for the desired case study
-    data <- input %>%
+    data <- ResGroupYr %>%
       filter(Run_ID == case & Condition == "Average") %>%
       select(ID, Time_Period, Output_MWH) %>%
       sim_filt(.) %>%
@@ -308,8 +308,12 @@
     data$YEAR <- as.numeric(format(data$YEAR,"%Y"))
 
     # Get max and min year for plot
-    YearMX<-max(data$YEAR)
+    YearMX<-max(data$YEAR)-5 #Take off the last 5 years
     YearMN<-min(data$YEAR)
+    
+    # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+    data <- data%>%
+      filter(YEAR<=YearMX)
     
     # Set the max generation for the plot
     GenMX <- aggregate(data["Output_MWH"], by=data["Time_Period"], sum)
@@ -323,29 +327,43 @@
       
       theme_bw() +
       
-      theme(text=element_text(family=Plot_Text)) +
+      # Changes the font type
+      theme(text=element_text(family=Plot_Text)) +             
       
-      theme(panel.grid = element_blank(),
-            axis.text.x = element_text(vjust = 1),
-            axis.title.x = element_text(size = XTit_Sz),
-            axis.title.y = element_text(size = YTit_Sz),
-            plot.title = element_text(size = Tit_Sz),
-            plot.subtitle = element_text(hjust = 0.5), 
-            panel.background = element_rect(fill = NA),
-            legend.key.size = unit(1,"lines"), #Shrink legend
-            legend.position = "bottom",
-            legend.justification = c(0.5,0.5),
-            legend.text = element_text(size =15),
-            legend.title=element_blank(),
-            text = element_text(size = 15)) +
+      theme(
+        # General Plot Settings
+            panel.grid = element_blank(),
+            # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+            plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+            panel.background = element_rect(fill = "transparent"), # Transparent background
+            text = element_text(size = GenText_Sz),                # Text size
+            plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+            plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+            #panel.grid.major.y = element_line(size=0.25,
+            #linetype=1,color = 'gray90'),                         # Adds horizontal lines
+        # X-axis
+            axis.text.x = element_text(vjust = 1),                 # Horizontal text
+            axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        # Y-axis
+            axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+        # Legend
+            legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+            legend.position = "bottom",                            # Move legend to the bottom
+            legend.justification = c(0.5,0.5),                     # Center the legend
+            legend.text = element_text(size =Leg_Sz),              # Size of legend text
+            legend.title=element_blank()) +                        # Remove legend title
       
+      # Set axis scales
       scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
       scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       
-      labs(x = "Date", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
+      # Plot labels
+      labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
       
+      # Legend guides - number of rows
       guides(fill = guide_legend(nrow = 2)) +
       
+      # Legend color scheme
       scale_fill_manual(values = colours4,drop = FALSE) 
     
   }
@@ -358,10 +376,10 @@
 ##    case - Run_ID which you want to plot
 ################################################################################
   
-  Evalcap <- function(input,case) {
+  Evalcap <- function(case) {
     
     # Filters for the desired case study
-    data <- input %>%
+    data <- ResGroupYr %>%
       filter(Run_ID == case & Condition == "Average") %>%
       select(ID, Time_Period, Capacity) %>%
       sim_filt(.)
@@ -371,8 +389,12 @@
     data$YEAR <- as.numeric(format(data$YEAR,"%Y"))
     
     # Get max and min year for plot
-    YearMX<-max(data$YEAR)
+    YearMX<-max(data$YEAR)-5 #Take off the last 5 years
     YearMN<-min(data$YEAR)
+    
+    # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+    data <- data%>%
+      filter(YEAR<=YearMX)
     
     # Set the max and min for the plot Output axis (y)
     # Set the max for the plot
@@ -387,26 +409,34 @@
       
       theme(text=element_text(family=Plot_Text)) +
       
-      theme(panel.grid = element_blank(),
-            axis.text.x = element_text(),
-            axis.title.x = element_text(size = XTit_Sz,face="bold"),
-            axis.title.y = element_text(size = YTit_Sz,face="bold"),
-            plot.title = element_text(size = Tit_Sz),
-            panel.background = element_rect(fill = "transparent"),
-            #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-            plot.subtitle = element_text(hjust = 0.5), 
-            legend.position = "bottom",
-            legend.key.size = unit(1,"lines"),
-            legend.title = element_blank(),
-            legend.text = element_text(size =15),
-            legend.justification = c(0.5,0.5),
-            text = element_text(size = 15)) +
+      theme(
+        # General Plot Settings
+            panel.grid = element_blank(),
+            # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+            plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+            panel.background = element_rect(fill = "transparent"), # Transparent background
+            text = element_text(size = GenText_Sz),                # Text size
+            plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+            plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+            #panel.grid.major.y = element_line(size=0.25,
+            #linetype=1,color = 'gray90'),                         # Adds horizontal lines
+        # X-axis
+            axis.text.x = element_text(vjust = 1),                 # Horizontal text
+            axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        # Y-axis
+            axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+        # Legend
+            legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+            legend.position = "bottom",                            # Move legend to the bottom
+            legend.justification = c(0.5,0.5),                     # Center the legend
+            legend.text = element_text(size =Leg_Sz),              # Size of legend text
+            legend.title=element_blank()) +                        # Remove legend title
       
       scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
       
       scale_y_continuous(expand=c(0,0), limits=c(0,MX),breaks = pretty_breaks(6)) +
       
-      labs(x = "Date", y = "Capacity (MW)", fill = "Resource",colour="Resource") +
+      labs(x = "Year", y = "Capacity (MW)", fill = "Resource",colour="Resource") +
     
       guides(fill = guide_legend(nrow = 2)) +
       
@@ -423,9 +453,9 @@
 ##    case - Run_ID which you want to plot
 ################################################################################ 
   
-  EvalPerc <- function(input,case) {
+  EvalPerc <- function(case) {
     # Filters for the desired case study
-    data <- input %>%
+    data <- ResGroupYr %>%
       filter(Run_ID == case & Condition == "Average")# %>%
 
     # Filter the data by resource
@@ -439,35 +469,46 @@
     case_Time$YEAR <- as.numeric(format(case_Time$YEAR,"%Y"))
     
     # Get max and min year for plot
-    YearMX<-max(case_Time$YEAR)
+    YearMX<-max(case_Time$YEAR)-5
     YearMN<-min(case_Time$YEAR)
+    
+    # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+    data <- case_Time%>%
+      filter(YEAR<=YearMX)
     
     case_Time %>%
       ggplot() +
       geom_area(aes(YEAR, Output_MWH, fill = ID,colour= ID),
                 position = "fill", alpha = 0.7, size=.5,color="black") +
       
-      geom_vline(xintercept = as.numeric(2035),
-                 linetype = "dashed", color = "black", size = 1) +
+      # geom_vline(xintercept = as.numeric(2035),
+      #            linetype = "dashed", color = "black", size = 1) +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
     
-      theme(panel.grid = element_blank(),
-            axis.text.x = element_text(),
-            plot.title = element_text(hjust = 0.5),
-            plot.subtitle = element_text(hjust = 0.5), 
-            legend.title = element_blank(),
-            panel.background = element_rect(fill = "transparent"),
-            panel.grid.major.x = element_blank(),
-            panel.grid.minor.x = element_blank(),
-            plot.background = element_rect(fill = "transparent", color = NA),
-            legend.key = element_rect(colour = "transparent", fill = "transparent"),
-            legend.background = element_rect(fill='transparent',colour='transparent'),
-            legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            legend.key.size = unit(1,"lines"),
-            legend.position = "bottom",
-            legend.justification = c(0.5,0)) +
+      theme(
+        # General Plot Settings
+            panel.grid = element_blank(),
+            # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+            plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+            panel.background = element_rect(fill = "transparent"), # Transparent background
+            text = element_text(size = GenText_Sz),                # Text size
+            plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+            plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+            panel.grid.major.y = element_line(size=0.25,
+            linetype=2,color = 'gray70'),                         # Adds horizontal lines
+        # X-axis
+            axis.text.x = element_text(vjust = 1),                 # Horizontal text
+            axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+            # Y-axis
+            axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+        # Legend
+            legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+            legend.position = "bottom",                            # Move legend to the bottom
+            legend.justification = c(0.5,0.5),                     # Center the legend
+            legend.text = element_text(size =Leg_Sz),              # Size of legend text
+            legend.title=element_blank()) +                        # Remove legend title
       
       scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
       scale_y_continuous(expand=c(0,0),
@@ -475,7 +516,7 @@
                          breaks = sort(c(seq(0,1,length.out=5)))) +
       
       guides(fill = guide_legend(nrow = 2)) +
-      labs(x = "Date", y = "Percentage of Generation", fill = "Resource",colour="Resource") +
+      labs(x = "Year", y = "Percentage of Generation", fill = "Resource",colour="Resource") +
       scale_fill_manual(values = colours2,drop = FALSE) 
       
   }
@@ -544,7 +585,7 @@
             plot.title = element_text(size = Tit_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
             panel.background = element_rect(fill = NA),
-            # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'),
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
             legend.justification = c(0.5,0.5),
@@ -691,7 +732,7 @@
             legend.background = element_rect(fill='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
       ) +
-      labs(y = "Capacity Factor", 
+      labs(y = "Average Annual Capacity Factor", 
            #title = "AESO Data vs Simulation",
            #subtitle = DB
       ) +

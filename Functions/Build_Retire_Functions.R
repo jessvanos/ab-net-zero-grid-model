@@ -37,7 +37,8 @@ Retirecol <- function(case) {
                                                                 "Wind", "Solar", "Storage","Coal", "Cogeneration"))
   
   #Get Year max for run and filter for end dates BEFORE this date
-  MaxYr <- max(Retdata$YEAR)
+  # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+  MaxYr <- max(Retdata$YEAR)-5
   Retdata$End_Date  <- as.Date(Retdata$End_Date, 
                               format = "%m/%d/%Y")
   Retdata$End_Date <- format(Retdata$End_Date,format="%Y")
@@ -118,7 +119,8 @@ RetireMW <- function(case) {
     sim_filt2(.) %>% #Filter to rename fuels
     subset(., select=c(Name,Condition,YEAR,Capacity,End_Date,Run_ID,Primary_Fuel,Time_Period,Peak_Capacity)) %>%
     filter(Run_ID == case) %>%
-    filter(Condition == "Average") 
+    filter(Condition == "Average") %>%
+    mutate(Time_Period=as.numeric(Time_Period))
   
   
   # Set levels to each category in order specified
@@ -129,8 +131,10 @@ RetireMW <- function(case) {
                                                                 "Wind", "Solar", "Storage","Coal", "Cogeneration"))
   
   #Get Year max for run and filter for end dates BEFORE this date
-  MaxYr <- max(Retdata$YEAR)
-  MinYr <- min(Retdata$YEAR)
+  # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+  MaxYr <- max(Retdata$Time_Period)-5
+  MinYr <- min(Retdata$Time_Period)
+  
   Retdata$End_Date  <- as.Date(Retdata$End_Date, 
                                format = "%m/%d/%Y")
   Retdata$End_Date <- format(Retdata$End_Date,format="%Y")
@@ -194,7 +198,7 @@ RetireMW <- function(case) {
     
     labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
     
-    scale_x_continuous(expand = c(0.01, 0.01),limits=c(as.numeric(MinYr), as.numeric(MaxYr)),
+    scale_x_continuous(expand = c(0.05, 0.05),limits=c(as.numeric(MinYr), as.numeric(MaxYr)),
                        breaks=seq(MinYr, MaxYr, by=1),position = "top") +
     
     scale_y_continuous(expand=c(0,0),
@@ -351,7 +355,8 @@ BuildMW <- function(case)
     sim_filt3(.) %>% #Filter to rename fuels
     subset(., select=c(Name,Condition,Capacity,Peak_Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,Time_Period,Capacity_Factor)) %>%
     filter(Run_ID == case) %>%
-    filter(Condition == "Average") 
+    filter(Condition == "Average") %>%
+    mutate(Time_Period=as.numeric(Time_Period))
   
   
   # Set levels to each category in order specified
@@ -371,8 +376,8 @@ BuildMW <- function(case)
   }
   
   # Get Year max for run and filter for end dates BEFORE this date
-  MaxYr <- max(ResYr$YEAR)
-  MinYr <- min(ResYr$YEAR)
+  MaxYr <- max(data$Time_Period)-5
+  MinYr <- min(data$Time_Period)
   
   # Give start date so that already built are not listed as new additions
   CurDate <- as.Date("01/01/2022", 
@@ -464,16 +469,19 @@ BuildMW <- function(case)
 
 # **NOTE: Issue with first year - need to reformat?**
 
-Eval_diffcap <- function(input,case) {
+Eval_diffcap <- function(case) {
   
   # Filters for the desired case study
-  data <- input %>%
+  data <- ResGroupYr %>%
     filter(Run_ID == case & Condition == "Average") %>%
     subset(.,select=c(ID, Time_Period, Capacity)) %>%
     sim_filt5(.) %>%
     group_by(ID) %>%
     arrange(Time_Period) %>%
     mutate(diff = Capacity - lag(Capacity, default = first(Capacity)))
+  
+  # data<-data %>%
+  #   filter(Time_Period<=MaxYr)
   
   data$Time_Period <- as.factor(format(data$Time_Period, format="%Y"))
 
@@ -488,26 +496,50 @@ Eval_diffcap <- function(input,case) {
   
   # Year limits for plot. Add 365 to get the year after the first
   mnx <- format(min(ResGroupMn$Time_Period)+365, format="%Y")
-  mxx <- format(max(ResGroupMn$Time_Period), format="%Y")
+  mxx <- format(max(ResGroupMn$Time_Period)-365*5, format="%Y")
   
   # Plot it all
   data %>%
     ggplot() +
     aes(Time_Period, (diff), fill = ID) +
     geom_col(alpha=0.7, size=.5, colour="black") +
+    
+    # Add line at y=0
+    geom_hline(yintercept=0, color = "black")+
+  
     theme_bw() +
-    theme(panel.grid = element_blank(),
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-          plot.title = element_text(hjust = 0.5),
-          plot.subtitle = element_text(hjust = 0.5), 
-          legend.justification = c(0,0.5)) +
-    scale_x_discrete(expand=c(0,0),
+    
+    theme(
+      # General Plot Settings
+          panel.grid = element_blank(),
+          # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+          plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+          panel.background = element_rect(fill = "transparent"), # Transparent background
+          text = element_text(size = GenText_Sz),                # Text size
+          plot.title = element_text(size = Tit_Sz,hjust = 0.5),  # Plot title size (if present)
+          plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+          #panel.grid.major.y = element_line(size=0.25,
+          #linetype=1,color = 'gray90'),                         # Adds horizontal lines
+      # X-axis
+      axis.text.x = element_text(angle = 45,
+                                 vjust = 1, hjust = 1),          # Horizontal text
+          axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+      # Y-axis
+          axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+      # Legend
+          legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+          legend.position = "right",                             # Move legend to the bottom
+          legend.justification = c(0.5,0.5),                     # Center the legend
+          legend.text = element_text(size =Leg_Sz),              # Size of legend text
+          legend.title=element_text()) +                         # Legend title
+    
+    scale_x_discrete(expand=c(0.05,0.05),
                      limits = as.character(mnx:mxx)) +
     scale_y_continuous(expand=c(0,0),
-                       limits = c((mny),(mxy))) +
+                       limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000)) +
     scale_fill_manual(values=colours8,drop = FALSE) +
 
-    labs(x = "Date", y = "Yearly change in capacity (MW)", fill = "Resource",caption = paste(SourceDB))
+    labs(x = "Year", y = "Annual Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
 }
 
 ################################################################################  

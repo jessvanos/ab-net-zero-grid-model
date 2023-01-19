@@ -74,7 +74,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"BAU_Jan_12_2022"
+  SourceDB<-"BAU_Jan_17_2022"
   #SourceDB<-"BAU_Jan_10_2023"
   
   #Connect to database specified (via server, user, and password)
@@ -387,11 +387,12 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     
     showtext_auto()
     
-  # Set size for plot features to be consitant
-  { Tit_Sz = 15
-    XTit_Sz = 15
-    YTit_Sz = 15
-    Overall_Sz =15 }
+  # Set size for plot features to be constant. All based on general text size
+  { GenText_Sz =15
+    Tit_Sz = GenText_Sz+5
+    XTit_Sz = GenText_Sz+2
+    YTit_Sz = GenText_Sz+2
+    Leg_Sz=GenText_Sz-2}
     
     
   { # Define fuel types for new builds
@@ -540,13 +541,13 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   year_weeks(2034,BC)
   
   # Yearly Output
-  Evalyr(ResGroupYr,BC)
+  Evalyr(BC)
   
   # Yearly Capacity
-  Evalcap(ResGroupYr,BC)
+  Evalcap(BC)
   
   # Yearly percentage of generation
-  EvalPerc(ResGroupYr,BC)
+  EvalPerc(BC)
   
   # Retirements by capacity (grouped by fuel type)
   RetireMW(BC)
@@ -559,7 +560,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   Build_Totals(BC)
   
   # Difference in capacity
-  Eval_diffcap(ResGroupYr,BC)
+  Eval_diffcap(BC)
   
   # Bar chart showing each resource groups yearly output
   Output_Comp(BC)
