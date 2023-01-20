@@ -661,12 +661,3 @@ BuildUnits <- function(case, Fuel) {
   ggdraw(add_sub(p3,paste("Simulation: ",SourceDB,"; ", "Fuel Type:",Fuel, sep = "")))
 }
 
-BuildUnits2 <- function(case, Fuel) {
-  p1 <- plot_grid(Units2(case,Fuel)+theme(axis.title.x = element_blank(),
-                                          axis.text.x = element_blank(),
-                                          text = element_text(size= 15)),
-                  Slack2(case,Fuel)+theme(text = element_text(size= 15)),
-                  ncol = 1, align="v", axis = "l",rel_heights = c(1,1.5))
-  
-  ggdraw(add_sub(p1,paste("Simulation: ",SourceDB, sep = "")))
-}

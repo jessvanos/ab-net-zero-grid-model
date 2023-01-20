@@ -57,34 +57,34 @@ imsave_loc <- function(name) {
 ##    name - Date to plot, the week will start on the day chosen. Enter as "name"
 ################################################################################
 #NEEDS WORK
-SaveRun_Loc <- function(CaseName)
-  
-  # SET UP FOLDER
-  fold_name<-paste(CaseName," ",SourceDB)
-
-  # Check if folder exists, if not, make one
-  if (file.exists(here("Figures (Local)",paste(fold_name)))) {
-    
-    cat("The folder already exists")
-    
-  } else {
-    
-    # Create the folder
-    dir.create(here("Figures (Local)",paste(fold_name)))
-    
-  }
-  
-  # ADD PLOTS
-  # Create Retirement plot
-  windows(16,6, pointsize = 12)
-  RetireMW(BC)
-
-  ggsave(plot=last_plot(),path = here("Figures (Local)",paste(fold_name)), 
-         filename = paste("Retirements_",SourceDB,".png", sep = ""),
-         width = 16, height=6, units=c("in"),
-         dpi=300,
-         bg = "transparent")
-  
+# SaveRun_Loc <- function(CaseName)
+#   
+#   # SET UP FOLDER
+#   fold_name<-paste(CaseName," ",SourceDB)
+# 
+#   # Check if folder exists, if not, make one
+#   if (file.exists(here("Figures (Local)",paste(fold_name)))) {
+#     
+#     cat("The folder already exists")
+#     
+#   } else {
+#     
+#     # Create the folder
+#     dir.create(here("Figures (Local)",paste(fold_name)))
+#     
+#   }
+#   
+#   # ADD PLOTS
+#   # Create Retirement plot
+#   windows(16,6, pointsize = 12)
+#   RetireMW(BC)
+# 
+#   ggsave(plot=last_plot(),path = here("Figures (Local)",paste(fold_name)), 
+#          filename = paste("Retirements_",SourceDB,".png", sep = ""),
+#          width = 16, height=6, units=c("in"),
+#          dpi=300,
+#          bg = "transparent")
+#   
 
 ################################################################################
 ## FUNCTION: yhour

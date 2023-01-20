@@ -1586,4 +1586,519 @@ AESO_PrOt <- function(year,month,day) {
             
             Week_act(year,month,day)+theme(legend.position ="none"), 
             ncol = 1, align="v", axis = "l",rel_heights = c(1,2.5)) 
-  }
+}
+
+################################################################################
+## AESO INTERTIE FUNCTIONS
+##  Functions use AESO data to visualize trade patterns
+################################################################################
+###############################################################################  
+
+###############################################################################  
+## FUNCTION: Trade_Mn_AESO 
+## AB imports and exports and pool price for specific month
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################  
+
+Trade_Mn_AESO <- function(year,month,Imp_Exp) {
+  
+  # Min for date (x-axis)
+  day_MN <- as.POSIXct(paste(01,month,year, sep = "/"), format="%d/%m/%Y")
+  
+  if (month <12) {
+    # Max for date
+    day_MX <- as.POSIXct(paste(01,month+1,year, sep = "/"), format="%d/%m/%Y")
+    day_MX <- ceiling_date(day_MX, "month") - 1 
+    
+  }else {
+    day_MX <- as.POSIXct(paste(31,month,year, sep = "/"), format="%d/%m/%Y") }
+  
+  # Filters for data in that month
+  PData <- Imp_Exp %>%
+    select(., c("ACTUAL_POOL_PRICE","Date_Begin_Local","date")) %>%
+    filter(date>=day_MN) %>%
+    filter(date<=day_MX) 
+  
+  
+  # Set the max and min for the plot
+  MXp <- plyr::round_any(max(abs(PData$ACTUAL_POOL_PRICE)+13), 10, f = ceiling)
+  MNp <- plyr::round_any(min(PData$ACTUAL_POOL_PRICE)-13, 10, f = floor)
+  if (MNp<0) {
+    MNp <- 0 }
+  
+  # Plot the data    
+  PricePlot <- ggplot() +
+    
+    geom_line(data = PData, 
+              aes(x = date, y = ACTUAL_POOL_PRICE,colour = "Actual Pool Price"), 
+              size = 1) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.background = element_rect(fill = "transparent"),
+          axis.text.x=element_text(vjust=-1),
+          axis.title.x = element_blank(),
+          axis.text.y=element_text(hjust=0),
+          axis.title.y = element_text(vjust=2,size= 15,face="bold"),
+          panel.grid.major.y = element_line(size=0.25,linetype=5,color = 'grey'),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid = element_blank(),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          plot.title = element_text(size = 15),
+          text = element_text(size = 15),
+          legend.position = "none",
+          legend.text = element_blank(),
+          legend.background = element_rect(fill='transparent',colour ='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent")
+          
+    ) +
+    
+    scale_colour_manual("", 
+                        breaks = c("Actual Pool Price"),
+                        values = c("darkred")) +
+    
+    labs(title=paste(year,",",month.name[month],"(AESO Data)"), y = "Pool Price ($/MWh)") +
+    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "week",date_labels = "%e") +
+    
+    scale_y_continuous(expand=c(0,0), 
+                       limits= c(MNp,MXp),
+                       breaks=pretty_breaks(6))
+  
+  # NOW TRADE INFO
+  
+  #Imports from BC
+  Imp_BC <- Imp_Exp %>%
+    select(.,c("IMPORT_BC_MT","Date_Begin_Local","date")) %>%
+    rename(Net_Load=IMPORT_BC_MT) %>%
+    mutate(ID ="BC_AB")
+  
+  # Exports to BC
+  Exp_BC <- Imp_Exp %>%
+    select(.,c("EXPORT_BC_MT","Date_Begin_Local","date")) %>%
+    rename(Net_Load=EXPORT_BC_MT) %>%
+    mutate(Net_Load=Net_Load*-1) %>%
+    mutate(ID ="AB_BC")
+  
+  Imp_SK <- Imp_Exp %>%
+    select(.,c("IMPORT_SK","Date_Begin_Local","date")) %>%
+    rename(Net_Load=IMPORT_SK) %>%
+    mutate(ID ="SK_AB")
+  
+  # Exports to BC
+  Exp_SK <- Imp_Exp %>%
+    select(.,c("EXPORT_SK","Date_Begin_Local","date")) %>%
+    rename(Net_Load=EXPORT_SK) %>%
+    mutate(Net_Load=Net_Load*-1) %>%
+    mutate(ID ="AB_SK")
+  
+  
+  # Put all data together and filter week
+  data <-rbind(Exp_SK,Exp_BC,Imp_BC,Imp_SK) %>%
+    filter(date>=day_MN) %>%
+    filter(date<=day_MX) 
+  
+  # Set the max for the plot
+  MX <- plyr::round_any(max(data$Net_Load+11), 200, f = ceiling)
+  MN <- plyr::round_any(min(data$Net_Load+11)*-1, 200, f = floor)
+  
+  # Plot Trade
+  TradePlot <- ggplot() +
+    geom_area(data = data, aes(x = date, y = Net_Load, fill = ID), 
+              alpha=0.7, size=0.5) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size = 15),
+          plot.title = element_text(size = 15),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(-1300,1300),breaks=pretty_breaks(8)) +
+    
+    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "week",date_labels = "%e") +
+    
+    labs(x = "Date", y = "AB Hourly Trade (MWh)") +
+    
+    scale_fill_manual(values = c("AB_BC"= "dodgerblue4","AB_SK"="springgreen4","BC_AB"="dodgerblue","SK_AB"="springgreen")) +
+    
+    guides(fill = guide_legend(nrow = 1)) 
+  
+  # Get Trade legend
+  legend <- get_legend(TradePlot)
+  TradePlot <- TradePlot + theme(legend.position ="none")
+  
+  
+  gA <- ggplotGrob(PricePlot)
+  gB <- ggplotGrob(TradePlot)
+  
+  # Arrange all the plots together
+  maxWidth = grid::unit.pmax(gA$widths[2:5], gB$widths[2:5])
+  gA$widths[2:5] <- as.list(maxWidth)
+  gB$widths[2:5] <- as.list(maxWidth)
+  grid.arrange(gA, gB, legend,ncol=1, 
+               heights=c(1, 1,0.1))
+  
+}
+
+###############################################################################  
+## FUNCTION: TradeOnly_Mn_AESO 
+## AB imports and exports and pool price for specific month
+##
+## INPUTS: 
+##    year - Year to check
+##    month - month to check
+################################################################################  
+
+TradeOnly_Mn_AESO <- function(year,month,Imp_Exp) {
+  
+  # Min for date (x-axis)
+  day_MN <- as.POSIXct(paste(01,month,year, sep = "/"), format="%d/%m/%Y")
+  
+  if (month <12) {
+    # Max for date
+    day_MX <- as.POSIXct(paste(01,month+1,year, sep = "/"), format="%d/%m/%Y")
+    day_MX <- ceiling_date(day_MX, "month") - 1 
+    
+  }else {
+    day_MX <- as.POSIXct(paste(31,month,year, sep = "/"), format="%d/%m/%Y") }
+  
+  Imp_Exp[is.na(Imp_Exp)] <- 0
+  
+  Imp_Exp <- Imp_Exp %>%
+    filter(date>=day_MN) %>%
+    filter(date<=day_MX) 
+  
+  #Imports from BC
+  Imp_BC <- Imp_Exp %>%
+    select(.,c("IMPORT_BC_MT","Date_Begin_Local","date")) %>%
+    filter(IMPORT_BC_MT>-1) %>%
+    rename(Net_Load=IMPORT_BC_MT) %>%
+    mutate(ID ="BC_AB")
+  
+  # Exports to BC
+  Exp_BC <- Imp_Exp %>%
+    select(.,c("EXPORT_BC_MT","Date_Begin_Local","date")) %>%
+    rename(Net_Load=EXPORT_BC_MT) %>%
+    mutate(Net_Load=Net_Load*-1) %>%
+    mutate(ID ="AB_BC")
+  
+  Imp_SK <- Imp_Exp %>%
+    select(.,c("IMPORT_SK","Date_Begin_Local","date")) %>%
+    filter(IMPORT_SK>-1) %>%
+    rename(Net_Load=IMPORT_SK) %>%
+    mutate(ID ="SK_AB")
+  
+  # Exports to BC
+  Exp_SK <- Imp_Exp %>%
+    select(.,c("EXPORT_SK","Date_Begin_Local","date")) %>%
+    rename(Net_Load=EXPORT_SK) %>%
+    mutate(Net_Load=Net_Load*-1) %>%
+    mutate(ID ="AB_SK")
+  
+  
+  # Put all data together and filter week
+  data <-rbind(Exp_SK,Exp_BC,Imp_BC,Imp_SK) 
+  
+  # Plot Trade
+  ggplot() +
+    geom_area(data = data, aes(x = date, y = Net_Load, fill = ID), 
+              alpha=0.7, size=0.5) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size = 15),
+          plot.title = element_text(size = 15),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(-1300,1300),breaks=pretty_breaks(8)) +
+    
+    scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "7 day",date_labels = "%e") +
+    
+    labs(x = "Date", y = "AB Hourly Trade (MWh)",title=paste(month.abb[month])) +
+    
+    scale_fill_manual(values = c("AB_BC"= "dodgerblue4","AB_SK"="springgreen4","BC_AB"="dodgerblue","SK_AB"="springgreen")) +
+    
+    guides(fill = guide_legend(nrow = 1)) 
+  
+}
+
+###############################################################################  
+## FUNCTION: Trade_Yr_AESO 
+## AB imports and exports and pool price for specific year
+##
+## INPUTS: 
+##    year - Year to check
+################################################################################  
+
+Trade_Yr_AESO <- function(year,Imp_Exp) {
+  
+  # Filters for data in that month
+  PData <- Imp_Exp %>%
+    select(., c("ACTUAL_POOL_PRICE","Date_Begin_Local","date","Year")) %>%
+    filter(Year==year)
+  
+  
+  # Set the max and min for the plot
+  MXp <- plyr::round_any(max(abs(PData$ACTUAL_POOL_PRICE)+13), 10, f = ceiling)
+  MNp <- plyr::round_any(min(PData$ACTUAL_POOL_PRICE)-13, 10, f = floor)
+  if (MNp<0) {
+    MNp <- 0 }
+  
+  #Imports from BC
+  Imp_BC <- Imp_Exp %>%
+    select(.,c("IMPORT_BC_MT","Date_Begin_Local","date","Year")) %>%
+    rename(Net_Load=IMPORT_BC_MT) %>%
+    mutate(ID ="BC_AB") %>%
+    filter(Year==year)
+  
+  # Exports to BC
+  Exp_BC <- Imp_Exp %>%
+    select(.,c("EXPORT_BC_MT","Date_Begin_Local","date","Year")) %>%
+    rename(Net_Load=EXPORT_BC_MT) %>%
+    mutate(Net_Load=Net_Load*-1) %>%
+    mutate(ID ="AB_BC")%>%
+    filter(Year==year)
+  
+  Imp_SK <- Imp_Exp %>%
+    select(.,c("IMPORT_SK","Date_Begin_Local","date","Year")) %>%
+    rename(Net_Load=IMPORT_SK) %>%
+    mutate(ID ="SK_AB")%>%
+    filter(Year==year)
+  
+  # Exports to BC
+  Exp_SK <- Imp_Exp %>%
+    select(.,c("EXPORT_SK","Date_Begin_Local","date","Year")) %>%
+    rename(Net_Load=EXPORT_SK) %>%
+    mutate(Net_Load=Net_Load*-1) %>%
+    mutate(ID ="AB_SK")%>%
+    filter(Year==year)
+  
+  
+  # Put all data together and filter week
+  data <-rbind(Exp_SK,Exp_BC,Imp_BC,Imp_SK) 
+  
+  # Set the max for the plot
+  MX <- plyr::round_any(max(data$Net_Load+11), 200, f = ceiling)
+  MN <- plyr::round_any(min(data$Net_Load+11)*-1, 200, f = floor)
+  
+  # Plot Trade
+  ggplot() +
+    geom_area(data = data, aes(x = date, y = Net_Load, fill = ID), 
+              alpha=1, size=0.5) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size = 15),
+          plot.title = element_text(size = 15),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(-1300,1300),breaks=pretty_breaks(8)) +
+    
+    scale_x_datetime(expand=c(0,0),breaks = "month",date_labels = "%b") +
+    
+    labs(x = "Date", y = "AB Hourly Trade (MWh)",title=year) +
+    
+    scale_fill_manual(values = c("AB_BC"= "dodgerblue4","AB_SK"="springgreen4","BC_AB"="dodgerblue","SK_AB"="springgreen")) 
+  
+}
+
+###############################################################################  
+## FUNCTION: Duration_AESO 
+## AB imports and exports and pool price for specific year
+##
+## INPUTS: 
+##    Years2See - Year to show in duration curve
+################################################################################    
+
+Duration_AESO <-function(Years2See) {
+  # Get all the data by year and group to percents
+  tot <- Imp_Exp%>%
+    group_by(Year)%>%
+    mutate(perc = 1-ecdf(ACTUAL_POOL_PRICE)(ACTUAL_POOL_PRICE))
+  
+  tot$Year <- as.factor(tot$Year)
+  
+  #Filter years to show
+  tot <- tot %>%
+    filter(Year %in% Years2See)
+  
+  #Plot
+  ggplot() +
+    geom_line(data = tot, 
+              aes(x = perc, y = ACTUAL_POOL_PRICE, colour = Year), size = 1) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          panel.spacing = unit(2, "lines"),
+          axis.title.x = element_text(size = 15,face="bold"),
+          axis.title.y = element_text(size = 15,face="bold"),
+          text = element_text(size = 15),
+          legend.title = element_blank(),
+          legend.position = "right",
+          panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray70")) +
+    
+    labs(y = "Hourly Pool Price ($/MWh)", x = "Percentage of Time",colour = "Year",
+         caption = "Hourly Metered Volumes and Pool Price and AIL data 2010 to 2022") +
+    
+    scale_x_continuous(expand=c(0,0), 
+                       limits = c(0,1),
+                       labels = percent) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,1000),breaks = pretty_breaks(5))  
+}
+
+
+###############################################################################  
+## FUNCTION: T_month_all 
+## All trade for each month over one year
+##
+## INPUTS: 
+##    Years2See - Year to show in duration curve
+################################################################################ 
+
+T_month_all <- function(year,Imp_Exp) {
+  
+  
+  # Create a graph for each month of the year
+  p1 <- TradeOnly_Mn_AESO(year,01,Imp_Exp) +
+    theme(axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  
+  p2 <- TradeOnly_Mn_AESO(year,02,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p3 <- TradeOnly_Mn_AESO(year,03,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p4 <- TradeOnly_Mn_AESO(year,04,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p5 <- TradeOnly_Mn_AESO(year,05,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p6 <- TradeOnly_Mn_AESO(year,06,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p7 <- TradeOnly_Mn_AESO(year,07,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p8 <- TradeOnly_Mn_AESO(year,08,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p9 <- TradeOnly_Mn_AESO(year,09,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p10 <- TradeOnly_Mn_AESO(year,10,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p11 <- TradeOnly_Mn_AESO(year,11,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p12 <- TradeOnly_Mn_AESO(year,12,Imp_Exp) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  # Get a common legend
+  legend <- get_legend(p1)
+  p1 <- p1 + theme(legend.position ="none")
+  
+  # Plot Labels
+  yleft <- textGrob("Output (MWh)", rot = 90, gp = gpar(fontsize = 15))
+  bottom <- textGrob("Date", gp = gpar(fontsize = 15))
+  
+  # Cheat way to put an x title in
+  xtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 6,
+             label = "Date") + 
+    theme_void()
+  
+  # Label the source and year
+  xsubtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 5,
+             label = paste("Year:",year,", AESO Data")) + 
+    theme_void()
+  
+  #Create a big window
+  windows(18,12)
+  
+  # Arrange all the plots
+  grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(xtitle),
+               plot_grid(legend),
+               plot_grid(xsubtitle),
+               ncol=1,nrow=6, 
+               heights=c(1, 1,1,0.1,0.2,0.1),
+               left=yleft)
+  
+  
+}

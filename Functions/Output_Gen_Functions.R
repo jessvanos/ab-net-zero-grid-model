@@ -747,6 +747,88 @@
       )
   } 
   
+################################################################################
+## FUNCTION: CF_Annual
+## Compares capacity factor for two chosen years. 
+## Similar to plot seen on page 10 of AESOs net zero report dashboard. 
+##
+## INPUTS: 
+##
+##    case - case to see 
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Hourly resource group tables
+################################################################################
+  CF_Annual <- function(case) {
+    
+    CFData <- ResGroupHr_sub %>%
+      sim_filt5(.) %>%
+      group_by(Report_Year, ID) %>%
+      summarise(Cap = mean(Capacity_Factor))%>%
+      mutate(CF_perc=Cap*100)
+    
+    colnames(CFData) <- c("Year", "Plant_Type", "Cap_Factor","CF_perc")
+    
+    CFData$Plant_Type <- factor(CFData$Plant_Type, levels=c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                       "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                       "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                       "Hydro", "Other","Wind", 
+                                                       "Solar","Storage - Battery", "Storage - Pumped Hydro", "Storage - Compressed Air",
+                                                       "Nuclear","Coal", "Cogeneration"))
+    
+    # Get max and min year for plot
+    YearMX<-max(CFData$Year)-5 #Take off the last 5 years
+    YearMN<-min(CFData$Year)
+    
+    # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+    CFData <- CFData%>%
+      filter(Year<=YearMX)
+    
+    # Plot
+    ggplot() +
+      geom_line(data = CFData,
+                aes(x = Year, y = CF_perc, colour = Plant_Type), 
+                size = 1.5) +
+      
+      theme_bw() +
+      
+      # Changes the font type
+      theme(text=element_text(family=Plot_Text)) +             
+      
+      theme(
+        # General Plot Settings
+            panel.grid = element_blank(),
+            # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+            plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+            panel.background = element_rect(fill = "transparent"), # Transparent background
+            text = element_text(size = GenText_Sz),                # Text size
+            plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+            plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+            panel.grid.major.y = element_line(size=0.25,
+            linetype=1,color = 'gray90'),                         # Adds horizontal lines
+        # X-axis
+            axis.text.x = element_text(vjust = 1),                 # Horizontal text
+            axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        # Y-axis
+            axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+        # Legend
+            legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+            legend.position = "right",                             # Move legend to the bottom
+            legend.justification = c(0.5,0.5),                     # Center the legend
+            legend.text = element_text(size =Leg_Sz),              # Size of legend text
+            legend.title=element_blank()) +                        # Remove legend title
+      
+      # Set axis scales
+      scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
+      scale_y_continuous(expand=c(0,0),limits = c(0,100),breaks=pretty_breaks(5)) +
+      
+      # Plot labels
+      labs(x = "Year", y = "Annual Average Capacity Factor (%)", 
+           colour="Plant_Type",caption = SourceDB) +
+
+      # Legend color scheme
+      scale_colour_manual(values = colours8,drop = FALSE) 
+  } 
+  
   
 ################################################################################
 #

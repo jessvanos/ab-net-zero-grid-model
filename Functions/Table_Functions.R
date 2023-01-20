@@ -213,6 +213,7 @@ Build_A_Totals <- function(case) {
 ##    Reshr - Hourly resouce tables
 ################################################################################
 
+WriteAllTables <-function() {
 # Filter for resource hourly information over entire study period
 
 # INDIVIDUAL RESOURCE OUTPUTS
@@ -271,4 +272,4 @@ gc()
 # ZONE OUTPUTS
   
 # TRADE OUTPUTS
-  
+}

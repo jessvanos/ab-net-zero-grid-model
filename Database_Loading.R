@@ -74,7 +74,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"BAU_Jan_17_2022"
+  SourceDB<-"NZ_Jan_03_2022"
   #SourceDB<-"BAU_Jan_10_2023"
   
   #Connect to database specified (via server, user, and password)
@@ -191,89 +191,92 @@
   ZoneMn$Time_Period <- ym(ZoneMn$Time_Period)
   ZoneHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ZoneHr$Time_Period))), 
                          tz = "MST")-(60*60)   
-  
+  gc()
 }
 
 ################################################################################
 ## FILTER TABLES TO GET RID OF COLUMNS I DONT CARE ABOUT & PULL OUT IMPORT/EXPORT
 ################################################################################
-{ 
-  { # HOURLY DATA
-    # Resourse Group Hourly Tables, choose specific columns
-    ResGroupHr_sub <- ResGroupHr %>%
-      subset(., select = c(ID, date, Report_Year, Output_MWH, Run_ID, Capacity_Factor))
-    
-    # Zone Hourly Tables, for average hourly results
-    ZoneHr_Avg <- ZoneHr %>%
-      filter(Name == "WECC_Alberta") %>%
-      filter(Condition == "Average") %>%
-      subset(., select = c(date, Price, Baseline_Demand, Demand, Demand_Total,
-                           Net_Load, Net_Load_Total, Marginal_Resource, 
-                           Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity, 
-                           Run_ID, Imports, Exports))
-    
-    # Zone Hourly for Everything
-    ZoneHr_All <- ZoneHr %>%
-      filter(Name == "WECC_Alberta") %>%
-      subset(., select = c(date, Condition, Price, Demand, Marginal_Resource, 
-                           Name,Report_Year, Report_Month,
-                           Run_ID))
-    
-    # #Hourly individual resources in BC or SK
-    # ResHr_Int <- ResHr
-    #   filter(Zone == -c("WECC_Alberta")) %>%
-    #     subset(., select = c(ID, Name, Beg_Date, End_Date, date, Capability, Capacity, 
-    #                          Dispatch_Cost, Incr_Cost, Fixed_Cost, Fuel_Cost, 
-    #                          Output_MWH, Percent_Marginal, Percent_Committed,
-    #                          Revenue, Variable_OM_Cost, Capacity_Factor, 
-    #                          Total_Emission_Cost, Total_Hours_Run, Condition, 
-    #                          Report_Year, Run_ID, Peak_Capacity, 
-    #                          Primary_Fuel,Zone))  
-    
-    #Hourly For individual resources in AB
-    ResHr <- ResHr %>%
-              filter(Zone == "WECC_Alberta") %>%
-      subset(., select = c(ID, Name, Beg_Date, End_Date, date, Capability, Capacity, 
-                           Dispatch_Cost, Incr_Cost, Fixed_Cost, Fuel_Cost,Fuel_Usage, 
-                           Output_MWH, Percent_Marginal, Percent_Committed,
-                           Revenue,Energy_Revenue_MWh,Value,Value_MWh, 
-                           Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Startup_Cost,Build_Cost,Capacity_Factor, 
-                           Total_Emission_Cost, Total_Hours_Run, Condition, 
-                           Report_Year, Run_ID, Peak_Capacity, 
-                           Used_For_Op_Reserve, Forced_Outage,Maint_Outage,
-                           Primary_Fuel,Zone))   
-  }
+
+{
+  # HOURLY DATA
+  # Resourse Group Hourly Tables, choose specific columns
+  ResGroupHr_sub <- ResGroupHr %>%
+    subset(., select = c(ID, date, Report_Year, Output_MWH, Run_ID, Capacity_Factor))
   
-  { #IMPORT/EXPORT 
-    # Select the Import/Export data Hourly
-    Import <- ZoneHr_Avg %>%
-      subset(., select = c(date, Imports, Run_ID)) %>%
-      'colnames<-'(c("date", "Output_MWH", "Run_ID")) %>%
-      add_column(ID = "Import")
-    
-    Export <- ZoneHr_Avg %>%
-      subset(., select = c(date, Exports, Run_ID)) %>%
-      'colnames<-'(c("date", "Output_MWH", "Run_ID")) %>%
-      add_column(ID = "Export")
-    
-    # Select Import/Export data Yearly
-    Import_Yr <- ZoneYr %>%
-      filter(Condition == "Average") %>%
-      subset(., select = c(Time_Period, Imports_Total, Run_ID,Name)) %>%
-      'colnames<-'(c("Time_Period", "Output_MWH", "Run_ID","Name")) %>%
-      add_column(ID = "Import")
-    
-    Export_Yr <- ZoneYr %>%
-      filter(Condition == "Average") %>%
-      subset(., select = c(Time_Period, Exports_Total, Run_ID,Name)) %>%
-      'colnames<-'(c("Time_Period", "Output_MWH", "Run_ID","Name")) %>%
-      add_column(ID = "Export")
-    
-    #Fix Aurora sign convention if needed
-    if (min(Export$Output_MWH) < 0) {
-      Export$Output_MWH <- Export$Output_MWH * -1   }
-  }
-}  
+  # Zone Hourly Tables, for average hourly results
+  ZoneHr_Avg <- ZoneHr %>%
+    filter(Name == "WECC_Alberta") %>%
+    filter(Condition == "Average") %>%
+    subset(., select = c(date, Price, Baseline_Demand, Demand, Demand_Total,
+                         Net_Load, Net_Load_Total, Marginal_Resource, 
+                         Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity, 
+                         Run_ID, Imports, Exports))
+  
+  # Zone Hourly for Everything
+  ZoneHr_All <- ZoneHr %>%
+    filter(Name == "WECC_Alberta") %>%
+    subset(., select = c(date, Condition, Price, Demand, Marginal_Resource, 
+                         Name,Report_Year, Report_Month,
+                         Run_ID))
+  
+  # #Hourly individual resources in BC or SK
+  # ResHr_Int <- ResHr
+  #   filter(Zone == -c("WECC_Alberta")) %>%
+  #     subset(., select = c(ID, Name, Beg_Date, End_Date, date, Capability, Capacity, 
+  #                          Dispatch_Cost, Incr_Cost, Fixed_Cost, Fuel_Cost, 
+  #                          Output_MWH, Percent_Marginal, Percent_Committed,
+  #                          Revenue, Variable_OM_Cost, Capacity_Factor, 
+  #                          Total_Emission_Cost, Total_Hours_Run, Condition, 
+  #                          Report_Year, Run_ID, Peak_Capacity, 
+  #                          Primary_Fuel,Zone))  
+  
+  #Hourly For individual resources in AB
+  ResHr <- ResHr %>%
+    filter(Zone == "WECC_Alberta") %>%
+    subset(., select = c(ID, Name, Beg_Date, End_Date, date, Capability, Capacity, 
+                         Dispatch_Cost, Incr_Cost, Fixed_Cost, Fuel_Cost,Fuel_Usage, 
+                         Output_MWH, Percent_Marginal, Percent_Committed,
+                         Revenue,Energy_Revenue_MWh,Value,Value_MWh, 
+                         Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Startup_Cost,Build_Cost,Capacity_Factor, 
+                         Total_Emission_Cost, Total_Hours_Run, Condition, 
+                         Report_Year, Run_ID, Peak_Capacity, 
+                         Used_For_Op_Reserve, Forced_Outage,Maint_Outage,
+                         Primary_Fuel,Zone))   
+  
+  
+  #IMPORT/EXPORT 
+  # Select the Import/Export data Hourly
+  Import <- ZoneHr_Avg %>%
+    subset(., select = c(date, Imports, Run_ID)) %>%
+    'colnames<-'(c("date", "Output_MWH", "Run_ID")) %>%
+    add_column(ID = "Import")
+  
+  Export <- ZoneHr_Avg %>%
+    subset(., select = c(date, Exports, Run_ID)) %>%
+    'colnames<-'(c("date", "Output_MWH", "Run_ID")) %>%
+    add_column(ID = "Export")
+  
+  # Select Import/Export data Yearly
+  Import_Yr <- ZoneYr %>%
+    filter(Condition == "Average") %>%
+    subset(., select = c(Time_Period, Imports_Total, Run_ID,Name)) %>%
+    'colnames<-'(c("Time_Period", "Output_MWH", "Run_ID","Name")) %>%
+    add_column(ID = "Import")
+  
+  Export_Yr <- ZoneYr %>%
+    filter(Condition == "Average") %>%
+    subset(., select = c(Time_Period, Exports_Total, Run_ID,Name)) %>%
+    'colnames<-'(c("Time_Period", "Output_MWH", "Run_ID","Name")) %>%
+    add_column(ID = "Export")
+  
+  #Fix Aurora sign convention if needed
+  if (min(Export$Output_MWH) < 0) {
+    Export$Output_MWH <- Export$Output_MWH * -1   }
+  
+  gc()
+}
+
 ################################################################################
 ## LOAD AESO TRADE INFO FROM R FILE INTO WORKSPACE (OPTIONAL)
 ################################################################################
@@ -392,7 +395,8 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     Tit_Sz = GenText_Sz+5
     XTit_Sz = GenText_Sz+2
     YTit_Sz = GenText_Sz+2
-    Leg_Sz=GenText_Sz-2}
+    Leg_Sz=GenText_Sz-2
+    Overall_Sz=GenText_Sz}
     
     
   { # Define fuel types for new builds
@@ -507,8 +511,8 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       colours8 = c("Cogeneration"=cOL_COGEN, "Coal"=cOL_COAL,
                    "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
                    "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
-                   "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
                    "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
+                   "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                    "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
                    "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped,"Nuclear"=cOL_NUCLEAR)
@@ -517,10 +521,6 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
                         "#001933")
     }
 }
-
-  # Gives years to summarize info from 
-  Years2Disp <- c(2022,2025,2030,2035) # Years to show in figures
-  Years2Pivot <- c(2022,2025,2030,2035)  # Years to display in tables
 
   #For fun, make the code beep when its all done
   beep(3)
@@ -535,38 +535,46 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
   windows(16,6)
   
+################################################################################
 ## THE MOST USEFULL FUNCTIONS
+################################################################################
   
-  # Grid of weekly output - need to edit for more than one week of data
-  year_weeks(2034,BC)
+  # GENERATION
+      # Grid of weekly output - need to edit for more than one week of data
+      year_weeks(2034,BC)
+    
+      # Yearly Output
+      Evalyr(BC)
+      
+      # Yearly Capacity
+      Evalcap(BC)
+      
+      # Yearly percentage of generation
+      EvalPerc(BC)
+    
+      # Bar chart showing each resource groups yearly output
+      Output_Comp(BC)
+      
+  # LTCE RESULTING BUILD/RETIRE
+      # Retirements by capacity (grouped by fuel type)
+      RetireMW(BC)
+      
+      # Capacity built by Aurora over study period
+      Build_A_MW(BC)
+    
+      # All new capacity
+      BuildMW(BC)
+      Build_Totals(BC)
   
-  # Yearly Output
-  Evalyr(BC)
+      # Difference in capacity
+      Eval_diffcap(BC)
   
-  # Yearly Capacity
-  Evalcap(BC)
-  
-  # Yearly percentage of generation
-  EvalPerc(BC)
-  
-  # Retirements by capacity (grouped by fuel type)
-  RetireMW(BC)
-  
-  # Capacity built by Aurora over study period
-  Build_A_MW(BC)
-
-  # All new capacity
-  BuildMW(BC)
-  Build_Totals(BC)
-  
-  # Difference in capacity
-  Eval_diffcap(BC)
-  
-  # Bar chart showing each resource groups yearly output
-  Output_Comp(BC)
-  
-  # Shows Prices for simulation duration
-  Sim_dur(BC)
+  # PRICES AND COSTS
+      # Shows Prices for simulation duration
+      Sim_dur(BC)
+      
+      # Shows production costs and fixed costs for full system
+      System_Cost(BC)
   
   # Annual import and export from AB as a bar chart
   Imp_Exp1(BC)
@@ -596,17 +604,22 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
   # Annual emissions in stacked area chart
   AnnualEmStackCol(BC)
+  
   # Annual emissions in individual lines
   AnnualEmLine(BC)
   
-  # Average monthly prices
+  # Average monthly prices over full period
   AvgMn_price(BC)
   
-  poolprice_2year(2022,2023,BC)
-  
+  # Average annual pool price
   AvgYr_poolprice(BC)
   
+  # capacity factors for 2 years
   CFcompare(2022,2035,BC)
+  
+  # Annual average capacity factors for all resource types
+  CF_Annual(BC)
+  
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS LISTED
 ################################################################################
@@ -615,34 +628,46 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 ## Output and Generation Functions (Output_Gen_Functions)
 ################################################################################
   
-    #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
-    day1(2022,11,07,BC)
-    
     # Gives stacked area chart for single week
     Week1(2021,01,08,BC)
-    
+  
+    #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
+    day1(2022,11,07,BC)
+
     # Gives weekly storage function
     Stor1(2021,01,08,BC)
     
     # Gives overall picture of Output over time period
-    Evalyr(ResGroupYr,BC)
+    Evalyr(BC)
     
     # Gives overall picture of capacity over time period
-    Evalcap(ResGroupMn,BC)
-    Evalcap(ResGroupYr,BC)
+    Evalcap(BC)
     
     # Gives all as % of total generation being met
-    EvalPerc(ResGroupYr,BC)
+    EvalPerc(BC)
 
-    # Lets you get where units were built 
-    Units(BC,wind)
+    # Capacity of resource groups for selected years as a bar chart
+    Output_Comp(BC)
     
-    # Lets you get where units could have been built 
-    Slack(BC,wind)
+    # Just shows the average demand
+    AnnualDemand(ZoneYr,BC) 
+    AnnualDemand(ZoneMn,BC) 
     
-    #Plot Pool price and output for a week 
-    PrOt(2023,10,08,BAU)
-
+    # Shows the capacity factor for selected technologies in 2 different years (side by side bars)
+    CFcompare(2022,2035,BC)
+    
+    # Average annaul capacity factors for all technolgoies as lines over study
+    CF_Annual(BC)
+    
+    # Shows a year of week outputs corresponding to chosen year
+    year_weeks(2022,BC)
+    
+    # Shows pool price over a week of resource group outputs
+    PrOt(2022,09,09,BC)
+    
+    # Shows pool price over a week of resource group outputs, includes storage utilization
+    PrOut(2022,09,09,BC)
+    
 ################################################################################    
 ## Price Functions (Price_Functions)
 ################################################################################
@@ -653,18 +678,108 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     #Shows Prices for simulation duration
     Sim_dur(BC)  
   
+    # Average monthly pool price with a two-tailed 90th percentile range
+    AvgMn_price(BC)
+    
+    # Shows the average monthly pool price for 2 years
+    poolprice_2year(2022,2023,BC)
+    
+    # Average annual pool price for on and off peak conditions
+    AvgYr_poolprice(BC)
+    
+    # Shows production costs and fixed costs for full system
+    System_Cost(BC)
+
 ################################################################################
-## AESO FUNCTIONS
+## Build and Reture Functions (Build_Retire_Functions)
 ################################################################################
     
-    #AESO Output
-    Week_act(2020,01,08)
+    # Number of units retired by fuel type
+    Retirecol(BC)
     
-    #AESO Week Price
-    wkPrice(2021,10,08)
+    # Retirements by capacity (grouped by fuel type)
+    RetireMW(BC)
     
-    # AESO Week Price and output in one
-    AESO_PrOt(2021,01,08)
+    # Units Built over study period
+    Builtcol(BC)
+    
+    # Capacity built by Aurora over study period
+    Build_A_MW(BC)
+    
+    # All new capacity
+    BuildMW(BC)
+    
+    # Shows capacity changes from previous year
+    Eval_diffcap(BC)
+    
+    # Lets you get where units were built 
+    Units(BC,wind)
+    
+    # Lets you get where units could have been built 
+    Slack(BC,wind)
+
+    #Compare available units and built units
+    BuildUnits(BC, wind)
+    
+################################################################################
+## Emission Functions (Emission_Functions)
+################################################################################
+    
+    # Annual emissions in stacked area chart, outputs total annaul emissions in console
+    AnnualEmLine(case)
+    
+    # Annual emissions in individual lines
+    AnnualEmLine(case)
+    
+################################################################################
+## Intertie Functions (Intertie_Functions)
+################################################################################
+    
+    #Annual import and export from AB 
+    Imp_Exp1(BC)
+    
+    # Hourly import and exports for a single year for AB
+    Imp_Exp2(2022,BC)
+    
+    # Imports and exports from BC and SK
+    BC_SK_IE(2022,BC)
+    
+    # Shows pool price and trade for a single month
+    MN_Trade_Price(2022,09,BC)
+    
+    # Shows imports and exports for a single month
+    MN_TradeOnly(2023,04,BC)
+    
+    # Show all trade for a singe year
+    T_month_all_Sim(2035,BC)
+    
+    # AB imports and exports from AESO for a month
+    Trade_Mn_AESO(2022,03,Imp_Exp)
+    
+    # AB imports and exports for a month with pool price, AESO
+    TradeOnly_Mn_AESO(2022,03,Imp_Exp)
+    
+    # AB imports and exports for a year, AESO
+    Trade_Yr_AESO(2022,Imp_Exp)
+    
+    # AESO price duration curve
+    Duration_AESO(Years2See)
+    
+    # All trade for a year, AESO
+    T_month_all(2022,Imp_Exp)
+    
+################################################################################
+## Table Functions (Table_Functions)
+################################################################################
+    
+    # Report the average annual pool prices for years specified
+    Report_P(Years2Pivot,BC)
+   
+    # Total capacity added by resource group type
+    Build_Totals(BC)
+    
+    # Capacity added by Aurora only
+    Build_A_Totals(BC)
     
 ################################################################################
 ##  AESO and Sim Compare Functions
@@ -708,77 +823,43 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     tot_cap(2021,2022,BC)
     
     AESOSim(2021,2022,BC)
-
-################################################################################
-## Build and Reture Functions (Build_Retire_Functions)
-################################################################################
     
-    # Number of units retired by fuel type
-    Retirecol(BC)
-    
-    # Retiremtns by capacity (grouped by fuel type)
-    RetireMW(BC)
-    
-    # Units Built over study period
-    Builtcol(BC)
-    
-    # Capacity built by Aurora over study period
-    Build_A_MW(BC)
-    
-    # All new capacity
-    BuildMW(BC)
-    
-    # Bar chart showing each resource groups yearly output
-    Output_Comp(BC)
-    
-    # Shows demand in AB 
-    AnnualDemand(ZoneMn,BC)
-    
-    Imp_Exp2(BC)
-    
-    #Compare available units and built units
-    BuildUnits(BAU, wind)
-    
-################################################################################
-## Emission Functions (Emission_Functions)
-################################################################################
-    
-    # Annual emissions in stacked area chart
-    AnnualEmLine(case)
-    # Annual emissions in individual lines
-    AnnualEmLine(case)
-    
-################################################################################
-## Intertie Functions (Intertie_Functions)
-################################################################################
-    
-    #Annual import and export from AB 
-    Imp_Exp(BC)
-    
-    #Imports and exports from BC and SK
-    BC_SK_IE(BC)
-    
-################################################################################
-## Table Functions (Table_Functions)
-################################################################################
-    
-    Report_P(Years2Pivot,BC)
-   
 ################################################################################
 ## Developing Functions (Developing_Functions)
 ################################################################################
     
+    # Show a single day output for a full year
     YearOfDays(2022,3,BC,"ALL",14000)
+    
+    # Show a single day output for a full year, one resource group
     YearOfDays(2030,3,BC,"WIND",10000)
     
+    # Single day output
     day1(2032,01,09,BC)
-    day2(2022,01,11,BC,"WIND",10000)    
+    
+    # Single day output for single resource group
+    day2(2022,01,11,BC,"WIND",10000)  
+    
+################################################################################
+## AESO FUNCTIONS
+################################################################################
+    
+    #AESO Output
+    Week_act(2020,01,08)
+    
+    #AESO Week Price
+    wkPrice(2021,10,08)
+    
+    # AESO Week Price and output in one
+    AESO_PrOt(2021,01,08)
+    
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF
 ################################################################################
       
-    dev.off(dev.list()["RStudioGD"]) #Clears all plots
+    #Clears all plots from R window
+    dev.off(dev.list()["RStudioGD"]) 
       
     # Different window sizes for figures
     windows(12,8)

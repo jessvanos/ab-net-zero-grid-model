@@ -355,3 +355,130 @@ ggplot() +
   scale_y_continuous(expand=c(0,0),limits=c(0,Upplim),n.breaks = 5, 
   )
 }
+
+################################################################################
+## FUNCTION: System_Cost
+## Describes the average system costs incured by all resources in the system.
+##
+## INPUTS: 
+##    case - Case to run
+## TABLES REQUIRED: 
+##    ZoneYr
+################################################################################
+
+System_Cost<- function(case) {
+  
+  # Take data from table and subset columns
+  # DESCRIPTIONS
+  # Demand - Average hourly demand
+  # Demand Total - Total demand for year
+  # Net_Load - Average net load served
+  # Net_Load_Total - Total load served in year
+  # Production_Cost_Total - In Can$000. Sum of Startup cost,Fuel cost,Emissions cost, Variable O&M
+  #                         cost for all resources
+  # Fixed_Cost_Total - Fixed costs for units (summed). 
+  
+  ZnData <- ZoneYr %>%
+    mutate(year = year(Time_Period),
+           time = Time_Period) %>%
+    filter(Run_ID == case,
+           Condition == "Average",
+           Name == "WECC_Alberta") %>%
+    mutate(Report_Year=as.numeric(Report_Year)) %>%
+    # Get the costs in unit of $MM/MWh
+    mutate(Scenario=SourceDB,
+           Production_Cost_Total_MM=Production_Cost_Total/1000,
+           Fixed_Cost_Total_MM=Fixed_Cost_Total/1000,
+           Production_Cost_Unit=1000*Production_Cost_Total/Net_Load_Total,
+           Fixed_Cost_Unit=1000*Fixed_Cost_Total/Net_Load_Total)%>%
+    subset(.,select=c(Name,year,Price,Demand, Demand_Total,
+                      Net_Load, Net_Load_Total,
+                      Production_Cost_Total_MM,Fixed_Cost_Total_MM,
+                      Production_Cost_Unit,Fixed_Cost_Unit,Scenario))
+  
+  # Get max and min year for plot
+  YearMX<-max(ZnData$year)-5
+  YearMN<-min(ZnData$year)
+  
+  Upplim <- round_any(max(ZnData$Production_Cost_Unit,
+                          ZnData$Fixed_Cost_Unit,
+                          ZnData$Price)+11,10)
+  Lowlim <- round_any(min(ZnData$Production_Cost_Unit,
+                          ZnData$Fixed_Cost_Unit,
+                          ZnData$Price,-10)-11,10)
+  
+  # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+  ZnData <- ZnData%>%
+    filter(year<=YearMX)
+  
+  # Re-arrange the data
+  PCost <-ZnData %>%
+    mutate(Cost=Production_Cost_Unit,
+           Type="Production Annual Cost")%>%
+    subset(.,select=c(year,Cost,Type,Scenario))
+  
+  FCost <-ZnData %>%
+    mutate(Cost=Fixed_Cost_Unit,
+           Type="Fixed Annual Cost")%>%
+    subset(.,select=c(year,Cost,Type,Scenario))
+  
+  TCost <-ZnData %>%
+    mutate(Cost=Fixed_Cost_Unit+Production_Cost_Unit,
+           Type="Total Annual Cost")%>%
+    subset(.,select=c(year,Cost,Type,Scenario))
+  
+  Price <-ZnData %>%
+    mutate(Cost=Price,
+           Type="Average Annaul Pool Price")%>%
+    subset(.,select=c(year,Cost,Type,Scenario))
+  
+  # Combine the data
+  totalcosts<- rbind(PCost,FCost,TCost,Price)
+  
+  ggplot() +
+    geom_line(data = totalcosts,
+              aes(x = year, y = Cost, colour = Type),
+              size = 1.5) +
+    
+    # Add line at y=0
+    geom_hline(yintercept=0, color = "black",size=0.5,linetype=2)+
+    
+    theme_bw() +
+    theme(text=element_text(size=GenText_Sz),
+          axis.text = element_text(),
+          axis.title.y = element_text(size = YTit_Sz),
+          axis.text.x = element_text(angle = 45, hjust=1, size = XTit_Sz),
+          plot.title = element_text(size = Tit_Sz),
+          legend.text = element_text(size = Leg_Sz),
+          panel.grid = element_blank(),
+          legend.title = element_blank(),
+          legend.position = "right",
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'),
+          panel.grid.minor.x = element_blank(),
+          panel.spacing = unit(1.5, "lines"),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+    ) +
+    labs(y = "Amount ($/MWh)", x="Year",
+         caption = paste("Production cost is a sum of startup costs, fuel costs, emission costs, and variable O&M costs for all plants opperating in a given year
+                         Fixed cost is a sum of fixed costs for all plants opperating in a given year
+                         Total cost is a sum of production and fixed costs
+                         Production, fixed, and total costs are divided by total annual load served to get units of $/MWh\n"
+                         #,SourceDB
+                         )) +
+    
+    scale_color_manual(values = c("Production Annual Cost"="grey70",
+                                  "Fixed Annual Cost"="black",
+                                  "Total Annual Cost"="red",
+                                  "Average Annaul Pool Price"="lightblue")) +
+    
+    scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
+    
+    scale_y_continuous(expand=c(0,0),labels = scales::comma,limits=c(Lowlim,Upplim),
+                       breaks=breaks_pretty(10))
+  
+}

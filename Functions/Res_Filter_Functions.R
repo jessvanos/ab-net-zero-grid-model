@@ -4,8 +4,9 @@
 
 # ORIGINAL AUTHOR: Taylor Pawlenchuk (Retrieved June 3, 2022)
 # EDITS & ADDITIONAL CONTENT: Jessica Van Os
-# LAST EDIT: September 15, 2022
-#
+# LAST EDIT: January 20, 2023
+################################################################################
+
 ################################################################################
 ## FUNCTION: sim_filt
 ## This function filters for the data that will be evaluated.
