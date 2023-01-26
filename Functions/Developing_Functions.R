@@ -958,6 +958,30 @@ DataYr <- ResYr %>%
                     Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
                     Revenue,Energy_Revenue_MWh,Value,Value_MWh,
                     Used_For_Op_Reserve, Forced_Outage,Maint_Outage,Total_Hours_Run,Beg_Date,End_Date))
+
+  # REVENUE. in Can$000
+  Data_Rev <-DataYr %>%
+    subset(.,select=c(Name,Report_Year,
+                      Revenue,Energy_Revenue_MWh)) %>%
+    mutate(Type="Revenue")%>%
+    rename(Total=Revenue,
+           Total_Per_MWh=Energy_Revenue_MWh)
+  # COST
+  Data_Cost <-DataYr %>%
+    subset(.,select=c(Name,Report_Year,
+                      Net_Cost,Total_Cost_MWh)) %>%
+    mutate(Type="Cost")%>%
+    rename(Total=Net_Cost,
+           Total_Per_MWh=Total_Cost_MWh)
   
 }
+  
+
+          
+          
+          
+          
+          
+          
+  
   

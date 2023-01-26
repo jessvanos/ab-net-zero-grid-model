@@ -280,16 +280,22 @@
             
             # Separate retrofits
             NGConv1 <- NG2AB[NG2AB$Name %like% "%Retrofit%",] 
-            NGConv<-NGConv1 # Swt this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
-              NGConv$Primary_Fuel<- "NGConv"
-            
+            NGConv<-NGConv1 # Set this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
+              
+            # If there is nothing in the dataframe, don't bother with rename
+            if (dim(NGConv)[1]>0){
+              NGConv$Primary_Fuel<- "NGConv"       
+            }
+
               # Separate Simple Cycle
             SCCT1 <- sqldf('SELECT * FROM NG2AB EXCEPT SELECT * FROM NGConv1') #Select left over 
             SCCT1<-SCCT1 %>%
               mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
             
-            SCCT1$Primary_Fuel<- "NG-SCCT"
-    
+            # If there is nothing in the dataframe, don't bother with rename
+            if (dim(SCCT1)[1]>0){
+               SCCT1$Primary_Fuel<- "NG-SCCT"
+            }
     # Units as defined by New Resources Table
     #First split up the fuel types
     NG100 <- inputdata %>%

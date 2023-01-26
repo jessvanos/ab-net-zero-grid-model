@@ -74,7 +74,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"NZ_Jan_03_2022"
+  SourceDB<-"S_Jan_24_2023"
   #SourceDB<-"BAU_Jan_10_2023"
   
   #Connect to database specified (via server, user, and password)
@@ -520,18 +520,22 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
     }
-}
+
+  # Gives years to summarize info from 
+  Years2Disp <- c(2022,2025,2030,2035) # Years to show in figures
+  Years2Pivot <- c(2022,2025,2030,2035)  # Years to display in tables
 
   #For fun, make the code beep when its all done
   beep(3)
-  
+}
+
 ################################################################################
 ## SET UP FOR PLOTTING & CALL FUNCTIONS
 ################################################################################
   
   windows(14,10)
 
-  windows(16,10)
+  windows(16,8)
   
   windows(16,6)
   
@@ -555,6 +559,12 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       # Bar chart showing each resource groups yearly output
       Output_Comp(BC)
       
+      # capacity factors for 2 years
+      CFcompare(2022,2035,BC)
+      
+      # Annual average capacity factors for all resource types
+      CF_Annual(BC)
+      
   # LTCE RESULTING BUILD/RETIRE
       # Retirements by capacity (grouped by fuel type)
       RetireMW(BC)
@@ -575,53 +585,43 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       
       # Shows production costs and fixed costs for full system
       System_Cost(BC)
+      
+      # Price Table
+      Report_P(Years2Pivot,BC)
   
-  # Annual import and export from AB as a bar chart
-  Imp_Exp1(BC)
+      # Average monthly prices over full period
+      AvgMn_price(BC)
+      
+      # Average annual pool price
+      AvgYr_poolprice(BC)
+      
+  # EMISSIONS
+      # Annual emissions in stacked area chart
+      AnnualEmStackCol(BC)
+      
+      # Annual emissions in individual lines
+      AnnualEmLine(BC)
+      
+  # OTHER STUFF
+      # Annual import and export from AB as a bar chart
+      Imp_Exp1(BC)
+      
+      # Import and export for full year from AB
+      Imp_Exp2(2025,BC)
+      
+      #Full Year output
+      T_month_all_Sim(2022,BC)
   
-  # Import and export for full year from AB
-  Imp_Exp2(2025,BC)
+      # Shows demand in AB 
+      AnnualDemand(ZoneMn,BC)
   
-  # Price and Trade monthly
-  MN_Trade_Price(2022,10,BC)
-      Trade_Mn_AESO(2022,02,HRcalc)
-  
-  #Imports and exports from BC and SK yearly totals
-  BC_SK_IE(2022,BC)
-  
-  # Month Compare Trade
-  mn_Trade_Comp(2021,04,BC,HRcalc)
-  
-  #Full Year output
-  T_month_all_Sim(2022,BC)
-  T_month_all(2021,HRcalc)
-
-  # Price Table
-  Report_P(Years2Pivot,BC)
-  
-  # Shows demand in AB 
-  AnnualDemand(ZoneMn,BC)
-  
-  # Annual emissions in stacked area chart
-  AnnualEmStackCol(BC)
-  
-  # Annual emissions in individual lines
-  AnnualEmLine(BC)
-  
-  # Average monthly prices over full period
-  AvgMn_price(BC)
-  
-  # Average annual pool price
-  AvgYr_poolprice(BC)
-  
-  # capacity factors for 2 years
-  CFcompare(2022,2035,BC)
-  
-  # Annual average capacity factors for all resource types
-  CF_Annual(BC)
-  
+      # Shows new resrouce value each year 
+      # 1 - wind, 2 - Solar, 3 - Storage, 4 - Natural gas, 5 - Hydrogen and Natural gas blend, 
+      # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
+      ResValue_Annual(1,BC)
+      
 ################################################################################  
-## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS LISTED
+## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS!
 ################################################################################
 
 ################################################################################
@@ -690,6 +690,11 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     # Shows production costs and fixed costs for full system
     System_Cost(BC)
 
+    # Shows new resrouce value each year 
+    # 1 - wind, 2 - Solar, 3 - Storage, 4 - Natural gas, 5 - Hydrogen and Natural gas blend, 
+    # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
+    ResValue_Annual(1,BC)
+    
 ################################################################################
 ## Build and Reture Functions (Build_Retire_Functions)
 ################################################################################
