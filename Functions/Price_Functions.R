@@ -378,7 +378,7 @@ System_Cost<- function(case) {
   #                         cost for all resources
   # Fixed_Cost_Total - Fixed costs for units (summed). 
   
-  ZnData <- ZoneYr %>%
+  ZnData1 <- ZoneYr %>%
     mutate(year = year(Time_Period),
            time = Time_Period) %>%
     filter(Run_ID == case,
@@ -388,13 +388,29 @@ System_Cost<- function(case) {
     # Get the costs in unit of $MM/MWh
     mutate(Scenario=SourceDB,
            Production_Cost_Total_MM=Production_Cost_Total/1000,
-           Fixed_Cost_Total_MM=Fixed_Cost_Total/1000,
-           Production_Cost_Unit=1000*Production_Cost_Total/Net_Load_Total,
-           Fixed_Cost_Unit=1000*Fixed_Cost_Total/Net_Load_Total)%>%
+           Fixed_Cost_Total_MM=Fixed_Cost_Total/1000) %>%
     subset(.,select=c(Name,year,Price,Demand, Demand_Total,
                       Net_Load, Net_Load_Total,
                       Production_Cost_Total_MM,Fixed_Cost_Total_MM,
-                      Production_Cost_Unit,Fixed_Cost_Unit,Scenario))
+                      Production_Cost_Total,Fixed_Cost_Total,Scenario))
+  
+  # Now get output to append
+  AnnualOut <-ResGroupYr%>%
+    sim_filt5(.) %>% #Filter to rename fuels
+    filter(Run_ID == case) %>%
+    filter(Condition == "Average") %>%
+    mutate(year=year(Time_Period)) %>%
+    group_by(year)%>%
+    summarise(Total_Output=sum(Output_MWH))
+  
+  # Combine the total output in MWh with zone info
+  ZnData<-merge(ZnData1,AnnualOut,by=c("year"), all.x = TRUE)
+  
+  # Create unit costs
+  ZnData <- ZnData %>%
+      mutate(Production_Cost_Unit=1000*Production_Cost_Total/Total_Output,
+      Fixed_Cost_Unit=1000*Fixed_Cost_Total/Total_Output)
+  
   
   # Get max and min year for plot
   YearMX<-max(ZnData$year)-5

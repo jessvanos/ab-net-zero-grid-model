@@ -56,6 +56,7 @@
   source(here('Functions','Res_Filter_Functions.R'))  # Filtering by resource type, required for plots
   source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
   #source(here('Functions','Developing_Functions.R'))  # Under construction functions
+  source(here('Functions','Data_Filt_To_Table.R'))    # Functions that filter data and export it to excel sehets
   source(here('Functions','aeso_eval_1.R'))           #
   source(here('Functions','aseo_sim_comp_1.R'))       #
   
@@ -74,7 +75,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"S_Jan_24_2023"
+  SourceDB<-"NZ_Jan_03_2022"
   #SourceDB<-"BAU_Jan_10_2023"
   
   #Connect to database specified (via server, user, and password)
@@ -619,6 +620,13 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       # 1 - wind, 2 - Solar, 3 - Storage, 4 - Natural gas, 5 - Hydrogen and Natural gas blend, 
       # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
       ResValue_Annual(1,BC)
+      
+  # Write to excel
+      # Annual data
+      AnnaulDataExcel("BAU",BC)
+      
+      # Hourly data
+      HourlyDataExcel("BAU",BC)
       
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS!

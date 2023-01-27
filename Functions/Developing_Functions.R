@@ -930,6 +930,7 @@ Revenue <- function(case) {
 ##    
 ################################################################################
 test<-function(case) {
+  ## FOR NEW RESOURCES
 DataHr <- ResHr %>%
   mutate(year = year(date),
          time = date) %>%
@@ -946,19 +947,42 @@ DataHr <- ResHr %>%
 
 gc()
 
+
 DataYr <- ResYr %>%
   filter(Run_ID == case,
          Condition == "Average",
          Zone == "WECC_Alberta") %>%
-  filter(grepl('New Resource',Name)) %>%
-  mutate(Report_Year=as.numeric(YEAR)) %>%
+  sim_filt5(.) %>%
+  mutate(Report_Year=as.numeric(YEAR),
+         Simulation_Name=paste(SourceDB)) %>%
   filter(Capacity>0) %>%
-  subset(.,select=c(Name,Report_Year,date,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
+  subset(.,select=c(Name,Report_Year,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
                     Fuel_Usage,Primary_Fuel,
                     Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
                     Revenue,Energy_Revenue_MWh,Value,Value_MWh,
-                    Used_For_Op_Reserve, Forced_Outage,Maint_Outage,Total_Hours_Run,Beg_Date,End_Date))
+                    Used_For_Op_Reserve, Forced_Outage,Maint_Outage,Total_Hours_Run,Beg_Date,End_Date,Simulation_Name))
 
+################################################################################
+## HOURLY RESOURCE  OUTPUT TABLES
+## Resource Group annaul Information: 2022-2035. Gives info on resource group 
+## costs, outputs, and emission costs. 
+################################################################################
+DataHr <- ResHr %>%
+  mutate(year = year(date),
+         time = date) %>%
+  filter(Run_ID == case,
+         Condition == "Average",
+         Zone == "WECC_Alberta") %>%
+  sim_filt5(.) %>%
+  mutate(Report_Year=as.numeric(Report_Year),
+         Simulation_Name=paste(SourceDB)) %>%
+  subset(.,select=c(ID,Name,Report_Year,date,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
+                    Fuel_Usage,Primary_Fuel,
+                    Net_Cost,Total_Cost_MWh,Fixed_Cost,Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
+                    Revenue,Energy_Revenue_MWh,Value,Value_MWh,
+                    Used_For_Op_Reserve, Forced_Outage,Maint_Outage,Total_Hours_Run,Beg_Date,End_Date,Simulation_Name))  
+
+## OTHER STUFF
   # REVENUE. in Can$000
   Data_Rev <-DataYr %>%
     subset(.,select=c(Name,Report_Year,

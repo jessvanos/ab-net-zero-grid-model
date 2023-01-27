@@ -491,6 +491,135 @@ sim_filt5 <- function(inputdata) {
   return(case)  
 }
 }
+
+################################################################################
+## FUNCTION: sim_filt6
+## This function filters for EVERYTHING - based on Primary Fuel Type
+################################################################################
+
+{ sim_filt6 <- function(inputdata) {
+  {
+    # Straight foreward part
+    Coal <- inputdata %>%
+      filter(Primary_Fuel=="Coal Canada West") 
+     Cogen  <- inputdata %>%
+      filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
+    Other <- inputdata %>%
+      filter(Primary_Fuel=="Other, Bio, ZZ, WC, WH")
+    Hydro <- inputdata %>%
+      filter(Primary_Fuel=="Water")
+    Solar <- inputdata %>%
+      filter(Primary_Fuel=="Solar")
+    Storage <- inputdata %>%    
+      filter(grepl("Storage",Primary_Fuel))
+    Wind <- inputdata %>%
+      filter(Primary_Fuel=="Wind")  
+    Nuclear <-inputdata %>%
+      filter(Primary_Fuel=="Uranium") 
+    
+    # Blended Combined cycle
+    CC_Blend <-inputdata %>%
+      filter(Primary_Fuel %in% c('20-NaturalGas-80-Hydrogen Combined Cycle','50-NaturalGas-50-Hydrogen Combined Cycle','70-NaturalGas-30-Hydrogen Combined Cycle')) %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-CC")) 
+    
+    # Blended Simple Cycle
+    SC_Blend <-inputdata %>%
+      filter(Primary_Fuel %in% c('20-NaturalGas-80-Hydrogen Simple Cycle','50-NaturalGas-50-Hydrogen Simple Cycle','70-NaturalGas-30-Hydrogen Simple Cycle')) %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC")) 
+    
+    # Get NG Units as defined in Resource Table
+    CCCT1 <- inputdata %>%
+      filter(Primary_Fuel=="WECC-Alberta NaturalGas")
+    
+    # More tricky to separate ones
+    NG2AB <- inputdata %>%
+      filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
+    
+    # Separate retrofits
+    NGConv1 <- NG2AB[NG2AB$Name %like% "%Retrofit%",] 
+    NGConv<-NGConv1 # Set this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
+    
+    # If there is nothing in the dataframe, don't bother with rename
+    if (dim(NGConv)[1]>0){
+      NGConv$Primary_Fuel<- "NGConv"       
+    }
+    
+    # Separate Simple Cycle
+    SCCT1 <- sqldf('SELECT * FROM NG2AB EXCEPT SELECT * FROM NGConv1') #Select left over 
+    SCCT1<-SCCT1 %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
+    
+    # If there is nothing in the dataframe, don't bother with rename
+    if (dim(SCCT1)[1]>0){
+      SCCT1$Primary_Fuel<- "NG-SCCT"
+    }
+    # Units as defined by New Resources Table
+    #First split up the fuel types
+    NG100 <- inputdata %>%
+      filter(Primary_Fuel=="100-NaturalGas-0-Hydrogen") 
+    
+    # Combined units with CCS
+    CCC_CCS <- NG100[NG100$Name %like% "%2022CC90CCS%",] %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"CC-CCS"))
+    
+    # Combined NG units
+    CCCT2 <-NG100[NG100$Name %like% "%2022CC_100NG0H2%",] %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"WECC-Alberta NaturalGas"))    
+    CCCT <- rbind(CCCT1,CCCT2)
+    
+    # Simple NG units
+    SCCT2 <-NG100 %>%
+      filter(grepl('2022Frame|2022Aeroderivative',Name)) %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT"))
+    SCCT <- rbind(SCCT1,SCCT2)
+    
+    H2 <- inputdata %>%
+      filter(Primary_Fuel=="0-NaturalGas-100-Hydrogen")         
+    
+    # H2 Combined cycle
+    CC_H2 <-H2[H2$Name %like% "%2022CC_0NG100H2%",] %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
+    
+    # H2 Simple cycle
+    SC_H2 <-H2 %>%
+      filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC")) 
+    
+    # Storage Types
+    Stor_B <-    Storage %>%    
+      filter(Primary_Fuel=="Storage - Battery")
+    
+    Stor_HP <- Storage %>%    
+      filter(Primary_Fuel=="Storage - HydroPumped")
+    
+    Stor_CA <- Storage  %>%    
+      filter(Primary_Fuel=="Storage - CompressedAir") 
+    
+    
+  }
+  
+  # Combine the grouped data
+  { case <- rbind(Coal,NGConv, SC_H2,CC_H2,SC_Blend,CC_Blend,
+                  SCCT, CCC_CCS,CCCT, Hydro, Other, Solar, Wind, Stor_B,Stor_CA, Stor_HP, Cogen)
+    
+    case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
+      "Coal Canada West","NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
+      "NG-SCCT","CC-CCS","WECC-Alberta NaturalGas",
+      "Water", "Other, Bio, ZZ, WC, WH",
+      "Wind", "Solar", 
+      "Storage - Battery", "Storage - CompressedAir","Storage - HydroPumped",
+      "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
+    
+    levels(case$Primary_Fuel) <- c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                   "Blended  Simple Cycle","Blended  Combined Cycle",
+                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                   "Hydro", "Other",
+                                   "Wind", "Solar", 
+                                   "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
+                                   "Cogeneration") }
+  return(case)  }
+}
+
 ################################################################################
 ## FUNCTION: sim_filtEm
 ## This function filters for emission releasing resources 
@@ -539,3 +668,91 @@ sim_filt5 <- function(inputdata) {
   return(case)  }
 }
 
+################################################################################
+## FUNCTION: sim_filtFuel
+## This function filters for the data that will be evaluated.  
+## Same as 3, however only includes Aurora build options and is based on Fuel Type
+################################################################################
+
+{ sim_filtFuel <- function(inputdata) {
+  {
+    # Straight up parts
+    Other <- inputdata %>%
+      filter(ID=="OT")
+    Hydro <- inputdata %>%
+      filter(ID=="WAT")
+    Solar <- inputdata %>%
+      filter(ID=="SUN")
+    Wind <- inputdata %>%
+      filter(ID=="WND")  
+    Nuclear <-inputdata %>%
+      filter(ID=="UR") 
+    
+    # Storage Types
+    Stor_B <-    inputdata %>%    
+      filter(ID=="PS")
+    Stor_HP <- inputdata %>%    
+      filter(ID=="PS3")
+    Stor_CA <- inputdata  %>%    
+      filter(ID=="PS2") 
+    
+    # Gas
+    HHub<-inputdata %>%    
+      filter(ID=="NGHenry")
+    NGPeak <-inputdata %>%
+      filter(ID=="NG2AB")
+    NGBase <-inputdata %>%
+      filter(ID=="NG1AB")
+    NG <-inputdata %>%
+      filter(ID=="100NG0H2")
+    
+    # Hydrogen
+    H2 <- inputdata %>%
+      filter(ID == "0NG100H2")
+    
+    # Coal
+    Coal <- inputdata %>%
+      filter(ID == "CoalWCA")
+    
+    # Hydrogen Blends
+    Blend1 <- inputdata %>%
+      filter(ID == "20CC80H2")
+    Blend2 <- inputdata %>%
+      filter(ID == "50CC50H2")
+    Blend3 <- inputdata %>%
+      filter(ID == "70CC30H2")
+    
+    Blend4 <- inputdata %>%
+      filter(ID == "20SC80H2")
+    Blend5 <- inputdata %>%
+      filter(ID == "50SC50H2")
+    Blend6 <- inputdata %>%
+      filter(ID == "70SC30H2")
+
+  }
+  
+  # Combine the grouped data
+  { case <- rbind(H2,
+                  Blend1,Blend2,Blend3,Blend4,Blend5,Blend6,
+                  NGPeak,NGBase,NG,HHub,Coal
+                  # ,Hydro, Other, Wind, Solar,
+                  # Stor_B,Stor_CA, Stor_HP
+                  )
+    
+    case$ID <- factor(case$ID, levels=c(
+      "0NG100H2",
+      "20CC80H2","50CC50H2","70CC30H2","20SC80H2","50SC50H2","70SC30H2",
+      "NG2AB","NG1AB","100NG0H2","NGHenry","CoalWCA"
+      # ,"WAT", "OT","WND", "SUN", 
+      # "PS", "PS2","PS3"
+      ))
+    
+    levels(case$ID) <- c("Hydrogen",
+                         "NG H2 Blend CC - 20/80","NG H2 Blend CC - 50/50","NG H2 Blend CC - 70/30",
+                         "NG H2 Blend SC - 20/80","NG H2 Blend SC - 50/50","NG H2 Blend SC - 70/30",
+                         "Natural Gas - Peaking","Natural Gas - Base","Natural Gas","Henry Hub Natural Gas","Coal"
+                         # ,"Water", "Other","Wind", "Sun", 
+                         # "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro"
+                         ) }
+  return(case)  }
+}
