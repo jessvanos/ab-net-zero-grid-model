@@ -69,6 +69,21 @@ AnnaulDataExcel<- function(ScenarioName,case){
   # Combine the Emissions information with the annual resource information 
   AllDataGrYr<-merge(DataGrYr,DataGrEmYr,by=c("Plant_Type","Year"), all.x = TRUE)
   
+  #HERE
+  AllRenewData <- AllDataGrYr %>%
+    filter(Plant_Type %in% c("Wind","Solar")) %>%
+    mutate(Credit=round(Emissions_Cost/Output_MWH,digits=2),
+           PercRev=round(abs(100*Emissions_Cost/Revenue)),digits=2,
+           Emissions_Cost=Emissions_Cost*-1) %>%
+    arrange(Year) %>%
+    subset(select=c(Plant_Type,Year,Output_MWH,Emissions_Cost,Revenue,PercRev,Credit)) %>%
+    rename("Plant Type"=Plant_Type,
+           "Emissions Revenue"=Emissions_Cost,
+           "Output (MWh)"=Output_MWH,
+           "Offset Value ($/MWh)"=Credit,
+           "Total Revenue"=Revenue,
+           "Percent of Total Revenue from Emission Credits (%)"=PercRev)
+    
   # Re-sort the columns
   AllDataGrYr <- AllDataGrYr %>%
     subset(., select=c(Plant_Type,Year,Output_MWH,Capacity_MW,
@@ -278,7 +293,8 @@ dataset_names <-list('1 Annual Resource Group Data'=AllDataGrYr,
                      '2 Retirements and Additions'=Indv_Change,
                      '3 Cap Changes by Plant Type'=Tot_Change,
                      '4 Annual System Data'=AllZoneData,
-                     '5 Annual Fuel Data'=FuelData)
+                     '5 Annual Fuel Data'=FuelData,
+                     '6 Offset Value'=AllRenewData)
 
 filename <-paste("Annual_Data_",ScenarioName,"_",SourceDB,".xlsx")
 

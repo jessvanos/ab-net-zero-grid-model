@@ -41,6 +41,7 @@
     # pivottabler: Allows pivot tables to easily be created in R
     # openxlsx: Used to interact with xlsx files from R environment
     # timeDate: Used for time zone information and holidays.
+    # writexl: Easy way to write dataframes to excel files with multiple pages
   }
 
 { # Must load the here package in order to make sure internal project directories work
@@ -64,7 +65,7 @@
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
-                   "openxlsx","sqldf","timeDate")
+                   "openxlsx","sqldf","timeDate","writexl")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -621,6 +622,8 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
       ResValue_Annual(1,BC)
       
+      ResValue_Total(4,BC)
+  
   # Write to excel
       # Annual data
       AnnaulDataExcel("BAU",BC)
