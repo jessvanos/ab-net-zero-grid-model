@@ -69,7 +69,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
   # Combine the Emissions information with the annual resource information 
   AllDataGrYr<-merge(DataGrYr,DataGrEmYr,by=c("Plant_Type","Year"), all.x = TRUE)
   
-  #HERE
+  # Here we get value of carbon credits
   AllRenewData <- AllDataGrYr %>%
     filter(Plant_Type %in% c("Wind","Solar")) %>%
     mutate(Credit=round(Emissions_Cost/Output_MWH,digits=2),
@@ -93,6 +93,10 @@ AnnaulDataExcel<- function(ScenarioName,case){
                        Revenue,Value,
                        Total_Hours_Run,Percent_Marginal,
                        Capacity_Factor,Sim_Name)) %>%
+    # Round some values
+    mutate(Avg_Dispatch_Cost=round(Avg_Dispatch_Cost,digits=2),
+           Percent_Marginal=round(Percent_Marginal,digits=2),
+           Capacity_Factor=round(Capacity_Factor,digits=2)) %>%
     rename("Plant Type"=Plant_Type,
            "Output (MWh)"=Output_MWH,
            "Capacity (MW)"=Capacity_MW,
@@ -105,12 +109,12 @@ AnnaulDataExcel<- function(ScenarioName,case){
            "Emissions Cost"=Emissions_Cost,
            "Total Hours Run"=Total_Hours_Run,
            "Percent Marginal"=Percent_Marginal,
-           "Capacity Factor"=Capacity_Factor)
+           "Average Capacity Factor"=Capacity_Factor)
 }
 
 ################################################################################
 ## ANNUAL RESOURCE ADDITIONS AND RETIREMENT TABLES
-## Resource Group annaul Information: 2022-2035. Gives info on resource group 
+## Resource Group annual Information: 2022-2035. Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
 
@@ -182,10 +186,12 @@ AnnaulDataExcel<- function(ScenarioName,case){
   
   # PUT ALL TOGETHER!
   Indv_Change <-rbind(Retdata,Builddata) %>%
-    mutate(Sim_Name=paste(SourceDB)) %>%
+    mutate(Sim_Name=paste(SourceDB),
+           Capacity=round(Capacity,digits=1),
+           Capacity_Factor=round(Capacity_Factor,digits=2)) %>%
     rename("Capacity (MW)"=Capacity,
            "Plant Type"=Primary_Fuel,
-           "Capacity Factor"=Capacity_Factor,
+           "Average Capacity Factor"=Capacity_Factor,
            "End Date"=End_Date,
            "End Year"=End_Year,
            "Start Date"=Beg_Date,
@@ -222,6 +228,34 @@ AnnaulDataExcel<- function(ScenarioName,case){
 
 }
 
+################################################################################
+## ANNUAL AVERAGE HEAT RATES
+## Resource Group annual Information: 2022-2035. Gives info on resource group 
+## costs, outputs, and emission costs. 
+################################################################################
+  
+  {
+    # Bring in Resource Year Table and filter for relevant data. Format date columns
+    AVG_HeatRates <- ResYr%>%
+      sim_filt6(.) %>% #Filter to rename fuels
+      subset(., select=c(Name,Condition,Capacity,Peak_Capacity,
+                         Full_Load_Heat_Rate,Net_Heat_Rate,Incr_Heat_Rate,
+                         Run_ID,Primary_Fuel,Time_Period,Capacity_Factor)) %>%
+      filter(Run_ID == case)%>%
+      mutate(Time_Period=as.numeric(Time_Period))%>%
+      filter(Condition == "Average",
+             Capacity>0,
+             Time_Period<=2035,
+             !Primary_Fuel %in% c("Wind","Solar","Hydro",
+                                  "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")) %>%
+      group_by(Primary_Fuel,Time_Period)%>%
+      summarise("Average Full Load Heat Rate (Btu/kWh)"=round(mean(Full_Load_Heat_Rate),digits=0),
+                "Average Net Heat Rate (Btu/kWh)"=round(mean(Net_Heat_Rate),digits=0),
+                "Average Inc Heat Rate (Btu/kWh)"=round(mean(Incr_Heat_Rate),digits=0),
+                "Average Capacity Factor"=round(mean(Capacity_Factor),digits=2)) %>%
+      rename("Plant Type"=Primary_Fuel)
+    
+  }
 ################################################################################
 ## ANNUAL FUEL TABLES
 ################################################################################
@@ -269,8 +303,9 @@ ZnData <- ZoneYr %>%
   
   # Now, rename some columns and get unit prices
   AllZoneData <-AllZoneData1 %>%
-    mutate(Unit_Prod=Production_Cost_Total/Total_Output,
-           Unit_Fix=Fixed_Cost_Total/Total_Output) %>%
+    mutate(Unit_Prod=round(Production_Cost_Total/Total_Output,digits=2),
+           Unit_Fix=round(Fixed_Cost_Total/Total_Output,digits=2),
+           Price=round(Price,digits=2)) %>%
     subset(.,select=c(Name,Year,Price, 
                       Demand_Total,Net_Load_Total,Total_Output,
                       Production_Cost_Total,Unit_Prod,Fixed_Cost_Total,Unit_Fix,
@@ -294,7 +329,8 @@ dataset_names <-list('1 Annual Resource Group Data'=AllDataGrYr,
                      '3 Cap Changes by Plant Type'=Tot_Change,
                      '4 Annual System Data'=AllZoneData,
                      '5 Annual Fuel Data'=FuelData,
-                     '6 Offset Value'=AllRenewData)
+                     '6 Avg Heat Rates by Plant Type'=AVG_HeatRates,
+                     '7 Offset Value'=AllRenewData)
 
 filename <-paste("Annual_Data_",ScenarioName,"_",SourceDB,".xlsx")
 

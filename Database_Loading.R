@@ -22,6 +22,7 @@
     # tidyverse: Data science package
     # ggplot: Used for graphical packages and aestheticc
     # grid: Used for plotting, adds grid to the plot
+    # scales: Use to re-format plots 
     # gtable: Grob tables, more tools
     # gridExtra: User functions for grid graphics
     # odbc: Driver for Database Loading
@@ -62,7 +63,7 @@
   source(here('Functions','aseo_sim_comp_1.R'))       #
   
   # Packages required
-  packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
+  packs_to_load = c("tidyverse","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
                    "openxlsx","sqldf","timeDate","writexl")
@@ -76,7 +77,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"NZ_Jan_03_2022"
+  SourceDB<-"S_Jan_24_2023"
   #SourceDB<-"BAU_Jan_10_2023"
   
   #Connect to database specified (via server, user, and password)
@@ -622,7 +623,11 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
       # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
       ResValue_Annual(1,BC)
       
-      ResValue_Total(4,BC)
+      # Shows new resource value added up to be cumulative (nominal values to each year)
+      ResValue_Total(1,BC)
+      
+      # Net present value of all plants in resource group
+      ResValue_NPV(1,BC)
   
   # Write to excel
       # Annual data
@@ -705,6 +710,9 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     # 1 - wind, 2 - Solar, 3 - Storage, 4 - Natural gas, 5 - Hydrogen and Natural gas blend, 
     # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
     ResValue_Annual(1,BC)
+    
+    # Shows new resource value added up to be cumulative (nominal values to each year)
+    ResValue_Total(1,BC)
     
 ################################################################################
 ## Build and Reture Functions (Build_Retire_Functions)
@@ -839,6 +847,15 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     tot_cap(2021,2022,BC)
     
     AESOSim(2021,2022,BC)
+    
+################################################################################
+## Data summarize and put in table  (Data_Filt_To_Table)
+################################################################################
+    # Annual data
+    AnnaulDataExcel("FreeO&M PS SUN",BC)
+    
+    # Hourly data
+    HourlyDataExcel("BAU",BC)
     
 ################################################################################
 ## Developing Functions (Developing_Functions)

@@ -555,7 +555,9 @@ DataYr <- ResYr %>%
                     Revenue,Energy_Revenue_MWh,Value,Value_MWh,
                     Total_Hours_Run,Beg_Date,End_Date)) %>%
   # Remove the first part of name to make it shorter
-  mutate(Name=str_remove(Name,"New Resource"))
+  mutate(Name=str_remove(Name,"New Resource"),
+         # Add capacity of resource to tag
+         NameAbb=paste("NR#:",Name," (",round(Capacity,digits=0),"MW)"))
 
 # Filter data further
 YearMin<-min(DataYr$Report_Year)
@@ -569,7 +571,7 @@ DataYr <-DataYr %>%
 # Re-arrange the data to plot
 # VALUE is in Can$000
 Data_Val <-DataYr %>%
-  subset(.,select=c(Name,Report_Year,
+  subset(.,select=c(Name,NameAbb,Report_Year,
                     Value,Value_MWh)) %>%
   mutate(Type="Value",
          TotSign=Value_MWh>=0)%>%          # TotSign tells if pos or neg for plot
@@ -580,12 +582,10 @@ Data_Val <-DataYr %>%
 MaxP<-plyr::round_any(max(Data_Val$Total_Per_MWh)+10, 5, f = ceiling)
 
 # Create a plot to show the value of plants 
-ggplot(Data_Val, aes(x = Name, y = Total_Per_MWh, fill = TotSign)) +
+ggplot(Data_Val, aes(x = NameAbb, y = Total_Per_MWh, fill = TotSign)) +
   facet_grid(cols = vars(Report_Year)) +                     # Add new plot for each year
   
   theme_bw() +
-  
-  theme(text=element_text(family=Plot_Text)) +
   
   geom_bar(stat = "identity",alpha=0.5) +
   
@@ -594,7 +594,7 @@ ggplot(Data_Val, aes(x = Name, y = Total_Per_MWh, fill = TotSign)) +
   theme(
     # General Plot Settings
     panel.grid = element_blank(),                          # Remove pannel grid
-    panel.spacing=unit(1,"lines"),                         # Control space between plots
+    panel.spacing=unit(1,"pt"),                            # Control space between plots
     panel.background = element_rect(fill = "transparent"), # Transparent background
     text = element_text(size = GenText_Sz),                # Text size
     plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
@@ -603,14 +603,17 @@ ggplot(Data_Val, aes(x = Name, y = Total_Per_MWh, fill = TotSign)) +
                                       linetype=1,color = 'gray90'),                          # Adds horizontal lines
     # X-axis
     axis.text.x = element_text(face="bold",
-                               size=8, angle=0),           # Horizontal text
-    axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+                               size=rel(0.5), angle=0),           # Horizontal text
+    axis.title.x = element_text(size = GenText_Sz),           # x-axis title text size
     # Y-axis
-    axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+    axis.title.y = element_text(size = GenText_Sz),           # y-axis title text size
     axis.text.y = element_text(face="bold",
-                               size=8, angle=0),
+                               size=rel(0.5), angle=0),
     # Legend
-    legend.position ="none") +                             # Remove legend
+    legend.position ="none",                             # Remove legend
+  
+  # Facet labels
+  strip.text = element_text(size = rel(0.5),angle=0)) +
   
   # X-Axis (flipped)
   coord_flip() + scale_y_continuous(name="Plant Value ($/MWh)",
@@ -678,8 +681,18 @@ ResValue_Total<-function(ResNum,case) {
                       Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
                       Revenue,Energy_Revenue_MWh,Value,Value_MWh,
                       Total_Hours_Run,Beg_Date,End_Date)) %>%
-    # Remove the first part of name to make it shorter
-    mutate(Name=str_remove(Name,"New Resource"))
+    # Remove the resource number only
+    mutate(NameAbb=word(Name,3),
+           # Add capacity of resource to tag
+           NameAbb=paste("NR#:",NameAbb," (",round(Capacity,digits=0),"MW)"))
+  
+  # Reference Names
+  Refnames <-DataYr %>%
+    group_by(NameAbb,Name)%>%
+    summarise(MaxCapacity=max(Capacity),
+              AvgCF=mean(Capacity_Factor),
+              Start=max(Beg_Date),
+              End=max(End_Date))
   
   # Filter data further
   YearMin<-min(DataYr$Report_Year)
@@ -692,14 +705,14 @@ ResValue_Total<-function(ResNum,case) {
   # Re-arrange the data to plot
   # VALUE is in Can$000
   Data_Val <-DataYr %>%
-    subset(.,select=c(Name,Report_Year,
+    subset(.,select=c(NameAbb,Report_Year,
                       Value)) %>%   
     # Convert to millions
     mutate(Value=Value/1000) %>%           
     # Sort by year
     arrange(Report_Year) %>%
     # Group by plant name
-    group_by(Name) %>%
+    group_by(NameAbb) %>%
     # Get cumulative sum for each plant
     summarise(Year=Report_Year,
               Value=Value,
@@ -708,15 +721,14 @@ ResValue_Total<-function(ResNum,case) {
  
   
   # Get limits on value
-  MaxP<-plyr::round_any(max(abs(Data_Val$Cum_Value))+10, 5, f = ceiling)
+  MaxP<-plyr::round_any(max(abs(Data_Val$Cum_Value))+11, 5, f = ceiling)
   
   # Create a plot to show the value of plants 
   ggplot(Data_Val, aes(x = Year, y = Cum_Value, fill = TotSign)) +
-    facet_grid(rows = vars(Name),
-               labeller = label_wrap_gen(10)) +                # Add new plot for each plant
-    theme_bw() +
+    facet_wrap(NameAbb~.,
+               labeller = label_wrap_gen(10)) +               # Add new plot for each plant
     
-    theme(text=element_text(family=Plot_Text)) +
+    theme_bw() +
     
     geom_area(alpha=0.5) +
     
@@ -726,7 +738,7 @@ ResValue_Total<-function(ResNum,case) {
     theme(
       # General Plot Settings
       panel.grid = element_blank(),                          # Remove pannel grid
-      panel.spacing=unit(1,"lines"),                         # Control space between plots
+      panel.spacing=unit(1,"pt"),                            # Control space between plots
       panel.background = element_rect(fill = "transparent"), # Transparent background
       text = element_text(size = GenText_Sz),                # Text size
       plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
@@ -742,18 +754,171 @@ ResValue_Total<-function(ResNum,case) {
       axis.text.y = element_text(face="bold",
                                  size=8, angle=0),
       # Legend
-      legend.position ="none") +                             # Remove legend
+      legend.position ="none",                               # Remove legend
     
     # Facet labels
-    theme(strip.text.y = element_text(size = GenText_Sz-5,angle=0)) +
+    strip.text = element_text(size = GenText_Sz-10,angle=0)) +
     
     # Y-Axis 
     scale_y_continuous(name="Cumulative New Plant Value ($MM)",
                                       expand=c(0,0), limits=c(-MaxP,MaxP),breaks = pretty_breaks(6)) +
     # X-axis (flipped)  
-    scale_x_continuous(expand=c(0,0),limits = c(YearMin,YearMax),breaks=seq(YearMin, YearMax, 1)) +
+    scale_x_continuous(expand=c(0,0),limits = c(YearMin,YearMax),breaks=seq(YearMin, YearMax, 2)) +
     
     # Other Settings
     labs(caption = SourceDB) +
-    scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen"))          
+    scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen")) 
+  
+  
+  # Send info to workspace
+ # return(Refnames)
+}
+################################################################################
+## FUNCTION: ResValue_NPV
+## Shows the net present value in 2023
+## 1 wind
+## 2- Solar
+## 3 - Storage
+## 4 - Natural gas
+## 5- Hydrogen and Natural gas blend
+## 6 - Hydrogen
+## 7 - All rest (other, hydro, cogen, cola-to-gas)
+## INPUTS: 
+##    ResNum - The resource you want
+##    case - The case (eg.BC)
+## TABLES REQUIRED: 
+##    ResYr - Annual resource info
+################################################################################
+
+ResValue_NPV<-function(ResNum,case) {
+  
+  # Filter for resource type
+  if (ResNum==1) {
+    FuelType<-c("Wind")
+  } else if (ResNum==2) {
+    FuelType<-c("Solar")
+  } else if (ResNum==3) {
+    FuelType<-c("Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")
+  } else if (ResNum==4) {
+    FuelType<-c("Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle")
+  } else if (ResNum==5) {
+    FuelType<-c("Blended  Simple Cycle","Blended  Combined Cycle")
+  } else if (ResNum==6) {
+    FuelType<-c("Hydrogen Simple Cycle","Hydrogen Combined Cycle")
+  } else if (ResNum==7) {
+    FuelType<-c("Coal-to-Gas","Hydro","Other","Cogeneration")
+  }
+  
+  # Filter the annual resource table for resource group and selected columns
+  DataYr <- ResYr %>%
+    filter(Run_ID == case,
+           Condition == "Average",
+           Zone == "WECC_Alberta",) %>%
+    # Take out new resources only
+    filter(grepl('New Resource',Name)) %>%
+    mutate(Report_Year=as.numeric(YEAR),
+           Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
+           Beg_Year=year(Beg_Date)) %>%
+    filter(Capacity>1) %>%
+    sim_filt3(.) %>%
+    # Get fuel type of interest
+    filter(Primary_Fuel %in% FuelType) %>%
+    subset(.,select=c(Name,Report_Year,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
+                      Primary_Fuel,
+                      Net_Cost,Total_Cost_MWh,Fixed_Cost,
+                      Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
+                      Revenue,Energy_Revenue_MWh,Value,Value_MWh,
+                      Total_Hours_Run,Beg_Date,Beg_Year,End_Date)) %>%
+    # Remove the resource number only
+    mutate(NameAbb=word(Name,3),
+           # Add capacity of resource to tag
+           NameAbb=paste("NR#:",NameAbb,", Built:",Beg_Year," (",round(Capacity,digits=0),"MW)"))
+  
+  # Reference Names
+  Refnames <-DataYr %>%
+    group_by(NameAbb,Name)%>%
+    summarise(MaxCapacity=max(Capacity),
+              AvgCF=mean(Capacity_Factor),
+              Start=max(Beg_Date),
+              End=max(End_Date))
+  
+  # Filter data further
+  YearMin<-min(DataYr$Report_Year)
+  YearMax<-2035
+  
+  Data_Val <-DataYr %>%
+    filter(Report_Year<=YearMax,
+           Report_Year>=YearMin)%>%   
+    # Convert to millions
+    mutate(Value=Value/1000,
+           Calc_Present=Value/(1.025)^(Report_Year-2023)) %>%
+    group_by(NameAbb,Beg_Year) %>%
+    summarise(Calc_NPV=sum(Calc_Present),
+              TotSign=Calc_NPV>=0) %>%
+    arrange(Beg_Year)
+  
+  # Get limits on value
+  MaxP<-plyr::round_any(max(abs(Data_Val$Calc_NPV))+11, 5, f = ceiling)
+  
+  # Split the data to assign into two pannels
+  SplitLen <-round(nrow(Data_Val)/2,digits=0)
+  Data_Val1 <-Data_Val[1:SplitLen,] %>%
+    mutate(pannelCheck=1)
+  Data_Val2 <-Data_Val[(SplitLen+1):nrow(Data_Val),]%>%
+    mutate(pannelCheck=2)
+  
+  DATA<- rbind(Data_Val1,Data_Val2)
+  
+  # Create a plot to show the value of plants 
+  ggplot(DATA, aes(x = NameAbb, y = Calc_NPV, fill = TotSign)) +
+    
+    theme_bw() +
+    
+    geom_bar(stat = "identity",alpha=0.5) +
+    
+    # Add lines at 0
+    geom_hline(yintercept=0, color = "black",size=0.5,linetype=1)+
+    
+    facet_wrap(~pannelCheck, scales = "free_y" ) +
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_blank()) +
+      
+    theme(
+      # General Plot Settings
+      panel.grid = element_blank(),                          # Remove pannel grid
+      panel.spacing=unit(5,"pt"),                            # Control space between plots
+      panel.background = element_rect(fill = "transparent"), # Transparent background
+      text = element_text(size = GenText_Sz),                # Text size
+      plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+      plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+      panel.grid.major.y = element_line(size=0.25,
+                                        linetype=1,color = 'gray90'),                          # Adds horizontal lines
+      # X-axis
+      axis.text.x = element_text(face="bold",
+                                 size=8, angle=45,vjust=0.5),# Horizontal text
+      axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+      # Y-axis
+      axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+      axis.text.y = element_text(face="bold",
+                                 size=8, angle=0),
+      # Legend
+      legend.position ="none") +                               # Remove legend
+    
+    # Y-Axis 
+    scale_y_continuous(name="Net Present Value (2023$MM)",labels = label_number(accuracy = 0.01),
+                       expand=c(0,0), limits=c(-MaxP,MaxP),breaks = pretty_breaks(12)) +
+    coord_flip() +
+    # X-axis (flipped)  
+    scale_x_discrete(expand=c(0,0),name= "Plant Inforomation",
+                     #labels = scales::label_wrap(20)
+                     ) +
+    
+    # Other Settings
+    labs(caption = SourceDB) +
+    scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen")) 
+  
+  
+  # Send info to workspace
+  # return(Refnames)
 }
