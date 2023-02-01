@@ -543,7 +543,9 @@ DataYr <- ResYr %>%
          Zone == "WECC_Alberta",) %>%
   # Take out new resources only
   filter(grepl('New Resource',Name)) %>%
-  mutate(Report_Year=as.numeric(YEAR)) %>%
+  mutate(Report_Year=as.numeric(YEAR), 
+         Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
+         Beg_Year=year(Beg_Date)) %>%
   filter(Capacity>0) %>%
   sim_filt3(.) %>%
   # Get fuel type of interest
@@ -553,11 +555,11 @@ DataYr <- ResYr %>%
                     Net_Cost,Total_Cost_MWh,Fixed_Cost,
                     Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
                     Revenue,Energy_Revenue_MWh,Value,Value_MWh,
-                    Total_Hours_Run,Beg_Date,End_Date)) %>%
+                    Total_Hours_Run,Beg_Date,Beg_Year,End_Date)) %>%
   # Remove the first part of name to make it shorter
-  mutate(Name=str_remove(Name,"New Resource"),
+  mutate(NameAbb=word(Name,3),
          # Add capacity of resource to tag
-         NameAbb=paste("NR#:",Name," (",round(Capacity,digits=0),"MW)"))
+         NameAbb=paste("NR#:",NameAbb," (",round(Capacity,digits=0),"MW)"))
 
 # Filter data further
 YearMin<-min(DataYr$Report_Year)
@@ -571,12 +573,13 @@ DataYr <-DataYr %>%
 # Re-arrange the data to plot
 # VALUE is in Can$000
 Data_Val <-DataYr %>%
-  subset(.,select=c(Name,NameAbb,Report_Year,
+  subset(.,select=c(Name,NameAbb,Report_Year,Beg_Year,
                     Value,Value_MWh)) %>%
   mutate(Type="Value",
          TotSign=Value_MWh>=0)%>%          # TotSign tells if pos or neg for plot
   rename(Total=Value,
-         Total_Per_MWh=Value_MWh)
+         Total_Per_MWh=Value_MWh) %>%
+  arrange(Beg_Year)
 
 # Get limits on value
 MaxP<-plyr::round_any(max(Data_Val$Total_Per_MWh)+10, 5, f = ceiling)
@@ -622,7 +625,8 @@ ggplot(Data_Val, aes(x = NameAbb, y = Total_Per_MWh, fill = TotSign)) +
   scale_x_discrete(name="New Plant Name") +
   
   # Other Settings
-  labs(caption = SourceDB) +
+  labs(caption = SourceDB,
+       title=paste("Resource Type(s):",FuelType)) +
   scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen"))          
 }
 
@@ -766,7 +770,8 @@ ResValue_Total<-function(ResNum,case) {
     scale_x_continuous(expand=c(0,0),limits = c(YearMin,YearMax),breaks=seq(YearMin, YearMax, 2)) +
     
     # Other Settings
-    labs(caption = SourceDB) +
+    labs(caption = SourceDB,
+         title=paste("Resource Type(s):",FuelType)) +
     scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen")) 
   
   
@@ -915,7 +920,8 @@ ResValue_NPV<-function(ResNum,case) {
                      ) +
     
     # Other Settings
-    labs(caption = SourceDB) +
+    labs(caption = SourceDB,
+         title=paste("Resource Type(s):",FuelType)) +
     scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen")) 
   
   

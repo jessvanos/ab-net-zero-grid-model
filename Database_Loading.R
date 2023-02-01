@@ -77,8 +77,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"S_Jan_24_2023"
-  #SourceDB<-"BAU_Jan_10_2023"
+  SourceDB<-"BAU_Jan_31_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -120,6 +119,7 @@
   ResGroupMn <- dbReadTable(con,'ResourceGroupMonth1')
   ResGroupHr <- dbReadTable(con,'ResourceGroupHour1')
   ResGroupEmYr <- dbReadTable(con,'ResourceGroupEmissionsYear1')
+  ResGroupEmHr <- dbReadTable(con,'ResourceGroupEmissionsHour1')
 #  ResGroupEmSt <- dbReadTable(con,'ResourceGroupEmissionsStudy1')
   
   # Other Tables
@@ -127,7 +127,7 @@
 #  ResStackHr  <- dbReadTable(con,'ResourceStackHour1')
   LinkYr <- dbReadTable(con,'LinkYear1')
 # LinkMn <- dbReadTable(con,'LinkMonth1')
-  LinkHr <- dbReadTable(con,'LinkHour1')
+#  LinkHr <- dbReadTable(con,'LinkHour1')
   
 #  CC <- dbReadTable(con,'CustomConstraint1')
   ZoneYr <- dbReadTable(con,'ZoneYear1')
@@ -146,7 +146,6 @@
 ## REFLECT PROPER TIME PERIODS
 ## Adds a column which is formated in a way that R can understand for dates and times
 ################################################################################
-
 
 {  # Fuel Tables
   FuelYr$Time_Period <- as.Date(as.character(FuelYr$Time_Period), 
@@ -169,12 +168,15 @@
   # Resource Group Tables
   ResGroupHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResGroupHr$Time_Period))), 
                         tz = "MST")-(60*60)
+  
   ResGroupMn$Time_Period <- ym(ResGroupMn$Time_Period)
   
   ResGroupYr$Time_Period  <- as.Date(as.character(ResGroupYr$Time_Period), 
                         format = "%Y")
   ResGroupEmYr$Time_Period  <- as.Date(as.character(ResGroupEmYr$Time_Period), 
                         format = "%Y")
+  ResGroupEmHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResGroupEmHr$Time_Period))), 
+                                tz = "MST")-(60*60)
   
   # Other Tables
   ResStackYr$Time_Period  <- as.Date(as.character(ResStackYr$Time_Period), 
@@ -185,8 +187,8 @@
    LinkYr$Time_Period  <- as.Date(as.character(LinkYr$Time_Period), 
                         format = "%Y")
  #  LinkMn$Time_Period <- ym(LinkMn$Time_Period)
-   LinkHr$Time_Period <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",LinkHr$Time_Period))), 
-                             tz = "MST")-(60*60) 
+   # LinkHr$Time_Period <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",LinkHr$Time_Period))), 
+   #                           tz = "MST")-(60*60) 
    
    
    ZoneYr$Time_Period  <- as.Date(as.character(ZoneYr$Time_Period), 
@@ -532,19 +534,15 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   beep(3)
 }
 
-################################################################################
-## SET UP FOR PLOTTING & CALL FUNCTIONS
-################################################################################
-  
-  windows(14,10)
+# Create folder name to save as
+CaseName <- "Buisness as Usual"
 
-  windows(16,8)
-  
-  windows(16,6)
-  
 ################################################################################
-## THE MOST USEFULL FUNCTIONS
+## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
 ################################################################################
+  
+  # Save all full size images
+  windows(14,10,buffered=FALSE)
   
   # GENERATION
       # Grid of weekly output - need to edit for more than one week of data
@@ -552,62 +550,90 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
     
       # Yearly Output
       Evalyr(BC)
+      SaveRun_Loc(CaseName,"Annual Generation (Stacked Area)")
       
       # Yearly Capacity
       Evalcap(BC)
+      SaveRun_Loc(CaseName,"Annual Capacity")
       
       # Yearly percentage of generation
       EvalPerc(BC)
+      SaveRun_Loc(CaseName,"Annual Generation (Percent)")
     
       # Bar chart showing each resource groups yearly output
       Output_Comp(BC)
+      SaveRun_Loc(CaseName,"Annual Generation (Bar Chart)")
       
       # capacity factors for 2 years
       CFcompare(2022,2035,BC)
+      SaveRun_Loc(CaseName,"Capacity Factors 2022 and 2023")
       
       # Annual average capacity factors for all resource types
       CF_Annual(BC)
+      SaveRun_Loc(CaseName,"Annual Capacity Factors")
+      
+      # Tell R the files are done and close window
+      dev.off()
       
   # LTCE RESULTING BUILD/RETIRE
+      # New window
+      windows(14,6,buffered=FALSE)
+      
       # Retirements by capacity (grouped by fuel type)
       RetireMW(BC)
-      
+      SaveRun_Loc(CaseName,"Retirements")
+       
       # Capacity built by Aurora over study period
-      Build_A_MW(BC)
+      # Build_A_MW(BC)
     
       # All new capacity
       BuildMW(BC)
+      SaveRun_Loc(CaseName,"Additions")
       Build_Totals(BC)
   
+      # Tell R the files are done and close window
+      dev.off()
+      
+      # New window
+      windows(14,10,buffered=FALSE)
+      
       # Difference in capacity
       Eval_diffcap(BC)
+      SaveRun_Loc(CaseName,"Capacity Changes")
   
   # PRICES AND COSTS
       # Shows Prices for simulation duration
       Sim_dur(BC)
+      SaveRun_Loc(CaseName,"Price Duration Curve")
       
       # Shows production costs and fixed costs for full system
       System_Cost(BC)
+      SaveRun_Loc(CaseName,"Total System Cost")
       
       # Price Table
       Report_P(Years2Pivot,BC)
   
       # Average monthly prices over full period
       AvgMn_price(BC)
+      SaveRun_Loc(CaseName,"Monthly Pool Prices")
       
       # Average annual pool price
       AvgYr_poolprice(BC)
+      SaveRun_Loc(CaseName,"Average Annual Pool Prices")
       
   # EMISSIONS
       # Annual emissions in stacked area chart
       AnnualEmStackCol(BC)
+      SaveRun_Loc(CaseName,"Annual Emissions (Bar)")
       
       # Annual emissions in individual lines
       AnnualEmLine(BC)
+      SaveRun_Loc(CaseName,"Annual Emissions (Line)")
       
   # OTHER STUFF
       # Annual import and export from AB as a bar chart
       Imp_Exp1(BC)
+      SaveRun_Loc(CaseName,"Annual Imports and Exports")
       
       # Import and export for full year from AB
       Imp_Exp2(2025,BC)
@@ -617,25 +643,34 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
   
       # Shows demand in AB 
       AnnualDemand(ZoneMn,BC)
+      SaveRun_Loc(CaseName,"Annual Demand")
   
-      # Shows new resrouce value each year 
+      # Tell R the files are done and close window
+      dev.off()
+   
+   # NEW STUFF (NOT DONE)
+      # Shows new resource value each year 
       # 1 - wind, 2 - Solar, 3 - Storage, 4 - Natural gas, 5 - Hydrogen and Natural gas blend, 
       # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
       ResValue_Annual(1,BC)
+      SaveRun_Loc(CaseName,"Annual Nomminal Value")
       
       # Shows new resource value added up to be cumulative (nominal values to each year)
       ResValue_Total(1,BC)
+      SaveRun_Loc(CaseName,"Cummulative nominal value")
       
       # Net present value of all plants in resource group
       ResValue_NPV(1,BC)
-  
-  # Write to excel
+      SaveRun_Loc(CaseName,"NPV Wind")
+      
+  # WRITE TO EXCEL
       # Annual data
       AnnaulDataExcel("BAU",BC)
       
       # Hourly data
       HourlyDataExcel("BAU",BC)
       
+
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS!
 ################################################################################

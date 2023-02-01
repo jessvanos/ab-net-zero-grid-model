@@ -45,46 +45,49 @@ imsave_git <- function(name) {
 
 # Save to a loacl folder that is ignored by git
 imsave_loc <- function(name) {
-  ggsave(plot=last_plot(),path = here("Figures (Local)"), 
+  ggsave(path = here("Figures (Local)"), 
          filename = paste(name,".png", sep = ""),
-         width = 12, height=8, units=c("cm"),dpi=300, bg = "transparent")  }
+         width = 14, height=10, units=c("cm"),dpi=300, bg = "transparent")
+}
 
 ################################################################################
 ## FUNCTION: SaveRun_Loc
-## Saves all common plots in a new folder
+## Saves all plots to a new folder names after case
 ##
 ## INPUTS: 
-##    name - Date to plot, the week will start on the day chosen. Enter as "name"
+##    CaseName - name for folder. Enter as "folder"
+##    FileName - Name for image. Enter as "name"
 ################################################################################
 #NEEDS WORK
-# SaveRun_Loc <- function(CaseName)
-#   
-#   # SET UP FOLDER
-#   fold_name<-paste(CaseName," ",SourceDB)
-# 
-#   # Check if folder exists, if not, make one
-#   if (file.exists(here("Figures (Local)",paste(fold_name)))) {
-#     
-#     cat("The folder already exists")
-#     
-#   } else {
-#     
-#     # Create the folder
-#     dir.create(here("Figures (Local)",paste(fold_name)))
-#     
-#   }
-#   
-#   # ADD PLOTS
-#   # Create Retirement plot
-#   windows(16,6, pointsize = 12)
-#   RetireMW(BC)
-# 
-#   ggsave(plot=last_plot(),path = here("Figures (Local)",paste(fold_name)), 
-#          filename = paste("Retirements_",SourceDB,".png", sep = ""),
-#          width = 16, height=6, units=c("in"),
-#          dpi=300,
-#          bg = "transparent")
-#   
+ SaveRun_Loc <- function(CaseName,FileName) {
+
+  # Set up folder if it does not exist
+  fold_name<-paste(CaseName,SourceDB)
+
+  # Check if folder exists, if not, make one
+  if (file.exists(here("Figures (Local)",paste(fold_name)))) {
+
+    cat("The folder exists\n")
+
+  } else {
+
+    # Create the folder
+    FoldLocation <-
+    dir.create(here("Figures (Local)",paste(fold_name)))
+
+  }
+
+  # Create file name
+  FileName <-paste(FileName,SourceDB)
+  
+# Save to a local file as exactly what is shown on the windows()
+  savePlot(
+    filename = here(paste("Figures (Local)/",paste(fold_name),"/",FileName,".png", sep = "")),
+    type = "png",
+    device = dev.cur())
+  
+}
+  
 
 ################################################################################
 ## FUNCTION: yhour
