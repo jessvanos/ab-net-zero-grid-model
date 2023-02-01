@@ -665,10 +665,10 @@ CaseName <- "Buisness as Usual"
       
   # WRITE TO EXCEL
       # Annual data
-      AnnaulDataExcel("BAU",BC)
+      AnnaulDataExcel(CaseName,BC)
       
       # Hourly data
-      HourlyDataExcel("BAU",BC)
+      HourlyDataExcel(CaseName,BC)
       
 
 ################################################################################  

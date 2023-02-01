@@ -371,8 +371,9 @@ HourlyDataExcel<- function(ScenarioName,case){
           "Demand (MW)"=Demand,
           "Net Load (MW)"=Net_Load,
           "Marginal Resource"=Marginal_Resource)
-  
-  
+ 
+  # Clear un-used 
+  gc()
 ################################################################################
 ## HOURLY ZONE INFO
 ################################################################################
@@ -386,21 +387,20 @@ HourlyDataExcel<- function(ScenarioName,case){
           Condition == "Average",
           Type=="CO2") %>%
    # Make cost in dollars, and convert Ton to tonne
-   mutate(Year=year(Time_Period),
+   mutate(Year=year(date),
           Emissions_Cost=Cost*1000,
           Emissions_Tonne=Amount*0.90718474) %>%
    # Filter out dates after 2035
    filter(Year<=2035) %>%
    # Chose what to keep
-   subset(., select=c(ID,Year,Type,Emissions_Tonne,Emissions_Cost))%>%
+   subset(., select=c(ID,Year,Emissions_Tonne,Emissions_Cost))%>%
    rename(Plant_Type=ID)
  
  # Resource groups over entire year
  DataGrHr <- ResGroupHr%>%
    sim_filt5(.) %>% #Filter to rename fuels
    filter(Run_ID == case) %>%
-   filter(Condition == "Average") 
- #%>%
+   filter(Condition == "Average") %>%
    # Convert all costs to dollars from $000
  mutate(Year=year(date),
         Sim_Name=paste(SourceDB),
@@ -414,41 +414,53 @@ HourlyDataExcel<- function(ScenarioName,case){
    # Filter out dates after 2035
    filter(Year<=2035) %>%
    # Choose what to keep
-   subset(., select=c(ID,Year,Output_MWH,Capacity,Capability,
-                      Dispatch_Cost,Fuel_Usage,
+   subset(., select=c(ID,Year,Output_MWH,Capacity,
+                      Dispatch_Cost,
                       Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,
                       Revenue,Value,
                       Capacity_Factor,Sim_Name)) %>%
-     rename(Plant_Type=ID)
+     rename(Plant_Type=ID)%>%
+   rename("Plant Type"=Plant_Type,
+          "Output (MWh)"=Output_MWH,
+          "Capacity (MW)"=Capacity,
+          "Average Dispatch Cost ($MWh)"=Dispatch_Cost,
+          "Fuel Cost"=Total_Fuel_Cost,
+          "Fixed Cost"=Fixed_Cost,
+          "Variable O&M Cost"=Variable_OM_Cost,
+          "Capacity Factor"=Capacity_Factor)
 
-   # Combine the Emissions information with the annual resource information 
-   AllDataGrHr<-merge(DataGrHr,DataGrEmHr,by=c("Plant_Type","Year"), all.x = TRUE)
-   
-   # Re-sort the columns
-   AllDataGrHr <- AllDataGrHr %>%
-     subset(., select=c(Plant_Type,Year,Output_MWH,Capacity,Capability,
-                        Dispatch_Cost,Fuel_Usage,
-                        Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,
-                        Emissions_Tonne,Emissions_Cost,
-                        Revenue,Value,
-                        Capacity_Factor,Sim_Name)) %>%
-     rename("Plant Type"=Plant_Type,
-            "Output (MWh)"=Output_MWH,
-            "Capacity (MW)"=Capacity_MW,
-            "Average Dispatch Cost ($MWh)"=Avg_Dispatch_Cost,
-            "Fuel Usage (GJ)"=Fuel_Usage_GJ,
-            "Fuel Cost"=Total_Fuel_Cost,
-            "Fixed Cost"=Fixed_Cost,
-            "Variable O&M Cost"=Variable_OM_Cost,
-            "Emissions (tonnes)"=Emissions_Tonne,
-            "Emissions Cost"=Emissions_Cost,
-            "Capacity Factor"=Capacity_Factor)
-   
+   # Clear un-used 
+   gc()
+ 
+   # # Combine the Emissions information with the annual resource information 
+   # AllDataGrHr<-merge(DataGrHr,DataGrEmHr,by=c("Plant_Type","Year"), all.x = TRUE)
+   # 
+   # # Re-sort the columns
+   # AllDataGrHr <- AllDataGrHr %>%
+   #   subset(., select=c(Plant_Type,Year,Output_MWH,Capacity,
+   #                      Dispatch_Cost,
+   #                      Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,
+   #                      Emissions_Tonne,Emissions_Cost,
+   #                      Revenue,Value,
+   #                      Capacity_Factor,Sim_Name)) %>%
+   #   rename("Plant Type"=Plant_Type,
+   #          "Output (MWh)"=Output_MWH,
+   #          "Capacity (MW)"=Capacity_MW,
+   #          "Average Dispatch Cost ($MWh)"=Avg_Dispatch_Cost,
+   #          "Fuel Usage (GJ)"=Fuel_Usage_GJ,
+   #          "Fuel Cost"=Total_Fuel_Cost,
+   #          "Fixed Cost"=Fixed_Cost,
+   #          "Variable O&M Cost"=Variable_OM_Cost,
+   #          "Emissions (tonnes)"=Emissions_Tonne,
+   #          "Emissions Cost"=Emissions_Cost,
+   #          "Capacity Factor"=Capacity_Factor)
+    
 ################################################################################
 ## SEND ALL TO ONE EXCEL FILE
 ################################################################################
    
-   dataset_names <-list('1 Hourly Resource Group Data'=AllDataGrHr,
+   dataset_names <-list('1 Hourly Resource Group Data'=DataGrHr,
+                        '2 Hourly Emission Data'=DataGrEmHr,
                         '2 Hourly System Data'=ZoneHrData)
    
    filename <-paste("Hourly_Data_",ScenarioName,"_",SourceDB,".xlsx")
