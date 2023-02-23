@@ -73,16 +73,19 @@ AnnaulDataExcel<- function(ScenarioName,case){
   AllRenewData <- AllDataGrYr %>%
     filter(Plant_Type %in% c("Wind","Solar")) %>%
     mutate(Credit=round(Emissions_Cost/Output_MWH,digits=2),
-           PercRev=round(abs(100*Emissions_Cost/Revenue)),digits=2,
+           PercRev=round(abs(100*Emissions_Cost/(Revenue+(Emissions_Cost*-1))),digits=2),
            Emissions_Cost=Emissions_Cost*-1) %>%
     arrange(Year) %>%
-    subset(select=c(Plant_Type,Year,Output_MWH,Emissions_Cost,Revenue,PercRev,Credit)) %>%
+    subset(select=c(Plant_Type,Year,Output_MWH,Emissions_Cost,Revenue,
+                    PercRev,
+                    Credit)) %>%
     rename("Plant Type"=Plant_Type,
            "Emissions Revenue"=Emissions_Cost,
            "Output (MWh)"=Output_MWH,
            "Offset Value ($/MWh)"=Credit,
            "Total Revenue"=Revenue,
-           "Percent of Total Revenue from Emission Credits (%)"=PercRev)
+           "Percent of Total Revenue from Emission Credits (%)"=PercRev
+           )
     
   # Re-sort the columns
   AllDataGrYr <- AllDataGrYr %>%

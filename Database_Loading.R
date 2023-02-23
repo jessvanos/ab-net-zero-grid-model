@@ -77,7 +77,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"BAU_Jan_31_2023"
+  SourceDB<-"LZ_Feb_22_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -535,7 +535,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 
 # Create folder name to save as
-CaseName <- "Buisness as Usual"
+CaseName <- "Limit to Zero"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -546,8 +546,9 @@ CaseName <- "Buisness as Usual"
   
   # GENERATION
       # Grid of weekly output - need to edit for more than one week of data
-      year_weeks(2034,BC)
-    
+      year_weeks(2035,BC)
+      SaveRun_Loc(CaseName,"2035 Hourly Generation for One Week (Stacked Area)")
+      
       # Yearly Output
       Evalyr(BC)
       SaveRun_Loc(CaseName,"Annual Generation (Stacked Area)")
@@ -649,19 +650,22 @@ CaseName <- "Buisness as Usual"
       dev.off()
    
    # NEW STUFF (NOT DONE)
+      # New window
+      windows(14,10,buffered=FALSE)
+      
       # Shows new resource value each year 
       # 1 - wind, 2 - Solar, 3 - Storage, 4 - Natural gas, 5 - Hydrogen and Natural gas blend, 
       # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
-      ResValue_Annual(1,BC)
-      SaveRun_Loc(CaseName,"Annual Nomminal Value")
+      ResValue_Annual(4,BC)
+      SaveRun_Loc(CaseName,"Annual Nomminal Value New Gas")
       
       # Shows new resource value added up to be cumulative (nominal values to each year)
-      ResValue_Total(1,BC)
+      ResValue_Total(2,BC)
       SaveRun_Loc(CaseName,"Cummulative nominal value")
       
       # Net present value of all plants in resource group
       ResValue_NPV(1,BC)
-      SaveRun_Loc(CaseName,"NPV Wind")
+      SaveRun_Loc(CaseName,"2023$ NPV Wind")
       
   # WRITE TO EXCEL
       # Annual data
@@ -887,7 +891,7 @@ CaseName <- "Buisness as Usual"
 ## Data summarize and put in table  (Data_Filt_To_Table)
 ################################################################################
     # Annual data
-    AnnaulDataExcel("FreeO&M PS SUN",BC)
+    AnnaulDataExcel("BAU",BC)
     
     # Hourly data
     HourlyDataExcel("BAU",BC)
@@ -936,5 +940,19 @@ CaseName <- "Buisness as Usual"
     windows(18,12)
     windows(16,12)
 
-
+####
+    # Random stuff, delete later
+    ZnData <- ZoneYr %>%
+      mutate(Year = year(Time_Period),
+             time = Time_Period) %>%
+      filter(Run_ID == case,
+             Condition == "Average",
+             Year<=2035) %>%
+      mutate(Report_Year=as.numeric(Report_Year),
+             Scenario=SourceDB,
+             Production_Cost_Total=1000*Production_Cost_Total,
+             Fixed_Cost_Total=1000*Fixed_Cost_Total)%>%
+      subset(.,select=c(Name,Year,Price, 
+                        Demand_Total,Net_Load_Total,
+                        Production_Cost_Total,Fixed_Cost_Total,Scenario))
     

@@ -40,9 +40,9 @@
   H2 <-inputdata %>%
     filter(ID=="LTO_H2") 
   NGH2_Blend <-inputdata %>%
-    filter(ID %in% c("AB_CCCT_Blended","AB_SCCT_Blended") )
-  NGH2_Blend$ID<- "NGH2_Blend"
-  
+    filter(ID %in% c("AB_CCCT_Blended","AB_SCCT_Blended") ) %>%
+    mutate(ID=ifelse(is.na(ID),NA,"NGH2_Blend"))
+
   # Not added yet, can add if building
   Nuclear <-inputdata %>%
     filter(ID=="LTO_Nuclear") 

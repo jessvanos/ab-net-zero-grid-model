@@ -577,15 +577,13 @@ Data_Val <-DataYr %>%
                     Value,Value_MWh)) %>%
   mutate(Type="Value",
          TotSign=Value_MWh>=0)%>%          # TotSign tells if pos or neg for plot
-  rename(Total=Value,
-         Total_Per_MWh=Value_MWh) %>%
   arrange(Beg_Year)
 
 # Get limits on value
-MaxP<-plyr::round_any(max(Data_Val$Total_Per_MWh)+10, 5, f = ceiling)
+MaxP<-plyr::round_any(max(Data_Val$Value_MWh)+10, 5, f = ceiling)
 
 # Create a plot to show the value of plants 
-ggplot(Data_Val, aes(x = NameAbb, y = Total_Per_MWh, fill = TotSign)) +
+ggplot(Data_Val, aes(x = NameAbb, y = Value_MWh, fill = TotSign)) +
   facet_grid(cols = vars(Report_Year)) +                     # Add new plot for each year
   
   theme_bw() +
@@ -600,7 +598,7 @@ ggplot(Data_Val, aes(x = NameAbb, y = Total_Per_MWh, fill = TotSign)) +
     panel.spacing=unit(1,"pt"),                            # Control space between plots
     panel.background = element_rect(fill = "transparent"), # Transparent background
     text = element_text(size = GenText_Sz),                # Text size
-    plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+    plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
     plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
     panel.grid.major.y = element_line(size=0.25,
                                       linetype=1,color = 'gray90'),                          # Adds horizontal lines
@@ -619,14 +617,14 @@ ggplot(Data_Val, aes(x = NameAbb, y = Total_Per_MWh, fill = TotSign)) +
   strip.text = element_text(size = rel(0.5),angle=0)) +
   
   # X-Axis (flipped)
-  coord_flip() + scale_y_continuous(name="Plant Value ($/MWh)",
+  coord_flip() + scale_y_continuous(name="Nominal Plant Value ($/MWh)",
                                     expand=c(0,0), limits=c(-MaxP,MaxP),breaks = pretty_breaks(6)) +
   # Y-axis (flipped)  
   scale_x_discrete(name="New Plant Name") +
   
   # Other Settings
   labs(caption = SourceDB,
-       title=paste("Resource Type(s):",FuelType)) +
+       title=paste("Resource Type(s):",toString(FuelType))) +
   scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen"))          
 }
 
@@ -771,7 +769,7 @@ ResValue_Total<-function(ResNum,case) {
     
     # Other Settings
     labs(caption = SourceDB,
-         title=paste("Resource Type(s):",FuelType)) +
+         title=paste("Resource Type(s):",toString(FuelType))) +
     scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen")) 
   
   
@@ -921,7 +919,7 @@ ResValue_NPV<-function(ResNum,case) {
     
     # Other Settings
     labs(caption = SourceDB,
-         title=paste("Resource Type(s):",FuelType)) +
+         title=paste("Resource Type(s):",toString(FuelType))) +
     scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen")) 
   
   
