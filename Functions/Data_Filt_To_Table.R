@@ -299,7 +299,7 @@ ZnData <- ZoneYr %>%
          Fixed_Cost_Total=1000*Fixed_Cost_Total)%>%
   subset(.,select=c(Name,Year,Price, 
                     Demand_Total,Net_Load_Total,
-                    Production_Cost_Total,Fixed_Cost_Total,Scenario))
+                    Production_Cost_Total,Fixed_Cost_Total,Imports_Total,Exports_Total,Scenario))
 
   # Combine the total output in MWh with zone info
   AllZoneData1<-merge(ZnData,AnnualOut,by=c("Year"), all.x = TRUE)
@@ -308,10 +308,13 @@ ZnData <- ZoneYr %>%
   AllZoneData <-AllZoneData1 %>%
     mutate(Unit_Prod=round(Production_Cost_Total/Total_Output,digits=2),
            Unit_Fix=round(Fixed_Cost_Total/Total_Output,digits=2),
-           Price=round(Price,digits=2)) %>%
+           Price=round(Price,digits=2),
+           Imports_Total=round(Imports_Total,digits=0),
+           Exports_Total=round(Exports_Total,digits=0)) %>%
     subset(.,select=c(Name,Year,Price, 
                       Demand_Total,Net_Load_Total,Total_Output,
                       Production_Cost_Total,Unit_Prod,Fixed_Cost_Total,Unit_Fix,
+                      Imports_Total,Exports_Total,
                       Scenario)) %>%
     rename("Average Price ($/MWh)"=Price,
            "Demand (MWh)"=Demand_Total,
@@ -320,7 +323,9 @@ ZnData <- ZoneYr %>%
            "Total Fixed Costs"=Fixed_Cost_Total,
            "Total Output (MWh)"=Total_Output,
            "Unit Production Cost ($/MWh)"=Unit_Prod,
-           "Unit Fixed Cost ($/MWh)"=Unit_Fix)
+           "Unit Fixed Cost ($/MWh)"=Unit_Fix,
+           "Imports (MWh)"=Imports_Total,
+           "Exports (MWh)"=Exports_Total)
 
 
 ################################################################################

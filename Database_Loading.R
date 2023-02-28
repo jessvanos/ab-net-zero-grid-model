@@ -6,7 +6,7 @@
 #
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: January 6, 2023
+# CREATED: May 2022; LAST EDIT: February 28, 2023
 #
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
 #        Before running, create folder called "Data Files" inside project directory and populate it with 
@@ -20,7 +20,7 @@
 ################################################################################
  {# Package Info
     # tidyverse: Data science package
-    # ggplot: Used for graphical packages and aestheticc
+    # ggplot: Used for graphical packages and aesthetic
     # grid: Used for plotting, adds grid to the plot
     # scales: Use to re-format plots 
     # gtable: Grob tables, more tools
@@ -94,7 +94,7 @@
 ################################################################################
 
 { BC <- "Base Case" 
-  NZ <- "Net Zero"
+  C2 <- "Case2"
 }
 
 ################################################################################
