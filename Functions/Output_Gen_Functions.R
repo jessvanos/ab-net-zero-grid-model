@@ -829,7 +829,126 @@
       scale_colour_manual(values = colours8,drop = FALSE) 
   } 
   
+################################################################################  
+## FUNCTION: Wind_Dur
+## Plot wind duration curve in chosen years as % Hours vs Fleet Output (MW)
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr -Yearly resource group data
+################################################################################
+  Wind_Dur <- function(case) {
+    
+    # Bring in all data
+    WindData <- ResGroupHr%>%
+      filter(ID=="LTO_Wind",
+             Condition=="Average",
+             Run_ID == case,
+             Report_Year<2036) %>%
+      rename(Year=Report_Year)%>%
+      group_by(Year) %>%
+      # Get an empirical distribution for grouped data, 
+      mutate(perc = ecdf(Output)(Output)) %>%
+      subset(select=c(Output,perc,date,Year))
+    
+    # Get the report year as a factor to plot
+    WindData$Year <- as.factor(WindData$Year)
+    
+    # Set the max for the plot
+    MX <- plyr::round_any(max(abs(WindData$Output)+17), 100, f = ceiling)
+    
+    # Plot
+    ggplot() +
+      geom_line(data = WindData, 
+                aes(x = Output, y = perc, colour = Year), size = 1.25) +
+      scale_color_viridis_d() +
+      theme_bw() +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
+      theme(panel.grid = element_blank(),
+            axis.text.x = element_text(vjust = 1),
+            axis.title.x = element_text(size = XTit_Sz),
+            axis.title.y = element_text(size = YTit_Sz),
+            plot.title = element_text(size = Tit_Sz),
+            plot.subtitle = element_text(hjust = 0.5), 
+            panel.background = element_rect(fill = NA),
+            # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+            #legend.key.size = unit(1,"lines"), #Shrink legend
+            legend.position = "right",
+            legend.justification = c(0.5,0.5),
+            legend.title=element_blank(),
+            text = element_text(size = 15)) +
+      
+      labs(x = "Fleet Output (MW)", y = "Percent of Hours per Year",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+      
+      scale_x_continuous(expand = c(0, 0),limits = c(0,MX),breaks=seq(0, MX, by=1000)) +
+      
+      scale_y_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
+      
+  }  
   
+################################################################################  
+## FUNCTION: Wind_DurNorm
+## Plot wind duration curve in chosen years as % Hours vs output as Percent of max
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr -Yearly resource group data
+################################################################################
+  Wind_DurNorm <- function(case) {
+  
+  # Bring in all data
+  WindData <- ResGroupHr%>%
+    filter(ID=="LTO_Wind",
+           Condition=="Average",
+           Run_ID == case) %>%
+    rename(Year=Report_Year)%>%
+    group_by(Year) %>%
+    mutate(Norm_Output=Output/max(Output))%>%
+    # Get an empirical distribution for grouped data, 
+    mutate(perc = ecdf(Norm_Output)(Norm_Output))%>%
+    subset(select=c(Output,Norm_Output,perc,date,Year))
+  
+  # filter out years of interest
+  WindData <- WindData %>%
+    filter(Year < 2036)
+  
+  # Get the report year as a factor to plot
+  WindData$Year <- as.factor(WindData$Year)
+  
+  # Plot
+  ggplot() +
+    geom_line(data = WindData, 
+              aes(x = Norm_Output, y = perc, colour = Year), size = 1.25) +
+    scale_color_viridis_d() +
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = XTit_Sz),
+          axis.title.y = element_text(size = YTit_Sz),
+          plot.title = element_text(size = Tit_Sz),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          #legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "right",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    labs(x = "Output/Max Output", y = "Percent of Hours per Year",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+    
+    scale_x_continuous(expand = c(0, 0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) +
+    
+    scale_y_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
+  
+  }
 ################################################################################
 #
 # COMBINED PLOTS SECTION

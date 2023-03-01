@@ -43,6 +43,7 @@
     # openxlsx: Used to interact with xlsx files from R environment
     # timeDate: Used for time zone information and holidays.
     # writexl: Easy way to write dataframes to excel files with multiple pages
+    # viridis: A color pallete for plots
   }
 
 { # Must load the here package in order to make sure internal project directories work
@@ -66,7 +67,7 @@
   packs_to_load = c("tidyverse","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
-                   "openxlsx","sqldf","timeDate","writexl")
+                   "openxlsx","sqldf","timeDate","writexl","viridis")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -306,15 +307,15 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 ################################################################################
 
 { # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
-  merit <- readRDS(here("Data Files","Leach_MeritData.RData"))
+  merit <- readRDS(here("Data Files","Alberta Data","Leach_MeritData.RData"))
   
     #Filter Data to relevant dates & remove old data
     merit_filt <- filter(merit, 
-                         date >= as.Date("2020-01-1"))
+                         date >= as.Date("2015-01-1"))
     rm(merit)
   
   # Load nrgstream_gen - Load and demand info, plus a whole ton more
-  load(here("Data Files","nrgstream_gen.RData")) 
+  load(here("Data Files","Alberta Data","nrgstream_gen.RData")) 
   
     # Rename the time
     nrgstream_gen <- nrgstream_gen %>% rename(time=Time)
@@ -328,15 +329,15 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 ## FURTHER FORMAT AND MANIPULATE NRG DATA (OPTIONAL)
 ################################################################################
 
-{   # Create a demand table. Summarize takes median of Demand, AIL, and Price for each time period 
+{   #Take out dates I dont care about and remove the old table
+    sub_samp<-filter(nrgstream_gen, time >= as.Date("2015-01-1"))
+    
+    # Create a demand table. Summarize takes median of Demand, AIL, and Price for each time period 
     demand <- nrgstream_gen %>%
       group_by(time) %>%
       summarise(Demand = median(Demand), 
                 Price = median(Price),
                 AIL = median(AIL))
-    
-    #Take out dates I dont care about and remove the old table
-    sub_samp<-filter(nrgstream_gen, time >= as.Date("2020-01-1"))
     rm(nrgstream_gen)
 
     # Create a list to describe Import/Exports
@@ -344,7 +345,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
                   "AB - WECC Exp Hr Avg MW",
                   "AB - WECC Imp/Exp Hr Avg MW")
     
-    # Create Dataframe, ony select rows where the Nat resource group is in the defined groups (ie trading)
+    # Create Dataframe, only select rows where the Nat resource group is in the defined groups (ie trading)
     # then grouped by plant type 
     df1 <- sub_samp %>% 
       filter(! NRG_Stream %in% trade_excl)%>% 
@@ -573,6 +574,14 @@ CaseName <- "Limit to Zero"
       CF_Annual(BC)
       SaveRun_Loc(CaseName,"Annual Capacity Factors")
       
+      # Wind duration curve with output as is
+      Wind_Dur(BC)
+      SaveRun_Loc(CaseName,"Wind Load Duration Curve")
+      
+      # Wind duration curve with Output normalized
+      Wind_DurNorm(BC)
+      SaveRun_Loc(CaseName,"Wind Load Duration Curve Normalized")
+      
       # Tell R the files are done and close window
       dev.off()
       
@@ -722,6 +731,12 @@ CaseName <- "Limit to Zero"
     
     # Shows pool price over a week of resource group outputs, includes storage utilization
     PrOut(2022,09,09,BC)
+    
+    # Wind duration curve with output as is
+    Wind_Dur(BC)
+    
+    # Wind duration curve with Output normalized
+    Wind_DurNorm(BC)
     
 ################################################################################    
 ## Price Functions (Price_Functions)
@@ -887,6 +902,9 @@ CaseName <- "Limit to Zero"
     
     AESOSim(2021,2022,BC)
     
+    # Compare wind duration curves between AESO from 2025 to max year of sim
+    AESO_Sim_WindDur(2025,BC)
+    
 ################################################################################
 ## Data summarize and put in table  (Data_Filt_To_Table)
 ################################################################################
@@ -925,6 +943,11 @@ CaseName <- "Limit to Zero"
     # AESO Week Price and output in one
     AESO_PrOt(2021,01,08)
     
+    # Wind duration curve with output as is
+    Wind_Dur_AESO(BC)
+    
+    # Wind duration curve with Output normalized
+    Wind_DurNorm_AESO(BC)
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF

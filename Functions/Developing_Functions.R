@@ -999,10 +999,7 @@ DataHr <- ResHr %>%
            Total_Per_MWh=Total_Cost_MWh)
   
 }
-  
 
-          
-          
           
           
           
