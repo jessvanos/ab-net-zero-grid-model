@@ -819,7 +819,7 @@
       
       # Set axis scales
       scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
-      scale_y_continuous(expand=c(0,0),limits = c(0,100),breaks=pretty_breaks(5)) +
+      scale_y_continuous(expand=c(0.01,0),limits = c(0,100),breaks=pretty_breaks(5)) +
       
       # Plot labels
       labs(x = "Year", y = "Annual Average Capacity Factor (%)", 
@@ -849,7 +849,7 @@
       rename(Year=Report_Year)%>%
       group_by(Year) %>%
       # Get an empirical distribution for grouped data, 
-      mutate(perc = ecdf(Output)(Output)) %>%
+      mutate(perc = 1-ecdf(Output)(Output)) %>%
       subset(select=c(Output,perc,date,Year))
     
     # Get the report year as a factor to plot
@@ -861,7 +861,7 @@
     # Plot
     ggplot() +
       geom_line(data = WindData, 
-                aes(x = Output, y = perc, colour = Year), size = 1.25) +
+                aes(x = perc, y = Output, colour = Year), size = 1.25) +
       scale_color_viridis_d() +
       theme_bw() +
       
@@ -881,11 +881,11 @@
             legend.title=element_blank(),
             text = element_text(size = 15)) +
       
-      labs(x = "Fleet Output (MW)", y = "Percent of Hours per Year",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+      labs(x = "Percent of Hours per Year", y = "Fleet Output (MW)",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
       
-      scale_x_continuous(expand = c(0, 0),limits = c(0,MX),breaks=seq(0, MX, by=1000)) +
+      scale_y_continuous(expand = c(0, 0),limits = c(0,MX),breaks=seq(0, MX, by=1000)) +
       
-      scale_y_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
+      scale_x_continuous(expand=c(0,0.01),breaks=seq(0, 1, by=0.2),labels = percent) 
       
   }  
   
@@ -907,10 +907,10 @@
            Run_ID == case) %>%
     rename(Year=Report_Year)%>%
     group_by(Year) %>%
-    mutate(Norm_Output=Output/max(Output))%>%
+    mutate(Norm_Output=Output/(Capacity))%>%
     # Get an empirical distribution for grouped data, 
-    mutate(perc = ecdf(Norm_Output)(Norm_Output))%>%
-    subset(select=c(Output,Norm_Output,perc,date,Year))
+    mutate(perc = 1-ecdf(Norm_Output)(Norm_Output))%>%
+    subset(select=c(Output,Norm_Output,Capacity_Factor,perc,date,Year))
   
   # filter out years of interest
   WindData <- WindData %>%
@@ -922,7 +922,7 @@
   # Plot
   ggplot() +
     geom_line(data = WindData, 
-              aes(x = Norm_Output, y = perc, colour = Year), size = 1.25) +
+              aes(x = perc, y = Norm_Output, colour = Year), size = 1.25) +
     scale_color_viridis_d() +
     theme_bw() +
     
@@ -941,12 +941,14 @@
           legend.justification = c(0.5,0.5),
           legend.title=element_blank(),
           text = element_text(size = 15)) +
+         # plot.margin=unit(c(5,1,5,1), 'cm')) +
     
-    labs(x = "Output/Max Output", y = "Percent of Hours per Year",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+    labs(x = "Percent of Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)", 
+         colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
     
     scale_x_continuous(expand = c(0, 0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) +
     
-    scale_y_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
+    scale_y_continuous(expand=c(0,0.05),breaks=seq(0, 1, by=0.2),labels = percent) 
   
   }
 ################################################################################
@@ -1023,7 +1025,7 @@
     Max <- (ZPrice2$Demand + Expo2$Output_MWH) 
     
     # # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-    MX <- plyr::round_any(max(abs(Max))+500, 100, f = ceiling)
+    MX <- plyr::round_any(max(abs(Max))+701, 200, f = ceiling)
     
     #MX <- 15000
     

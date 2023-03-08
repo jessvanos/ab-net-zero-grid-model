@@ -2007,7 +2007,7 @@ Wind_Dur_AESO <- function() {
     filter(Plant_Type=="WIND") %>%
     group_by(Year) %>%
     # Get an empirical distribution for grouped data, 
-    mutate(perc = ecdf(total_gen)(total_gen),
+    mutate(perc = 1-ecdf(total_gen)(total_gen),
            Output=total_gen) %>%
     rename(date=time)%>%
     subset(select=c(Output,perc,date,Year))
@@ -2025,7 +2025,7 @@ Wind_Dur_AESO <- function() {
   # Plot
   ggplot() +
     geom_line(data = WindData, 
-              aes(x = Output, y = perc, colour = Year), size = 1.25) +
+              aes(x = perc, y = Output, colour = Year), size = 1.25) +
     scale_color_viridis_d() +
     theme_bw() +
     
@@ -2047,9 +2047,9 @@ Wind_Dur_AESO <- function() {
     
     labs(x = "Fleet Output (MW)", y = "Percent of Hours per Year",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
     
-    scale_x_continuous(expand = c(0, 0),limits = c(0,MX),breaks=seq(0, MX, by=1000)) +
+    scale_y_continuous(expand = c(0.01, 0),limits = c(0,MX),breaks=seq(0, MX, by=1000)) +
     
-    scale_y_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
+    scale_x_continuous(expand=c(0.01,0),breaks=seq(0, 1, by=0.2),labels = percent) 
   
 }  
 
@@ -2062,7 +2062,7 @@ Wind_Dur_AESO <- function() {
 ## TABLES REQUIRED: 
 ##    ResGroupHr -Yearly resource group data
 ################################################################################
-Wind_DurNorm_AESO <- function(case) {
+Wind_DurNorm_AESO <- function() {
   
   # Bring in all data
   WindData <- df1a%>%
@@ -2070,10 +2070,11 @@ Wind_DurNorm_AESO <- function(case) {
     group_by(Year) %>%
     mutate(Norm_Output=total_gen/max(total_gen),
            Output=total_gen)%>%
-    rename(date=time)%>%
+    rename(date=time,
+           CF=meancap)%>%
     # Get an empirical distribution for grouped data, 
-    mutate(perc = ecdf(Norm_Output)(Norm_Output))%>%
-    subset(select=c(Output,Norm_Output,perc,date,Year))
+    mutate(perc = 1-ecdf(CF)(CF))%>%
+    subset(select=c(Output,CF,perc,date,Year))
   
   # filter out years of interest
   # WindData <- WindData %>%
@@ -2085,7 +2086,7 @@ Wind_DurNorm_AESO <- function(case) {
   # Plot
   ggplot() +
     geom_line(data = WindData, 
-              aes(x = Norm_Output, y = perc, colour = Year), size = 1.25) +
+              aes(x = perc, y = CF, colour = Year), size = 1.25) +
     scale_color_viridis_d() +
     theme_bw() +
     
@@ -2105,9 +2106,9 @@ Wind_DurNorm_AESO <- function(case) {
           legend.title=element_blank(),
           text = element_text(size = 15)) +
     
-    labs(x = "Output/Max Output", y = "Percent of Hours per Year",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+    labs(x = "Percent of Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
     
-    scale_x_continuous(expand = c(0, 0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) +
+    scale_x_continuous(expand = c(0.01, 0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) +
     
     scale_y_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
   

@@ -1178,17 +1178,18 @@ AESO_Sim_WindDur <- function(MaxYr,case) {
     rename(YearS=Report_Year)%>%
     group_by(YearS) %>%
     # Get an empirical distribution for grouped data, 
-    mutate(perc = ecdf(Output)(Output),
+    mutate(perc = 1-ecdf(Output)(Output),
            YearS=paste(YearS,"Sim")) %>%
     subset(select=c(Output,perc,date,YearS))
   
   # Bring in hitorical data
   WindDataA <- df1a%>%
-    filter(Plant_Type=="WIND") %>%
+    filter(Plant_Type=="WIND",
+           Day<"2023-01-01") %>%
     rename(YearA=Year)%>%
     group_by(YearA) %>%
     # Get an empirical distribution for grouped data, 
-    mutate(perc = ecdf(total_gen)(total_gen),
+    mutate(perc = 1-ecdf(total_gen)(total_gen),
            Output=total_gen,
            YearA=paste(YearA,"AESO")) %>%
     rename(date=time)%>%
@@ -1200,12 +1201,12 @@ AESO_Sim_WindDur <- function(MaxYr,case) {
   # Plot
   ggplot() +
     geom_line(data = WindDataA, 
-              aes(x = Output, y = perc, colour = YearA), size = 1.25) +
+              aes(x = perc, y = Output, colour = YearA), size = 1.25) +
     scale_color_viridis_d() +
     
     new_scale_colour() +
     geom_line(data = WindDataS, 
-              aes(x = Output, y = perc, colour = YearS), size = 1.25) +
+              aes(x = perc, y = Output, colour = YearS), size = 1.25) +
     scale_color_viridis_d(option = "rocket") +
     
     theme_bw() +
@@ -1226,9 +1227,84 @@ AESO_Sim_WindDur <- function(MaxYr,case) {
           legend.title=element_blank(),
           text = element_text(size = 15)) +
     
-    labs(x = "Fleet Output (MW)", y = "Percent of Hours per Year",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+    labs(x = "Percent of Hours per Year", y = "Fleet Output (MW)",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
     
-    scale_x_continuous(expand = c(0, 0),limits = c(0,MX),breaks=seq(0, MX, by=1000)) +
+    scale_y_continuous(expand = c(0.01, 0),limits = c(0,MX),breaks=seq(0, MX, by=1000)) +
     
-    scale_y_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
-  }
+    scale_x_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
+}
+
+################################################################################
+## FUNCTIONS: AESO_Sim_WindDurNorm
+## Plot comparison between actual and simulated wind duration curves
+##
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################
+AESO_Sim_WindDurNorm <- function(MaxYr,case) {
+  
+  # Bring in sim data
+  WindDataS <- ResGroupHr%>%
+    filter(ID=="LTO_Wind",
+           Condition=="Average",
+           Run_ID == case,
+           Report_Year<=MaxYr) %>%
+    rename(YearS=Report_Year,
+           CF=Capacity_Factor)%>%
+    group_by(YearS) %>%
+    # Get an empirical distribution for grouped data, 
+    mutate(perc = 1-ecdf(CF)(CF),
+           YearS=paste(YearS,"Sim"))%>%
+    subset(select=c(Output,CF,perc,date,YearS))
+  
+  # Bring in hitorical data
+  WindDataA <- df1a%>%
+    filter(Plant_Type=="WIND",
+           Day<"2023-01-01",
+           Day>="2017-01-01") %>%
+    rename(YearA=Year,
+           CF=meancap)%>%
+    group_by(YearA) %>%
+    mutate(Output=total_gen,
+           YearA=paste(YearA,"AESO"))%>%
+    rename(date=time)%>%
+    # Get an empirical distribution for grouped data, 
+    mutate(perc = 1-ecdf(CF)(CF))%>%
+    subset(select=c(Output,CF,perc,date,YearA))
+  
+  # Plot
+  ggplot() +
+    geom_line(data = WindDataA, 
+              aes(x = perc, y = CF, colour = YearA), size = 1) +
+    scale_color_viridis_d() +
+    
+    new_scale_colour() +
+    geom_line(data = WindDataS, 
+              aes(x = perc, y = CF, colour = YearS), size = 1,linetype = "dashed") +
+    scale_color_viridis_d(option = "rocket") +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = XTit_Sz),
+          axis.title.y = element_text(size = YTit_Sz),
+          plot.title = element_text(size = Tit_Sz),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          #legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "right",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    labs(x = "Percent of Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+    
+    scale_y_continuous(expand = c(0, 0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) +
+    
+    scale_x_continuous(expand=c(0.01,0),breaks=seq(0, 1, by=0.2),labels = percent) 
+}

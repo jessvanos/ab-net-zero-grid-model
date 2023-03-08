@@ -44,6 +44,7 @@
     # timeDate: Used for time zone information and holidays.
     # writexl: Easy way to write dataframes to excel files with multiple pages
     # viridis: A color pallete for plots
+    # ggnewscale: Allow multiple color scales in one plot
   }
 
 { # Must load the here package in order to make sure internal project directories work
@@ -67,7 +68,7 @@
   packs_to_load = c("tidyverse","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
-                   "openxlsx","sqldf","timeDate","writexl","viridis")
+                   "openxlsx","sqldf","timeDate","writexl","viridis","ggnewscale")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -78,7 +79,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Feb_22_2023"
+  SourceDB<-"LZ_Mar_02_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -216,14 +217,14 @@
     filter(Condition == "Average") %>%
     subset(., select = c(date, Price, Baseline_Demand, Demand, Demand_Total,
                          Net_Load, Net_Load_Total, Marginal_Resource, 
-                         Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity, 
+                         Smp_Max_Date_Time, Smp_Max_Demand, Smp_Max_Capacity,Demand_Side_Output, 
                          Run_ID, Imports, Exports))
   
   # Zone Hourly for Everything
   ZoneHr_All <- ZoneHr %>%
     filter(Name == "WECC_Alberta") %>%
     subset(., select = c(date, Condition, Price, Demand, Marginal_Resource, 
-                         Name,Report_Year, Report_Month,
+                         Name,Report_Year, Report_Month,Demand_Side_Output,
                          Run_ID))
   
   # #Hourly individual resources in BC or SK
@@ -287,58 +288,146 @@
 ## LOAD AESO TRADE INFO FROM R FILE INTO WORKSPACE (OPTIONAL)
 ################################################################################
 
-HRcalc <- readRDS(here("Data Files","HRcalc.RData")) 
+# HRcalc <- readRDS(here("Data Files","HRcalc.RData")) 
+# 
+# { HRcalc$date <- as.POSIXct(HRcalc$Date_Begin_Local,tz="",format="%Y-%m-%d %H:%M")
+#   
+#   HRcalc<- HRcalc %>%
+#     select(.,-c("DAY_AHEAD_POOL_PRICE")) 
+# 
+# #Replace all NA values with zero
+# HRcalc[HRcalc==0] <- NA
+# 
+# #Reformat Day as day of year
+# HRcalc$Day <- format(HRcalc$date,"%j")
+# HRcalc$Week <- format(HRcalc$date,"%W") 
+# HRcalc$Month2 <- format(HRcalc$date,"%b")
+# }
 
-{ HRcalc$date <- as.POSIXct(HRcalc$Date_Begin_Local,tz="",format="%Y-%m-%d %H:%M")
-  
-  HRcalc<- HRcalc %>%
-    select(.,-c("DAY_AHEAD_POOL_PRICE")) 
-
-#Replace all NA values with zero
-HRcalc[HRcalc==0] <- NA
-
-#Reformat Day as day of year
-HRcalc$Day <- format(HRcalc$date,"%j")
-HRcalc$Week <- format(HRcalc$date,"%W") 
-HRcalc$Month2 <- format(HRcalc$date,"%b")
-}
 ################################################################################
-## BRING IN OTHER DATA FROM AESO FILES & FORMAT (OPTIONAL)
+## SAVE OTHER DATA AS R FILE AND MODIFY (OPTIONAL)
+## Only need to run if new files are available
 ################################################################################
+# 
+# # Load merit data
+# {
+#   merit <- read_csv(here("Data Files","Alberta Data","student_data_2023_Mar_03_21_55.csv.gz"))
+#     # Save as R file
+#     saveRDS(merit, here("Data Files","Alberta Data","Leach_MeritData03Mar2023.RData"))
+#     # Remove from workspace
+#      rm(merit)
+#   }
+# 
+# # Load NRG data and rename time column
+# {
+#      load(here("Data Files","Alberta Data","nrgstream_gen03Mar2023.RData"))
+#      nrgstream_gen <- nrgstream_gen %>%
+#        rename(time=Time)
+# 
+#      # Remove NA values
+#      nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$gen),]
+#      nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$time),]
+# 
+#      # Apply data corrections
+#      corrected <- nrgstream_gen %>%
+#          filter(is.na(Latitude)) %>%
+#          mutate(Latitude=case_when(grepl("BRD1",ID) ~ 49.842735,
+#                                    grepl("BUR1",ID) ~ 49.814877,
+#                                    grepl("CLR",ID) ~ 50.032911,
+#                                    grepl("CLY",ID) ~ 49.840967,
+#                                    grepl("CHP1",ID) ~ 50.22189,
+#                                    grepl("COL1",ID) ~ 49.833218,
+#                                    grepl("CRD",ID) ~ 49.807,
+#                                    grepl("CRR2",ID) ~ 49.55891,
+#                                    grepl("FMG1",ID) ~ 49.66334,
+#                                    grepl("KKP",ID) ~ 53.469986,
+#                                    grepl("MON1",ID) ~ 49.833144,
+#                                    grepl("NMK1",ID) ~ 51.026118,
+#                                    grepl("RIV1",ID) ~ 49.53245,
+#                                    grepl("STR",ID) ~ 51.033273,
+#                                    grepl("TVS1",ID) ~ 50.27324,
+#                                    grepl("VCN1",ID) ~ 50.0975,
+#                                    grepl("VXH1",ID) ~ 50.095223,
+#                                    grepl("WEF1",ID) ~ 49.65405,
+#                                    grepl("WHT",ID) ~ 49.64029),
+#                 Longitude=case_when(grepl("BRD1",ID) ~ -111.537891,
+#                                     grepl("BUR1",ID) ~ -111.543323,
+#                                     grepl("CHP1",ID) ~ -110.437106,
+#                                     grepl("CLR",ID) ~ -113.484369,
+#                                     grepl("CLY",ID) ~ -110.356864,
+#                                     grepl("COL1",ID) ~ -112.97448,
+#                                     grepl("CRD",ID) ~ -112.578,
+#                                     grepl("CRR2",ID) ~ -113.983,
+#                                     grepl("FMG1",ID) ~ -111.122,
+#                                     grepl("KKP",ID) ~ -113.61337,
+#                                     grepl("MON1",ID) ~ -112.974231,
+#                                     grepl("NMK1",ID) ~ -113.163017,
+#                                     grepl("RIV1",ID) ~ -113.977,
+#                                     grepl("STR",ID) ~ -113.371296,
+#                                     grepl("TVS1",ID) ~ -112.73059,
+#                                     grepl("VCN1",ID) ~ -112.84841,
+#                                     grepl("VXH1",ID) ~ -112.149936,
+#                                     grepl("WEF1",ID) ~ -111.515812,
+#                                     grepl("WHT",ID) ~ -111.291),
+#                 Installation_Year=case_when(grepl("CRR2",ID)~2019,
+#                                             grepl("CYP",ID)~2022,
+#                                             #grepl("CYP2",ID)~"post2019",
+#                                             grepl("FMG1",ID)~2022,
+#                                             grepl("GDP1",ID)~2022,
+#                                             grepl("GRZ1",ID)~2022,
+#                                             grepl("HHW1",ID)~2022,
+#                                             grepl("HLD1",ID)~2022,
+#                                             grepl("JNR",ID)~2022,
+#                                             grepl("RIV1",ID)~2019,
+#                                             grepl("RTL1",ID)~2021,
+#                                             grepl("WHE1",ID)~2022,
+#                                             grepl("WHT1",ID)~2019,
+#                                             grepl("WHT2",ID)~2021,
+#                                             grepl("WRW1",ID)~2021),
+#                 Installation_Year=case_when(is.na(Installation_Year)~"pre2019",
+#                                               TRUE~"post2019"))
+# 
+#      # Get non-corrected and remove Latitude
+#      nocorrection <- nrgstream_gen %>%
+#          filter(!is.na(Latitude))%>%
+#        mutate(Installation_Year="")
+# 
+#      # put back together and remove old files
+#      nrgstream_gen <- rbind(corrected,nocorrection)
+#         rm(corrected,nocorrection)
+# 
+#      # Save new file
+#      saveRDS(nrgstream_gen,here("Data Files","Alberta Data","nrgstream_gen_corrected03Mar2023.RData"))
+# 
+#      # Make separate file for demand and save
+#      Actdemand <- nrgstream_gen %>%
+#          group_by(time) %>%
+#          summarise(Demand = median(Demand),
+#                    Price = median(Price),
+#                    AIL = median(AIL))
+# 
+#      # Save the demand
+#      saveRDS(Actdemand, here("Data Files","Alberta Data","nrgstream_demand03Mar2023.RData"))
+#         rm(Actdemand,nrgstream_gen)
+# }
 
-{ # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
-  merit <- readRDS(here("Data Files","Alberta Data","Leach_MeritData.RData"))
+################################################################################
+## BRING IN DATA FROM AESO FILES & FORMAT 
+################################################################################
+{ 
+  # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
+  merit <- readRDS(here("Data Files","Alberta Data","Leach_MeritData03Mar2023.RData"))
   
     #Filter Data to relevant dates & remove old data
-    merit_filt <- filter(merit, 
-                         date >= as.Date("2015-01-1"))
+    merit_filt <- filter(merit,date >= as.Date("2015-01-1"))
     rm(merit)
   
   # Load nrgstream_gen - Load and demand info, plus a whole ton more
-  load(here("Data Files","Alberta Data","nrgstream_gen.RData")) 
+    nrgstream_gen <- readRDS(here("Data Files","Alberta Data","nrgstream_gen_corrected03Mar2023.RData")) 
+    Actdemand <- readRDS(here("Data Files","Alberta Data","nrgstream_demand03Mar2023.RData"))
   
-    # Rename the time
-    nrgstream_gen <- nrgstream_gen %>% rename(time=Time)
-    
-    # Get rid of rows with blanks
-    nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$gen),] 
-    nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$time),]   
-}
-
-################################################################################
-## FURTHER FORMAT AND MANIPULATE NRG DATA (OPTIONAL)
-################################################################################
-
-{   #Take out dates I dont care about and remove the old table
+    # Take out dates I don't care about and remove the old table
     sub_samp<-filter(nrgstream_gen, time >= as.Date("2015-01-1"))
-    
-    # Create a demand table. Summarize takes median of Demand, AIL, and Price for each time period 
-    demand <- nrgstream_gen %>%
-      group_by(time) %>%
-      summarise(Demand = median(Demand), 
-                Price = median(Price),
-                AIL = median(AIL))
-    rm(nrgstream_gen)
 
     # Create a list to describe Import/Exports
     trade_excl<-c("AB - WECC Imp Hr Avg MW", 
@@ -357,27 +446,28 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
                 heatrt_mean=mean(Heat.Rate)) %>% 
       ungroup()
     
-    #Reformat the dates
-    df1$Day <- date(df1$time)
-    df1$Year <- as.factor(year(df1$time))
+        #Reformat the dates
+        df1$Day <- date(df1$time)
+        df1$Year <- as.factor(year(df1$time))
     
   {  # ORGANIZE RESOURCES
      #Make a resource type list
-     plant_types<-c("COAL","COGEN","HYDRO","NGCC", "OTHER", "SCGT","SOLAR","IMPORT","EXPORT","WIND")
+     plant_types<-c("COAL","NGCONV","COGEN","HYDRO","NGCC", "OTHER", "SCGT","SOLAR","IMPORT","EXPORT","WIND","STORAGE")
     
      # Create a new dataframe with plant types specified only, 
-     # Then filter AESO data to exclude dates without information (after April 2022)
+     # Then filter AESO data to exclude dates without information (till end of 2022)
      df1a <- df1 %>%
-     filter(Plant_Type %in% plant_types,month(time)<05)
+     filter(Plant_Type %in% plant_types,
+            year(time)<2023)
       
-     # Put in desired order: Coal, Cogen, NGCC, SCGT, Other, Hydro, Wind, Solar, Import, Export
-     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "OTHER",after=Inf)
-     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "HYDRO",after=Inf)
-     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "WIND",after=Inf)
-     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "SOLAR",after=Inf)
-     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "IMPORT",after=Inf)
-     df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "EXPORT",after=Inf)
-     gc()   
+         # Put in desired order: Coal, Cogen, NGCC, SCGT, Other, Hydro, Wind, Solar, Import, Export
+         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "OTHER",after=Inf)
+         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "HYDRO",after=Inf)
+         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "WIND",after=Inf)
+         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "SOLAR",after=Inf)
+         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "IMPORT",after=Inf)
+         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "EXPORT",after=Inf)
+         gc()   
    }
 }
 
@@ -536,7 +626,7 @@ HRcalc$Month2 <- format(HRcalc$date,"%b")
 }
 
 # Create folder name to save as
-CaseName <- "Limit to Zero"
+CaseName <- "LZ Testing"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -547,8 +637,18 @@ CaseName <- "Limit to Zero"
   
   # GENERATION
       # Grid of weekly output - need to edit for more than one week of data
-      year_weeks(2035,BC)
-      SaveRun_Loc(CaseName,"2035 Hourly Generation for One Week (Stacked Area)")
+      year_weeks(2022,BC)
+      SaveRun_Loc(CaseName,"2022 Hourly Generation for One Week (Stacked Area)")
+          
+          year_weeks(2025,BC)
+          SaveRun_Loc(CaseName,"2025 Hourly Generation for One Week (Stacked Area)")
+          
+          year_weeks(2030,BC)
+          SaveRun_Loc(CaseName,"2030 Hourly Generation for One Week (Stacked Area)")
+          
+          year_weeks(2035,BC)
+          SaveRun_Loc(CaseName,"2035 Hourly Generation for One Week (Stacked Area)")
+      
       
       # Yearly Output
       Evalyr(BC)
@@ -580,7 +680,7 @@ CaseName <- "Limit to Zero"
       
       # Wind duration curve with Output normalized
       Wind_DurNorm(BC)
-      SaveRun_Loc(CaseName,"Wind Load Duration Curve Normalized")
+      SaveRun_Loc(CaseName,"Wind Capacity Factor Duration Curve")
       
       # Tell R the files are done and close window
       dev.off()
@@ -655,6 +755,15 @@ CaseName <- "Limit to Zero"
       AnnualDemand(ZoneMn,BC)
       SaveRun_Loc(CaseName,"Annual Demand")
   
+  # COMPARING TO AESO
+      # Compare wind duration curves between AESO from 2025 to max year of sim
+      AESO_Sim_WindDur(2024,BC)
+      SaveRun_Loc(CaseName,"Wind Load Duration Curve Compared to AESO")
+      
+      # Compare wind duration curves between AESO from 2025 to max year of sim, normalize by capacity
+      AESO_Sim_WindDurNorm(2026,BC)
+      SaveRun_Loc(CaseName,"Wind Capacity Factor Duration Curve Compared to AESO")
+                  
       # Tell R the files are done and close window
       dev.off()
    
@@ -665,7 +774,7 @@ CaseName <- "Limit to Zero"
       # Shows new resource value each year 
       # 1 - wind, 2 - Solar, 3 - Storage, 4 - Natural gas, 5 - Hydrogen and Natural gas blend, 
       # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
-      ResValue_Annual(4,BC)
+      ResValue_Annual(7,BC)
       SaveRun_Loc(CaseName,"Annual Nomminal Value New Gas")
       
       # Shows new resource value added up to be cumulative (nominal values to each year)
@@ -693,8 +802,11 @@ CaseName <- "Limit to Zero"
 ################################################################################
   
     # Gives stacked area chart for single week
-    Week1(2021,01,08,BC)
-  
+    Week1(2035,12,08,BC)
+      SaveRun_Loc(CaseName,"December 2035 Normal")
+      
+      WeekTest(2035,12,08,BC)
+      SaveRun_Loc(CaseName,"December 2035 Adjusted")
     #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
     day1(2022,11,07,BC)
 

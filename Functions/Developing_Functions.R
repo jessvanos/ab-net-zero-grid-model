@@ -999,7 +999,106 @@ DataHr <- ResHr %>%
            Total_Per_MWh=Total_Cost_MWh)
   
 }
-
+################################################################################
+## FUNCTION: WeekDSM
+## Plots output for a week given study case, adjusts demand line for demand side curtailment.
+##
+## INPUTS: 
+##    year, month, day - Date to plot
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+WeekDSM <- function(year, month, day, case) {
+  
+  # Title Formating
+  wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
+  wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
+  
+  # Filters for the desired case study from the resource groups
+  data <- ResGroupHr_sub %>%
+    sim_filt1(.) %>%
+    subset(., select=-c(Report_Year,Capacity_Factor)) %>%
+    rbind(.,Import) %>%
+    filter(Run_ID == case) %>%
+    filter(date >= wk_st) %>%
+    filter(date <= wk_end)
+  
+  data$Output_MWH[data$Output_MWH<0.001] <-0
+  
+  # Set levels to each category in order specified
+  data$ID <- factor(data$ID, levels=c("Import","Solar","Wind", "Other", "Hydro", 
+                                      "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                      "Blended  Simple Cycle","Blended  Combined Cycle",
+                                      "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                      "Coal-to-Gas", 
+                                      "Coal", "Cogeneration","Storage"))
+  ## SELECT A SINGLE WEEK
+  
+  # Select only a single week from the zone Hourly, and Export data
+  WK <- WkTime(data,year,month,day)%>%
+    filter(Run_ID == case)
+  ZPrice <- WkTime(ZoneHr,year,month,day)  %>%
+    filter(Name == "WECC_Alberta") %>%
+    filter(Condition == "Average")%>%
+    mutate(Demand_New=Demand-Demand_Side_Output)%>%
+    subset(., select = c(date, Price, Baseline_Demand, Demand, Demand_Total,Demand_New,
+                         Demand_Side_Output))
+  Expo <- WkTime(Export,year,month,day) %>%
+    filter(Run_ID == case)
+  
+  # Get y-max, demand to meet + exports
+  Max <- ZPrice$Demand + Expo$Output_MWH
+  
+  # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
+  MX <- plyr::round_any(max(abs(Max))+500, 100, f = ceiling)
+  MN <- plyr::round_any(min(Max), 100, f = floor)
+  
+  ## PLOT WITH AREA PLOT
+  
+  ggplot() +
+    geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), colour = "black", 
+              alpha=0.7, size=0.5) +
+    
+    # Add hourly load line (black line on the top)
+    geom_line(data = ZPrice, 
+              aes(x = date, y = Demand_New), size=1.5, colour = "black") +
+    scale_x_datetime(expand=c(0,0),date_labels = "%b-%e", breaks = "day") +
+    
+    # Set the theme for the plot
+    theme_bw() +
+    theme(panel.grid = element_blank()) +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(plot.title = element_text(size= Tit_Sz)) +
+    
+    theme(axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size= XTit_Sz),
+          axis.title.y = element_text(size= YTit_Sz),
+          panel.background = element_rect(fill = "transparent"),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          legend.title=element_blank(),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent',colour ='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          plot.title = element_text(),
+          text = element_text(size= 15)
+    ) +
+    scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
+                       breaks = seq(0, MX, by = MX/4)) +
+    guides(fill = guide_legend(nrow = 2)) +
+    
+    labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",
+         title=year,caption=SourceDB) +
+    
+    #Add colour
+    scale_fill_manual(values = colours1) 
+}
           
           
           
