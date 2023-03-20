@@ -475,19 +475,19 @@ sim_filt5 <- function(inputdata) {
   
   # Combine the grouped data
   { case <- rbind(NGConv, SCCT_H2,CCCT_H2,SCCT_Blend,CCCT_Blend,
-                  SCCT, CCCT_CCS,CCCT, Hydro, Other, Wind, Solar, Stor_B,Stor_HP,Stor_CA,Nuclear,Coal,Cogen)
+                  SCCT, CCCT_CCS,CCCT, Hydro, Other, Wind, Solar, Stor_B,Stor_HP,Stor_CA,Coal,Cogen)
                   
     case$ID <- factor(case$ID, levels=c(
       "AB_NGCONV","AB_SCCT_0NG100H2","AB_CCCT_0NG100H2","AB_SCCT_Blended","AB_CCCT_Blended",
       "AB_SCCT_noncogen","AB_CC90CCS_noncogen","AB_CCCT_noncogen",
-      "LTO_Hydro","LTO_Other","LTO_Wind","LTO_Solar","Battery","HydroPumped","CompressedAir","LTO_Nuclear","LTO_Coal","LTO_Cogen"))
+      "LTO_Hydro","LTO_Other","LTO_Wind","LTO_Solar","Battery","HydroPumped","CompressedAir","LTO_Coal","LTO_Cogen"))
     
     levels(case$ID) <- c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                    "Blended  Simple Cycle","Blended  Combined Cycle",
                                    "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
                                    "Hydro", "Other","Wind", 
                                    "Solar","Storage - Battery", "Storage - Pumped Hydro", "Storage - Compressed Air",
-                                   "Nuclear","Coal", "Cogeneration") }
+                                   "Coal", "Cogeneration") }
   return(case)  
 }
 }

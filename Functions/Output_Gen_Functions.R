@@ -554,16 +554,20 @@
       sim_filt(.) %>%
       rbind(.,Imp) 
     
+    # re-order the bars for aesthetics
+    data$ID <- factor(data$ID,levels=c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" ,"Import",
+                                       "Hydro","Other","Wind", "Solar", "Storage","Coal","Cogeneration"),ordered=FALSE)
+    
     # Get chosen years
     data$Time_Period <- format(data$Time_Period,format="%Y")
+    
+    # Filter by year and re-arrange in assending order
     data <- data %>%
-      filter(Time_Period %in% Years2Disp)
-    
-    # re-order teh bars for asthetics
-    data$ID <- factor(data$ID,levels=c("Hydrogen" ,"Natual Gas and Hydrogen Blend",
-                                       "Coal", "Import","Coal-to-Gas", "Natural Gas + CCS","Cogen", "Natural Gas",
-                                       "Wind","Other","Solar", "Hydro","Storage"),ordered=TRUE)
-    
+      filter(Time_Period %in% Years2Disp) %>%
+      group_by(Time_Period) %>%
+      arrange(Output_MWH, .by_group = TRUE) %>%
+      ungroup() %>%
+      mutate(PlotOrder= row_number())
     
     # Set the max for the plot
     MX <- plyr::round_any(max(abs(data$Output_MWH)/1000000), 10, f = ceiling)
@@ -571,7 +575,7 @@
     # Plot
     data %>%
       ggplot() +
-      aes(Time_Period, (Output_MWH/1000000), fill = ID) +
+      aes(Time_Period, (Output_MWH/1000000), fill = reorder(ID, PlotOrder)) +
       geom_bar(position="dodge",stat="identity",alpha=0.7,'color'="black") +
       
       theme_bw() +
@@ -593,6 +597,7 @@
             text = element_text(size = 15)) +
       
       scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
+      scale_x_discrete(drop=TRUE) +
       
       #  geom_text(aes(label = sprintf("%0.1f",Output_MWH/1000000)),
       #            position = position_dodge(width = 1),vjust=-0.5) +
@@ -773,7 +778,7 @@
                                                        "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
                                                        "Hydro", "Other","Wind", 
                                                        "Solar","Storage - Battery", "Storage - Pumped Hydro", "Storage - Compressed Air",
-                                                       "Nuclear","Coal", "Cogeneration"))
+                                                       "Coal", "Cogeneration"))
     
     # Get max and min year for plot
     YearMX<-max(CFData$Year)-5 #Take off the last 5 years
@@ -978,17 +983,26 @@
     wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
     wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
     
+    # Get any demand curtailment
+    DSM <- ZoneHr_Avg%>%
+      mutate(ID="Demand Curtailment")%>%
+      subset(., select=c(ID,date,Demand_Side_Output,Run_ID))%>%
+        rename(Output_MWH=Demand_Side_Output)
+
     # Filters for the desired case study from the resource groups
     data <- ResGroupHr_sub%>%
       sim_filt1(.) %>%
       subset(., select=-c(Report_Year,Capacity_Factor)) %>%
+     # rbind(DSM) %>%
       rbind(.,Import) %>%
       filter(Run_ID == case) %>%
       filter(date >= wk_st) %>%
       filter(date <= wk_end)
     
     # Set levels to each category in order specified
-    data$ID <- factor(data$ID, levels=c("Import","Solar","Wind", "Other", "Hydro", 
+    data$ID <- factor(data$ID, levels=c(
+      #"Demand Curtailment",
+      "Import","Solar","Wind", "Other", "Hydro", 
                                         "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                         "Blended  Simple Cycle","Blended  Combined Cycle",
                                         "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
@@ -1022,12 +1036,10 @@
       filter(YEAR == year)
     
     # Get y-max, demand to meet + exports
-    Max <- (ZPrice2$Demand + Expo2$Output_MWH) 
+    MX <- round_any(max(ZPrice2$Baseline_Demand) + max(Expo2$Output_MWH)+1100,1000,f=ceiling) 
     
     # # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-    MX <- plyr::round_any(max(abs(Max))+701, 200, f = ceiling)
-    
-    #MX <- 15000
+    #MX <- plyr::round_any(max(abs(Max))+1111, 2000, f = ceiling)
     
     Mtitle=month.abb[month]
     

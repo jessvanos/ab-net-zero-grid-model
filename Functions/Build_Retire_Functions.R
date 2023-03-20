@@ -147,10 +147,9 @@ RetireMW <- function(case) {
   }
   
   # Now filter data for resources that end before the study is over
-  #Further filter peak capacity >0 (it is not yet retired), and end date = time period (to ensure you dont get doubles)
+  #Further filter end date = time period (to ensure you don't get doubles)
   Retdata <- Retdata%>%
     filter(.,End_Date <= MaxYr) %>%
-    filter(.,Capacity>0) %>% 
     filter(End_Date==Time_Period)
   
   # Pull out the names of retired units
@@ -162,19 +161,19 @@ RetireMW <- function(case) {
   Retdata$RetUnits <- 1  
   
   #Now group everything together
-  Retdata <- Retdata%>%
+  Retdata2 <- Retdata%>%
     group_by(Primary_Fuel, End_Date) %>%
-    summarise(Units = sum(RetUnits), Capacity = sum(Peak_Capacity)) %>%
+    summarise(Units = sum(RetUnits), Capacity = sum(Capacity)) %>%
     mutate(Capacity=Capacity*-1)
   
   #Max Units Built
-  dyMX <- aggregate(Retdata["Capacity"], by=Retdata["End_Date"], sum)
+  dyMX <- aggregate(Retdata2["Capacity"], by=Retdata2["End_Date"], sum)
   mxc <- round_any(min(dyMX$Capacity+11),500,f=ceiling)
   
-  Retdata$End_Date <- as.numeric(Retdata$End_Date)
+  Retdata2$End_Date <- as.numeric(Retdata2$End_Date)
   
   #Plot data
-  ggplot(Retdata) +
+  ggplot(Retdata2) +
     aes(x=End_Date, y=Capacity, fill = Primary_Fuel, group = Primary_Fuel) +
     geom_bar(position="stack", stat="identity", alpha=0.7,color='black') +
     theme_bw() +
