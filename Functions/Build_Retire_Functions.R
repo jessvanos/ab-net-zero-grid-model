@@ -24,7 +24,7 @@ Retirecol <- function(case) {
   # Bring in Resource Year Table and filter columns
   Retdata <- ResYr%>%
     sim_filt2(.) %>% #Filter to rename fuels
-    subset(., select=c(Name,Condition,YEAR,Capacity,End_Date,Run_ID,Primary_Fuel,Time_Period,Peak_Capacity)) %>%
+    subset(., select=c(Name,Condition,YEAR,Capacity,End_Date,Run_ID,Primary_Fuel,Time_Period,Nameplate_Capacity)) %>%
     filter(Run_ID == case) %>%
     filter(Condition == "Average") 
 
@@ -38,23 +38,23 @@ Retirecol <- function(case) {
   
   #Get Year max for run and filter for end dates BEFORE this date
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
-  MaxYr <- max(Retdata$YEAR)-5
+  MaxYr <- max(as.numeric(Retdata$YEAR))-5
   Retdata$End_Date  <- as.Date(Retdata$End_Date, 
                               format = "%m/%d/%Y")
   Retdata$End_Date <- format(Retdata$End_Date,format="%Y")
   
   # Replace the capacity with the peak / actual capacity and not just what is available
-  for (i in 1:length(Retdata$Capacity)) {
-    if (Retdata[i,"Capacity"]<Retdata[i,"Peak_Capacity"]) {
-      Retdata[i,"Capacity"] <- Retdata[i,"Peak_Capacity"]
-    }
-  }
+  # for (i in 1:length(Retdata$Capacity)) {
+  #   if (Retdata[i,"Capacity"]<Retdata[i,"Peak_Capacity"]) {
+  #     Retdata[i,"Capacity"] <- Retdata[i,"Peak_Capacity"]
+  #   }
+  # }
   
   # Now filter data for resources that end before the study is over
   #Further filter peak capacity >0 (it is not yet retired), and end date = time period (to ensure you dont get doubles)
   Retdata <- Retdata%>%
     filter(.,End_Date <= MaxYr) %>%
-    filter(.,Capacity>0) %>% 
+    filter(.,Nameplate_Capacity>0) %>% 
     filter(End_Date==Time_Period) 
 
   # Add a column to describe the new resources 
@@ -117,7 +117,7 @@ RetireMW <- function(case) {
   # Bring in Resource Year Table and filter columns
   Retdata <- ResYr%>%
     sim_filt2(.) %>% #Filter to rename fuels
-    subset(., select=c(Name,Condition,YEAR,Capacity,End_Date,Run_ID,Primary_Fuel,Time_Period,Peak_Capacity)) %>%
+    subset(., select=c(Name,Condition,YEAR,Capacity,End_Date,Run_ID,Primary_Fuel,Time_Period,Nameplate_Capacity)) %>%
     filter(Run_ID == case) %>%
     filter(Condition == "Average") %>%
     mutate(Time_Period=as.numeric(Time_Period))
@@ -132,28 +132,24 @@ RetireMW <- function(case) {
   
   #Get Year max for run and filter for end dates BEFORE this date
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
-  MaxYr <- max(Retdata$Time_Period)-5
-  MinYr <- min(Retdata$Time_Period)
+  MaxYr <- 2035
+  MinYr <- 2022
   
   Retdata$End_Date  <- as.Date(Retdata$End_Date, 
                                format = "%m/%d/%Y")
   Retdata$End_Date <- format(Retdata$End_Date,format="%Y")
   
-  # Replace the capacity with the peak / actual capacity and not just what is available
-  for (i in 1:length(Retdata$Capacity)) {
-    if (Retdata[i,"Capacity"]<Retdata[i,"Peak_Capacity"]) {
-      Retdata[i,"Capacity"] <- Retdata[i,"Peak_Capacity"]
-    }
-  }
-  
   # Now filter data for resources that end before the study is over
   #Further filter end date = time period (to ensure you don't get doubles)
   Retdata <- Retdata%>%
     filter(.,End_Date <= MaxYr) %>%
+    group_by(Name)%>%
+    mutate(maxcap=max(Nameplate_Capacity))%>%
+    ungroup()%>%
     filter(End_Date==Time_Period)
   
   # Pull out the names of retired units
-  RetiredUnits <- Retdata[,c("Name","Capacity","Primary_Fuel","End_Date")]
+  RetiredUnits <- Retdata[,c("Name","maxcap","Primary_Fuel","End_Date")]
   RetiredUnits <- RetiredUnits[order(RetiredUnits$End_Date),]
   print(RetiredUnits)
   
@@ -163,12 +159,12 @@ RetireMW <- function(case) {
   #Now group everything together
   Retdata2 <- Retdata%>%
     group_by(Primary_Fuel, End_Date) %>%
-    summarise(Units = sum(RetUnits), Capacity = sum(Capacity)) %>%
+    summarise(Units = sum(RetUnits), Capacity = sum(maxcap)) %>%
     mutate(Capacity=Capacity*-1)
   
   #Max Units Built
   dyMX <- aggregate(Retdata2["Capacity"], by=Retdata2["End_Date"], sum)
-  mxc <- round_any(min(dyMX$Capacity+11),500,f=ceiling)
+  mxc <- round_any(min(dyMX$Capacity+11),500,f=floor)
   
   Retdata2$End_Date <- as.numeric(Retdata2$End_Date)
   
@@ -197,7 +193,7 @@ RetireMW <- function(case) {
     
     labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
     
-    scale_x_continuous(expand = c(0.05, 0.05),limits=c(as.numeric(MinYr), as.numeric(MaxYr)),
+    scale_x_continuous(expand = c(0.05, 0.05),
                        breaks=seq(MinYr, MaxYr, by=1),position = "top") +
     
     scale_y_continuous(expand=c(0,0),
@@ -352,7 +348,7 @@ BuildMW <- function(case)
   # Bring in Resource Year Table and filter columns
   data <- ResYr%>%
     sim_filt3(.) %>% #Filter to rename fuels
-    subset(., select=c(Name,Condition,Capacity,Peak_Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,Time_Period,Capacity_Factor)) %>%
+    subset(., select=c(Name,Condition,Capacity,Nameplate_Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,Time_Period,Capacity_Factor)) %>%
     filter(Run_ID == case) %>%
     filter(Condition == "Average") %>%
     mutate(Time_Period=as.numeric(Time_Period))
@@ -366,13 +362,6 @@ BuildMW <- function(case)
                                                           "Wind", "Solar", 
                                                           "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
                                                           "Cogeneration") )
- 
-   # Replace the capacity with the peak / actual capacity and not just what is available
-  for (i in 1:length(data$Capacity)) {
-    if (data[i,"Capacity"] < data[i,"Peak_Capacity"]) {
-      data[i,"Capacity"] <- data[i,"Peak_Capacity"]
-    }
-  }
   
   # Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(data$Time_Period)-5
@@ -392,21 +381,20 @@ BuildMW <- function(case)
   #Filter
   Builddata <- data %>%
     filter(.,Beg_Date <= MaxYr) %>%
-    filter(.,FiltDate > CurDate) %>%
-    filter(.,Capacity>0) %>%
+    group_by(Name)%>%
+    mutate(maxcap=max(Nameplate_Capacity))%>%
+    ungroup()%>%
     filter(Beg_Date==Time_Period) %>%
-    select(., c("Name","Capacity","Primary_Fuel","Beg_Date"))
+    select(., c("Name","maxcap","Primary_Fuel","Beg_Date"))
 
   # Add cap increases manual
   Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
-                     Capacity=c(800),
+                     maxcap=c(800),
                      Primary_Fuel=c("Cogeneration"),
                      Beg_Date=c(2024))
 
   Builddata <-  rbind(Builddata,Capinc)
   
-  
-    
   # Pull out the names of built units
   BuiltUnits <- Builddata[order(Builddata$Beg_Date),]
   print(BuiltUnits)
@@ -414,7 +402,7 @@ BuildMW <- function(case)
   #Now group everything together
   Builddata <- Builddata%>%
     group_by(Primary_Fuel, Beg_Date) %>%
-    summarise(Capacity = sum(Capacity))
+    summarise(Capacity = sum(maxcap))
   
   #Max Units Built
   dyMX <- aggregate(Builddata["Capacity"], by=Builddata["Beg_Date"], sum)
@@ -538,8 +526,164 @@ Eval_diffcap <- function(case) {
                        limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000)) +
     scale_fill_manual(values=colours8,drop = FALSE) +
 
-    labs(x = "Year", y = "Annual Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
+    labs(x = "Year", y = "Annual Change in Available Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
 }
+
+################################################################################  
+## FUNCTION: Eval_diffcap2 
+## The first year of data does not have a prior capacity to compare to, so it is not used.
+##
+## INPUTS: 
+##    input - ResGroupYear
+## TABLES REQUIRED: 
+##    ResGroupYear -Yearly resoruce group emissions
+################################################################################
+Eval_diffcap2 <- function(case) {
+  
+  # Bring in Resource Year Table and filter for relevant data. Format date columns
+  Add_Ret_data <- ResYr%>%
+    sim_filt6(.) %>% #Filter to rename fuels
+    subset(., select=c(Name,Condition,Capacity,Nameplate_Capacity,End_Date,Beg_Date,
+                       Run_ID,Primary_Fuel,Time_Period,Capacity_Factor)) %>%
+    filter(Run_ID == case)%>%
+    mutate(Time_Period=as.numeric(Time_Period),
+           End_Date=as.Date(End_Date,format = "%m/%d/%Y"),
+           End_Year=year(End_Date),
+           Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
+           Beg_Year=year(Beg_Date))%>%
+    filter(Condition == "Average",
+           Time_Period<=2035) 
+
+# Set levels to each category in order specified
+Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
+                                    levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                             "Blended  Simple Cycle","Blended  Combined Cycle",
+                                             "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                             "Hydro", "Other",
+                                             "Wind", "Solar", 
+                                             "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
+                                             "Cogeneration"))
+
+# FILTER CAP RETIREMENTS
+#Further filter peak capacity >0 (it is not yet retired), and end date = time period (to ensure you dont get doubles)
+Retdata <- Add_Ret_data%>%
+  group_by(Name)%>%
+  mutate(In_Cap=max(Nameplate_Capacity))%>%
+  ungroup()%>%
+  filter(End_Year==Time_Period)%>%
+  subset(select=c("Name","In_Cap","Primary_Fuel","Capacity_Factor","Beg_Date","Beg_Year","End_Date","End_Year"))%>%
+  mutate(Type="Retirement")%>%
+  arrange(.,End_Date)
+
+# FILTER CAP ADDITIONS
+Builddata <- Add_Ret_data %>%
+  filter(Beg_Year >= 2022,
+         Beg_Year==Time_Period) %>%
+  group_by(Name)%>%
+  mutate(In_Cap=max(Nameplate_Capacity))%>%
+  ungroup()%>%
+  select(., c("Name","In_Cap","Primary_Fuel","Capacity_Factor","Beg_Date","Beg_Year","End_Date","End_Year")) %>%
+  mutate(Type="Addition")%>%
+  arrange(.,Beg_Date)
+
+# Add cap increases manual
+Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
+                   In_Cap=c(800),
+                   Primary_Fuel=c("Cogeneration"),
+                   Capacity_Factor=NA,
+                   Beg_Date=c(as.Date("07/01/2024", 
+                                      format = "%m/%d/%Y")),
+                   Beg_Year=c(2024),
+                   End_Date=NA,
+                   End_Year=NA,
+                   Type="Addition")
+
+# Add the manual plant to the rest
+Builddata <-  rbind(Builddata,Capinc)%>%
+  arrange(.,Beg_Date)
+
+# NOW PUT IT ALL TOGETHER TO GET TOTALS BY RESOURCE TYPE
+BuilddataTot <- Builddata%>%
+  group_by(Primary_Fuel, Beg_Year) %>%
+  summarise(Capacity_Added = sum(In_Cap))%>%
+  mutate(Year=Beg_Year)%>%
+  subset(select=c(Primary_Fuel,Year,Capacity_Added))
+
+RetdatadataTot <- Retdata%>%
+  group_by(Primary_Fuel, End_Year) %>%
+  summarise(Capacity_Retired = sum(In_Cap))%>%
+  mutate(Year=End_Year)%>%
+  subset(select=c(Primary_Fuel,Year,Capacity_Retired))
+
+# Get summary for each year!
+Tot_Change<-merge(BuilddataTot,RetdatadataTot,by=c("Primary_Fuel","Year"), all.x = TRUE, all.y = TRUE)
+
+# Replace NA values with 0
+Tot_Change[is.na(Tot_Change)]=0
+
+# Find the capacity difference in given year
+Tot_Change <- Tot_Change %>%
+  mutate(diff=Capacity_Added-Capacity_Retired)
+
+Tot_Change$Year <- as.factor(format(Tot_Change$Year, format="%Y"))
+
+# Sum all up
+Tot <- Tot_Change %>%
+  group_by(Year) %>%
+  summarise(maxy = sum(diff[which(diff>0)]), miny = sum(diff[which(diff<0)]))
+
+# Capacity limits for plot
+mny <- plyr::round_any(min(Tot$miny),1000, f=floor)
+mxy <- plyr::round_any(max(Tot$maxy),1000, f=ceiling)
+
+# Year limits for plot. Add 365 to get the year after the first
+mnx <- format(min(ResGroupMn$Time_Period), format="%Y")
+mxx <- format(max(ResGroupMn$Time_Period)-365*5, format="%Y")
+
+# Plot it all
+Tot_Change %>%
+  ggplot() +
+  aes(Year, (diff), fill = Primary_Fuel) +
+  geom_col(alpha=0.7, size=.5, colour="black") +
+  
+  # Add line at y=0
+  geom_hline(yintercept=0, color = "black")+
+  
+  theme_bw() +
+  
+  theme(
+    # General Plot Settings
+    panel.grid = element_blank(),
+    # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+    plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+    panel.background = element_rect(fill = "transparent"), # Transparent background
+    text = element_text(size = GenText_Sz),                # Text size
+    plot.title = element_text(size = Tit_Sz,hjust = 0.5),  # Plot title size (if present)
+    plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+    #panel.grid.major.y = element_line(size=0.25,
+    #linetype=1,color = 'gray90'),                         # Adds horizontal lines
+    # X-axis
+    axis.text.x = element_text(angle = 45,
+                               vjust = 1, hjust = 1),          # Horizontal text
+    axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+    # Y-axis
+    axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+    # Legend
+    legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+    legend.position = "right",                             # Move legend to the bottom
+    legend.justification = c(0.5,0.5),                     # Center the legend
+    legend.text = element_text(size =Leg_Sz),              # Size of legend text
+    legend.title=element_text()) +                         # Legend title
+  
+  scale_x_discrete(expand=c(0.05,0.05),
+                   limits = as.character(mnx:mxx)) +
+  scale_y_continuous(expand=c(0,0),
+                     limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000)) +
+  scale_fill_manual(values=colours8,drop = FALSE) +
+  
+  labs(x = "Year", y = "Annual Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
+}
+
 
 ################################################################################  
 ## FUNCTION: Units

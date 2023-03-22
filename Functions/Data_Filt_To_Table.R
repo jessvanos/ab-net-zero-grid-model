@@ -125,7 +125,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
 # Bring in Resource Year Table and filter for relevant data. Format date columns
   Add_Ret_data <- ResYr%>%
     sim_filt6(.) %>% #Filter to rename fuels
-    subset(., select=c(Name,Condition,Capacity,Peak_Capacity,End_Date,Beg_Date,
+    subset(., select=c(Name,Condition,Capacity,Nameplate_Capacity,End_Date,Beg_Date,
                        Run_ID,Primary_Fuel,Time_Period,Capacity_Factor)) %>%
     filter(Run_ID == case)%>%
     mutate(Time_Period=as.numeric(Time_Period),
@@ -146,34 +146,31 @@ AnnaulDataExcel<- function(ScenarioName,case){
                                                "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
                                                "Cogeneration"))
   
-  # Replace the capacity with the peak / actual capacity and not just what is available
-  for (i in 1:length(Add_Ret_data$Capacity)) {
-    if (Add_Ret_data[i,"Capacity"]<Add_Ret_data[i,"Peak_Capacity"]) {
-      Add_Ret_data[i,"Capacity"] <- Add_Ret_data[i,"Peak_Capacity"]
-    }
-  }
-  
   # FILTER CAP RETIREMENTS
   #Further filter peak capacity >0 (it is not yet retired), and end date = time period (to ensure you dont get doubles)
   Retdata <- Add_Ret_data%>%
-    filter(.,Capacity>0) %>% 
+    group_by(Name)%>%
+    mutate(In_Cap=max(Nameplate_Capacity))%>%
+    ungroup()%>%
     filter(End_Year==Time_Period)%>%
-    subset(select=c("Name","Capacity","Primary_Fuel","Capacity_Factor","Beg_Date","Beg_Year","End_Date","End_Year"))%>%
+    subset(select=c("Name","In_Cap","Primary_Fuel","Capacity_Factor","Beg_Date","Beg_Year","End_Date","End_Year"))%>%
     mutate(Type="Retirement")%>%
     arrange(.,End_Date)
-  
+
   # FILTER CAP ADDITIONS
   Builddata <- Add_Ret_data %>%
     filter(Beg_Year >= 2022,
-           Capacity>0,
            Beg_Year==Time_Period) %>%
-    select(., c("Name","Capacity","Primary_Fuel","Capacity_Factor","Beg_Date","Beg_Year","End_Date","End_Year")) %>%
+    group_by(Name)%>%
+    mutate(In_Cap=max(Nameplate_Capacity))%>%
+    ungroup()%>%
+    select(., c("Name","In_Cap","Primary_Fuel","Capacity_Factor","Beg_Date","Beg_Year","End_Date","End_Year")) %>%
     mutate(Type="Addition")%>%
     arrange(.,Beg_Date)
   
   # Add cap increases manual
   Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
-                     Capacity=c(800),
+                     In_Cap=c(800),
                      Primary_Fuel=c("Cogeneration"),
                      Capacity_Factor=NA,
                      Beg_Date=c(as.Date("07/01/2024", 
@@ -190,9 +187,9 @@ AnnaulDataExcel<- function(ScenarioName,case){
   # PUT ALL TOGETHER!
   Indv_Change <-rbind(Retdata,Builddata) %>%
     mutate(Sim_Name=paste(SourceDB),
-           Capacity=round(Capacity,digits=1),
+           In_Cap=round(In_Cap,digits=1),
            Capacity_Factor=round(Capacity_Factor,digits=2)) %>%
-    rename("Capacity (MW)"=Capacity,
+    rename("Installed Capacity (MW)"=In_Cap,
            "Plant Type"=Primary_Fuel,
            "Average Capacity Factor"=Capacity_Factor,
            "End Date"=End_Date,
@@ -203,14 +200,14 @@ AnnaulDataExcel<- function(ScenarioName,case){
   # NOW PUT IT ALL TOGETHER TO GET TOTALS BY RESOURCE TYPE
   BuilddataTot <- Builddata%>%
     group_by(Primary_Fuel, Beg_Year) %>%
-    summarise(Capacity_Added = sum(Capacity))%>%
+    summarise(Capacity_Added = sum(In_Cap))%>%
     mutate(Year=Beg_Year,
            Capacity_Added=round(Capacity_Added,digits=0))%>%
     subset(select=c(Primary_Fuel,Year,Capacity_Added))
   
   RetdatadataTot <- Retdata%>%
     group_by(Primary_Fuel, End_Year) %>%
-    summarise(Capacity_Retired = sum(Capacity))%>%
+    summarise(Capacity_Retired = sum(In_Cap))%>%
     mutate(Year=End_Year,
            Capacity_Retired=round(Capacity_Retired,digits=0))%>%
     subset(select=c(Primary_Fuel,Year,Capacity_Retired))

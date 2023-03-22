@@ -1100,8 +1100,150 @@ WeekDSM <- function(year, month, day, case) {
     scale_fill_manual(values = colours1) 
 }
           
+##############################################################################
+# Bring in Resource Year Table and filter for relevant data. Format date columns
+Add_Ret_data <- ResYr%>%
+  sim_filt6(.) %>% #Filter to rename fuels
+  subset(., select=c(Name,Condition,Capacity,Nameplate_Capacity,End_Date,Beg_Date,
+                     Run_ID,Primary_Fuel,Time_Period,Capacity_Factor)) %>%
+  filter(Run_ID == case)%>%
+  mutate(Time_Period=as.numeric(Time_Period),
+         End_Date=as.Date(End_Date,format = "%m/%d/%Y"),
+         End_Year=year(End_Date),
+         Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
+         Beg_Year=year(Beg_Date))%>%
+  filter(Condition == "Average",
+         Time_Period<=2035) 
+
+# Set levels to each category in order specified
+Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
+                                    levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                             "Blended  Simple Cycle","Blended  Combined Cycle",
+                                             "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                             "Hydro", "Other",
+                                             "Wind", "Solar", 
+                                             "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
+                                             "Cogeneration"))
+
+# FILTER CAP RETIREMENTS
+#Further filter peak capacity >0 (it is not yet retired), and end date = time period (to ensure you dont get doubles)
+Retdata <- Add_Ret_data%>%
+  group_by(Name)%>%
+  mutate(In_Cap=max(Nameplate_Capacity))%>%
+  ungroup()%>%
+  filter(End_Year==Time_Period)%>%
+  subset(select=c("Name","In_Cap","Primary_Fuel","Capacity_Factor","Beg_Date","Beg_Year","End_Date","End_Year"))%>%
+  mutate(Type="Retirement")%>%
+  arrange(.,End_Date)
+
+# FILTER CAP ADDITIONS
+Builddata <- Add_Ret_data %>%
+  filter(Beg_Year >= 2022,
+         Beg_Year==Time_Period) %>%
+  group_by(Name)%>%
+  mutate(In_Cap=max(Nameplate_Capacity))%>%
+  ungroup()%>%
+  select(., c("Name","In_Cap","Primary_Fuel","Capacity_Factor","Beg_Date","Beg_Year","End_Date","End_Year")) %>%
+  mutate(Type="Addition")%>%
+  arrange(.,Beg_Date)
+
+# Add cap increases manual
+Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
+                   In_Cap=c(800),
+                   Primary_Fuel=c("Cogeneration"),
+                   Capacity_Factor=NA,
+                   Beg_Date=c(as.Date("07/01/2024", 
+                                      format = "%m/%d/%Y")),
+                   Beg_Year=c(2024),
+                   End_Date=NA,
+                   End_Year=NA,
+                   Type="Addition")
+
+# Add the manual plant to the rest
+Builddata <-  rbind(Builddata,Capinc)%>%
+  arrange(.,Beg_Date)
+
+# NOW PUT IT ALL TOGETHER TO GET TOTALS BY RESOURCE TYPE
+BuilddataTot <- Builddata%>%
+  group_by(Primary_Fuel, Beg_Year) %>%
+  summarise(Capacity_Added = sum(In_Cap))%>%
+  mutate(Year=Beg_Year)%>%
+  subset(select=c(Primary_Fuel,Year,Capacity_Added))
+
+RetdatadataTot <- Retdata%>%
+  group_by(Primary_Fuel, End_Year) %>%
+  summarise(Capacity_Retired = sum(In_Cap))%>%
+  mutate(Year=End_Year)%>%
+  subset(select=c(Primary_Fuel,Year,Capacity_Retired))
+
+# Get summary for each year!
+Tot_Change<-merge(BuilddataTot,RetdatadataTot,by=c("Primary_Fuel","Year"), all.x = TRUE, all.y = TRUE)
+
+# Replace NA values with 0
+Tot_Change[is.na(Tot_Change)]=0
+
+# Find the capacity difference in given year
+Tot_Change <- Tot_Change %>%
+  mutate(diff=Capacity_Added-Capacity_Retired)
           
           
-          
+  ##########
+
+Tot_Change$Year <- as.factor(format(Tot_Change$Year, format="%Y"))
+
+# Sum all up
+Tot <- Tot_Change %>%
+  group_by(Year) %>%
+  summarise(maxy = sum(diff[which(diff>0)]), miny = sum(diff[which(diff<0)]))
+
+# Capacity limits for plot
+mny <- plyr::round_any(min(Tot$miny),1000, f=floor)
+mxy <- plyr::round_any(max(Tot$maxy),1000, f=ceiling)
+
+# Year limits for plot. Add 365 to get the year after the first
+mnx <- format(min(ResGroupMn$Time_Period), format="%Y")
+mxx <- format(max(ResGroupMn$Time_Period)-365*5, format="%Y")
+
+# Plot it all
+Tot_Change %>%
+  ggplot() +
+  aes(Year, (diff), fill = Primary_Fuel) +
+  geom_col(alpha=0.7, size=.5, colour="black") +
   
+  # Add line at y=0
+  geom_hline(yintercept=0, color = "black")+
+  
+  theme_bw() +
+  
+  theme(
+    # General Plot Settings
+    panel.grid = element_blank(),
+    # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+    plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+    panel.background = element_rect(fill = "transparent"), # Transparent background
+    text = element_text(size = GenText_Sz),                # Text size
+    plot.title = element_text(size = Tit_Sz,hjust = 0.5),  # Plot title size (if present)
+    plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+    #panel.grid.major.y = element_line(size=0.25,
+    #linetype=1,color = 'gray90'),                         # Adds horizontal lines
+    # X-axis
+    axis.text.x = element_text(angle = 45,
+                               vjust = 1, hjust = 1),          # Horizontal text
+    axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+    # Y-axis
+    axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+    # Legend
+    legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+    legend.position = "right",                             # Move legend to the bottom
+    legend.justification = c(0.5,0.5),                     # Center the legend
+    legend.text = element_text(size =Leg_Sz),              # Size of legend text
+    legend.title=element_text()) +                         # Legend title
+  
+  scale_x_discrete(expand=c(0.05,0.05),
+                   limits = as.character(mnx:mxx)) +
+  scale_y_continuous(expand=c(0,0),
+                     limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000)) +
+  scale_fill_manual(values=colours8,drop = FALSE) +
+  
+  labs(x = "Year", y = "Annual Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
   

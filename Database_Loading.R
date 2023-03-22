@@ -79,7 +79,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Mar_19_2023"
+  SourceDB<-"LZ_Mar_20_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -784,7 +784,7 @@ CaseName <- "Limit to Zero"
       # 1 - wind, 2 - Solar, 3 - Storage, 4 - Natural gas, 5 - Hydrogen and Natural gas blend, 
       # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
       ResValue_Annual(1,BC)
-      SaveRun_Loc(CaseName,"Annual Nomminal Value New Gas")
+      SaveRun_Loc(CaseName,"Annual Nomminal Value New Wind")
       
       # Shows new resource value added up to be cumulative (nominal values to each year)
       ResValue_Total(2,BC)
