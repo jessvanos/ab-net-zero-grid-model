@@ -365,13 +365,16 @@ HourlyDataExcel<- function(ScenarioName,case){
 ################################################################################
  ZoneHrData <- ZoneHr_Avg %>%
    mutate(Year = year(date),
+          Month=month(date),
+          Day=day(date),
+          Hour=hour(date),
           Date=as.Date(date),
           Time=format(date,"%H:%M:%S"),
           Scenario=SourceDB) %>%
    filter(Year<=2035) %>%
    arrange(.,date) %>%
    subset(select=c(Date,Time,Price,Demand,Net_Load,
-                   Marginal_Resource,Imports,Exports,Scenario)) %>%
+                   Marginal_Resource,Imports,Exports,Year,Month,Day,Scenario)) %>%
    rename("Price ($/MWh)"=Price,
           "Demand (MW)"=Demand,
           "Net Load (MW)"=Net_Load,
@@ -393,12 +396,19 @@ HourlyDataExcel<- function(ScenarioName,case){
           Type=="CO2") %>%
    # Make cost in dollars, and convert Ton to tonne
    mutate(Year=year(date),
+          Month=month(date),
+          Day=day(date),
+          Hour=hour(date),
+          Date=as.Date(date),
+          Time=format(date,"%H:%M:%S"),
+          Scenario=SourceDB,
           Emissions_Cost=Cost*1000,
           Emissions_Tonne=Amount*0.90718474) %>%
    # Filter out dates after 2035
    filter(Year<=2035) %>%
+    arrange(.,date) %>%
    # Chose what to keep
-   subset(., select=c(ID,Year,Emissions_Tonne,Emissions_Cost))%>%
+   subset(., select=c(Date,Time,ID,Emissions_Tonne,Emissions_Cost,Year,Month,Day,Scenario))%>%
    rename(Plant_Type=ID)
  
  # Resource groups over entire year
@@ -408,7 +418,12 @@ HourlyDataExcel<- function(ScenarioName,case){
    filter(Condition == "Average") %>%
    # Convert all costs to dollars from $000
  mutate(Year=year(date),
-        Sim_Name=paste(SourceDB),
+        Month=month(date),
+        Day=day(date),
+        Hour=hour(date),
+        Date=as.Date(date),
+        Time=format(date,"%H:%M:%S"),
+        Scenario=paste(SourceDB),
         Revenue=Revenue*1000,
         Total_Fuel_Cost=Total_Fuel_Cost*1000,
         Fixed_Cost=Fixed_Cost*1000,
@@ -418,12 +433,13 @@ HourlyDataExcel<- function(ScenarioName,case){
         Capacity=round(Capacity,digits=0)) %>%
    # Filter out dates after 2035
    filter(Year<=2035) %>%
+   arrange(.,date) %>%
    # Choose what to keep
-   subset(., select=c(ID,Year,Output_MWH,Capacity,
+   subset(., select=c(Date,Time,ID,Output_MWH,Capacity,
                       Dispatch_Cost,
                       Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,
-                      Revenue,Value,
-                      Capacity_Factor,Sim_Name)) %>%
+                      Revenue,Value,Capacity_Factor,
+                      Year,Month,Day,Scenario)) %>%
      rename(Plant_Type=ID)%>%
    rename("Plant Type"=Plant_Type,
           "Output (MWh)"=Output_MWH,
@@ -436,29 +452,7 @@ HourlyDataExcel<- function(ScenarioName,case){
 
    # Clear un-used 
    gc()
- 
-   # # Combine the Emissions information with the annual resource information 
-   # AllDataGrHr<-merge(DataGrHr,DataGrEmHr,by=c("Plant_Type","Year"), all.x = TRUE)
-   # 
-   # # Re-sort the columns
-   # AllDataGrHr <- AllDataGrHr %>%
-   #   subset(., select=c(Plant_Type,Year,Output_MWH,Capacity,
-   #                      Dispatch_Cost,
-   #                      Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,
-   #                      Emissions_Tonne,Emissions_Cost,
-   #                      Revenue,Value,
-   #                      Capacity_Factor,Sim_Name)) %>%
-   #   rename("Plant Type"=Plant_Type,
-   #          "Output (MWh)"=Output_MWH,
-   #          "Capacity (MW)"=Capacity_MW,
-   #          "Average Dispatch Cost ($MWh)"=Avg_Dispatch_Cost,
-   #          "Fuel Usage (GJ)"=Fuel_Usage_GJ,
-   #          "Fuel Cost"=Total_Fuel_Cost,
-   #          "Fixed Cost"=Fixed_Cost,
-   #          "Variable O&M Cost"=Variable_OM_Cost,
-   #          "Emissions (tonnes)"=Emissions_Tonne,
-   #          "Emissions Cost"=Emissions_Cost,
-   #          "Capacity Factor"=Capacity_Factor)
+
     
 ################################################################################
 ## SEND ALL TO ONE EXCEL FILE
@@ -466,7 +460,7 @@ HourlyDataExcel<- function(ScenarioName,case){
    
    dataset_names <-list('1 Hourly Resource Group Data'=DataGrHr,
                         '2 Hourly Emission Data'=DataGrEmHr,
-                        '2 Hourly System Data'=ZoneHrData)
+                        '3 Hourly System Data'=ZoneHrData)
    
    filename <-paste("Hourly_Data_",ScenarioName,"_",SourceDB,".xlsx")
    

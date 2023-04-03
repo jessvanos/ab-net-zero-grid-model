@@ -193,7 +193,7 @@ RetireMW <- function(case) {
     
     labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
     
-    scale_x_continuous(expand = c(0.05, 0.05),
+    scale_x_continuous(expand = c(0.05, 0.05),limits = c(MinYr,MaxYr),
                        breaks=seq(MinYr, MaxYr, by=1),position = "top") +
     
     scale_y_continuous(expand=c(0,0),

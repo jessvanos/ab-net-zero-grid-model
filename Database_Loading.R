@@ -79,12 +79,12 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Mar_20_2023"
+  SourceDB<-"HS_31_Mar_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
                    Driver = "SQL Server",
-                   Server = rstudioapi::askForPassword("Server(IP_Addess,Port)"),
+                   Server = rstudioapi::askForPassword("Server(IP_Address,Port)"),
                    Database = SourceDB,
                    UID = rstudioapi::askForPassword("User Name"),
                    PWD = rstudioapi::askForPassword("Password"))  
@@ -636,7 +636,7 @@
 }
 
 # Create folder name to save as
-CaseName <- "Limit to Zero"
+CaseName <- "High Storage"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -787,7 +787,7 @@ CaseName <- "Limit to Zero"
       SaveRun_Loc(CaseName,"Annual Nomminal Value New Wind")
       
       # Shows new resource value added up to be cumulative (nominal values to each year)
-      ResValue_Total(2,BC)
+      ResValue_Total(4,BC)
       SaveRun_Loc(CaseName,"Cummulative nominal value")
       
       # Net present value of all plants in resource group
