@@ -79,7 +79,7 @@
 ################################################################################
 
 { #Input Database Name below:
-  SourceDB<-"HS_31_Mar_2023"
+  SourceDB<-"RM_24_Apr_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -636,7 +636,7 @@
 }
 
 # Create folder name to save as
-CaseName <- "High Storage"
+CaseName <- "No Reserve Margin"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
