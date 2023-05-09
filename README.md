@@ -4,12 +4,12 @@ Code and functions to visually analyze large groups of forecasting energy data. 
 
 ## CONTENTS
 
--   [CODE FILES](#code_files)
+-   [CODE FILES](#code-files)
     -   [Database_Loading](#database_loading)
     -   [AESO_TradeAnalysis](#aeso_tradeanalysis)
     -   [Link_Shaping](#link_shaping)
-    -   [DrLeach_Code](#drleach_code)
--   [FUNCTION FILES](#function_files)
+    -   [Referenced_Code](#referenced_code)
+-   [FUNCTION FILES](#function-files)
     -   [Build_Retire_Functions](#build_retire_functions)
     -   [Data_Filt_To_Table](#data_filt_to_table)
     -   [Developing_Functions](#developing_functions)
@@ -18,10 +18,10 @@ Code and functions to visually analyze large groups of forecasting energy data. 
     -   [other_functions](#other_functions)
     -   [Output_Gen_Functions](#output_gen_functions)
     -   [Price_Functions](#price_functions)
-    -   [Res_Filter_Functions](#res_filter_functons)
+    -   [Res_Filter_Functions](#res_filter_functions)
     -   [Table_Functions](#table_functions)
-    -   [aseo_eval_1](#aeso_eval_1)
-    -   [aseo_sim_comp_1](#aeso_sim_comp_1)
+    -   [aeso_eval_1](#aeso_eval_1)
+    -   [aeso_sim_comp_1](#aeso_sim_comp_1)
 
 ## CODE FILES
 
@@ -36,8 +36,13 @@ The sections referencing AESO data and filtering this data can be skipped if no 
 ##### *Database_Loading Special Notes:*
 
 -   *Make sure the R project file (ab-net-zero-grid-model) is open first or "here" commands will not function.*
--   *Before running, create folder called "Data Files" in the project directory and populate it with other (AESO) data. This just prevents said data from being uploaded to GitHub*
+-   *Before running, create a folder called "Data Files"  in the project directory and populate it with other (AESO) data. This just prevents said data from being uploaded to GitHub*
     -   *This folder is referenced in the .gitignore file*
+-   *A folder called "Figures (Local)" should also be created in the project directory of R, this allows figures to be saved locally as opposed to on GitHub.*
+        -   *This folder is referenced in the .gitignore file*
+    
+    ![image](https://github.com/jessvanos/ab-net-zero-grid-model/assets/105378838/86945249-4d38-4473-aa94-22c5ac95648e)
+    
 -   *Once this file is run through completion, can call any functions as long as the right tables have been loaded in!*
 
 ### <ins>AESO_TradeAnalysis
@@ -54,13 +59,13 @@ Script imports data and analyses intertie behavior.
 
 Code that was used to gather and format historical intertie data.
 
-### <ins>DrLeach_Code
+### <ins>Referenced_Code
 
 Helper codes adapted from Dr. Andrew Leach and Taylor Pawlenchuk
 
 ## FUNCTION FILES
 
-> Functions are organized into categories and stored in respective code files. For each function, there is a short description bellow, for more details (including inputs and required tables) see .R file.
+> Functions are found in the ["Functions"](https://github.com/jessvanos/ab-net-zero-grid-model/tree/main/Functions) folder and are organized into categories and stored in respective code files. For each function, there is a short description bellow, for more details (including inputs and required tables) see .R file.
 
 ### <ins>Build_Retire_Functions<ins>
 
@@ -262,7 +267,7 @@ Functions To use for summarizing data within R environment.
 
 -   *Build_A\_Totals* : Report the capacity built for each fuel type in the study by year. Aurora new builds only.
 
-### <ins>aseo_eval_1
+### <ins>aeso_eval_1
 
 Functions used to used to plot and analyze other (AESO) data. Some functions based on code from Taylor Pawlenchuk (Retrieved June 3, 2022).
 
@@ -320,7 +325,7 @@ Functions used to used to plot and analyze other (AESO) data. Some functions bas
 
 -   *T_month_all* : All trade for each month over one year.
 
-### <ins>aseo_sim_comp_1
+### <ins>aeso_sim_comp_1
 
 Functions used to compare simulation data with other/actual data. Some functions have been adapted from Taylor Pawlenchuk (Retrieved June 14, 2022).
 
