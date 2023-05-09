@@ -1,134 +1,361 @@
 # **NET ZERO GRID MODELING**
 
-Code and functions to visually analyze large groups of forecasting energy data.
+Code and functions to visually analyze large groups of forecasting energy data. Data is taken from SQL server databases, excel files, and .R files.
 
 ## CONTENTS
 
--   [CODE FILES](#code-files)
-    -   [Database_Loading](#database-loading)
-    -   [AESO_TradeAnalysis](#sec-insaeso_tradeanalysis)
-    -   [Link_Shaping](#link-shaping)
-    -   [DrLeach_Code](#drleach-code)
--   [FUNCTION FILES](#function-files)
-    -   [aseo_eval_1](#sub-heading-1)
-    -   [aseo_sim_comp_1](#sub-heading-2)
-    -   [intertie_info](#sub-heading-3)
-    -   [Net_Zero_eval](#sub-heading-4)
-    -   [net_zero_tables](#sub-heading-5)
+-   [CODE FILES]
+    -   [Database_Loading]
+    -   [AESO_TradeAnalysis]
+    -   [Link_Shaping]
+    -   [DrLeach_Code]
+-   [FUNCTION FILES]
+    -   [aseo_eval_1]
+    -   [aseo_sim_comp_1]
+    -   [Build_Retire_Functions]
+    -   [Data_Filt_To_Table]
+    -   [Developing_Functions]
+    -   [Emission_Functions]
+    -   [Intertie_Functions]
     -   [other_functions](#sub-heading-6)
-    -   [sim_eval_1](#sub-heading-7)
+    -   [Output_Gen_Functions]
+    -   [Price_Functions]
+    -   [Res_Filter_Functions]
+    -   [Table_Functions]
 
-## CODE FILES {#code-files}
+## CODE FILES
 
-Files to be run following each simulation. Database Loading is the main code, the rest are useful in specific situaitons only.
+> Files to be run following each simulation. Database Loading is the main code, the rest are useful in specific situations only.
 
-### <ins>Database_Loading
+### [Database_Loading]{.underline}
 
 Contains the main code which is used to load data from Microsoft SQL server into the R environment. The script the imports chosen tables, filters required information, and formats dates. The code also contains format information for figures such as legend colors, text sizes, and names.
 
 The sections referencing AESO data and filtering this data can be skipped if no comparison is needed.
 
-###### *Database_Loading Special Notes:*
+##### *Database_Loading Special Notes:*
 
 -   *Make sure the R project file (ab-net-zero-grid-model) is open first or "here" commands will not function.*
 -   *Before running, create folder called "Data Files" in the project directory and populate it with other (AESO) data. This just prevents said data from being uploaded to GitHub*
     -   *This folder is referenced in the .gitignore file*
 -   *Once this file is run through completion, can call any functions as long as the right tables have been loaded in!*
 
-### <ins>AESO_TradeAnalysis {#sec-insaeso_tradeanalysis}
+### [AESO_TradeAnalysis]{.underline}
 
 Script imports data and analyses intertie behavior.
 
-###### *AESO_TradeAnalysis Special Notes:*
+##### *AESO_TradeAnalysis Special Notes:*
 
 -   *Make sure the project file is open first or "here" commands wont work right.*
--   *Before running, create folder called "Data Files" withen project directory and populate it with AESO data.*
+-   *Before running, create folder called "Data Files" within project directory and populate it with AESO data.*
 -   *Once this file is run through completion, can call any functions with environment that is loaded.*
 
-### <ins>Link_Shaping
+### [Link_Shaping]{.underline}
 
 Code that was used to gather and format historical intertie data.
 
-### <ins>DrLeach_Code
+### [DrLeach_Code]{.underline}
 
-Helper codes addapted from Dr. Andrew Leach and Taylor Pawlenchuk
+Helper codes adapted from Dr. Andrew Leach and Taylor Pawlenchuk
 
-## FUNCTION FILES {#function-files}
+## FUNCTION FILES
 
-Functions are organized into categories and stored in respective code files. For each function, there is a short description bellow, for more details (including inputs and required tables) see .R file.
+> Functions are organized into categories and stored in respective code files. For each function, there is a short description bellow, for more details (including inputs and required tables) see .R file.
 
-### <ins>aseo_eval_1
+### [Build_Retire_Functions]{.underline}
 
-Functions To used to plot and analyze other (AESO) data.
-
-#### Functions:
-
-### <ins>aseo_sim_comp_1
-
-Functions To used to compare simulation data with other data.
+Functions to evaluate the electricity grid as it approaches possible net zero states. These functions focus on resource additions and retirements.
 
 #### Functions:
 
-### <ins>Build_Retire_Functions
+-   *Retirecol* : Plotting the resources retired as a bar chart.
+
+-   *RetireMW* : Plotting the resource capacity retired as a bar chart.
+
+-   *Builtcol* : Plotting the resources built as a bar chart. This is not the best visual when partial builds are allowed! Partial builds limits the capacity but not the actual number of units.
+
+-   *Build_A\_MW* : Plotting the capacity of resources built by Aurora (does not include AESO que projects).
+
+-   *BuildMW* : Plotting the built capacity for ALL new resources (resource table and new resource table).
+
+-   *Eval_diffcap* : Shows capacity changes each year. The first year of data does not have a prior capacity to compare to, so it is not used.
+
+-   *Eval_diffcap2* : Shows capacity changes each year. The first year of data does not have a prior capacity to compare to, so it is not used.
+
+-   *Units* : Unit specific bar chart showing builds by unit for certain resource type (ex: "WND").
+
+-   *Slack* : Unit specific bar chart showing units not built (or available) for certain resource type.
+
+-   *BuildUnits* : Show units built compared to available ones for a resource type.
+
+### [Data_Filt_To_Table]{.underline}
+
+Filters and organizes annual and hourly data, sends to an excel file which can be easily interpreted and exported to other programs.
 
 #### Functions:
 
-### <ins>Data_Filt_To_Table
+-   *AnnaulDataExcel* : Writes all relevant annual data to an excel file on different sheets.
+
+-   HourlyDataExcel : Writes all relevant hourly data to an excel file on different sheets.
+
+##### *Data_Filt_To_Table Special Notes:*
+
+-   *Excel sheets will be written to the "Data Files" folder stored locally within the R project. If the name is not changes it will be over-written when running again.*
+
+### [Developing_Functions]{.underline}
+
+Functions that are not completed yet and are not yet categorized. Space to test functions out. When functions are de-bugged and working they will be moved to a different file.
+
+### [Emission_Functions]{.underline}
+
+Functions to evaluate and show emissions.
 
 #### Functions:
 
-### <ins>Developing Functions
+-   *AnnualEmStackCol* : Plot annual emissions by resource group as as stacked chart.
+
+-   *AnnualEmLine* : Plot annual emissions by resource group as as line chart.
+
+### [Intertie_Functions]{.underline}
+
+Functions To use for plotting and evaluating intertie activities. Also shows information on trade and what is happening in BC/MT/SK.
 
 #### Functions:
 
-### <ins>Emission_Functions
+-   *Imp_Exp1 :* AB imports and exports plotted as yearly totals.
 
-#### Functions:
+-   *Imp_Exp2 :* AB imports and exports plotted as annual chart, shows hourly patterns.
 
-### <ins>Intertie_Functions
+-   *BC_SK_IE :* BC and SK imports and exports.
 
-Functions To use for plotting and evaluating intertie activities.
+-   *MN_Trade_Price* : Get trade and price each month to compare.
 
-#### Functions:
+-   *MN_TradeOnly* : AB imports and exports and pool price for specific month.
 
--   <ins>*Imp_Exp*</ins>
+-   *T_month_all_Sim* : All trade for each month over one year.
 
-    -   AB imports and exports plotted as yearly totals.
+##### *Intertie_Functions Special Notes:*
 
--   <ins>*BC_SK_IE*</ins>
+-   *HR FIT Functions are also included in this file. These were used to build and analyze historical trade patterns.*
 
-    -   BC and SK imports and exports.
-
-### <ins><ins>other_functions
+### [other_functions]{.underline}
 
 Additional functions to use, not related the data itself.
 
 #### Functions:
 
--   <ins>*packs_check*</ins>
+-   *packs_check :* Checks if packages are installed, installs them if not, and loads required functions.
 
-    -   Checks if packages are installed, installs them if not, and loads required functions.
+-   *imsave_git :* Save most recent plot to git folder with transparent background.
 
--   <ins>*imsave_git*</ins>
+-   *imsave_loc :* Save most recent plot to local folder with transparent background.
 
-    -   Save most recent plot to git folder with transparent background.
+-   *SaveRun_Loc* : Saves all plots to a new folder names after case.
 
--   <ins>*imsave_loc*</ins>
+-   *yhour* : Get the hour of year associated with a date in the form "%Y-%m-%d %H:%M:%S" (EX: Jan 1 at 1:00 = 0001, Dec 31 at 23:00 = 8760).
 
-    -   Save most recent plot to local folder with transparent background.
+-   *round_any* : Use to round value to a certain accuracy.
 
-### <ins>Output_Gen_Functions
+-   *HrTime* : Convert the date and select a subset for one day from the data pulled in.
+
+-   *WkTime* : Convert the date and select a subset for one week from the data pulled in.
+
+-   *YrDay_Time* : Convert the date and select a subset for specific year and day.
+
+-   *YrTime* : Convert the date and select a subset for one week from the data pulled in.
+
+### [Output_Gen_Functions]{.underline}
+
+Functions to use for plotting and evaluating simulation data on resource outputs and generation. Also plots other miscalaneous things not covered elsewhere
+
+#### Functions:
+
+-   *Week1* : Plots output for a single week given the case study.
+
+-   *day1* : Plots output for a single day given the case study.
+
+-   *Stor1* : Weekly storage output.
+
+-   *Evalyr* : Plotting year profiles of resource output.
+
+-   *Evalcap* : Plotting month/year profiles of resource capacity.
+
+-   *EvalPerc* : Year/month profiles as a percentage of the total.
+
+-   *Output_Comp* : Plotting the capacity of resources individually for selected years as side by side bar charts.
+
+-   *AnnualDemand* : Plot average demand in zone.
+
+-   *CFcompare* : Compares capacity factor for two chosen years. Modified from Taylor Pawlenchuk.
+
+-   *CF_Annual* : Compares capacity factor for two chosen years. Similar to plot seen on page 10 of AESOs net zero report dashboard.
+
+-   *Wind_Dur* : Plot wind duration curve in chosen years as % Hours vs Fleet Output (MW).
+
+-   *Wind_DurNorm* : Plot wind duration curve in chosen years as % hours vs output as percent of max.
+
+-   *Week12* : Plots output for a single week given the case study. Supporting function To be used in year of weeks function.
+
+-   *year_weeks* : Plots output for a single week given the case study.
+
+-   *PrOt* : Plots pool price over one week of output data.
+
+-   *PrOut* : Plots pool price over one week of output data with storage utilization.
+
+### [Price_Functions]{.underline}
+
+Functions related to technology capture prices, pool prices, and other cost related material.
 
 #### Functions:
 
-### <ins>Price_Functions
+-   *week_price* : Electricity wholesale pool price for one week.
+
+-   *Sim_dur* : Simulation duration curve ploted each year. The price duration curve represents the percentage of hours in which pool price equaled or exceeded a specified level.
+
+-   *AvgMn_price* : Plots monthly average pool price with average internal load.
+
+-   *poolprice_2year* : A function to plot the Monthly average pool price (Like in the AESO Market Report 2021 Figure 1).
+
+-   *AvgYr_poolprice* : Plots monthly average pool price with average internal load.
+
+-   *System_Cost* : Describes the average system costs incured by all resources in the system.
+
+-   *ResValue_Annual* : Shows the annual value of new resoruces based on plant type. Define the Resource type based on number. 1 - wind, 2- Solar, 3 - Storage, 4 - Natural gas, 5- Hydrogen and Natural gas blend, 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas).
+
+-   *ResValue_Total* : Shows the cumulative annaul value of new resources based on plant type. Define the Resource type based on number. 1 - wind, 2- Solar, 3 - Storage, 4 - Natural gas, 5- Hydrogen and Natural gas blend, 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas).
+
+-   *ResValue_NPV* : Shows the net present value in 2023. 1 - wind, 2- Solar, 3 - Storage, 4 - Natural gas, 5- Hydrogen and Natural gas blend, 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas).
+
+### [Res_Filter_Functions]{.underline}
+
+Functions to select and sort certain resource groups for other functions to use. A collection of filters.
 
 #### Functions:
 
-### <ins>Res_Filter_Functions
+-   *sim_filt* : This function filters for the data that will be evaluated by ID.
+
+-   *sim_filt1* : This function filters for the data that will be evaluated by ID, more detail (breaks up natural gas into combined and simple cycle).
+
+-   *sim_filt2* : This function filters for the data that will be evaluated by primary fuel type.
+
+-   *sim_filt3* : This function filters for the data that will be evaluated. Same as 2, with coal removed and storage into 3 components.
+
+-   *sim_filt4* : This function filters for the data that will be evaluated. Same as 3, however only includes Aurora build options and is based on Fuel Type.
+
+-   *sim_filt5* : This function filters for the data that will be evaluated by ID. Seperates in detail (inclusive of storage types).
+
+-    *sim_filt6* : This function filters for EVERYTHING - based on Primary Fuel Type.
+
+-   *sim_filtEm* : This function filters for emission releasing resources, filtered by ID.
+
+-   *sim_filtFuel* : This function filters for the data that will be evaluated. Same as 3, however only includes Aurora build options and is based on Fuel Type.
+
+### [Table_Functions]{.underline}
+
+Functions To use for summarizing data within R environment.
 
 #### Functions:
 
-### <ins>Table_Functions
+-   *Report_P* : Report average zone prices in a table, organized by condition (average, peak, off-peak), year, and optionally zone).
+
+-   *Build_Totals* : Report the capacity built for each fuel type in the study by year. Includes manually added additions.
+
+-   *Build_A\_Totals* : Report the capacity built for each fuel type in the study by year. Aurora new builds only.
+
+### [aseo_eval_1]{.underline}
+
+Functions used to used to plot and analyze other (AESO) data. Some functions based on code from Taylor Pawlenchuk (Retrieved June 3, 2022).
 
 #### Functions:
+
+-   *plnt_tr* : Identify specific plant traits.
+
+-   *Week_act* : Plot actual AESO output for a single week.
+
+-   *wkPrice* : Plot AESO pool price.
+
+-   *cap_pf*
+
+-   *hrc*
+
+-   *cap_offer*
+
+-   *cap_offermn*
+
+-   *var_label*
+
+-   *cdata*
+
+-   *cap_type*
+
+-   *table_type*
+
+-   *table_data*
+
+-   *graph_type*
+
+-   *var_label*
+
+-   *Cap3*
+
+-   *Cap4*
+
+-   *yearly_dmd*
+
+-   *monthly_dmd_ave*
+
+-   *AESO_PrOt* : Price and output side-by-side.
+
+-   *Trade_Mn_AESO* : AB import and export with pool price for selected month.
+
+-   *TradeOnly_Mn_AESO* : AB import and export for selected month.
+
+-   *Trade_Yr_AESO* : AB import and export for a single year.
+
+-   *Duration_AESO* : AB import and export along with pool price for a specific year.
+
+-   *Wind_Dur_AESO* : Wind duration curve in chosen year as % Hours vs Fleet Output (MW).
+
+-   *Wind_DurNorm_AESO* : Plot wind duration curve in chosen years as % Hours vs output as Percent of max
+
+-   *T_month_all* : All trade for each month over one year.
+
+### [aseo_sim_comp_1]{.underline}
+
+Functions used to compare simulation data with other/actual data. Some functions have been adapted from Taylor Pawlenchuk (Retrieved June 14, 2022).
+
+#### Functions:
+
+-   *AESO_SimOP* : Plot comparison between actual and simulated data.
+
+-   *AESO_SimP* : Plot comparison between actual and simulated data price for 1 week.
+
+-   *AESO_SimP2* : Plot comparison between actual and simulated data price for 1 week.
+
+-   *AESO_SimO* : Plot comparison between actual and simulated data generation.
+
+-   *rev_dur* : Plot difference between simulated and actual revenues.
+
+-   *year_comp* : Plots the difference in Pool Price between AESO and Sim.
+
+-   *year_dif* : Bar plot showing the difference between AESO and Sim.
+
+-   *year_avg* : Bar chart comparing monthly average pool prices.
+
+-   *year_pool* : A function to plot the Monthly average pool price; like in the AESO Market Report 2021 Figure 1.
+
+-   *comp_dur* : Plots the Pool Price duration vs percentile for AESO and Sim; like AESO Market Report 2021 Figures 2 and 3.
+
+-   *load_dur* : Plots the load duration vs percentile for AESO and Sim; like AESO Market Report 2021 Figures 7 and 8
+
+-   *tech_cap* : Plots the capacity factor by technology for AESO and Sim; like AESO Market Report 2021 Figure 15.
+
+-   *margin* : Plots the marginal price-setting technology for AESO and Sim; like AESO Market Report 2021 Figure 19.
+
+-   *tot_cap* : Plots the year-end capacity by technology for AESO and Sim; like AESO Market Report 2021 Figure 11.
+
+-   *AESOSim*
+
+-   *AESO_Sim_WindDur* : Plot comparison between actual and simulated wind duration curves.
+
+-   *AESO_Sim_WindDurNorm* : Plot comparison between actual and simulated wind duration curves.
