@@ -4,30 +4,30 @@ Code and functions to visually analyze large groups of forecasting energy data. 
 
 ## CONTENTS
 
--   [CODE FILES]
-    -   [Database_Loading]
-    -   [AESO_TradeAnalysis]
-    -   [Link_Shaping]
-    -   [DrLeach_Code]
--   [FUNCTION FILES]
-    -   [aseo_eval_1]
-    -   [aseo_sim_comp_1]
-    -   [Build_Retire_Functions]
-    -   [Data_Filt_To_Table]
-    -   [Developing_Functions]
-    -   [Emission_Functions]
-    -   [Intertie_Functions]
-    -   [other_functions](#sub-heading-6)
-    -   [Output_Gen_Functions]
-    -   [Price_Functions]
-    -   [Res_Filter_Functions]
-    -   [Table_Functions]
+-   [CODE FILES](#code_files)
+    -   [Database_Loading](#database_loading)
+    -   [AESO_TradeAnalysis](#aeso_tradeanalysis)
+    -   [Link_Shaping](#link_shaping)
+    -   [DrLeach_Code](#drleach_code)
+-   [FUNCTION FILES](#function_files)
+    -   [Build_Retire_Functions](#build_retire_functions)
+    -   [Data_Filt_To_Table](#data_filt_to_table)
+    -   [Developing_Functions](#developing_functions)
+    -   [Emission_Functions](#emission_functions)
+    -   [Intertie_Functions](#intertie_functions)
+    -   [other_functions](#other_functions)
+    -   [Output_Gen_Functions](#output_gen_functions)
+    -   [Price_Functions](#price_functions)
+    -   [Res_Filter_Functions](#res_filter_functons)
+    -   [Table_Functions](#table_functions)
+    -   [aseo_eval_1](#aeso_eval_1)
+    -   [aseo_sim_comp_1](#aeso_sim_comp_1)
 
 ## CODE FILES
 
 > Files to be run following each simulation. Database Loading is the main code, the rest are useful in specific situations only.
 
-### [Database_Loading]{.underline}
+### <ins>Database_Loading
 
 Contains the main code which is used to load data from Microsoft SQL server into the R environment. The script the imports chosen tables, filters required information, and formats dates. The code also contains format information for figures such as legend colors, text sizes, and names.
 
@@ -40,7 +40,7 @@ The sections referencing AESO data and filtering this data can be skipped if no 
     -   *This folder is referenced in the .gitignore file*
 -   *Once this file is run through completion, can call any functions as long as the right tables have been loaded in!*
 
-### [AESO_TradeAnalysis]{.underline}
+### <ins>AESO_TradeAnalysis
 
 Script imports data and analyses intertie behavior.
 
@@ -50,11 +50,11 @@ Script imports data and analyses intertie behavior.
 -   *Before running, create folder called "Data Files" within project directory and populate it with AESO data.*
 -   *Once this file is run through completion, can call any functions with environment that is loaded.*
 
-### [Link_Shaping]{.underline}
+### <ins>Link_Shaping
 
 Code that was used to gather and format historical intertie data.
 
-### [DrLeach_Code]{.underline}
+### <ins>DrLeach_Code
 
 Helper codes adapted from Dr. Andrew Leach and Taylor Pawlenchuk
 
@@ -62,7 +62,7 @@ Helper codes adapted from Dr. Andrew Leach and Taylor Pawlenchuk
 
 > Functions are organized into categories and stored in respective code files. For each function, there is a short description bellow, for more details (including inputs and required tables) see .R file.
 
-### [Build_Retire_Functions]{.underline}
+### <ins>Build_Retire_Functions<ins>
 
 Functions to evaluate the electricity grid as it approaches possible net zero states. These functions focus on resource additions and retirements.
 
@@ -88,7 +88,7 @@ Functions to evaluate the electricity grid as it approaches possible net zero st
 
 -   *BuildUnits* : Show units built compared to available ones for a resource type.
 
-### [Data_Filt_To_Table]{.underline}
+### <ins>Data_Filt_To_Table<ins>
 
 Filters and organizes annual and hourly data, sends to an excel file which can be easily interpreted and exported to other programs.
 
@@ -102,11 +102,11 @@ Filters and organizes annual and hourly data, sends to an excel file which can b
 
 -   *Excel sheets will be written to the "Data Files" folder stored locally within the R project. If the name is not changes it will be over-written when running again.*
 
-### [Developing_Functions]{.underline}
+### <ins>Developing_Functions
 
 Functions that are not completed yet and are not yet categorized. Space to test functions out. When functions are de-bugged and working they will be moved to a different file.
 
-### [Emission_Functions]{.underline}
+### <ins>Emission_Functions
 
 Functions to evaluate and show emissions.
 
@@ -116,7 +116,7 @@ Functions to evaluate and show emissions.
 
 -   *AnnualEmLine* : Plot annual emissions by resource group as as line chart.
 
-### [Intertie_Functions]{.underline}
+### <ins>Intertie_Functions<ins>
 
 Functions To use for plotting and evaluating intertie activities. Also shows information on trade and what is happening in BC/MT/SK.
 
@@ -138,7 +138,7 @@ Functions To use for plotting and evaluating intertie activities. Also shows inf
 
 -   *HR FIT Functions are also included in this file. These were used to build and analyze historical trade patterns.*
 
-### [other_functions]{.underline}
+### <ins>other_functions
 
 Additional functions to use, not related the data itself.
 
@@ -164,7 +164,7 @@ Additional functions to use, not related the data itself.
 
 -   *YrTime* : Convert the date and select a subset for one week from the data pulled in.
 
-### [Output_Gen_Functions]{.underline}
+### <ins>Output_Gen_Functions
 
 Functions to use for plotting and evaluating simulation data on resource outputs and generation. Also plots other miscalaneous things not covered elsewhere
 
@@ -202,7 +202,7 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 
 -   *PrOut* : Plots pool price over one week of output data with storage utilization.
 
-### [Price_Functions]{.underline}
+### <ins>Price_Functions
 
 Functions related to technology capture prices, pool prices, and other cost related material.
 
@@ -226,7 +226,7 @@ Functions related to technology capture prices, pool prices, and other cost rela
 
 -   *ResValue_NPV* : Shows the net present value in 2023. 1 - wind, 2- Solar, 3 - Storage, 4 - Natural gas, 5- Hydrogen and Natural gas blend, 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas).
 
-### [Res_Filter_Functions]{.underline}
+### <ins>Res_Filter_Functions
 
 Functions to select and sort certain resource groups for other functions to use. A collection of filters.
 
@@ -250,7 +250,7 @@ Functions to select and sort certain resource groups for other functions to use.
 
 -   *sim_filtFuel* : This function filters for the data that will be evaluated. Same as 3, however only includes Aurora build options and is based on Fuel Type.
 
-### [Table_Functions]{.underline}
+### <ins>Table_Functions
 
 Functions To use for summarizing data within R environment.
 
@@ -262,7 +262,7 @@ Functions To use for summarizing data within R environment.
 
 -   *Build_A\_Totals* : Report the capacity built for each fuel type in the study by year. Aurora new builds only.
 
-### [aseo_eval_1]{.underline}
+### <ins>aseo_eval_1
 
 Functions used to used to plot and analyze other (AESO) data. Some functions based on code from Taylor Pawlenchuk (Retrieved June 3, 2022).
 
@@ -320,7 +320,7 @@ Functions used to used to plot and analyze other (AESO) data. Some functions bas
 
 -   *T_month_all* : All trade for each month over one year.
 
-### [aseo_sim_comp_1]{.underline}
+### <ins>aseo_sim_comp_1
 
 Functions used to compare simulation data with other/actual data. Some functions have been adapted from Taylor Pawlenchuk (Retrieved June 14, 2022).
 
