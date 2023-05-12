@@ -78,8 +78,9 @@
 ## CONNECT TO MICROSOFT SQL SERVER
 ################################################################################
 
+
 { #Input Database Name below:
-  SourceDB<-"RM_24_Apr_2023"
+  SourceDB<-"LZ_Mar_22_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -549,6 +550,14 @@
           # Special Groups
               cOL_DSM <-"grey10"
 
+          ### DELTE LATER. ##
+              # Plot all colors used
+              Legend_PlotAll(0.7)
+              
+              # Plot main colors used
+              Legend_PlotMain(0.7)
+          ####
+              
    ## Now Define Lists to assign legends and colors in plots
      colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                 "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
@@ -636,7 +645,7 @@
 }
 
 # Create folder name to save as
-CaseName <- "No Reserve Margin"
+CaseName <- "LZ Testing"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -801,6 +810,8 @@ CaseName <- "No Reserve Margin"
       # Hourly data
       HourlyDataExcel(CaseName,BC)
       
+      # Misc Annual Data for sheets
+      CompareDataExcel(CaseName,BC)
 
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS!
@@ -1035,6 +1046,9 @@ CaseName <- "No Reserve Margin"
     # Hourly data
     HourlyDataExcel("BAU",BC)
     
+    # Misc Annual Data for sheets
+    CompareDataExcel("BAU",BC)
+    
 ################################################################################
 ## Developing Functions (Developing_Functions)
 ################################################################################
@@ -1050,6 +1064,15 @@ CaseName <- "No Reserve Margin"
     
     # Single day output for single resource group
     day2(2022,01,11,BC,"WIND",10000)  
+    
+################################################################################
+## OTHER FUNCTIONS
+################################################################################    
+    # Plot all colors used
+    Legend_PlotAll(0.7)
+    
+    # Plot main colors used
+    Legend_PlotMain(0.7)
     
 ################################################################################
 ## AESO FUNCTIONS

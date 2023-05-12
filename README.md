@@ -101,7 +101,9 @@ Filters and organizes annual and hourly data, sends to an excel file which can b
 
 -   *AnnaulDataExcel* : Writes all relevant annual data to an excel file on different sheets.
 
--   HourlyDataExcel : Writes all relevant hourly data to an excel file on different sheets.
+-   *HourlyDataExcel* : Writes all relevant hourly data to an excel file on different sheets.
+
+-   *CompareDataExcel* : Writes selected annual data to an excel file on different sheets.
 
 ##### *Data_Filt_To_Table Special Notes:*
 
@@ -168,6 +170,10 @@ Additional functions to use, not related the data itself.
 -   *YrDay_Time* : Convert the date and select a subset for specific year and day.
 
 -   *YrTime* : Convert the date and select a subset for one week from the data pulled in.
+
+-   *Legend_PlotAll* : Plot legend for all things referenced in other plots.
+
+-   *Legend_PlotMain* : Plot legend for main things referenced in other plots.
 
 ### <ins>Output_Gen_Functions
 

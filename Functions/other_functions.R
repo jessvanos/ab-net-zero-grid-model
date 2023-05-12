@@ -4,7 +4,7 @@
 #
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: June 14, 2022; LAST EDIT: January 6, 2023
+# CREATED: June 14, 2022; LAST EDIT: May 11, 2023
 ################################################################################
 
 ################################################################################
@@ -187,3 +187,63 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
   
 }
 }
+
+################################################################################
+## FUNCTION: Legend_PlotAll
+## Plot legend for all things referenced in other plots
+################################################################################
+Legend_PlotAll <- function(InputAplha){
+
+plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1) +
+legend("center", 
+       legend =c("Nuclear","Cogeneration", "Coal",
+                 "Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                 "Blended  Simple Cycle","Blended  Combined Cycle",
+                 "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                 "Natural Gas Combined Cycle + CCS",
+                 "Hydro", "Other", "Wind", 
+                 "Solar",  "Storage - Battery", 
+                 "Storage - Compressed Air", "Storage - Pumped Hydro",
+                 "Import","Export"),
+       
+       pch=16,          # Type of point
+       pt.cex=2,        # Expansion factor for points relative to text
+       title.cex=1.5,     # Expansion factor for title relative to text
+       bty='o',         # Box around legend
+       ncol=2,          # Allow two columns for legend
+       col = alpha(c(cOL_NUCLEAR,cOL_COGEN, cOL_COAL,
+               cOL_NGConv,cOL_SCGT_H2,cOL_NGCC_H2,
+               cOL_SCGT_Blend,cOL_NGCC_Blend,
+               cOL_SCGT, cOL_NGCC, 
+               cOL_NGCC_CCS,
+               cOL_HYDRO, cOL_OTHER, cOL_WIND, 
+               cOL_SOLAR,  COL_Battery, 
+               COL_CompAir,COL_Pumped,
+               cOL_IMPORT,cOL_EXPORT),InputAplha),
+       title=c("Legend"))
+}
+################################################################################
+## FUNCTION: Legend_PlotMain
+## Plot legend for main things referenced in other plots
+################################################################################
+Legend_PlotMain <- function(InputAplha){
+plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1) +
+  legend("center", 
+         legend =c("Cogeneration", "Coal","Coal-to-Gas","Hydrogen",
+                   "Natural Gas and Hydrogen Blend","Natural Gas","Natural Gas Combined Cycle + CCS",
+                   "Hydro", "Other", "Wind", "Solar",  "Storage",
+                   "Import","Export"),
+         
+         pch=16,          # Type of point
+         pt.cex=2,        # Expansion factor for points relative to text
+         title.cex=1.5,     # Expansion factor for title relative to text
+         bty='o',         # Box around legend
+         ncol=1,          # Allow two columns for legend
+         col = alpha(c(cOL_COGEN, cOL_COAL,cOL_NGConv,COL_H2,
+                 COL_Blend,COL_NatGas,cOL_NGCC_CCS,
+                 cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR,  cOL_STORAGE,
+                 cOL_IMPORT,cOL_EXPORT),InputAplha),
+         title=c("Legend"))
+}
+
+
