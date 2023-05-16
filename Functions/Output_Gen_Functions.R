@@ -293,8 +293,9 @@
     
     # Get storage data
     StorData <- ResGroupHr_sub%>%
-      filter(ID=="LTO_Storage") %>%
-      filter(Run_ID == case)
+      filter(ID=="LTO_Storage",
+             Run_ID == case,
+             Report_Year == year)
     
     # Select only a single week
     WK_Stor <- WkTime(StorData,year,month,day)
@@ -306,10 +307,10 @@
     # Select only a single week using function WkTime
     WK_Price <- WkTime(PriceData,year,month,day)
     
-    # Set the max and min for the plot. Add factor to move price plot up
-    MX <- plyr::round_any(max(abs(WK_Stor$Output_MWH)), 10, f = ceiling)+MX*0.2
+    # Set the max and min for the plot using annual max storage. Add factor to move price plot up
+    MX <- plyr::round_any(max(abs(StorData$Output_MWH)), 10, f = ceiling)*1.2
     ylimStor<-c(-MX,MX)
-    ylimPrice<-c(-1000,1000)
+    ylimPrice<-c(-1050,1050)
     
     b <- diff(ylimStor)/diff(ylimPrice)
     a <- ylimStor[1] - b*ylimPrice[1] 
@@ -318,8 +319,9 @@
     ggplot() +
       geom_area(data = WK_Stor, aes(x = date, y = Output_MWH,fill="Storage"), 
                 alpha=0.7, size=.5, colour="black") +
+      geom_hline(yintercept=0, color = "black", size=0.5)+
       geom_line(data = WK_Price, aes(x = date, y = a + Price*b), 
-                size = 1, colour = "black",linetype=1) +
+                size = 1.25, colour = "darkred",linetype=1) +
       
       # Set up plot look and feel
       theme_bw() +
@@ -328,7 +330,7 @@
       # Set the theme for the plot
       theme(panel.grid = element_blank(),
             axis.text.x=element_text(vjust = 0),
-            plot.title = element_text(size=Tit_Sz),
+            plot.title = element_text(size=Overall_Sz),
             legend.title = element_blank(),
             legend.position = "none",
             axis.title.x = element_text(size=XTit_Sz,face='bold',vjust = -1),
@@ -339,8 +341,9 @@
       ) +
       scale_x_datetime(expand=c(0,0),date_labels = "%b-%e",breaks = "day") +
       
-      scale_y_continuous(name="Storage Output(MWh)",
+      scale_y_continuous(name="Storage Output (MWh)",
                          breaks = seq(-MX, MX, by = MX/4), 
+                         limits = c(-MX,MX),
                          sec.axis = sec_axis(~(. - a)/b, name="Pool Price ($/MWh)",
                          breaks = seq(0,1000,by=250))) +
       
@@ -348,9 +351,7 @@
             axis.text.y.left = element_text(color = cOL_STORAGE), 
             axis.title.y.left = element_text(color = cOL_STORAGE)) +
       
-      labs(x = paste("Date (",year,")")) +
-      
-      geom_hline(yintercept=0, color = "black", size=0.5)+
+      labs(x = paste("Date (",year,")"),title=month.abb[month]) +
       
       scale_fill_manual(values = cOL_STORAGE)
   }
@@ -1319,3 +1320,114 @@ year_weeks <- function(year,case) {
               ncol = 1, align="v", axis = "l",rel_heights = c(1,1,2.5))
   }
 
+################################################################################
+## FUNCTION: year_stor
+## Plots output of storage and pool price for a single week given the case study.
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResHr - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+  year_stor <- function(year,case) {
+    
+    
+    # Create a graph for each month of the year
+    p1 <- Stor2(year,01,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    
+    p2 <- Stor2(year,02,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    p3 <- Stor2(year,03,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    p4 <- Stor2(year,04,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    p5 <- Stor2(year,05,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    p6 <- Stor2(year,06,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    p7 <- Stor2(year,07,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    p8 <- Stor2(year,08,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    p9 <- Stor2(year,09,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    p10 <- Stor2(year,10,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    p11 <- Stor2(year,11,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    p12 <- Stor2(year,12,08,case) +
+      theme(axis.title.y.left=element_blank(),
+            axis.title.y.right=element_blank(),
+            axis.title.x=element_blank())
+    
+    # Plot Labels
+    yleft <- textGrob("Storage Output (MWh)", rot = 90, gp = gpar(fontsize = 15,col=cOL_STORAGE))
+    yright <- textGrob("Wholesale Pool Price ($/MWh)", rot = -90, gp = gpar(fontsize = 15))
+    bottom <- textGrob("Date", gp = gpar(fontsize = 15))
+    
+    # Cheat way to put an x title in
+    xtitle <- ggplot() +
+      annotate("text", x = 10,  y = 10,
+               size = 6,
+               label = "Date") + 
+      theme_void()
+    
+    # Label the source and year
+    xsubtitle <- ggplot() +
+      annotate("text", x = 10,  y = 10,
+               size = 4,
+               label = paste("Year:",year,", Database:",SourceDB)) + 
+      theme_void()
+    
+    #Create a big window
+    windows(18,12)
+    
+    # Arrange all the plots
+    grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+                 plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+                 plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+                 plot_grid(xtitle),
+                 plot_grid(xsubtitle),
+                 ncol=1,nrow=5, 
+                 heights=c(1, 1,1,0.1,0.1),
+                 left=yleft,
+                 right=yright)
+    
+    
+  }

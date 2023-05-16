@@ -549,14 +549,6 @@
                 
           # Special Groups
               cOL_DSM <-"grey10"
-
-          ### DELTE LATER. ##
-              # Plot all colors used
-              Legend_PlotAll(0.7)
-              
-              # Plot main colors used
-              Legend_PlotMain(0.7)
-          ####
               
    ## Now Define Lists to assign legends and colors in plots
      colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
@@ -644,6 +636,14 @@
   beep(3)
 }
 
+### DELTE LATER. ##
+# Plot all colors used
+Legend_PlotAll(0.7)
+
+# Plot main colors used
+Legend_PlotMain(0.7)
+####
+
 # Create folder name to save as
 CaseName <- "Delete Later"
 
@@ -664,6 +664,14 @@ CaseName <- "Delete Later"
           
           year_weeks(2035,BC)
           SaveRun_Loc(CaseName,"2035 Hourly Generation for One Week (Stacked Area)")
+      
+          
+      # One year of weeks for storage output and pool price
+      year_stor(2035,BC)
+      SaveRun_Loc(CaseName,"2035 Storage Output with Pool Price")
+          
+          year_stor(2023,BC)
+          SaveRun_Loc(CaseName,"2023 Storage Output with Pool Price")
       
       # Save all full size images
       windows(14,10,buffered=FALSE)
@@ -833,7 +841,9 @@ CaseName <- "Delete Later"
     # Gives weekly storage function
     Stor1(2035,01,08,BC)
     
-    Stor2(2035,01,08,BC)
+    # Gives weekly storage function with pool price
+    Stor2(2023,02,08,BC)
+    
     # Gives overall picture of Output over time period
     Evalyr(BC)
     
@@ -871,6 +881,8 @@ CaseName <- "Delete Later"
     # Wind duration curve with Output normalized
     Wind_DurNorm(BC)
     
+    # One year of weeks for storage output and pool price
+    year_stor(2035,BC)
 ################################################################################    
 ## Price Functions (Price_Functions)
 ################################################################################
