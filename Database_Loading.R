@@ -645,7 +645,7 @@
 }
 
 # Create folder name to save as
-CaseName <- "LZ Testing"
+CaseName <- "Delete Later"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -831,8 +831,9 @@ CaseName <- "LZ Testing"
     day1(2022,11,07,BC)
 
     # Gives weekly storage function
-    Stor1(2021,01,08,BC)
+    Stor1(2035,01,08,BC)
     
+    Stor2(2035,01,08,BC)
     # Gives overall picture of Output over time period
     Evalyr(BC)
     
@@ -859,10 +860,10 @@ CaseName <- "LZ Testing"
     year_weeks(2022,BC)
     
     # Shows pool price over a week of resource group outputs
-    PrOt(2022,09,09,BC)
+    PrOt(2035,01,08,BC)
     
     # Shows pool price over a week of resource group outputs, includes storage utilization
-    PrOut(2022,09,09,BC)
+    PrOut(2035,01,08,BC)
     
     # Wind duration curve with output as is
     Wind_Dur(BC)

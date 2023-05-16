@@ -59,9 +59,9 @@ week_price <- function(year, month, day,case) {
     labs(y = "Pool Price ($/MWh)", x="Date",fill = "Resource",caption=SourceDB) +
     scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "day",date_labels = "%b-%e") +
     scale_y_continuous(expand=c(0,0), 
-                       limits= c(0,MX),
+                       limits= c(0,1000),
                        #                       labels = label_number(accuracy = 1),
-                       breaks = seq(0, MX, by = MX/4)
+                       breaks = seq(0, 1000, by = 100)
     )
 }
 

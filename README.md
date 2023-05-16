@@ -187,6 +187,8 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 
 -   *Stor1* : Weekly storage output.
 
+-   *Stor2* : Weekly storage output with pool price overlaid.
+
 -   *Evalyr* : Plotting year profiles of resource output.
 
 -   *Evalcap* : Plotting month/year profiles of resource capacity.
@@ -212,6 +214,8 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 -   *PrOt* : Plots pool price over one week of output data.
 
 -   *PrOut* : Plots pool price over one week of output data with storage utilization.
+
+-   *year_stor* : Plots storage output and pool price for one week of each month for selected year.
 
 ### <ins>Price_Functions
 

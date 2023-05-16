@@ -250,7 +250,7 @@
       geom_area(data = WK, aes(x = date, y = Output_MWH,fill="Storage"), 
                 alpha=0.7, size=.5, colour="black") +
       ggtitle(year)+
-      
+
       # Set the theme for the plot
       theme_bw() +
       
@@ -263,16 +263,98 @@
             legend.position = "none",
             axis.title.x = element_text(size=XTit_Sz,face='bold',vjust = -1),
             axis.title.y = element_text(size=YTit_Sz,face='bold'),
-            text = element_text(size= Overall_Sz)
+            text = element_text(size= Overall_Sz),
+            panel.grid.major.y = element_line(size=0.25,
+            linetype=2,color = 'gray90'),                         # Adds horizontal lines
       ) +
       scale_x_datetime(expand=c(0,0),date_labels = "%b-%e",breaks = "day") +
-      scale_y_continuous(breaks = seq(-MX, MX, by = MX), 
+      scale_y_continuous(breaks = seq(-MX, MX, by = MX/4), 
                          limits = c(-MX-1,MX+1),
                          labels = label_number(accuracy = 1)) +
       labs(x = "Date", y = "Storage (MWh)") +
+      
+      geom_hline(yintercept=0, color = "black", size=0.5)+
+      
       scale_fill_manual(values = cOL_STORAGE)
   }
   
+################################################################################  
+## FUNCTION: Stor2
+## Weekly storage output with pool price.
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+################################################################################
+  
+  Stor2 <- function(year, month, day, case) {
+    
+    # Get storage data
+    StorData <- ResGroupHr_sub%>%
+      filter(ID=="LTO_Storage") %>%
+      filter(Run_ID == case)
+    
+    # Select only a single week
+    WK_Stor <- WkTime(StorData,year,month,day)
+    
+    # Get price data
+    PriceData <- ZoneHr_Avg%>%
+      filter(Run_ID == case)
+    
+    # Select only a single week using function WkTime
+    WK_Price <- WkTime(PriceData,year,month,day)
+    
+    # Set the max and min for the plot. Add factor to move price plot up
+    MX <- plyr::round_any(max(abs(WK_Stor$Output_MWH)), 10, f = ceiling)+MX*0.2
+    ylimStor<-c(-MX,MX)
+    ylimPrice<-c(-1000,1000)
+    
+    b <- diff(ylimStor)/diff(ylimPrice)
+    a <- ylimStor[1] - b*ylimPrice[1] 
+    
+    # PLOT DATA  
+    ggplot() +
+      geom_area(data = WK_Stor, aes(x = date, y = Output_MWH,fill="Storage"), 
+                alpha=0.7, size=.5, colour="black") +
+      geom_line(data = WK_Price, aes(x = date, y = a + Price*b), 
+                size = 1, colour = "black",linetype=1) +
+      
+      # Set up plot look and feel
+      theme_bw() +
+      theme(text=element_text(family=Plot_Text)) +
+      
+      # Set the theme for the plot
+      theme(panel.grid = element_blank(),
+            axis.text.x=element_text(vjust = 0),
+            plot.title = element_text(size=Tit_Sz),
+            legend.title = element_blank(),
+            legend.position = "none",
+            axis.title.x = element_text(size=XTit_Sz,face='bold',vjust = -1),
+            axis.title.y = element_text(size=YTit_Sz,face='bold'),
+            text = element_text(size= Overall_Sz),
+            panel.grid.major.y = element_line(size=0.25,
+                                              linetype=2,color = 'gray90'),                         # Adds horizontal lines
+      ) +
+      scale_x_datetime(expand=c(0,0),date_labels = "%b-%e",breaks = "day") +
+      
+      scale_y_continuous(name="Storage Output(MWh)",
+                         breaks = seq(-MX, MX, by = MX/4), 
+                         sec.axis = sec_axis(~(. - a)/b, name="Pool Price ($/MWh)",
+                         breaks = seq(0,1000,by=250))) +
+      
+      theme(axis.ticks.y.left = element_line(color = cOL_STORAGE),
+            axis.text.y.left = element_text(color = cOL_STORAGE), 
+            axis.title.y.left = element_text(color = cOL_STORAGE)) +
+      
+      labs(x = paste("Date (",year,")")) +
+      
+      geom_hline(yintercept=0, color = "black", size=0.5)+
+      
+      scale_fill_manual(values = cOL_STORAGE)
+  }
+    
 ################################################################################  
 ## FUNCTION: Evalyr 
 ## Plotting year profiles of resource output

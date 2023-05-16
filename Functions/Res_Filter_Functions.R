@@ -142,8 +142,6 @@
       filter(Primary_Fuel=="Coal Canada West") 
     Cogen  <- inputdata %>%
       filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
-    Other <- inputdata %>%
-      filter(Primary_Fuel=="Other, Bio, ZZ, WC, WH")
     Hydro <- inputdata %>%
       filter(Primary_Fuel=="Water")
     Solar <- inputdata %>%
@@ -158,7 +156,12 @@
     # Get NG Units as defined in Resource Table
     CCCT1 <- inputdata %>%
       filter(Primary_Fuel=="WECC-Alberta NaturalGas")
-    # More tricky to separate ones
+    
+    # Other
+    Other <- inputdata %>%
+      filter(Primary_Fuel %in% c('Other, ZZ, WC, WH','Other, Bio, ZZ, WC, WH','Biomass'))%>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Other"))
+    
     NG2AB <- inputdata %>%
       filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
               
@@ -224,7 +227,7 @@
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
       "NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
       "NG-SCCT","CC-CCS","WECC-Alberta NaturalGas",
-      "Water", "Other, Bio, ZZ, WC, WH",
+      "Water", "Other",
       "Wind", "Solar", "Storage", 
       "Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
     
@@ -247,8 +250,6 @@
     # Straight foreward part
     Cogen  <- inputdata %>%
       filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
-    Other <- inputdata %>%
-      filter(Primary_Fuel=="Other, Bio, ZZ, WC, WH")
     Hydro <- inputdata %>%
       filter(Primary_Fuel=="Water")
     Solar <- inputdata %>%
@@ -259,6 +260,11 @@
       filter(Primary_Fuel=="Wind")  
     Nuclear <-inputdata %>%
       filter(Primary_Fuel=="Uranium") 
+    
+    # Other
+    Other <- inputdata %>%
+      filter(Primary_Fuel %in% c('Other, ZZ, WC, WH','Other, Bio, ZZ, WC, WH','Biomass'))%>%
+      mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Other"))
     
     # Blended Combined cycle
     CC_Blend <-inputdata %>%
@@ -338,7 +344,6 @@
     Stor_CA <- Storage  %>%    
       filter(Primary_Fuel=="Storage - CompressedAir") 
     
-    
   }
   
   # Combine the grouped data
@@ -348,7 +353,7 @@
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
       "NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
       "NG-SCCT","CC-CCS","WECC-Alberta NaturalGas",
-      "Water", "Other, Bio, ZZ, WC, WH",
+      "Water", "Other",
       "Wind", "Solar", 
       "Storage - Battery", "Storage - CompressedAir","Storage - HydroPumped",
       "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
@@ -372,8 +377,6 @@
 { sim_filt4 <- function(inputdata) {
   {
     # Straight foreward part
-    Other <- inputdata %>%
-      filter(Fuel_Type=="OT")
     Hydro <- inputdata %>%
       filter(Fuel_Type=="WAT")
     Solar <- inputdata %>%
@@ -382,6 +385,11 @@
       filter(Fuel_Type=="WND")  
     Nuclear <-inputdata %>%
       filter(Fuel_Type=="UR") 
+    
+    # Other
+    Other <- inputdata %>%
+      filter(Fuel_Type %in% c('OT','BIO'))%>%
+      mutate(Fuel_Type=ifelse(is.na(Fuel_Type),NA,"Other"))
     
     # Storage Types
     Stor_B <-    inputdata %>%    
@@ -504,8 +512,12 @@ sim_filt5 <- function(inputdata) {
       filter(Primary_Fuel=="Coal Canada West") 
      Cogen  <- inputdata %>%
       filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
+
+    # Other
     Other <- inputdata %>%
-      filter(Primary_Fuel=="Other, Bio, ZZ, WC, WH")
+       filter(Primary_Fuel %in% c('Other, ZZ, WC, WH','Other, Bio, ZZ, WC, WH','Biomass'))%>%
+        mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Other"))
+     
     Hydro <- inputdata %>%
       filter(Primary_Fuel=="Water")
     Solar <- inputdata %>%
@@ -605,7 +617,7 @@ sim_filt5 <- function(inputdata) {
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
       "Coal Canada West","NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
       "NG-SCCT","CC-CCS","WECC-Alberta NaturalGas",
-      "Water", "Other, Bio, ZZ, WC, WH",
+      "Water", "Other",
       "Wind", "Solar", 
       "Storage - Battery", "Storage - CompressedAir","Storage - HydroPumped",
       "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
@@ -678,7 +690,9 @@ sim_filt5 <- function(inputdata) {
   {
     # Straight up parts
     Other <- inputdata %>%
-      filter(ID=="OT")
+      filter(ID %in% c("OT","BIO"))%>%
+      mutate(ID=ifelse(is.na(ID),NA,"OT"))
+    
     Hydro <- inputdata %>%
       filter(ID=="WAT")
     Solar <- inputdata %>%
