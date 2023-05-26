@@ -80,7 +80,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Mar_22_2023"
+  SourceDB<-"NZ_TIx3_May_25_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -645,7 +645,7 @@ Legend_PlotMain(0.7)
 ####
 
 # Create folder name to save as
-CaseName <- "Delete Later"
+CaseName <- "Forced Net Zero - 3x Trade Capacity V1"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS

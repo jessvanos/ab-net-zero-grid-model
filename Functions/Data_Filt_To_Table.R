@@ -48,6 +48,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
            Revenue=Revenue*1000,
            Total_Fuel_Cost=Total_Fuel_Cost*1000,
            Fixed_Cost=Fixed_Cost*1000,
+           Fixed_Cost_Base=Fixed_Cost_Base*1000,
            Variable_OM_Cost=Variable_OM_Cost*1000,
            Value=Value*1000,
            Storage_Charging_Cost*1000,
@@ -57,7 +58,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
     # Choose what to keep
     subset(., select=c(ID,Year,Output_MWH,Capacity,
                        Dispatch_Cost,Fuel_Usage,
-                       Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,
+                       Total_Fuel_Cost,Fixed_Cost,Fixed_Cost_Base,Variable_OM_Cost,
                        Revenue,Value,
                        Total_Hours_Run,Percent_Marginal,
                        Capacity_Factor,Sim_Name)) %>%
@@ -91,7 +92,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
   AllDataGrYr <- AllDataGrYr %>%
     subset(., select=c(Plant_Type,Year,Output_MWH,Capacity_MW,
                        Avg_Dispatch_Cost,Fuel_Usage_GJ,
-                       Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,
+                       Total_Fuel_Cost,Fixed_Cost_Base,Fixed_Cost,Variable_OM_Cost,
                        Emissions_Tonne,Emissions_Cost,
                        Revenue,Value,
                        Total_Hours_Run,Percent_Marginal,
@@ -107,6 +108,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
            "Fuel Usage (GJ)"=Fuel_Usage_GJ,
            "Fuel Cost"=Total_Fuel_Cost,
            "Fixed Cost"=Fixed_Cost,
+           "Fixed O&M"=Fixed_Cost_Base,
            "Variable O&M Cost"=Variable_OM_Cost,
            "Emissions (tonnes)"=Emissions_Tonne,
            "Emissions Cost"=Emissions_Cost,

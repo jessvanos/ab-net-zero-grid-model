@@ -128,7 +128,7 @@ Sim_dur <- function(case) {
 AvgMn_price <- function(case) {
   
   # Source function written by Dr. Leach
-  source("DrLeach_Code.R")
+  source("Referenced_Code.R")
   
   # Filter the zone hourly table for specific case
   data <- ZoneHr %>%
