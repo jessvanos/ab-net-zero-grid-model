@@ -88,6 +88,43 @@ imsave_loc <- function(name) {
   
 }
   
+################################################################################
+## FUNCTION: SaveIm_Loc
+## Saves all plots to a new folder names after case
+##
+## INPUTS: 
+##    CaseName - name for folder. Enter as "folder"
+##    FileName - Name for image. Enter as "name"
+################################################################################
+#NEEDS WORK
+SaveIm_Loc <- function(CaseName,FileName) {
+  
+  # Set up folder if it does not exist
+  fold_name<-paste(CaseName)
+  
+  # Check if folder exists, if not, make one
+  if (file.exists(here("Figures (Local)",paste(fold_name)))) {
+    
+    cat("The folder exists\n")
+    
+  } else {
+    
+    # Create the folder
+    FoldLocation <-
+      dir.create(here("Figures (Local)",paste(fold_name)))
+    
+  }
+  
+  # Create file name
+  FileName <-paste(FileName)
+  
+  # Save to a local file as exactly what is shown on the windows()
+  savePlot(
+    filename = here(paste("Figures (Local)/",paste(fold_name),"/",FileName,".png", sep = "")),
+    type = "png",
+    device = dev.cur())
+  
+}
 
 ################################################################################
 ## FUNCTION: yhour
