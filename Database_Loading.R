@@ -80,7 +80,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"NZ_TIx3_May_25_2023"
+  SourceDB<-"NZ_May_26_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -645,7 +645,7 @@ Legend_PlotMain(0.7)
 ####
 
 # Create folder name to save as
-CaseName <- "Forced Net Zero - 3x Trade Capacity V1"
+CaseName <- "Forced Net Zero"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -1135,4 +1135,16 @@ CaseName <- "Forced Net Zero - 3x Trade Capacity V1"
       subset(.,select=c(Name,Year,Price, 
                         Demand_Total,Net_Load_Total,
                         Production_Cost_Total,Fixed_Cost_Total,Scenario))
+    
+    
+    checkthis <- sub_samp
+    
+    checkthis$Day <- date(checkthis$time)
+    checkthis$Year <- as.factor(year(checkthis$time))
+    
+    checkthis2 <- checkthis %>%
+      filter(Year==2021) %>%
+      group_by(AESO_Name,ID) %>%
+      summarise(Generation=sum(gen),Cap=mean(Capacity),Emissions=sum(co2_est))%>%
+      filter(ID %in% c("TC02","TC01","RL1","MKRC","MKR1","COD1","BCRK","BCR2","ALS1"))
     

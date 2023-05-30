@@ -634,7 +634,8 @@ sim_filt5 <- function(inputdata) {
 
 ################################################################################
 ## FUNCTION: sim_filtEm
-## This function filters for emission releasing resources 
+## This function filters for emission releasing resources. 
+## For all cogen emissions use LTO_Cogen
 ################################################################################
 
 { sim_filtEm <- function(inputdata) {
@@ -642,7 +643,7 @@ sim_filt5 <- function(inputdata) {
   {Coal <- inputdata %>%
     filter(ID=="LTO_Coal")
   Cogen  <- inputdata %>%
-    filter(ID=="LTO_Cogen")
+    filter(ID=="NAICS221112_Cogen")
   Other <- inputdata %>%
     filter(ID=="LTO_Other")
  
@@ -671,7 +672,7 @@ sim_filt5 <- function(inputdata) {
     case$ID <- factor(case$ID, levels=c("AB_NGCONV",
                                         "AB_SCCT_Blended","AB_CCCT_Blended",
                                         "AB_SCCT_noncogen", "AB_CC90CCS_noncogen","AB_CCCT_noncogen",
-                                        "LTO_Coal","LTO_Cogen","LTO_Other"))
+                                        "LTO_Coal","NAICS221112_Cogen","LTO_Other"))
     
     levels(case$ID) <- c("Coal-to-Gas", 
                          "Blended  Simple Cycle","Blended  Combined Cycle",
