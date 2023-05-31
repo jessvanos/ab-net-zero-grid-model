@@ -21,6 +21,7 @@
 ################################################################################
 library(here)
 source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
+source(here('Functions','Map_Functions.R')) 
 
 # Packages required
 packs_to_load = c("tidyverse","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr",
@@ -36,19 +37,33 @@ packs_check(packs_to_load)
 ################################################################################
 # Read Map Data from AESO 
 # Data source:https://www.aeso.ca/market/market-and-system-reporting/data-requests/planning-area-boundary-data/
-PlanningMapData<-st_read(dsn= here("Data Files","AESO_Planning_Areas.shp"))
+PlanningMapData<-st_read(dsn= here("Data Files","AESO Planning Locations","AESO_Planning_Areas.shp"))
 
 # Data from excel to merge with rest
 # Data Source: https://www.aeso.ca/market/market-and-system-reporting/long-term-adequacy-metrics/
     # Save new data
-    # saveRDS(May_2023_AESO_planning_analytics,file=here("Data Files","May_2023_AESO_Planning_Data.RData"))
+    # saveRDS(May_2023_AESO_planning_analytics,file=here("Data Files","AESO Planning Locations","May_2023_AESO_Planning_Data.RData"))
 
 # Read in the saved data
-May2023Projects<-readRDS(here("Data Files","May_2023_AESO_Planning_Data.RData"))%>%
+May2023AllProjects<-readRDS(here("Data Files","AESO Planning Locations","May_2023_AESO_Planning_Data.RData"))%>%
   subset(., select = c("Area_ID","Solar_Capacity","Wind_Capacity","Storage_Capacity","Gas_Capacity"))
 
+May2023Projects_ExclAnnounced<-readRDS(here("Data Files","AESO Planning Locations","May_2023_AESO_Planning_Data.RData"))%>%
+  subset(., select = c("Area_ID","Solar_Capacity_Const&ApprovedOnly","Wind_Capacity_Const&ApprovedOnly",
+                       "Storage_Capacity_Const&ApprovedOnly","Gas_Capacity_Const&ApprovedOnly"))
+
 # Merge together
-PlanMapDataCombined<-merge(PlanningMapData,May2023Projects,by="Area_ID")
+PlanMapDataCombined<-merge(PlanningMapData,May2023AllProjects,by="Area_ID")%>%
+  rename("Solar"="Solar_Capacity",
+         "Wind"="Wind_Capacity",
+         "Storage"="Storage_Capacity",
+         "Gas"="Gas_Capacity")
+
+PlanMapDataCombined_ExclAnnounced<-merge(PlanningMapData,May2023Projects_ExclAnnounced,by="Area_ID")%>%
+  rename("Solar"="Solar_Capacity_Const&ApprovedOnly",
+         "Wind"="Wind_Capacity_Const&ApprovedOnly",
+         "Storage"="Storage_Capacity_Const&ApprovedOnly",
+         "Gas"="Gas_Capacity_Const&ApprovedOnly")
 
 ################################################################################
 ## PLOT IT
@@ -61,137 +76,34 @@ PlanMapDataCombined<-merge(PlanningMapData,May2023Projects,by="Area_ID")
   windows(10,12,buffered=FALSE)
 
 # Plot Solar
-  ggplot(data=PlanMapDataCombined) +
-    geom_sf(mapping = aes(fill = Solar_Capacity),color="black") +
-    theme_bw() +
-    theme(axis.line = element_blank(),
-          axis.ticks =  element_blank(),
-          axis.text = element_blank(),
-          axis.title=element_blank(),
-          plot.caption =element_text(face = "italic",color="grey50",size=6,hjust = 1.35),
-          plot.title=element_text(size=12,hjust=0.5),
-          plot.subtitle=element_text(size=8,hjust=0.5),
-          panel.grid = element_blank(),
-          panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.border = element_blank(),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.text=element_text(size=8,format(1000000, big.mark = ",", scientific = FALSE)),
-          legend.title = element_text(size=10),
-          legend.background = element_rect(fill='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = 'transparent')) +
-    
-    scale_fill_gradient(low="white", high="#7D5E02")+
-    
-    labs(fill="Capacity (MW)",
-         title="Alberta Solar Generation Projects at Various Stages of Development",
-         subtitle="Includes projects classified as under construction, recieved AUC approval, and announced",
-         caption ="Figure by Jessica Van Os, Data from AESO LTA report and connection project list (May 2023)") +
-    
-    geom_sf_text (aes(label = Area_ID),size=2,color="black")
-
-  SaveIm_Loc(CaseName,"May 2023 Solar Projects")
+  ProjectMap_bytype(PlanMapDataCombined,"Solar","all")
+  SaveIm_Loc(CaseName,"All May 2023 Solar Projects")
+  
+# Plot Solar excluding announced 
+  ProjectMap_bytype(PlanMapDataCombined_ExclAnnounced,"Solar","ExclAnnounced")
+  SaveIm_Loc(CaseName,"May 2023 Solar Projects, underconstruction and recieved AUC approval only")
   
 # Plot Wind
-  ggplot(data=PlanMapDataCombined) +
-    geom_sf(mapping = aes(fill = Wind_Capacity),color="black") +
-    theme_bw() +
-    theme(axis.line = element_blank(),
-          axis.ticks =  element_blank(),
-          axis.text = element_blank(),
-          axis.title=element_blank(),
-          plot.caption =element_text(face = "italic",color="grey50",size=6,hjust = 1.35),
-          plot.title=element_text(size=12,hjust=0.5),
-          plot.subtitle=element_text(size=8,hjust=0.5),
-          panel.grid = element_blank(),
-          panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.border = element_blank(),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.text=element_text(size=8,format(1000000, big.mark = ",", scientific = FALSE)),
-          legend.title = element_text(size=10),
-          legend.background = element_rect(fill='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = 'transparent')) +
-    
-    scale_fill_gradient(low="white", high="#277E3E")+
-    
-    labs(fill="Capacity (MW)",
-         title="Alberta Wind Generation Projects at Various Stages of Development",
-         subtitle="Includes projects classified as under construction, recieved AUC approval, and announced",
-         caption ="Figure by Jessica Van Os, Data from AESO LTA report and connection project list (May 2023)") +
-    
-    geom_sf_text (aes(label = Area_ID),size=2,color="black")
-
+  ProjectMap_bytype(PlanMapDataCombined,"Wind","all")
   SaveIm_Loc(CaseName,"May 2023 Wind Projects")
   
+# Plot Wind excluding announced 
+  ProjectMap_bytype(PlanMapDataCombined_ExclAnnounced,"Wind","ExclAnnounced")
+  SaveIm_Loc(CaseName,"May 2023 Wind Projects, underconstruction and recieved AUC approval only")
   
 # Plot Storage
-  ggplot(data=PlanMapDataCombined) +
-    geom_sf(mapping = aes(fill = Storage_Capacity),color="black") +
-    theme_bw() +
-    theme(axis.line = element_blank(),
-          axis.ticks =  element_blank(),
-          axis.text = element_blank(),
-          axis.title=element_blank(),
-          plot.caption =element_text(face = "italic",color="grey50",size=6,hjust = 1.35),
-          plot.title=element_text(size=12,hjust=0.5),
-          plot.subtitle=element_text(size=8,hjust=0.5),
-          panel.grid = element_blank(),
-          panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.border = element_blank(),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.text=element_text(size=8,format(1000000, big.mark = ",", scientific = FALSE)),
-          legend.title = element_text(size=10),
-          legend.background = element_rect(fill='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = 'transparent')) +
-    
-    scale_fill_gradient(low="white", high="#C05200")+
-    
-    labs(fill="Capacity (MW)",
-         title="Alberta Storage Generation Projects at Various Stages of Development",
-         subtitle="Includes projects classified as under construction, recieved AUC approval, and announced",
-         caption ="Figure by Jessica Van Os, Data from AESO LTA report and connection project list (May 2023)")+
-    
-    geom_sf_text (aes(label = Area_ID),size=2,color="black")
-
+  ProjectMap_bytype(PlanMapDataCombined,"Storage","all")
   SaveIm_Loc(CaseName,"May 2023 Storage Projects")
   
+# Plot Storage excluding announced 
+  ProjectMap_bytype(PlanMapDataCombined_ExclAnnounced,"Storage","ExclAnnounced")
+  SaveIm_Loc(CaseName,"May 2023 Strorage Projects, underconstruction and recieved AUC approval only")
   
 # Plot Gas
-  ggplot(data=PlanMapDataCombined) +
-    geom_sf(mapping = aes(fill = Gas_Capacity),color="black") +
-    theme_bw() +
-    theme(axis.line = element_blank(),
-          axis.ticks =  element_blank(),
-          axis.text = element_blank(),
-          axis.title=element_blank(),
-          plot.caption =element_text(face = "italic",color="grey50",size=6,hjust = 1.35),
-          plot.title=element_text(size=12,hjust=0.5),
-          plot.subtitle=element_text(size=8,hjust=0.5),
-          panel.grid = element_blank(),
-          panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.border = element_blank(),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.text=element_text(size=8,format(1000000, big.mark = ",", scientific = FALSE)),
-          legend.title = element_text(size=10),
-          legend.background = element_rect(fill='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = 'transparent')) +
-    
-    scale_fill_gradient(low="white", high="#595959")+
-    
-    labs(fill="Capacity (MW)",
-         title="Alberta Gas Generation Projects at Various Stages of Development",
-         subtitle="Includes projects classified as under construction, recieved AUC approval, and announced
-                   Encompasses coal-to-gas transitions, cogeneration, and other gas generation",
-         caption ="Figure by Jessica Van Os, Data from AESO LTA report and connection project list (May 2023)") +
-    
-    geom_sf_text (aes(label = Area_ID),size=2,color="black")
-
+  ProjectMap_bytype(PlanMapDataCombined,"Gas","all")
   SaveIm_Loc(CaseName,"May 2023 Gas Projects")
+  
+# Plot Gas excluding announced 
+  ProjectMap_bytype(PlanMapDataCombined_ExclAnnounced,"Gas","ExclAnnounced")
+  SaveIm_Loc(CaseName,"May 2023 Gas Projects, underconstruction and recieved AUC approval only")
   
