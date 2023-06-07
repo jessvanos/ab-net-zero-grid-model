@@ -1,11 +1,13 @@
 ################################################################################  
 ## FUNCTION: ProjectMap_bytype
-## Plot a map of Alberta panning regions with projected new projects of specified plant type
+## Plot a map of Alberta planning regions with projected new projects of specified plant type.
 ##
 ## INPUTS: 
-##    case - Run_ID which you want to plot
+##    PlanMapDataCombined - Input data including geographical data merged with new capacity info
+##    ResType - Resource type to plot ("Solar", "wind", "Storage", or "Gas")
+##    IncludedProjects - Criteria based on data used, plots all projects or projects under construction and with AUC approval only.
 ## TABLES REQUIRED: 
-##    ResGroupEmYr -Yearly resoruce group emissions
+##    ResGroupEmYr -Yearly resource group emissions
 ################################################################################
 
 ProjectMap_bytype<-function(PlanMapDataCombined,ResType,IncludedProjects) {

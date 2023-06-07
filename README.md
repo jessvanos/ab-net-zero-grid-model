@@ -55,6 +55,15 @@ Script imports data and analyses intertie behavior.
 -   *Before running, create folder called "Data Files" within project directory and populate it with AESO data.*
 -   *Once this file is run through completion, can call any functions with environment that is loaded.*
 
+### <ins>Misc_Data_Visuals
+
+Plots not directly related to simulation and modeling work. Inlcudes AESO planning area plots data and more.
+
+##### *Misc_Data_Visuals Special Notes:*
+
+-   *Make sure the project file is open first or "here" commands wont work right.*
+-   *Before running, create folder called "Data Files/AESO Planning Locations" within project directory and populate it geographical data and project information.*
+
 ### <ins>Link_Shaping
 
 Code that was used to gather and format historical intertie data.
@@ -144,6 +153,12 @@ Functions To use for plotting and evaluating intertie activities. Also shows inf
 ##### *Intertie_Functions Special Notes:*
 
 -   *HR FIT Functions are also included in this file. These were used to build and analyze historical trade patterns.*
+
+### <ins>Map_Functions
+
+Functions for generating maps to show data and geographical data.
+
+-   *ProjectMap_bytype* : Plot a map of Alberta planning regions with projected new projects of specified plant type.
 
 ### <ins>other_functions
 

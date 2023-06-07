@@ -1,7 +1,8 @@
 ################################################################################
 # TITLE: Misc_Data_Visuals
 #
-# DESCRIPTION:  Plots AESO planning area data and more
+# DESCRIPTION:  Plots not directly related to simulation and modeling work. 
+# Inlcudes AESO planning area plots data and more.
 #
 #
 # AUTHOR: Jessica Van Os
@@ -9,10 +10,8 @@
 # CREATED: May 2023; LAST EDIT: May 30, 2023
 #
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
-#        Before running, create folder called "Data Files" inside project directory and populate it with 
-#        any data you want to access. 
-#        Once this file is run through completion, can call any functions with environment that is loaded 
-#        (ie: you do not need to run it all again).
+#        Before running, create folder called "Data Files/AESO Planning Locations" inside project directory 
+#        and populate it geographical data and project information. 
 ################################################################################
 
 #AB_Planning_Plotting

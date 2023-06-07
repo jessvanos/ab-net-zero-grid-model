@@ -80,7 +80,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"NZ_May_26_2023"
+  SourceDB<-"BAU_May_29_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -513,42 +513,47 @@
         #sequential_hcl(5,palette="oranges)
     { 
             
-      # Colour Fill info
-          # Basic Groups
-            cOL_IMPORT <- "hotpink" 
-            cOL_EXPORT <- "firebrick4"
-            cOL_COAL <- "snow3"
-            cOL_COGEN <- "gray47"
-            cOL_HYDRO <- "lightskyblue"
-            cOL_OTHER <- "darkgreen"
-            cOL_WIND <- "green3"
-            cOL_SOLAR <- "gold"
-            cOL_NUCLEAR <- "black"
-            
+      # Color Fill info
+          # Import/Export
+          cOL_IMPORT <- "maroon3" 
+          cOL_EXPORT <- "maroon4"
+          
+          # Coal/Cogen
+          cOL_NUCLEAR <- "black"
+          cOL_COAL <- "gray80"
+          cOL_COGEN <- "gray40"
+          
           # H2 groups (blues)
-            cOL_SCGT_H2 <- "#273871"
-            cOL_NGCC_H2 <- "#3573B9"
-            cOL_SCGT_Blend <- "#7FABD3"
-            cOL_NGCC_Blend <- "#C1DBEC"
-            COL_Blend <- "#C1DBEC" # may edit
-            COL_H2 <- "#3573B9"  # may edit
-            
+          cOL_SCGT_H2 <- "#042333b2"
+          cOL_NGCC_H2 <- "#3573B9"
+          cOL_SCGT_Blend <- "#7FABD3"
+          cOL_NGCC_Blend <- "#C1DBEC"
+          COL_Blend <- cOL_NGCC_Blend 
+          COL_H2 <- cOL_NGCC_H2  
+          
           # Gas Groups (Purples)
-            cOL_COal2Gas <-  "#611163" #"mediumorchid4"
-            cOL_NGConv <- "#611163" #"mediumorchid4"
-            cOL_SCGT <- "#3C2692"
-            cOL_NGCC <- "#6D60BB"
-            cOL_NGCC_CCS <- "#A79FE1"
-            COL_NatGas <-"#6D60BB" #Maybe edit
-            
+          cOL_COal2Gas <-  "#440154FF" #"mediumorchid4"
+          cOL_NGConv <- cOL_COal2Gas
+          cOL_SCGT <- "#a65c85ff"
+          cOL_NGCC <- "#7e4e90ff"
+          COL_NatGas <-cOL_NGCC 
+          cOL_NGCC_CCS <- "#403891b2"
+          
+          # Renewables and Other
+          cOL_HYDRO <- "royalblue2"
+          cOL_OTHER <- "#1F968BFF"
+          cOL_WIND <- "#73D055FF"
+          cOL_SOLAR <- "#FDE725FF"
+          
+          
           # Storage Groups
-            cOL_STORAGE <- "yellow4" 
-              COL_Battery <-"#F7921E"
-              COL_CompAir <-"#D35000"
-              COL_Pumped <-"#802A07"
-                
+          cOL_STORAGE <- "coral3" 
+          COL_Battery <-"rosybrown1"
+          COL_CompAir <-"coral3"
+          COL_Pumped <-"firebrick4"
+          
           # Special Groups
-              cOL_DSM <-"grey10"
+          cOL_DSM <-"grey10"
               
    ## Now Define Lists to assign legends and colors in plots
      colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
@@ -645,7 +650,7 @@ Legend_PlotMain(0.7)
 ####
 
 # Create folder name to save as
-CaseName <- "Forced Net Zero"
+CaseName <- "Buisness as Usual"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
