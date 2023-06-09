@@ -234,10 +234,11 @@ Legend_PlotAll <- function(InputAplha){
 plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1) +
 legend("center", 
        legend =c("Nuclear","Cogeneration", "Coal",
-                 "Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                 "Blended  Simple Cycle","Blended  Combined Cycle",
+                 "Coal-to-Gas",
                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                 #"Blended  Simple Cycle","Blended  Combined Cycle",
                  "Natural Gas Combined Cycle + CCS",
+                 "Hydrogen Combined Cycle","Hydrogen Simple Cycle",
                  "Hydro", "Other", "Wind", 
                  "Solar",  "Storage - Battery", 
                  "Storage - Compressed Air", "Storage - Pumped Hydro",
@@ -249,10 +250,11 @@ legend("center",
        bty='o',         # Box around legend
        ncol=2,          # Allow two columns for legend
        col = alpha(c(cOL_NUCLEAR,cOL_COGEN, cOL_COAL,
-               cOL_NGConv,cOL_SCGT_H2,cOL_NGCC_H2,
-               cOL_SCGT_Blend,cOL_NGCC_Blend,
+               cOL_NGConv,
                cOL_SCGT, cOL_NGCC, 
+               #cOL_SCGT_Blend,cOL_NGCC_Blend,
                cOL_NGCC_CCS,
+               cOL_NGCC_H2,cOL_SCGT_H2,
                cOL_HYDRO, cOL_OTHER, cOL_WIND, 
                cOL_SOLAR,  COL_Battery, 
                COL_CompAir,COL_Pumped,
@@ -266,8 +268,9 @@ legend("center",
 Legend_PlotMain <- function(InputAplha){
 plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1) +
   legend("center", 
-         legend =c("Cogeneration", "Coal","Coal-to-Gas","Hydrogen",
-                   "Natural Gas and Hydrogen Blend","Natural Gas","Natural Gas Combined Cycle + CCS",
+         legend =c("Cogeneration", "Coal","Coal-to-Gas",
+                   #"Natural Gas and Hydrogen Blend",
+                   "Natural Gas","Natural Gas Combined Cycle + CCS","Hydrogen",
                    "Hydro", "Other", "Wind", "Solar",  "Storage",
                    "Import","Export"),
          
@@ -276,8 +279,9 @@ plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1) +
          title.cex=1.5,     # Expansion factor for title relative to text
          bty='o',         # Box around legend
          ncol=1,          # Allow two columns for legend
-         col = alpha(c(cOL_COGEN, cOL_COAL,cOL_NGConv,COL_H2,
-                 COL_Blend,COL_NatGas,cOL_NGCC_CCS,
+         col = alpha(c(cOL_COGEN, cOL_COAL,cOL_NGConv,
+                 #COL_Blend,
+                 COL_NatGas,cOL_NGCC_CCS,COL_H2,
                  cOL_HYDRO, cOL_OTHER, cOL_WIND, cOL_SOLAR,  cOL_STORAGE,
                  cOL_IMPORT,cOL_EXPORT),InputAplha),
          title=c("Legend"))

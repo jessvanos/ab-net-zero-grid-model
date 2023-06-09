@@ -524,10 +524,10 @@
           cOL_COGEN <- "gray40"
           
           # H2 groups (blues)
-          cOL_SCGT_H2 <- "#042333b2"
-          cOL_NGCC_H2 <- "#3573B9"
+          cOL_SCGT_H2 <- "#C1DBEC"
+          cOL_NGCC_H2 <- "#042333b2"
           cOL_SCGT_Blend <- "#7FABD3"
-          cOL_NGCC_Blend <- "#C1DBEC"
+          cOL_NGCC_Blend <- "#3573B9"
           COL_Blend <- cOL_NGCC_Blend 
           COL_H2 <- cOL_NGCC_H2  
           
