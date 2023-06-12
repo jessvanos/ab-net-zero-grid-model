@@ -321,7 +321,7 @@
                 alpha=0.7, size=.5, colour="black") +
       geom_hline(yintercept=0, color = "black", size=0.5)+
       geom_line(data = WK_Price, aes(x = date, y = a + Price*b), 
-                size = 1.25, colour = "darkred",linetype=1) +
+                size = 1.25, colour = "darkblue",linetype=1) +
       
       # Set up plot look and feel
       theme_bw() +
