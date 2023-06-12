@@ -515,8 +515,8 @@
             
       # Color Fill info
           # Import/Export
-          cOL_IMPORT <- "maroon3" 
-          cOL_EXPORT <- "maroon4"
+          cOL_IMPORT <- "#F8B660" 
+          cOL_EXPORT <- "#DDCC77"
           
           # Coal/Cogen
           cOL_NUCLEAR <- "black"
@@ -548,8 +548,8 @@
           
           # Storage Groups
           cOL_STORAGE <- "coral3" 
-          COL_Battery <-"rosybrown1"
-          COL_CompAir <-"coral3"
+          COL_Battery <-"coral3"
+          COL_CompAir <-"rosybrown1"
           COL_Pumped <-"firebrick4"
           
           # Special Groups
