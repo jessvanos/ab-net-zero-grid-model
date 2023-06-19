@@ -535,7 +535,7 @@
           cOL_COal2Gas <-  "#440154FF" #"mediumorchid4"
           cOL_NGConv <- cOL_COal2Gas
           cOL_SCGT <- "#7e4e90ff"
-          cOL_NGCC <- "#a65c85ff"
+          cOL_NGCC <- "#A79FE1"
           COL_NatGas <-cOL_NGCC 
           cOL_NGCC_CCS <- "#403891b2"
           
