@@ -12,11 +12,11 @@
 ##    ZoneYr
 ################################################################################
 
-AnnaulDataExcel<- function(ScenarioName,case){
+AnnualDataExcel<- function(ScenarioName,case){
 
 ################################################################################
 ## ANNUAL RESOURCE GROUP OUTPUT TABLES
-## Resource Group annaul Information: 2022-MaxYr Gives info on resource group 
+## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
 {
@@ -72,7 +72,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
   
   # Here we get value of carbon credits and cost
   AllRenewData <- AllDataGrYr %>%
-    filter(Plant_Type %in% c("Wind","Solar") %>%
+    filter(Plant_Type %in% c("Wind","Solar")) %>%
     mutate(Credit=round(Emissions_Cost/Output_MWH,digits=2),
            PercRev=round(abs(100*Emissions_Cost/(Revenue+(Emissions_Cost*-1))),digits=2),
            Emissions_Cost=Emissions_Cost*-1) %>%
@@ -122,7 +122,6 @@ AnnaulDataExcel<- function(ScenarioName,case){
 ## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
-
 {
 # Bring in Resource Year Table and filter for relevant data. Format date columns
   Add_Ret_data <- ResYr%>%
@@ -235,8 +234,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
 ## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
-  
-  {
+{
     # Bring in Resource Year Table and filter for relevant data. Format date columns
     AVG_HeatRates <- ResYr%>%
       sim_filt6(.) %>% #Filter to rename fuels
@@ -257,7 +255,8 @@ AnnaulDataExcel<- function(ScenarioName,case){
                 "Average Capacity Factor"=round(mean(Capacity_Factor),digits=2)) %>%
       rename("Plant Type"=Primary_Fuel)
     
-  }
+}
+  
 ################################################################################
 ## ANNUAL FUEL TABLES
 ################################################################################
@@ -279,7 +278,7 @@ FuelData <- FuelYr %>%
 ################################################################################
 ## ANNUAL ZONE INFO
 ################################################################################
-
+{
 # First we need the total energy output for this year!
 AnnualOut <-AllDataGrYr %>%
   group_by(Year)%>%
@@ -325,7 +324,7 @@ ZnData <- ZoneYr %>%
            "Unit Fixed Cost ($/MWh)"=Unit_Fix,
            "Imports (MWh)"=Imports_Total,
            "Exports (MWh)"=Exports_Total)
-
+}
 
 ################################################################################
 ## SEND ALL TO ONE EXCEL FILE
@@ -491,7 +490,7 @@ CompareDataExcel<- function(ScenarioName,case){
 ## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
-  {
+{
 # FILTER OUT EMISSIONS
     DataGrEmYr<-ResGroupEmYr%>%
       # Filter to rename fuels
@@ -594,8 +593,7 @@ CompareDataExcel<- function(ScenarioName,case){
 ## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
-  
-  {
+{
 # Bring in Resource Year Table and filter for relevant data. Format date columns
     Add_Ret_data <- ResYr%>%
       sim_filt6(.) %>% #Filter to rename fuels
@@ -756,7 +754,7 @@ CompareDataExcel<- function(ScenarioName,case){
 ################################################################################
 ## ANNUAL ZONE INFO
 ################################################################################
-  
+{  
   # First we need the total energy output for this year!
   AnnualOut <-AllDataGrYr %>%
     group_by(Year)%>%
@@ -815,11 +813,11 @@ CompareDataExcel<- function(ScenarioName,case){
            "Imports (MWh)"=Imports_Total,
            "Exports (MWh)"=Exports_Total,
            "Non-Cogen Emissions (Mt)"=NonCogen_Emissions)
-  
-  
-  ################################################################################
-  ## SEND ALL TO ONE EXCEL FILE
-  ################################################################################
+  }
+
+################################################################################
+## SEND ALL TO ONE EXCEL FILE
+################################################################################
   
   dataset_names <-list('1 Full Study Results'=AllDataGrYr,
                        '2 Annual Zone Results'=AllZoneData,
@@ -834,4 +832,3 @@ CompareDataExcel<- function(ScenarioName,case){
              col_names = TRUE, format_headers = TRUE)
   
 }
-  

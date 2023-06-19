@@ -825,7 +825,7 @@ CaseName <- "Limit to Zero - New"
       
   # WRITE TO EXCEL
       # Annual data
-      AnnaulDataExcel(CaseName,BC)
+      AnnualDataExcel(CaseName,BC)
       
       # Hourly data
       HourlyDataExcel(CaseName,BC)
@@ -1066,7 +1066,7 @@ CaseName <- "Limit to Zero - New"
 ## Data summarize and put in table  (Data_Filt_To_Table)
 ################################################################################
     # Annual data
-    AnnaulDataExcel("BAU",BC)
+    AnnualDataExcel("BAU",BC)
     
     # Hourly data
     HourlyDataExcel("BAU",BC)
