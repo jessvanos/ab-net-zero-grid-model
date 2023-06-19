@@ -75,7 +75,7 @@
     
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), colour = "black", 
-                alpha=0.7, size=0.5) +
+                alpha=Plot_Trans, size=0.5) +
 
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -176,7 +176,7 @@
     
     ggplot() +
       geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID), colour = "black", 
-                alpha=0.7, size=0.5) +
+                alpha=Plot_Trans, size=0.5) +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
@@ -248,7 +248,7 @@
     # Plot the data    
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH,fill="Storage"), 
-                alpha=0.7, size=.5, colour="black") +
+                alpha=Plot_Trans, size=.5, colour="black") +
       ggtitle(year)+
 
       # Set the theme for the plot
@@ -318,7 +318,7 @@
     # PLOT DATA  
     ggplot() +
       geom_area(data = WK_Stor, aes(x = date, y = Output_MWH,fill="Storage"), 
-                alpha=0.7, size=.5, colour="black") +
+                alpha=Plot_Trans, size=.5, colour="black") +
       geom_hline(yintercept=0, color = "black", size=0.5)+
       geom_line(data = WK_Price, aes(x = date, y = a + Price*b), 
                 size = 1.25, colour = "darkblue",linetype=1) +
@@ -406,7 +406,7 @@
     data %>%
       ggplot() +
       aes(YEAR, (Output_MWH/1000000), fill = ID) +
-      geom_area(alpha=0.7, linewidth=.5, colour="black") +
+      geom_area(alpha=Plot_Trans, linewidth=.5, colour="black") +
       
       theme_bw() +
       
@@ -487,7 +487,7 @@
     
     data %>%
       ggplot() +
-      geom_area(aes(YEAR, (Capacity), fill = ID, colour=ID),alpha=0.7, size=.5,color='black') +
+      geom_area(aes(YEAR, (Capacity), fill = ID, colour=ID),alpha=Plot_Trans, size=.5,color='black') +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -562,7 +562,7 @@
     case_Time %>%
       ggplot() +
       geom_area(aes(YEAR, Output_MWH, fill = ID,colour= ID),
-                position = "fill", alpha = 0.7, size=.5,color="black") +
+                position = "fill", alpha = Plot_Trans, size=.5,color="black") +
       
       # geom_vline(xintercept = as.numeric(2035),
       #            linetype = "dashed", color = "black", size = 1) +
@@ -659,7 +659,7 @@
     data %>%
       ggplot() +
       aes(Time_Period, (Output_MWH/1000000), fill = reorder(ID, PlotOrder)) +
-      geom_bar(position="dodge",stat="identity",alpha=0.7,'color'="black") +
+      geom_bar(position="dodge",stat="identity",alpha=Plot_Trans,'color'="black") +
       
       theme_bw() +
       
@@ -795,7 +795,7 @@
     sz <- 15
     
     ggplot() +
-      geom_col(data = Sim, position = "dodge", alpha = 0.7, width = 0.7,
+      geom_col(data = Sim, position = "dodge", alpha = Plot_Trans, width = 0.7,
                aes(x = Plant_Type, y = Cap,
                    fill=as.factor(Year)
                )) +
@@ -1129,7 +1129,7 @@
     ## PLOT WITH AREA PLOT
     
     ggplot() +
-      geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID, colour=ID),alpha=0.7, size=.25,color='black') +
+      geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID, colour=ID),alpha=Plot_Trans, size=.25,color='black') +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 

@@ -16,7 +16,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
 
 ################################################################################
 ## ANNUAL RESOURCE GROUP OUTPUT TABLES
-## Resource Group annaul Information: 2022-2035. Gives info on resource group 
+## Resource Group annaul Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
 {
@@ -31,8 +31,8 @@ AnnaulDataExcel<- function(ScenarioName,case){
     mutate(Year=year(Time_Period),
            Emissions_Cost=Cost*1000,
            Emissions_Tonne=Amount*0.90718474) %>%
-    # Filter out dates after 2035
-    filter(Year<=2035) %>%
+    # Filter out dates after max year
+    filter(Year<=MaxYrStudy) %>%
     # Chose what to keep
     subset(., select=c(ID,Year,Type,Emissions_Tonne,Emissions_Cost))%>%
     rename(Plant_Type=ID)
@@ -53,8 +53,8 @@ AnnaulDataExcel<- function(ScenarioName,case){
            Value=Value*1000,
            Storage_Charging_Cost*1000,
            Capacity=round(Capacity,digits=0)) %>%
-    # Filter out dates after 2035
-    filter(Year<=2035) %>%
+    # Filter out dates after MaxYr
+    filter(Year<=MaxYrStudy) %>%
     # Choose what to keep
     subset(., select=c(ID,Year,Output_MWH,Capacity,
                        Dispatch_Cost,Fuel_Usage,
@@ -70,9 +70,9 @@ AnnaulDataExcel<- function(ScenarioName,case){
   # Combine the Emissions information with the annual resource information 
   AllDataGrYr<-merge(DataGrYr,DataGrEmYr,by=c("Plant_Type","Year"), all.x = TRUE)
   
-  # Here we get value of carbon credits
+  # Here we get value of carbon credits and cost
   AllRenewData <- AllDataGrYr %>%
-    filter(Plant_Type %in% c("Wind","Solar")) %>%
+    filter(Plant_Type %in% c("Wind","Solar") %>%
     mutate(Credit=round(Emissions_Cost/Output_MWH,digits=2),
            PercRev=round(abs(100*Emissions_Cost/(Revenue+(Emissions_Cost*-1))),digits=2),
            Emissions_Cost=Emissions_Cost*-1) %>%
@@ -119,7 +119,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
 
 ################################################################################
 ## ANNUAL RESOURCE ADDITIONS AND RETIREMENT TABLES
-## Resource Group annual Information: 2022-2035. Gives info on resource group 
+## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
 
@@ -136,7 +136,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
            Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
            Beg_Year=year(Beg_Date))%>%
     filter(Condition == "Average",
-           Time_Period<=2035) 
+           Time_Period<=MaxYrStudy) 
   
   # Set levels to each category in order specified
   Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
@@ -232,7 +232,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
 
 ################################################################################
 ## ANNUAL AVERAGE HEAT RATES
-## Resource Group annual Information: 2022-2035. Gives info on resource group 
+## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
   
@@ -247,7 +247,7 @@ AnnaulDataExcel<- function(ScenarioName,case){
       mutate(Time_Period=as.numeric(Time_Period))%>%
       filter(Condition == "Average",
              Capacity>0,
-             Time_Period<=2035,
+             Time_Period<=MaxYrStudy,
              !Primary_Fuel %in% c("Wind","Solar","Hydro",
                                   "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")) %>%
       group_by(Primary_Fuel,Time_Period)%>%
@@ -269,7 +269,7 @@ FuelData <- FuelYr %>%
   sim_filtFuel(.) %>%
   mutate(Cost=Cost*1000,
          Year=year(Time_Period),
-         Year<=2035) %>%
+         Year<=MaxYrStudy) %>%
   subset(select=c(ID,Year,Price,Cost,Usage)) %>%
   rename("Usage (GJ)"=Usage,
          "Price ($/GJ)"=Price,
@@ -291,7 +291,7 @@ ZnData <- ZoneYr %>%
   filter(Run_ID == case,
          Condition == "Average",
          Name == "WECC_Alberta",
-         Year<=2035) %>%
+         Year<=MaxYrStudy) %>%
   mutate(Report_Year=as.numeric(Report_Year),
          Scenario=SourceDB,
          Production_Cost_Total=1000*Production_Cost_Total,
@@ -362,7 +362,7 @@ HourlyDataExcel<- function(ScenarioName,case){
   
 ################################################################################
 ## HOURLY RESOURCE GROUP OUTPUT TABLES
-## Resource Group annaul Information: 2022-2035. Gives info on resource group 
+## Resource Group annaul Information: 2022-MaxYr. Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
  ZoneHrData <- ZoneHr_Avg %>%
@@ -373,7 +373,7 @@ HourlyDataExcel<- function(ScenarioName,case){
           Date=as.Date(date),
           Time=format(date,"%H:%M:%S"),
           Scenario=SourceDB) %>%
-   filter(Year<=2035) %>%
+   filter(Year<=MaxYrStudy) %>%
    arrange(.,date) %>%
    subset(select=c(Date,Time,Price,Demand,Net_Load,
                    Marginal_Resource,Imports,Exports,Year,Month,Day,Scenario)) %>%
@@ -406,8 +406,8 @@ HourlyDataExcel<- function(ScenarioName,case){
           Scenario=SourceDB,
           Emissions_Cost=Cost*1000,
           Emissions_Tonne=Amount*0.90718474) %>%
-   # Filter out dates after 2035
-   filter(Year<=2035) %>%
+   # Filter out dates after MaxYr
+   filter(Year<=MaxYrStudy) %>%
     arrange(.,date) %>%
    # Chose what to keep
    subset(., select=c(Date,Time,ID,Emissions_Tonne,Emissions_Cost,Year,Month,Day,Scenario))%>%
@@ -433,8 +433,8 @@ HourlyDataExcel<- function(ScenarioName,case){
         Value=Value*1000,
         Storage_Charging_Cost*1000,
         Capacity=round(Capacity,digits=0)) %>%
-   # Filter out dates after 2035
-   filter(Year<=2035) %>%
+   # Filter out dates after MaxYr
+   filter(Year<=MaxYrStudy) %>%
    arrange(.,date) %>%
    # Choose what to keep
    subset(., select=c(Date,Time,ID,Output_MWH,Capacity,
@@ -488,7 +488,7 @@ CompareDataExcel<- function(ScenarioName,case){
   
 ################################################################################
 ## ANNUAL RESOURCE GROUP OUTPUT TABLES
-## Resource Group annual Information: 2022-2035. Gives info on resource group 
+## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
   {
@@ -505,8 +505,8 @@ CompareDataExcel<- function(ScenarioName,case){
              Emissions_Cost=Cost*1000,
              Emissions_Tonne=Amount*0.90718474,
              Emissions_Mt=Emissions_Tonne/1000000) %>%
-      # Filter out dates after 2035
-      filter(Year<=2035) %>%
+      # Filter out dates after MaxYr
+      filter(Year<=MaxYrStudy) %>%
       # Chose what to keep
       subset(., select=c(ID,Year,Type,Emissions_Tonne,Emissions_Mt,Emissions_Cost))%>%
       rename(Plant_Type=ID)
@@ -526,8 +526,8 @@ CompareDataExcel<- function(ScenarioName,case){
              Value=Value*1000,
              Storage_Charging_Cost*1000,
              Capacity=round(Capacity,digits=0)) %>%
-      # Filter out dates after 2035
-      filter(Year<=2035) %>%
+      # Filter out dates after MaxYr
+      filter(Year<=MaxYrStudy) %>%
       # Choose what to keep
       subset(., select=c(ID,Year,Output_MWH,Capacity,
                          Dispatch_Cost,Fuel_Usage,
@@ -591,7 +591,7 @@ CompareDataExcel<- function(ScenarioName,case){
   
 ################################################################################
 ## ANNUAL RESOURCE ADDITIONS AND RETIREMENT TABLES
-## Resource Group annual Information: 2022-2035. Gives info on resource group 
+## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
   
@@ -608,7 +608,7 @@ CompareDataExcel<- function(ScenarioName,case){
              Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
              Beg_Year=year(Beg_Date))%>%
       filter(Condition == "Average",
-             Time_Period<=2035) 
+             Time_Period<=MaxYrStudy) 
     
     # Set levels to each category in order specified
     Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
@@ -720,14 +720,14 @@ CompareDataExcel<- function(ScenarioName,case){
           mutate(AESO_AddTotal=AESO_Add2023+AESO_Add2024)
     
     # Aurora 
-        # Get additions from 2023-2035
+        # Get additions from 2023-MaxYr
         AllCap_Changes1a <- Tot_Change %>%
           filter(Year>2022)%>%
           group_by(Primary_Fuel)%>%
           summarize(Capacity_Added=sum(Capacity_Added))%>%
           ungroup()
         
-        # Get retirements 2022-2035
+        # Get retirements 2022-MaxYr
         AllCap_Changes1b <- Tot_Change %>%
           group_by(Primary_Fuel)%>%
           summarize(Capacity_Retired=sum(Capacity_Retired))%>%
@@ -745,10 +745,10 @@ CompareDataExcel<- function(ScenarioName,case){
           mutate(AURORA_Add=Capacity_Added-AESO_AddTotal)%>%
           subset(select=c(Primary_Fuel,Capacity_Added,AESO_AddTotal,AURORA_Add,Capacity_Retired)) %>%
           rename("Plant Type"=Primary_Fuel,
-                 "New Capacity Built by Aurora and Added Manually 2023 - 2035(MW)"=Capacity_Added,
+                 "New Capacity Built by Aurora and Added Manually 2023 - End (MW)"=Capacity_Added,
                  "New Capacity Added Manually 2023, 2024(MW)"=AESO_AddTotal,
-                 "New Capacity Built by Aurora from 2024 - 2035(MW)"=AURORA_Add,
-                 "Capacity Retired (MW) 2022 - 2035(MW)"=Capacity_Retired)
+                 "New Capacity Built by Aurora from 2024 - End (MW)"=AURORA_Add,
+                 "Capacity Retired (MW) 2022 - End (MW)"=Capacity_Retired)
       
  
   }
@@ -768,7 +768,7 @@ CompareDataExcel<- function(ScenarioName,case){
     filter(Run_ID == case,
            Condition == "Average",
            Name == "WECC_Alberta",
-           Year<=2035) %>%
+           Year<=MaxYrStudy) %>%
     mutate(Report_Year=as.numeric(Report_Year),
            Scenario=SourceDB,
            Production_Cost_Total=1000*Production_Cost_Total,

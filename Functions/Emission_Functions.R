@@ -49,11 +49,11 @@ AnnualEmStackCol <- function(case) {
   message("Total Annaul Emissions (Mt)")
   print(YearMX)
   
-  # Plot
+  # Plot 
   data %>%
     ggplot() +
     aes(Report_Year, (Amount/1000000), fill = ID,) +
-    geom_bar(position="stack", stat="identity",alpha=0.7, size=.5, colour="black") +
+    geom_bar(position="stack", stat="identity",alpha=Plot_Trans, size=.5, colour="black") +
     
     theme_bw() +
     

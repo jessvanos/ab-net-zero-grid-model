@@ -72,7 +72,7 @@ Retirecol <- function(case) {
   #Plot data
   ggplot(Retdata) +
     aes(x=End_Date, y=Units, fill = Primary_Fuel, group = Primary_Fuel) +
-    geom_bar(position="stack", stat="identity", alpha=0.7,color="black") +
+    geom_bar(position="stack", stat="identity", alpha=Plot_Trans,color="black") +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -132,7 +132,7 @@ RetireMW <- function(case) {
   
   #Get Year max for run and filter for end dates BEFORE this date
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
-  MaxYr <- 2035
+  MaxYr <- as.numeric(max(ResYr$Time_Period))-5
   MinYr <- 2022
   
   Retdata$End_Date  <- as.Date(Retdata$End_Date, 
@@ -171,13 +171,15 @@ RetireMW <- function(case) {
   #Plot data
   ggplot(Retdata2) +
     aes(x=End_Date, y=Capacity, fill = Primary_Fuel, group = Primary_Fuel) +
-    geom_bar(position="stack", stat="identity", alpha=0.7,color='black') +
+    geom_bar(position="stack", stat="identity", alpha=Plot_Trans,color='black') +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
     
     theme(panel.grid = element_blank(),  
           axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
+          axis.text.x = element_text(angle = 45,
+                                     vjust = 0, hjust = 0),
           axis.title.y = element_text(size = YTit_Sz, vjust=0),
           panel.background = element_rect(fill = "transparent"),
           plot.title = element_blank(),
@@ -193,7 +195,8 @@ RetireMW <- function(case) {
     
     labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
     
-    scale_x_continuous(expand = c(0.05, 0.05),limits = c(MinYr,MaxYr),
+    scale_x_continuous(#expand = c(0.5, 0.05),
+                       #limits = c(MinYr,MaxYr),
                        breaks=seq(MinYr, MaxYr, by=1),position = "top") +
     
     scale_y_continuous(expand=c(0,0),
@@ -306,13 +309,14 @@ Build_A_MW <- function(case) {
   
   ggplot(data) +
     aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
-    geom_bar(position="stack", stat="identity", alpha=0.6,color='black') +
+    geom_bar(position="stack", stat="identity", alpha=Plot_Trans,color='black') +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
     
     theme(panel.grid = element_blank(), 
           axis.title.x = element_text(size = XTit_Sz,face="bold"),
+          axis.text.x=element_text(angle=45),
           axis.title.y = element_text(size = YTit_Sz,face="bold"),
           plot.title = element_text(size = Tit_Sz),
           panel.background = element_rect(fill = "transparent"),
@@ -387,7 +391,7 @@ BuildMW <- function(case)
     filter(Beg_Date==Time_Period) %>%
     select(., c("Name","maxcap","Primary_Fuel","Beg_Date"))
 
-  # Add cap increases manual
+  # Add cap increases manual - this change is in capacity of plant, not a new build
   Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
                      maxcap=c(800),
                      Primary_Fuel=c("Cogeneration"),
@@ -413,7 +417,7 @@ BuildMW <- function(case)
   #Plot data
   ggplot(Builddata) +
     aes(x=Beg_Date, y=Capacity, fill = Primary_Fuel, group = Primary_Fuel) +
-    geom_bar(position="stack", stat="identity", alpha=0.7,color='black') +
+    geom_bar(position="stack", stat="identity", alpha=Plot_Trans,color='black') +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -422,6 +426,7 @@ BuildMW <- function(case)
           axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
           axis.title.y = element_text(size = YTit_Sz, vjust=0),
           panel.background = element_rect(fill = "transparent"),
+          axis.text.x=element_text(angle=45,vjust = 0.5, hjust = 0.5),
           plot.title = element_blank(),
           legend.justification = c(0.5,0.5),
           legend.position = ("right"),
@@ -469,9 +474,9 @@ Eval_diffcap <- function(case) {
   
   # data<-data %>%
   #   filter(Time_Period<=MaxYr)
-  
+  data$AdjustYear <- as.factor(format(data$Time_Period-365, format="%Y"))
   data$Time_Period <- as.factor(format(data$Time_Period, format="%Y"))
-
+  
   # Sum all up
   Tot <- data %>%
     group_by(Time_Period) %>%
@@ -482,14 +487,14 @@ Eval_diffcap <- function(case) {
   mxy <- plyr::round_any(max(Tot$maxy),1000, f=ceiling)
   
   # Year limits for plot. Add 365 to get the year after the first
-  mnx <- format(min(ResGroupMn$Time_Period)+365, format="%Y")
+  mnx <- format(min(ResGroupMn$Time_Period), format="%Y")
   mxx <- format(max(ResGroupMn$Time_Period)-365*5, format="%Y")
   
   # Plot it all
   data %>%
     ggplot() +
-    aes(Time_Period, (diff), fill = ID) +
-    geom_col(alpha=0.7, size=.5, colour="black") +
+    aes(AdjustYear, (diff), fill = ID) +
+    geom_col(alpha=Plot_Trans, size=.5, colour="black") +
     
     # Add line at y=0
     geom_hline(yintercept=0, color = "black")+
@@ -644,7 +649,7 @@ mxx <- format(max(ResGroupMn$Time_Period)-365*5, format="%Y")
 Tot_Change %>%
   ggplot() +
   aes(Year, (diff), fill = Primary_Fuel) +
-  geom_col(alpha=0.7, size=.5, colour="black") +
+  geom_col(alpha=Plot_Trans, size=.5, colour="black") +
   
   # Add line at y=0
   geom_hline(yintercept=0, color = "black")+

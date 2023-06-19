@@ -80,7 +80,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"BAU_May_29_2023"
+  SourceDB<-"LZ_June_15_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -534,8 +534,8 @@
           # Gas Groups (Purples)
           cOL_COal2Gas <-  "#440154FF" #"mediumorchid4"
           cOL_NGConv <- cOL_COal2Gas
-          cOL_SCGT <- "#a65c85ff"
-          cOL_NGCC <- "#7e4e90ff"
+          cOL_SCGT <- "#7e4e90ff"
+          cOL_NGCC <- "#a65c85ff"
           COL_NatGas <-cOL_NGCC 
           cOL_NGCC_CCS <- "#403891b2"
           
@@ -554,6 +554,9 @@
           
           # Special Groups
           cOL_DSM <-"grey10"
+          
+          # Set plot color transparacny 
+          Plot_Trans<-0.8
               
    ## Now Define Lists to assign legends and colors in plots
      colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
@@ -621,10 +624,11 @@
       
       # EVERYTHING
       colours8 = c("Cogeneration"=cOL_COGEN, "Coal"=cOL_COAL,
-                   "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
-                   "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
-                   "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
+                   "Coal-to-Gas"=cOL_NGConv,
+                   "Natural Gas Combined Cycle"=cOL_NGCC,"Natural Gas Simple Cycle"=cOL_SCGT, 
                    "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                   "Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                   "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                    "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
                    "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
@@ -636,6 +640,9 @@
   # Gives years to summarize info from 
   Years2Disp <- c(2022,2025,2030,2035) # Years to show in figures
   Years2Pivot <- c(2022,2025,2030,2035)  # Years to display in tables
+  
+  # Get max year to display
+  MaxYrStudy <-max(as.numeric(ResYr$Time_Period))-5
 
   #For fun, make the code beep when its all done
   beep(3)
@@ -650,7 +657,7 @@ Legend_PlotMain(0.7)
 ####
 
 # Create folder name to save as
-CaseName <- "Buisness as Usual"
+CaseName <- "Limit to Zero - New"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
