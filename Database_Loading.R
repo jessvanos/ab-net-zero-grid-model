@@ -80,7 +80,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_June_15_2023"
+  SourceDB<-"LZ_June_20_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -677,6 +677,8 @@ CaseName <- "Limit to Zero - New"
           year_weeks(2035,BC)
           SaveRun_Loc(CaseName,"2035 Hourly Generation for One Week (Stacked Area)")
       
+          year_weeks(2040,BC)
+          SaveRun_Loc(CaseName,"2040 Hourly Generation for One Week (Stacked Area)")
           
       # One year of weeks for storage output and pool price
       year_stor(2035,BC)
