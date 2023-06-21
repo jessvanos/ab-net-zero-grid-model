@@ -526,10 +526,11 @@
           # H2 groups (blues)
           cOL_SCGT_H2 <- "#C1DBEC"
           cOL_NGCC_H2 <- "#042333b2"
-          cOL_SCGT_Blend <- "#7FABD3"
-          cOL_NGCC_Blend <- "#3573B9"
-          COL_Blend <- cOL_NGCC_Blend 
           COL_H2 <- cOL_NGCC_H2  
+              #cOL_SCGT_Blend <- "#7FABD3"
+              #cOL_NGCC_Blend <- "#3573B9"
+              #COL_Blend <- cOL_NGCC_Blend 
+
           
           # Gas Groups (Purples)
           cOL_COal2Gas <-  "#440154FF" #"mediumorchid4"
@@ -537,7 +538,7 @@
           cOL_SCGT <- "#7e4e90ff"
           cOL_NGCC <- "#A79FE1"
           COL_NatGas <-cOL_NGCC 
-          cOL_NGCC_CCS <- "#403891b2"
+          cOL_NGCC_CCS <-"#403891b2"
           
           # Renewables and Other
           cOL_HYDRO <- "royalblue2"
@@ -561,7 +562,7 @@
    ## Now Define Lists to assign legends and colors in plots
      colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                 "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
-                "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                 "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
                 "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
@@ -569,21 +570,22 @@
       
       colours1b=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                  "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
-                 "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                 #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                  "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
                  "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE,"Demand Curtailment"=cOL_DSM)
       
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN,
-                   "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,"Natual Gas and Hydrogen Blend"=COL_Blend,
-                   "Hydrogen"=COL_H2,
+                   "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,"Hydrogen"=COL_H2,
+                   #"Natual Gas and Hydrogen Blend"=COL_Blend,
+
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
                    "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
 
       colours3 = c("Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                    "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
-                   "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                   #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                    "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
                    "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
@@ -591,34 +593,35 @@
 
       
       colours4=c("Import"= cOL_IMPORT, "Coal-to-Gas"=cOL_COal2Gas, "Coal"=cOL_COAL,"Cogen"=cOL_COGEN, 
-                 "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,
-                 "Natual Gas and Hydrogen Blend"=COL_Blend,"Hydrogen"=COL_H2,
+                 "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,"Hydrogen"=COL_H2,
+                 #"Natual Gas and Hydrogen Blend"=COL_Blend,
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
                  "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
 
       colours5 = c("Cogeneration"=cOL_COGEN, 
                    "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
-                   "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                   #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                    "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
                    "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                    "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
                    "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
       
-      colours6=c("Natural Gas"=COL_NatGas,"Natual Gas and Hydrogen Blend"=COL_Blend,"Hydrogen"=COL_H2,
+      colours6=c("Natural Gas"=COL_NatGas,"Hydrogen"=COL_H2,
+                 #"Natual Gas and Hydrogen Blend"=COL_Blend,
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
                  "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
                  "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
 
       colours7=c("Total Emissions"="black","Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
-                 "Coal-to-Gas"=cOL_NGConv, "Blended  Simple Cycle"=cOL_SCGT_Blend,
-                 "Blended  Combined Cycle"=cOL_NGCC_Blend,
+                 "Coal-to-Gas"=cOL_NGConv, 
+                 #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                  "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
                  "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, "Other"=cOL_OTHER)
       
       Lines7=c("Total Emissions"=1,"Coal"=1, "Cogeneration"=6, 
-               "Coal-to-Gas"=2, "Blended  Simple Cycle"=5,
-               "Blended  Combined Cycle"=6,
+               "Coal-to-Gas"=2, 
+               #"Blended  Simple Cycle"=5,"Blended  Combined Cycle"=6,
                "Natural Gas Combined Cycle + CCS"=2,
                "Natural Gas Simple Cycle"=5, "Natural Gas Combined Cycle"=3, "Other"=4)
       

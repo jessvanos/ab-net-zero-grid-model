@@ -2352,3 +2352,79 @@ Revenue2.0 <- function(case) {
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
     ) 
 }
+
+
+################################################################################
+# THE GAS PLANTS
+################################################################################
+
+# Filter for all plant data
+AllPlants<-ResYr %>%
+  filter(Zone=="WECC_Alberta",
+         Condition=="Average")%>%
+  subset(.,select=c(Name,ID,Primary_Fuel,Time_Period,Capacity,Dispatch_Cost,Fixed_Cost,Variable_OM_Cost,Fuel_Cost,Total_Fuel_Cost,
+                    Full_Load_Heat_Rate,Net_Heat_Rate,Incr_Heat_Rate,
+                    Output_MWH,Capacity_Factor,Revenue,Startup_Cost,Value,
+                    Beg_Date,End_Date
+                    ))
+
+# Filter for all emission data
+AllEm<-ResEmYr %>%
+  filter(Zone=="WECC_Alberta",
+         Condition=="Average",
+         Type=="CO2")%>%
+  subset(.,select=c(Resource_Name,ID,Time_Period,Amount,Cost,Rate))%>%
+           rename(Name=Resource_Name,
+                  Em_Cost=Cost)
+
+# Combine data by name, select categories I want
+CCGas<-merge(AllEm,AllPlants,by=c("Name","Time_Period","ID"), all.x = TRUE, all.y = TRUE)%>%
+  filter(Primary_Fuel=="WECC-Alberta NaturalGas") %>%
+  subset(.,select=c(Name,ID,Primary_Fuel,Time_Period,
+                    Capacity,Output_MWH,Capacity_Factor,
+                    Amount,Em_Cost,Rate,
+                    Dispatch_Cost,Revenue,Startup_Cost,Value,
+                    Fixed_Cost,Variable_OM_Cost,Fuel_Cost,Total_Fuel_Cost,
+                    Full_Load_Heat_Rate,Net_Heat_Rate,Incr_Heat_Rate,
+                    Beg_Date,End_Date)) 
+
+  # Set year as numeric
+  CCGas$Time_Period  <- as.numeric(CCGas$Time_Period)
+
+  # Replace 0 with NA
+  CCGas[CCGas==0]<-NA
+  
+  
+  
+  windows(14,10,buffered=FALSE)
+  
+# Plot stuff
+  ggplot(CCGas, aes(x = Time_Period, y = Capacity_Factor, color = Name)) +
+    geom_line(size=1,alpha = 1,position = position_dodge(width = 1)) +
+  
+  geom_hline(yintercept=0)+
+    
+  theme_bw() +
+  
+  theme(panel.grid = element_blank(),
+        axis.text.x = element_text(vjust = 1),
+        plot.subtitle = element_text(hjust = 0.5), 
+        panel.background = element_rect(fill = NA),
+        legend.position = "right",
+        legend.justification = c(0.5,0.5),
+        legend.title=element_blank()) +
+  
+  labs(x = "Year", 
+       y = "Capacity_Factor",
+       colour="Name",linetype="Name",caption = paste(SourceDB)) +
+  
+  scale_x_continuous(expand = c(0, 0),limits = c(2022,2035),breaks=seq(2022, 2035, by=1)) +
+  
+  scale_y_continuous(expand=c(0,0),limits = c(0,1),breaks=seq(0, 1, by=0.1))
+
+  
+  ##
+  SaveRun_Loc(CaseName,"Capacity_Factor")
+
+
+
