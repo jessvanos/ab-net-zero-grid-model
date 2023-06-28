@@ -165,7 +165,17 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
   subset(data,
          (date >= paste(year,"-", month, "-", day," 00:00:00", sep = "") & 
             date <= 
-            paste(year,"-", month, "-", (day)," 24:00:00", sep = "")))  }
+            paste(year,"-", month, "-", (day)," 23:00:00", sep = "")))  }
+}
+
+################################################################################
+## FUNCTION: OneDay
+## Convert the date and select a subset for one day from the data pulled in
+################################################################################
+
+{ OneDay <- function(data, day_filt) {
+  subset(data,
+         (Day_of_Week == day_filt))  }
 }
 
 ################################################################################

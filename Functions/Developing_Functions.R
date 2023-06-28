@@ -2427,4 +2427,38 @@ CCGas<-merge(AllEm,AllPlants,by=c("Name","Time_Period","ID"), all.x = TRUE, all.
   SaveRun_Loc(CaseName,"Capacity_Factor")
 
 
+#########################################################################################
+  
+  
+  
+  # Create a graph for each month of the year
+  p1 <- day2(year,01,08,case) +
+    theme(axis.title.y=element_blank())
+  
+  # Get a common legend
+  legend <- get_legend(p1)
+    p1 <- p1 + theme(legend.position ="none")
+  
+  p2 <- day2(year,02,08,case) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank())
+  
+  # Plot Labels
+  yleft <- textGrob("Output (MWh)", rot = 90, gp = gpar(fontsize = 15))
+  
 
+  # Arrange all the plots
+  grid.arrange(plot_grid(p1, p2, ncol=2, align="v", axis = "l", rel_widths = c(1,1)),
+               plot_grid(legend),
+               ncol=1,nrow=5, 
+               heights=c(1, 1,1,0.1,0.1),
+               left=yleft)
+  
+  
+  
+  
+  
+  
+  
+  
+  

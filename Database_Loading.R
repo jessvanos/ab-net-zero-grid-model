@@ -631,7 +631,7 @@
                    "Natural Gas Combined Cycle"=cOL_NGCC,"Natural Gas Simple Cycle"=cOL_SCGT, 
                    "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
                    "Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
-                   "Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                   #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                    "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
                    "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
@@ -660,7 +660,7 @@ Legend_PlotMain(0.7)
 ####
 
 # Create folder name to save as
-CaseName <- "Limit to Zero - New"
+CaseName <- "Limit to Zero - Testing New Plots"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -1109,7 +1109,7 @@ CaseName <- "Limit to Zero - New"
 ################################################################################
     
     #AESO Output
-    Week_act(2020,01,08)
+    Week_act(2020,04,08)
     
     #AESO Week Price
     wkPrice(2021,10,08)

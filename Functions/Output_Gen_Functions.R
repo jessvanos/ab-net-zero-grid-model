@@ -221,6 +221,102 @@
       scale_colour_manual(values = colours1)
   }
   
+  
+################################################################################
+## FUNCTION: day2
+## Plots output for a single day given the case study.
+##
+## INPUTS: 
+##    year, month, day - Date to plot
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+  
+  day2 <- function(year, month, day, case) {
+    # Filters for the desired case study from the resource groups
+    data <- ResGroupHr_sub%>%
+      sim_filt1(.) %>%
+      subset(., select=-c(Report_Year,Capacity_Factor)) %>%
+      rbind(.,Import) %>%
+      filter(Run_ID == case)%>%
+      mutate(Day_of_Week=as.Date(date,format = "%Y-%m-%d"))
+    
+    # Set levels to each category in order specified
+    data$ID <- factor(data$ID, levels=c("Import","Solar","Wind", "Other", "Hydro", 
+                                        "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                        "Blended  Simple Cycle","Blended  Combined Cycle",
+                                        "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                        "Coal-to-Gas", 
+                                        "Coal", "Cogeneration","Storage"))
+    # Get full date
+    day_filt <- as.Date(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
+    day_report <- paste(month.abb[month],day,",",year)
+    
+    ## SELECT A SINGLE DAY
+    # Select only a single day from the zone Hourly, and Export data
+    DY <- OneDay(data,day_filt)
+    ZPrice <- HrTime(ZoneHr_Avg,year,month,day) %>%
+      filter(Run_ID == case)
+    Expo <- HrTime(Export,year,month,day) %>%
+      filter(Run_ID == case)
+    
+    # Get y-max, demand to meet + exports
+    DY$MX <- ZPrice$Demand + Expo$Output_MWH
+    
+    # Set the max and min for the plot Output axis (y), Set slightly above max ( round up to nearest 500)
+    MX <- plyr::round_any(max(abs(DY$MX+11)), 1000, f = ceiling)
+    
+    
+    ## PLOT WITH AREA PLOT
+    
+    ggplot() +
+      geom_area(data = DY, aes(x = date, y = Output_MWH, fill = ID), colour = "black", 
+                alpha=Plot_Trans, size=0.5) +
+      
+      # Add hourly load line (black line on the top)
+      geom_line(data = ZPrice, 
+                aes(x = date, y = Demand,colour = "Demand"), size=1.5, colour = "black") +
+      
+      # Set the theme for the plot
+      theme_bw() +
+      theme(legend.position = "bottom") +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
+      theme(plot.title = element_text(size= Tit_Sz)) +
+      
+      theme(axis.text.x = element_text(vjust = 1),
+            panel.background = element_rect(fill = "transparent", colour = "transparent"),
+            panel.grid = element_blank(),
+            panel.grid.major.x = element_blank(),
+            panel.grid.major.y = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            plot.background = element_blank(),
+            legend.title=element_blank(),
+            legend.key = element_rect(colour = "transparent", fill = "transparent"),
+            legend.key.size = unit(1,"lines"), #Shrink legend
+            legend.background = element_rect(fill='transparent'),
+            legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+            axis.title.x = element_text(size=XTit_Sz,face='bold'),
+            axis.title.y = element_text(size=YTit_Sz,face='bold'),
+            text = element_text(size= Overall_Sz)
+      ) +
+      guides(fill = guide_legend(nrow = 1)) +
+      
+      scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
+                         breaks = seq(0, MX, by = MX/4)) +
+      
+      scale_x_datetime(expand=c(0,0),date_labels = "%H:%M") +
+      
+      labs(x = day_report, y = "Output (MWh)", fill = "Resource",colour = "Resource" ) +
+      
+      #Add colour
+      scale_fill_manual(values = colours1) 
+  }
+    
 ################################################################################  
 ## FUNCTION: Stor1
 ## Weekly storage output

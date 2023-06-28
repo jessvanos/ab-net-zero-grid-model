@@ -47,10 +47,9 @@ Week_act <- function(year,month,day) {
   
   {
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "IMPORT", after = Inf)
-    
-    
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "SCGT", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "NGCC", after = Inf)
+    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "NGCONV", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "HYDRO", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "OTHER", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "WIND", after = Inf)
@@ -60,22 +59,22 @@ Week_act <- function(year,month,day) {
   }
   
   WK$Plant_Type <- factor(WK$Plant_Type, levels=c("IMPORT", 
-                                                  "SCGT", "NGCC", "HYDRO", 
+                                                  "SCGT", "NGCC","NGCONV", "HYDRO", 
                                                   "OTHER", "WIND", "SOLAR", 
                                                   "COAL", "COGEN"))
   
-  levels(WK$Plant_Type) <- c("Import","Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+  levels(WK$Plant_Type) <- c("Import","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
                             "Hydro", "Other",
                             "Wind", "Solar", "Coal", "Cogeneration")
   
   
   
-  dmd <- demand %>%
+  dmd <- Actdemand %>%
     filter(time >= wk_st & time <= wk_end)
   
   # Plot the data    
   ggplot() +
-    geom_area(data = WK, aes(x = time, y = total_gen, fill = Plant_Type, colour = Plant_Type), 
+    geom_area(data = WK, aes(x = time, y = total_gen, fill = Plant_Type), colour = "black", 
               alpha=0.7, size=0.5) +
     
     # Add hourly load line
@@ -113,10 +112,7 @@ Week_act <- function(year,month,day) {
          caption="NRG Stream Data") +
 
     #Add colour
-    scale_fill_manual(values = colours1) +
-    
-    # Make outline the same as fill colors
-    scale_colour_manual(values = Outline1)
+    scale_fill_manual(values = colours1) 
     
 }
 
@@ -134,7 +130,7 @@ wkPrice <- function(year,month,day) {
   wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
   
-  price_WK <- demand %>%
+  price_WK <- Actdemand %>%
     filter(time >= wk_st & time <= wk_end)
   
   # Set the max for the plot
@@ -1478,7 +1474,7 @@ Cap4 <- function(plant1,plant2,plant3,plant4) {
 ################################################################################
 
 yearly_dmd <- function(year) {
-  data <- demand 
+  data <- Actdemand 
   
   data$Hour <- format(as.POSIXct(data$time, format = "%Y/%m/%d %H:%M:%S"), "%H")
   data$Year <- format(as.POSIXct(data$time, format = "%Y/%m/%d %H:%M:%S"), "%Y")
@@ -1505,7 +1501,7 @@ yearly_dmd <- function(year) {
 ################################################################################
 
 monthly_dmd_ave <- function() {
-  data <- demand 
+  data <- Actdemand 
   
   #  data$Hour <- format(as.POSIXct(data$time, format = "%Y/%m/%d %H:%M:%S"), "%H")
   #  data$Month <- format(as.POSIXct(data$time, format = "%Y/%m/%d %H:%M:%S"), "%m")
