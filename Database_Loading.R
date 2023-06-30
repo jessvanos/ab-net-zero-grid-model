@@ -80,7 +80,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_June_20_2023"
+  SourceDB<-"LZ_June_27_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -427,6 +427,9 @@
     nrgstream_gen <- readRDS(here("Data Files","Alberta Data","nrgstream_gen_corrected03Mar2023.RData")) 
     Actdemand <- readRDS(here("Data Files","Alberta Data","nrgstream_demand03Mar2023.RData"))
   
+    #Reformat the dates
+    Actdemand$Day <- date(Actdemand$time)
+    
     # Take out dates I don't care about and remove the old table
     sub_samp<-filter(nrgstream_gen, time >= as.Date("2015-01-1"))
 
@@ -450,6 +453,7 @@
         #Reformat the dates
         df1$Day <- date(df1$time)
         df1$Year <- as.factor(year(df1$time))
+        df1$Hour <-hour(df1$time)
     
   {  # ORGANIZE RESOURCES
      #Make a resource type list
@@ -576,6 +580,15 @@
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE,"Demand Curtailment"=cOL_DSM)
       
+      # Used in Day2
+      colours1c=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+                 "Coal-to-Gas"=cOL_NGConv,"H2SC"=cOL_SCGT_H2,"H2CC"=cOL_NGCC_H2,
+                 #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                 "NGCC+CCS"=cOL_NGCC_CCS,
+                 "SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
+                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                 "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
+      
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN,
                    "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,"Hydrogen"=COL_H2,
                    #"Natual Gas and Hydrogen Blend"=COL_Blend,
@@ -660,7 +673,7 @@ Legend_PlotMain(0.7)
 ####
 
 # Create folder name to save as
-CaseName <- "Limit to Zero - Testing New Plots"
+CaseName <- "Limit to Zero - Daily Plots"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -798,6 +811,23 @@ CaseName <- "Limit to Zero - Testing New Plots"
       AnnualDemand(ZoneMn,BC)
       SaveRun_Loc(CaseName,"Annual Demand")
   
+  # DAILY OUTPUT FUNCTIONS
+    CompDay_Season(2025,10,BC)  
+    SaveRun_Loc(CaseName,"Daily Output - Season 2025")
+      
+    CompDay_Wind(2040,BC)
+    SaveRun_Loc(CaseName,"Daily Output - Max Wind 2040")
+    
+    CompDay_Solar(2040,BC)
+    SaveRun_Loc(CaseName,"Daily Output - Max Solar 2040")
+    
+    CompDay_Years(2023,2035,10,10,BC)
+    SaveRun_Loc(CaseName,"Daily Output October- Years")
+    
+    CompDay_AESO(2022,10,08,BC)
+    SaveRun_Loc(CaseName,"Daily Output Compared to AESO Oct Day")
+    
+      
   # COMPARING TO AESO
       # Compare wind duration curves between AESO from 2025 to max year of sim
       AESO_Sim_WindDur(2024,BC)
@@ -931,7 +961,7 @@ CaseName <- "Limit to Zero - Testing New Plots"
     ResValue_Total(1,BC)
     
 ################################################################################
-## Build and Reture Functions (Build_Retire_Functions)
+## Build and Retire Functions (Build_Retire_Functions)
 ################################################################################
     
     # Number of units retired by fuel type
@@ -1020,6 +1050,25 @@ CaseName <- "Limit to Zero - Testing New Plots"
     
     # Capacity added by Aurora only
     Build_A_Totals(BC)
+    
+################################################################################
+## DAILY OUTPUT FUNCTIONS
+################################################################################
+    
+    # Plot seasonal typical days for a given year
+    CompDay_Season(2022,08,BC)  
+
+    # Plot max and min wind days for a given year
+    CompDay_Wind(2022,BC)
+
+    # Plot max and min solar days for a given year
+    CompDay_Solar(2022,BC)
+    
+    # Compare same days for two seperate years
+    CompDay_Years(2022,2034,08,13,BC)
+    
+    # Plot and compare actual data to sim data for a given year
+    CompDay_AESO(2022,08,08,BC)
     
 ################################################################################
 ##  AESO and Sim Compare Functions

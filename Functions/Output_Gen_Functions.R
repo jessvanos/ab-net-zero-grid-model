@@ -116,7 +116,7 @@
   }
 
 ################################################################################
-## FUNCTION: day1
+## FUNCTION: Day1
 ## Plots output for a single day given the case study.
 ##
 ## INPUTS: 
@@ -128,7 +128,7 @@
 ##    Export - Exports selected from Zone Hourly Table
 ################################################################################
   
-  day1 <- function(year, month, day, case) {
+  Day1 <- function(year, month, day, case) {
     # Filters for the desired case study from the resource groups
     data <- ResGroupHr_sub%>%
       sim_filt1(.) %>%
@@ -223,7 +223,7 @@
   
   
 ################################################################################
-## FUNCTION: day2
+## FUNCTION: Day2
 ## Plots output for a single day given the case study.
 ##
 ## INPUTS: 
@@ -233,16 +233,15 @@
 ##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
 ##    ZoneHr_Avg - Average hourly info in zone
 ##    Export - Exports selected from Zone Hourly Table
-################################################################################
-  
-  day2 <- function(year, month, day, case) {
-    # Filters for the desired case study from the resource groups
+################################################################################ 
+  Day2 <- function(year, month, day, MX, case) {
+    
+    # Filters for the desired case study from the resource groups. Format WkDay as day only (no time)
     data <- ResGroupHr_sub%>%
       sim_filt1(.) %>%
       subset(., select=-c(Report_Year,Capacity_Factor)) %>%
       rbind(.,Import) %>%
-      filter(Run_ID == case)%>%
-      mutate(Day_of_Week=as.Date(date,format = "%Y-%m-%d"))
+      filter(Run_ID == case)
     
     # Set levels to each category in order specified
     data$ID <- factor(data$ID, levels=c("Import","Solar","Wind", "Other", "Hydro", 
@@ -251,23 +250,27 @@
                                         "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
                                         "Coal-to-Gas", 
                                         "Coal", "Cogeneration","Storage"))
-    # Get full date
-    day_filt <- as.Date(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
-    day_report <- paste(month.abb[month],day,",",year)
+    
+    levels(data$ID)<-c("Import","Solar","Wind", "Other", "Hydro", 
+                       "H2SC","H2CC",
+                       "Blended  Simple Cycle","Blended  Combined Cycle",
+                       "SCGT", "NGCC+CCS","NGCC", 
+                       "Coal-to-Gas", 
+                       "Coal", "Cogeneration","Storage")
+    
+    # Get date to report
+    day_filt <-as.POSIXct(paste(year,month,day," 00:00:00", sep = "-"),tz = "MST")
+    day_report <- paste(month.abb[month]," ",day,", ",year," (",wday(day_filt,label=TRUE),")",sep="")
     
     ## SELECT A SINGLE DAY
     # Select only a single day from the zone Hourly, and Export data
-    DY <- OneDay(data,day_filt)
+    DY <- HrTime(data,year,month,day)
+    
     ZPrice <- HrTime(ZoneHr_Avg,year,month,day) %>%
       filter(Run_ID == case)
+    
     Expo <- HrTime(Export,year,month,day) %>%
       filter(Run_ID == case)
-    
-    # Get y-max, demand to meet + exports
-    DY$MX <- ZPrice$Demand + Expo$Output_MWH
-    
-    # Set the max and min for the plot Output axis (y), Set slightly above max ( round up to nearest 500)
-    MX <- plyr::round_any(max(abs(DY$MX+11)), 1000, f = ceiling)
     
     
     ## PLOT WITH AREA PLOT
@@ -286,8 +289,6 @@
       
       theme(text=element_text(family=Plot_Text)) +
       
-      theme(plot.title = element_text(size= Tit_Sz)) +
-      
       theme(axis.text.x = element_text(vjust = 1),
             panel.background = element_rect(fill = "transparent", colour = "transparent"),
             panel.grid = element_blank(),
@@ -299,24 +300,27 @@
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.background = element_rect(fill='transparent'),
+            legend.position = 'right',
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            axis.title.x = element_text(size=XTit_Sz,face='bold'),
-            axis.title.y = element_text(size=YTit_Sz,face='bold'),
+            axis.title.x = element_text(size=XTit_Sz),
+            axis.title.y = element_text(size=YTit_Sz),
             text = element_text(size= Overall_Sz)
       ) +
-      guides(fill = guide_legend(nrow = 1)) +
+      
+      guides(fill = guide_legend(ncol = 1)) +
       
       scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
                          breaks = seq(0, MX, by = MX/4)) +
       
-      scale_x_datetime(expand=c(0,0),date_labels = "%H:%M") +
+      scale_x_datetime(expand=c(0,0),date_labels = "%H:%M",date_breaks = "4 hours") +
       
-      labs(x = day_report, y = "Output (MWh)", fill = "Resource",colour = "Resource" ) +
+      labs(title=SourceDB,x = day_report, y = "Output (MWh)", fill = "Resource",colour = "Resource" ) +
       
-      #Add colour
-      scale_fill_manual(values = colours1) 
-  }
-    
+      #Add colour, keep all in legend for now
+      scale_fill_manual(values = colours1c,drop=FALSE) 
+  }   
+  
+   
 ################################################################################  
 ## FUNCTION: Stor1
 ## Weekly storage output

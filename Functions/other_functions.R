@@ -158,24 +158,26 @@ round_any = function(x, accuracy, f=round){f(x/ accuracy) * accuracy}
 
 ################################################################################
 ## FUNCTION: HrTime
-## Convert the date and select a subset for one day from the data pulled in
+## Convert the date and select a subset for one day from the data pulled in. From midnight to midnight.
 ################################################################################
 
-{ HrTime <- function(data, year, month, day) {
-  subset(data,
-         (date >= paste(year,"-", month, "-", day," 00:00:00", sep = "") & 
-            date <= 
-            paste(year,"-", month, "-", (day)," 23:00:00", sep = "")))  }
-}
-
-################################################################################
-## FUNCTION: OneDay
-## Convert the date and select a subset for one day from the data pulled in
-################################################################################
-
-{ OneDay <- function(data, day_filt) {
-  subset(data,
-         (Day_of_Week == day_filt))  }
+HrTime <- function(data, year, month, day) {
+  
+ # Select single day  
+ data1<- subset(data,
+         (date >= as.POSIXct(paste(year,month,day," 00:00:00", sep = "-"),tz = "MST") &
+          date <= as.POSIXct(paste(year,month,day+1," 00:00:00", sep = "-"),tz = "MST")))
+  
+ # Get up to 24 hours
+ # data2<- data %>%
+ #   filter(year(date)==year,
+ #          month(date)==month,
+ #          day(date)==day) %>%
+ #     mutate(date2=date+60*60)
+ # 
+ # 
+ #  data<-rbind(data1,data2)
+  
 }
 
 ################################################################################

@@ -200,6 +200,8 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 
 -   *day1* : Plots output for a single day given the case study.
 
+-   *day2* : Plots output for a single day given the case study, formated for comparison.
+
 -   *Stor1* : Weekly storage output.
 
 -   *Stor2* : Weekly storage output with pool price overlaid.
@@ -292,6 +294,18 @@ Functions To use for summarizing data within R environment.
 
 -   *Build_A\_Totals* : Report the capacity built for each fuel type in the study by year. Aurora new builds only.
 
+### <ins>Daily_Output_Functions
+
+-   *CompDay_Season* : Compare two typical days in winter and summer.
+
+-   *CompDay_Wind* : Plot max and min wind days for a given year.
+
+-   *CompDay_Solar* : Plot max and min solar days for a given year.
+
+-   *CompDay_Years* : Compare the saem day in two different years.
+
+-   *CompDay_AESO* : Compare a specified day from the simulation with actual data.
+
 ### <ins>aeso_eval_1
 
 Functions used to used to plot and analyze other (AESO) data. Some functions based on code from Taylor Pawlenchuk (Retrieved June 3, 2022).
@@ -301,6 +315,8 @@ Functions used to used to plot and analyze other (AESO) data. Some functions bas
 -   *plnt_tr* : Identify specific plant traits.
 
 -   *Week_act* : Plot actual AESO output for a single week.
+
+-   *Day_AESO* : Plots actual AESO output for a single day.
 
 -   *wkPrice* : Plot AESO pool price.
 

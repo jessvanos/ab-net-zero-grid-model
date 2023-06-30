@@ -2109,6 +2109,111 @@ Wind_DurNorm_AESO <- function() {
     scale_y_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
   
 }
+
+################################################################################
+## FUNCTION: Day_AESO
+## Plots actual AESO output for a single day.
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+## TABLES REQUIRED: 
+##    df1a - Filtered version of nrgstream
+################################################################################
+Day_AESO <- function(year,month,day,MX) {
+  
+  # Get date to report
+  day_filt <-as.POSIXct(paste(year,month,day," 00:00:00", sep = "-"),tz = "MST")
+  day_report <- paste(month.abb[month]," ",day,", ",year," (",wday(day_filt,label=TRUE),")",sep="")
+  
+  # Format times
+  df1a$time <- as.POSIXct(df1a$time, tz = "MST")
+  
+  # Select only a single day
+  DYa <- df1a %>%
+    filter(Plant_Type != "EXPORT" & Plant_Type != "IMPORT",
+            Day == as.Date(paste(year,month,day, sep = "-")))
+  
+  # Select Imports
+  DY_IM <- df1a %>%
+    filter(Plant_Type == "IMPORT",
+           Day == as.Date(paste(year,month,day, sep = "-")))%>%
+    mutate(total_gen=total_gen*-1)
+  
+  # Put together
+  DY_Tot <- rbind(DY_IM, DYa)
+  
+  {
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "IMPORT", after = Inf)
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "SOLAR", after = Inf)
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "WIND", after = Inf)
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "OTHER", after = Inf)
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "HYDRO", after = Inf)
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "SCGT", after = Inf)
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "NGCC", after = Inf)
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "NGCONV", after = Inf)
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "COAL", after = Inf)
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "COGEN", after = Inf)
+    DY_Tot$Plant_Type<-fct_relevel(DY_Tot$Plant_Type, "STORAGE", after = Inf)
+  }
+  
+  DY_Tot$Plant_Type <- factor(DY_Tot$Plant_Type, levels=c("IMPORT", "SOLAR","WIND",
+                                                  "OTHER", "HYDRO",
+                                                  "SCGT", "NGCC","NGCONV",  
+                                                  "COAL", "COGEN","STORAGE"))
+  
+  levels(DY_Tot$Plant_Type) <- c("Import","Solar","Wind", 
+                            "Other", "Hydro", 
+                            "SCGT","NGCC", "Coal-to-Gas", 
+                            "Coal", "Cogeneration","Storage")
+  
+  # Get demand line
+  dmd <- Actdemand %>%
+    filter(Day == as.Date(paste(year,month,day, sep = "-")))
+  
+  # Plot the data    
+  ggplot() +
+    geom_area(data = DY_Tot, aes(x = time, y = total_gen, fill = Plant_Type), colour = "black", 
+              alpha=0.8, size=0.5) +
+    
+    # Add hourly load line
+    geom_line(data = dmd, 
+              aes(x = time, y = Demand), size=1.5, colour = "black") +
+    
+    # Set the theme for the plot
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          legend.position = "bottom",
+    ) +
+    theme(axis.text.x = element_text(vjust = 1),
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          axis.title.x = element_text(size= XTit_Sz),
+          axis.title.y = element_text(size= YTit_Sz),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent'),
+          legend.position = 'right',
+          legend.title=element_blank(),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          text = element_text(size= 15)
+    ) +
+
+    scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
+                       breaks = seq(0, MX, by = MX/4))+
+    
+    scale_x_datetime(expand=c(0,0),date_labels = "%H:%M",date_breaks = "4 hours") +
+    
+    labs(title = "NRG Stream Data", x = day_report, y = "Output (MWh)", fill = "Plant_Type", colour = "Plant_Type") +
+    
+    #Add colour
+    scale_fill_manual(values = colours1c) 
+  
+}
+
 ###############################################################################  
 ## FUNCTION: T_month_all 
 ## All trade for each month over one year
