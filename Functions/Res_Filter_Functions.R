@@ -18,7 +18,7 @@ sim_filt <- function(inputdata) {
   Coal <- inputdata %>%
     filter(ID=="LTO_Coal")
   Coal2Gas  <- inputdata %>%
-    filter(ID=="LTO_Coal2Gas")
+    filter(ID=="AB_NGCONV")
   #Force zero output if negative
   #Coal2Gas$Output_MWH[Coal2Gas$Output_MWH <= 0] <- 0
   Cogen  <- inputdata %>%
@@ -53,7 +53,7 @@ sim_filt <- function(inputdata) {
     
     # Sort the table by case ID
     #A factor is a categorical variable 
-    case$ID <- factor(case$ID, levels=c( "LTO_Coal2Gas", "LTO_NatGas","AB_CC90CCS_noncogen",
+    case$ID <- factor(case$ID, levels=c( "AB_NGCONV", "LTO_NatGas","AB_CC90CCS_noncogen",
                                          "NGH2_Blend", 
                                          "LTO_H2","LTO_Hydro","LTO_Other",  
                                          "LTO_Wind", "LTO_Solar", "LTO_Storage",
@@ -291,7 +291,7 @@ sim_filt3 <- function(inputdata) {
   
   # Separate retrofits
   NGConv2 <- NG1AB[NG1AB$Name %like% "%Retrofit%",] 
-  NGConv2b<-NGConv2 # Swt this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
+  NGConv2b<-NGConv2 # Set this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
   NGConv2$Primary_Fuel<- "NGConv"
   
   NGConv <-rbind(NGConv1,NGConv2)

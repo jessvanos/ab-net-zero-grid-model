@@ -501,15 +501,17 @@ System_Cost<- function(case) {
 
 ################################################################################
 ## FUNCTION: ResValue_Annual
-## Shows the annual value of new resoruces based on plant type.
+## Shows the annual value of new resources based on plant type.
 ## Define the Resource type based on number 
 ## 1 wind
 ## 2- Solar
 ## 3 - Storage
-## 4 - Natural gas
-## 5- Hydrogen and Natural gas blend
+## 4 - Unabated natural gas
+## 5- Abated natural gas
 ## 6 - Hydrogen
-## 7 - All rest (other, hydro, cogen, cola-to-gas)
+## 7 - Hydro
+## 8 - Other
+## 9 - Cogen
 ## INPUTS: 
 ##    ResNum - The resource you want
 ##    case - The case (eg.BC)
@@ -517,115 +519,121 @@ System_Cost<- function(case) {
 ##    ResYr - Annual resource info
 ################################################################################
 
-ResValue_Annual<-function(ResNum,case) {
+ResValue_Annual<-function(ResNum,BuildYr,case) {
   
-  # Filter for resource type
+  # Filter for resource type, use primary fuel
   if (ResNum==1) {
     FuelType<-c("Wind")
+    FuelIndicator<-"Wind"
   } else if (ResNum==2) {
     FuelType<-c("Solar")
+    FuelIndicator<-"Solar"
   } else if (ResNum==3) {
     FuelType<-c("Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")
+    FuelIndicator<-"Storage"
   } else if (ResNum==4) {
-    FuelType<-c("Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle")
+    FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
+    FuelIndicator<-"Unabated Gas"
   } else if (ResNum==5) {
-    FuelType<-c("Blended  Simple Cycle","Blended  Combined Cycle")
+    FuelType<-c("Alberta Natural Gas with CCS")
+    FuelIndicator<-"Abated Gas"
   } else if (ResNum==6) {
-    FuelType<-c("Hydrogen Simple Cycle","Hydrogen Combined Cycle")
+    FuelType<-c("Hydrogen")
+    FuelIndicator<-"Hydrogen"
   } else if (ResNum==7) {
-    FuelType<-c("Coal-to-Gas","Hydro","Other","Cogeneration")
+    FuelType<-c("Water")
+    FuelIndicator<-"Hydro"
+  } else if (ResNum==8) {
+    FuelType<-c("Other, ZZ, WC, WH","Biomass")
+    FuelIndicator<-"Other"
+  } else if (ResNum==9) {
+    FuelType<-c("WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
+    FuelIndicator<-"Cogen"
   }
-
-# Filter the annual resource table for resource group and selected columns
-DataYr <- ResYr %>%
-  filter(Run_ID == case,
-         Condition == "Average",
-         Zone == "WECC_Alberta",) %>%
-  # Take out new resources only
-  filter(grepl('New Resource',Name)) %>%
-  mutate(Report_Year=as.numeric(YEAR), 
-         Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
-         Beg_Year=year(Beg_Date)) %>%
-  filter(Capacity>0) %>%
-  sim_filt3(.) %>%
-  # Get fuel type of interest
-  filter(Primary_Fuel %in% FuelType) %>%
-  subset(.,select=c(Name,Report_Year,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
-                    Primary_Fuel,
-                    Net_Cost,Total_Cost_MWh,Fixed_Cost,
-                    Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
-                    Revenue,Energy_Revenue_MWh,Value,Value_MWh,
-                    Total_Hours_Run,Beg_Date,Beg_Year,End_Date)) %>%
-  # Remove the first part of name to make it shorter
-  mutate(NameAbb=word(Name,3),
-         # Add capacity of resource to tag
-         NameAbb=paste("NR#:",NameAbb," (",round(Capacity,digits=0),"MW)"))
-
-# Filter data further
-YearMin<-min(DataYr$Report_Year)
-YearMax<-2035
-
-DataYr <-DataYr %>%
-  filter(Report_Year<=YearMax,
-         Report_Year>=YearMin)
-#filter(Report_Year %in% Years2Disp)
-
-# Re-arrange the data to plot
-# VALUE is in Can$000
-Data_Val <-DataYr %>%
-  subset(.,select=c(Name,NameAbb,Report_Year,Beg_Year,
-                    Value,Value_MWh)) %>%
-  mutate(Type="Value",
-         TotSign=Value_MWh>=0)%>%          # TotSign tells if pos or neg for plot
-  arrange(Beg_Year)
-
-# Get limits on value
-MaxP<-plyr::round_any(max(Data_Val$Value_MWh)+10, 5, f = ceiling)
-
-# Create a plot to show the value of plants 
-ggplot(Data_Val, aes(x = NameAbb, y = Value_MWh, fill = TotSign)) +
-  facet_grid(cols = vars(Report_Year)) +                     # Add new plot for each year
   
-  theme_bw() +
+  # Filter the annual resource table for resource group and selected columns
+  DataYr <- ResYr %>%
+    filter(Run_ID == case,
+           Condition == "Average",
+           Zone == "WECC_Alberta",) %>%
+    # Format
+    mutate(Report_Year=as.numeric(YEAR), 
+           Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
+           Beg_Year=year(Beg_Date)) %>%
+    filter(Beg_Year>=BuildYr) %>%
+    filter(Capacity>0) %>%
+    # Get fuel type of interest
+    filter(Primary_Fuel %in% FuelType) %>%
+    subset(.,select=c(Name,Report_Year,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
+                      Primary_Fuel,
+                      Net_Cost,Total_Cost_MWh,Fixed_Cost,
+                      Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
+                      Revenue,Energy_Revenue_MWh,Value,Value_MWh,
+                      Total_Hours_Run,Beg_Date,Beg_Year,End_Date)) %>%
+    # Remove the first part of name to make it shorter
+    mutate(NameAbb=word(Name,3),
+           # Add capacity of resource to tag
+           NameAbb=paste("NR#:",NameAbb," (",round(Capacity,digits=0),"MW)"))
   
-  geom_bar(stat = "identity",alpha=0.5) +
+  # Filter data further - chose 4 years between the start and end
+  YearMin<-min(DataYr$Report_Year)
+  YearMax<-max(DataYr$Report_Year)-5
   
-  geom_hline(yintercept=0, color = "black",size=0.5,linetype=1)+
+  # Re-arrange the data to plot
+  # VALUE is in Can$000 -> convert to $ M
+  Data_Val <-DataYr %>%
+    filter(Report_Year %in% Years2Disp)%>%
+    subset(.,select=c(Name,Report_Year,Beg_Year,
+                      Value,Value_MWh)) %>%
+    mutate(Value=Value/1000,
+           Report_Year=as.factor(Report_Year))
   
-  theme(
-    # General Plot Settings
-    panel.grid = element_blank(),                          # Remove pannel grid
-    panel.spacing=unit(1,"pt"),                            # Control space between plots
-    panel.background = element_rect(fill = "transparent"), # Transparent background
-    text = element_text(size = GenText_Sz),                # Text size
-    plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
-    plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
-    panel.grid.major.y = element_line(size=0.25,
-                                      linetype=1,color = 'gray90'),                          # Adds horizontal lines
-    # X-axis
-    axis.text.x = element_text(face="bold",
-                               size=rel(0.5), angle=0),           # Horizontal text
-    axis.title.x = element_text(size = GenText_Sz),           # x-axis title text size
-    # Y-axis
-    axis.title.y = element_text(size = GenText_Sz),           # y-axis title text size
-    axis.text.y = element_text(face="bold",
-                               size=rel(0.5), angle=0),
-    # Legend
-    legend.position ="none",                             # Remove legend
   
-  # Facet labels
-  strip.text = element_text(size = rel(0.5),angle=0)) +
+  # Get limits on value
+  MaxP<-plyr::round_any(max(Data_Val$Value)+100, 5, f = ceiling)
   
-  # X-Axis (flipped)
-  coord_flip() + scale_y_continuous(name="Nominal Plant Value ($/MWh)",
-                                    expand=c(0,0), limits=c(-MaxP,MaxP),breaks = pretty_breaks(6)) +
-  # Y-axis (flipped)  
-  scale_x_discrete(name="New Plant Name") +
-  
-  # Other Settings
-  labs(caption = SourceDB,
-       title=paste("Resource Type(s):",toString(FuelType))) +
-  scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen"))          
+  # Create a plot to show the value of plants 
+  ggplot(Data_Val, aes(x = Report_Year, y = Value,color=Beg_Year)) +
+    
+    # Set line at 0
+    geom_hline(yintercept=0, color = "black",size=0.5,linetype=1) +
+    
+    ggbeeswarm::geom_quasirandom(size = 4, width = .33, alpha = .8) +
+    ggbeeswarm::geom_quasirandom(size = 4, width = .33, shape = 1, color = "black", stroke = .8) +
+    
+    stat_summary(fun = median, geom = "point", shape = 95, size = 20) +
+    
+    theme_bw() +
+    
+    theme(
+      # General Plot Settings
+      panel.grid = element_blank(),                          # Remove pannel grid
+      panel.spacing=unit(1,"pt"),                            # Control space between plots
+      panel.background = element_rect(fill = "transparent"), # Transparent background
+      text = element_text(size= GenText_Sz),                # Text size
+      plot.title = element_text(),              # Plot title size (if present)
+      plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+      
+      # X-axis
+      axis.text.x = element_text(),           # Horizontal text
+      axis.title.x = element_blank(),           # x-axis title text size
+      axis.ticks.x= element_blank(),
+      # Y-axis
+      axis.title.y = element_text(face="bold",size=rel(1.2)),           # y-axis title text size
+      axis.text.y = element_text(),
+      # Legend
+      legend.position = c(0.99, 0.99), 
+      legend.justification = c(0.99, 0.99),                      
+      legend.title=element_text()) +
+    
+    # Y-Axis 
+    scale_y_continuous(name="Plant Value (nominal $M)",labels = scales::dollar_format(prefix="$", suffix = "M"),breaks=pretty_breaks(6)) +
+    
+    # Other Settings
+    labs(caption = SourceDB,
+         title=paste("Resource Type:",FuelIndicator),color="Year Built") +
+    
+    scale_colour_gradient(low="black",high="skyblue1")
 }
 
 ################################################################################
@@ -648,21 +656,34 @@ ggplot(Data_Val, aes(x = NameAbb, y = Value_MWh, fill = TotSign)) +
 
 ResValue_Total<-function(ResNum,case) {
   
-  # Filter for resource type
+  # Filter for resource type, use primary fuel
   if (ResNum==1) {
     FuelType<-c("Wind")
+    FuelIndicator<-"Wind"
   } else if (ResNum==2) {
     FuelType<-c("Solar")
+    FuelIndicator<-"Solar"
   } else if (ResNum==3) {
     FuelType<-c("Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")
+    FuelIndicator<-"Storage"
   } else if (ResNum==4) {
-    FuelType<-c("Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle")
+    FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
+    FuelIndicator<-"Unabated Gas"
   } else if (ResNum==5) {
-    FuelType<-c("Blended  Simple Cycle","Blended  Combined Cycle")
+    FuelType<-c("Alberta Natural Gas with CCS")
+    FuelIndicator<-"Abated Gas"
   } else if (ResNum==6) {
-    FuelType<-c("Hydrogen Simple Cycle","Hydrogen Combined Cycle")
+    FuelType<-c("Hydrogen")
+    FuelIndicator<-"Hydrogen"
   } else if (ResNum==7) {
-    FuelType<-c("Coal-to-Gas","Hydro","Other","Cogeneration")
+    FuelType<-c("Water")
+    FuelIndicator<-"Hydro"
+  } else if (ResNum==8) {
+    FuelType<-c("Other, ZZ, WC, WH","Biomass")
+    FuelIndicator<-"Other"
+  } else if (ResNum==9) {
+    FuelType<-c("WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
+    FuelIndicator<-"Cogen"
   }
   
   # Filter the annual resource table for resource group and selected columns
@@ -674,7 +695,6 @@ ResValue_Total<-function(ResNum,case) {
     filter(grepl('New Resource',Name)) %>%
     mutate(Report_Year=as.numeric(YEAR)) %>%
     filter(Capacity>1) %>%
-    sim_filt3(.) %>%
     # Get fuel type of interest
     filter(Primary_Fuel %in% FuelType) %>%
     subset(.,select=c(Name,Report_Year,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
@@ -795,21 +815,34 @@ ResValue_Total<-function(ResNum,case) {
 
 ResValue_NPV<-function(ResNum,case) {
   
-  # Filter for resource type
+  # Filter for resource type, use primary fuel
   if (ResNum==1) {
     FuelType<-c("Wind")
+    FuelIndicator<-"Wind"
   } else if (ResNum==2) {
     FuelType<-c("Solar")
+    FuelIndicator<-"Solar"
   } else if (ResNum==3) {
     FuelType<-c("Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")
+    FuelIndicator<-"Storage"
   } else if (ResNum==4) {
-    FuelType<-c("Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle")
+    FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
+    FuelIndicator<-"Unabated Gas"
   } else if (ResNum==5) {
-    FuelType<-c("Blended  Simple Cycle","Blended  Combined Cycle")
+    FuelType<-c("Alberta Natural Gas with CCS")
+    FuelIndicator<-"Abated Gas"
   } else if (ResNum==6) {
-    FuelType<-c("Hydrogen Simple Cycle","Hydrogen Combined Cycle")
+    FuelType<-c("Hydrogen")
+    FuelIndicator<-"Hydrogen"
   } else if (ResNum==7) {
-    FuelType<-c("Coal-to-Gas","Hydro","Other","Cogeneration")
+    FuelType<-c("Water")
+    FuelIndicator<-"Hydro"
+  } else if (ResNum==8) {
+    FuelType<-c("Other, ZZ, WC, WH","Biomass")
+    FuelIndicator<-"Other"
+  } else if (ResNum==9) {
+    FuelType<-c("WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
+    FuelIndicator<-"Cogen"
   }
   
   # Filter the annual resource table for resource group and selected columns
@@ -823,7 +856,6 @@ ResValue_NPV<-function(ResNum,case) {
            Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
            Beg_Year=year(Beg_Date)) %>%
     filter(Capacity>1) %>%
-    sim_filt3(.) %>%
     # Get fuel type of interest
     filter(Primary_Fuel %in% FuelType) %>%
     subset(.,select=c(Name,Report_Year,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
@@ -922,7 +954,5 @@ ResValue_NPV<-function(ResNum,case) {
          title=paste("Resource Type(s):",toString(FuelType))) +
     scale_fill_manual(values = c("TRUE"="darkblue","FALSE"="darkgreen")) 
   
-  
-  # Send info to workspace
-  # return(Refnames)
+
 }

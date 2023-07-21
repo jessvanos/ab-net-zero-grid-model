@@ -58,6 +58,7 @@
   source(here('Functions','Intertie_Functions.R'))    # Plots on trade information and BC/MT/SK information
   source(here('Functions','Table_Functions.R'))       # Summary pivot tables
   source(here('Functions','Res_Filter_Functions.R'))  # Filtering by resource type, required for plots
+  source(here('Functions','Daily_Output_Functions.R'))  # Filtering by resource type, required for plots
   source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
   #source(here('Functions','Developing_Functions.R'))  # Under construction functions
   source(here('Functions','Data_Filt_To_Table.R'))    # Functions that filter data and export it to excel sehets
@@ -80,7 +81,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_June_27_2023"
+  SourceDB<-"LZ_July_18_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -413,7 +414,7 @@
 # }
 
 ################################################################################
-## BRING IN DATA FROM AESO FILES & FORMAT 
+## BRING IN DATA FROM AESO FILES & FORMAT  (OPTIONAL)
 ################################################################################
 { 
   # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
@@ -654,7 +655,7 @@
     }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2022,2025,2030,2035) # Years to show in figures
+  Years2Disp <- c(2022,2025,2030,2035,2040) # Years to show in figures
   Years2Pivot <- c(2022,2025,2030,2035)  # Years to display in tables
   
   # Get max year to display
@@ -673,7 +674,7 @@ Legend_PlotMain(0.7)
 ####
 
 # Create folder name to save as
-CaseName <- "Limit to Zero - Daily Plots"
+CaseName <- "Limit to Zero - High Curt"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -695,6 +696,9 @@ CaseName <- "Limit to Zero - Daily Plots"
       
           year_weeks(2040,BC)
           SaveRun_Loc(CaseName,"2040 Hourly Generation for One Week (Stacked Area)")
+          
+          year_weeks(2050,BC)
+          SaveRun_Loc(CaseName,"2050 Hourly Generation for One Week (Stacked Area)")
           
       # One year of weeks for storage output and pool price
       year_stor(2035,BC)
@@ -802,7 +806,7 @@ CaseName <- "Limit to Zero - Daily Plots"
       SaveRun_Loc(CaseName,"Annual Imports and Exports")
       
       # Import and export for full year from AB
-      Imp_Exp2(2025,BC)
+      Imp_Exp2(2050,BC)
       
       #Full Year output
       T_month_all_Sim(2022,BC)
@@ -812,16 +816,16 @@ CaseName <- "Limit to Zero - Daily Plots"
       SaveRun_Loc(CaseName,"Annual Demand")
   
   # DAILY OUTPUT FUNCTIONS
-    CompDay_Season(2025,10,BC)  
+    CompDay_Season(2050,14,BC)  
     SaveRun_Loc(CaseName,"Daily Output - Season 2025")
       
-    CompDay_Wind(2040,BC)
+    CompDay_Wind(2035,BC)
     SaveRun_Loc(CaseName,"Daily Output - Max Wind 2040")
     
-    CompDay_Solar(2040,BC)
+    CompDay_Solar(2035,BC)
     SaveRun_Loc(CaseName,"Daily Output - Max Solar 2040")
     
-    CompDay_Years(2023,2035,10,10,BC)
+    CompDay_Years(2023,2050,08,10,BC)
     SaveRun_Loc(CaseName,"Daily Output October- Years")
     
     CompDay_AESO(2022,10,08,BC)
@@ -845,13 +849,13 @@ CaseName <- "Limit to Zero - Daily Plots"
       windows(14,10,buffered=FALSE)
       
       # Shows new resource value each year 
-      # 1 - wind, 2 - Solar, 3 - Storage, 4 - Natural gas, 5 - Hydrogen and Natural gas blend, 
-      # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
-      ResValue_Annual(1,BC)
+      # 1 - wind, 2 - Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen,
+      # 7 - Hydro, 8 - Other, 9 - Cogen)
+      ResValue_Annual(1,1899,BC)
       SaveRun_Loc(CaseName,"Annual Nomminal Value New Wind")
       
       # Shows new resource value added up to be cumulative (nominal values to each year)
-      ResValue_Total(4,BC)
+      ResValue_Total(1,BC)
       SaveRun_Loc(CaseName,"Cummulative nominal value")
       
       # Net present value of all plants in resource group

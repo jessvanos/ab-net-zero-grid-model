@@ -2399,7 +2399,7 @@ CCGas<-merge(AllEm,AllPlants,by=c("Name","Time_Period","ID"), all.x = TRUE, all.
   windows(14,10,buffered=FALSE)
   
 # Plot stuff
-  ggplot(CCGas, aes(x = Time_Period, y = Capacity_Factor, color = Name)) +
+  ggplot(CCGas, aes(x = Time_Period, y = Net_Heat_Rate, color = Name)) +
     geom_line(size=1,alpha = 1,position = position_dodge(width = 1)) +
   
   geom_hline(yintercept=0)+
@@ -2415,12 +2415,12 @@ CCGas<-merge(AllEm,AllPlants,by=c("Name","Time_Period","ID"), all.x = TRUE, all.
         legend.title=element_blank()) +
   
   labs(x = "Year", 
-       y = "Capacity_Factor",
+       #y = "Capacity_Factor",
        colour="Name",linetype="Name",caption = paste(SourceDB)) +
   
-  scale_x_continuous(expand = c(0, 0),limits = c(2022,2035),breaks=seq(2022, 2035, by=1)) +
+  scale_x_continuous(expand = c(0, 0),limits = c(2022,2035),breaks=seq(2022, 2035, by=1))
   
-  scale_y_continuous(expand=c(0,0),limits = c(0,1),breaks=seq(0, 1, by=0.1))
+  #scale_y_continuous(expand=c(0,0),limits = c(0,1),breaks=seq(0, 1, by=0.1))
 
   
   ##
@@ -2453,12 +2453,90 @@ CCGas<-merge(AllEm,AllPlants,by=c("Name","Time_Period","ID"), all.x = TRUE, all.
                ncol=1,nrow=5, 
                heights=c(1, 1,1,0.1,0.1),
                left=yleft)
+
+  ################################################################################  
+  ## FUNCTION: MaxCurtail 
+  ## Max curtailed load annually
+  ##
+  ## INPUTS: 
+  ##    input - ResgroupMnor ResGroupYr
+  ##    case - Run_ID which you want to plot
+  ## TABLES REQUIRED: 
+  ##    Import - Import table derived of zone average table
+  ################################################################################
   
+  MaxCurtail <- function(case) {
+    
+    # Filters for the desired case study
+    data <- ResYr %>%
+      filter(Run_ID == case & Condition == "Average",
+             Primary_Fuel %in% c("Customer Curtailment Level I","Customer Curtailment Level II",
+                                 "Customer Curtailment Level III","Customer Curtailment Level IV",
+                                 "Customer Curtailment Level V","Customer Curtailment Final")) %>%
+      select(Name, Time_Period, Capacity,Capability,
+             Primary_Fuel,Dispatch_Cost,Total_Cost_MWh,Percent_Marginal,Total_Hours_Run,
+             Revenue,Output_MWH)%>%
+      mutate(Time_Period=as.numeric(year(date)))%>%
+      group_by(Primary_Fuel,Name,Time_Period)%>%
+      summarise(MaxCap=max(Output_MWH))
+    
+    # Get max and min year for plot
+    YearMX<-max(data$Time_Period)-5 #Take off the last 5 years
+    YearMN<-min(data$Time_Period)
+    
+    # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+    data <- data%>%
+      filter(Time_Period<=YearMX)
+    
+    # Plot
+    data %>%
+      ggplot() +
+      aes(Time_Period, (MaxCap), fill = Name) +
+      geom_area(alpha=Plot_Trans, linewidth=.5, colour="black") +
+      
+      theme_bw() +
+      
+      theme(
+        # General Plot Settings
+        panel.grid = element_blank(),
+        # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+        plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+        panel.background = element_rect(fill = "transparent"), # Transparent background
+        text = element_text(size = GenText_Sz),                # Text size
+        plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+        plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+        #panel.grid.major.y = element_line(size=0.25,
+        #linetype=1,color = 'gray90'),                         # Adds horizontal lines
+        # X-axis
+        axis.text.x = element_text(vjust = 1),                 # Horizontal text
+        axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        # Y-axis
+        axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+        # Legend
+        legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+        legend.position = "bottom",                            # Move legend to the bottom
+        legend.justification = c(0.5,0.5),                     # Center the legend
+        legend.text = element_text(size =Leg_Sz),              # Size of legend text
+        legend.title=element_blank()) +                        # Remove legend title
+      
+      # Set axis scales
+      scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
+      scale_y_continuous(expand=c(0,0),breaks=pretty_breaks(6)) +
+      
+      # Plot labels
+      labs(x = "Year", y = "Maximum Capacity Curtailed Annually (MW)", fill = "Resource",colour="Resource",caption = SourceDB)
+      
+    
+  }
   
+
   
-  
-  
-  
-  
+  data <- ResHr %>%
+    filter(Run_ID == case & Condition == "Average",
+           Report_Year<2036,
+           Primary_Fuel %in% c("Customer Curtailment Level I","Customer Curtailment Level II",
+                               "Customer Curtailment Level III","Customer Curtailment Level IV",
+                               "Customer Curtailment Level V","Customer Curtailment Final")) 
+ZONE<-ZoneHr  %>%
   
   
