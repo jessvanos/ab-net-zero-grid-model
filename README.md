@@ -92,9 +92,9 @@ Functions to evaluate the electricity grid as it approaches possible net zero st
 
 -   *BuildMW* : Plotting the built capacity for ALL new resources (resource table and new resource table).
 
--   *Eval_diffcap* : Shows capacity changes each year. The first year of data does not have a prior capacity to compare to, so it is not used.
+-   *Eval_CapChange* : Shows net capacity changes each year. The first year of data does not have a prior capacity to compare to, so it is not used.
 
--   *Eval_diffcap2* : Shows capacity changes each year. The first year of data does not have a prior capacity to compare to, so it is not used.
+-   *TotalCapChange* : Shows capacity changes each year, inlcudes additions and retirements.
 
 -   *Units* : Unit specific bar chart showing builds by unit for certain resource type (ex: "WND").
 
@@ -220,6 +220,8 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 
 -   *CF_Annual* : Compares capacity factor for two chosen years. Similar to plot seen on page 10 of AESOs net zero report dashboard.
 
+-   *MaxCurtail* : Shows the maximum customer curtailment used in a  single hour for each year.
+
 -   *Wind_Dur* : Plot wind duration curve in chosen years as % Hours vs Fleet Output (MW).
 
 -   *Wind_DurNorm* : Plot wind duration curve in chosen years as % hours vs output as percent of max.
@@ -252,11 +254,11 @@ Functions related to technology capture prices, pool prices, and other cost rela
 
 -   *System_Cost* : Describes the average system costs incured by all resources in the system.
 
--   *ResValue_Annual* : Shows the annual value of new resoruces based on plant type. Define the Resource type based on number. 1 - wind, 2- Solar, 3 - Storage, 4 - Natural gas, 5- Hydrogen and Natural gas blend, 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas).
+-   *ResValue_Annual* : Shows the annual value of new resources based on plant type and year built. Define the Resource type based on number. 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen, 7 - Hydro, 8 - Other, 9 - Cogen.
 
--   *ResValue_Total* : Shows the cumulative annaul value of new resources based on plant type. Define the Resource type based on number. 1 - wind, 2- Solar, 3 - Storage, 4 - Natural gas, 5- Hydrogen and Natural gas blend, 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas).
+-   *ResValue_Total* : Shows the cumulative annaul value of new resources based on plant type. Define the Resource type based on number. 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen, 7 - Hydro, 8 - Other, 9 - Cogen.
 
--   *ResValue_NPV* : Shows the net present value in 2023. 1 - wind, 2- Solar, 3 - Storage, 4 - Natural gas, 5- Hydrogen and Natural gas blend, 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas).
+-   *ResValue_NPV* : Shows the net present value in 2023. 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen, 7 - Hydro, 8 - Other, 9 - Cogen.
 
 ### <ins>Res_Filter_Functions
 

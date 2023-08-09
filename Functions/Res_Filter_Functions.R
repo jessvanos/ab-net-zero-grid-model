@@ -17,14 +17,16 @@ sim_filt <- function(inputdata) {
   # Filter the data by resource, creates a table for each resource
   Coal <- inputdata %>%
     filter(ID=="LTO_Coal")
-  Coal2Gas  <- inputdata %>%
-    filter(ID=="AB_NGCONV")
   #Force zero output if negative
   #Coal2Gas$Output_MWH[Coal2Gas$Output_MWH <= 0] <- 0
   Cogen  <- inputdata %>%
     filter(ID=="LTO_Cogen")
+  
+  # Combine Gas Groups
   NatGas <- inputdata %>%
     filter(ID=="LTO_NatGas")
+  Coal2Gas  <- inputdata %>%
+    filter(ID=="AB_NGCONV")
   NatGas_CCS <- inputdata %>%
     filter(ID=="AB_CC90CCS_noncogen")
   Other <- inputdata %>%
@@ -49,18 +51,83 @@ sim_filt <- function(inputdata) {
   
   
   # Combine the grouped data tables into one
-  { case <- rbind( Coal2Gas, NatGas,NatGas_CCS, NGH2_Blend,H2, Hydro, Solar, Wind, Storage, Other,Coal,Cogen)
+  { case <- rbind(Coal2Gas, NatGas, NGH2_Blend,H2,Other, Hydro, Storage, Solar, Wind, Coal,Cogen)
     
     # Sort the table by case ID
     #A factor is a categorical variable 
-    case$ID <- factor(case$ID, levels=c( "AB_NGCONV", "LTO_NatGas","AB_CC90CCS_noncogen",
-                                         "NGH2_Blend", 
-                                         "LTO_H2","LTO_Hydro","LTO_Other",  
-                                         "LTO_Wind", "LTO_Solar", "LTO_Storage",
-                                         "LTO_Coal", "LTO_Cogen"))
+    case$ID <- factor(case$ID, levels=c("AB_NGCONV", "LTO_NatGas","AB_CC90CCS_noncogen",
+                                         "NGH2_Blend","LTO_H2","LTO_Other", 
+                                         "LTO_Hydro", "LTO_Storage", "LTO_Solar",  
+                                         "LTO_Wind","LTO_Coal", "LTO_Cogen"))
     # Replace ID value with name 
     levels(case$ID) <- c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
-                         "Hydro","Other","Wind", "Solar", "Storage","Coal","Cogen")   }
+                         "Other","Hydro", "Storage", "Solar","Wind","Coal","Cogen")   }
+  return(case)  
+}
+
+################################################################################
+## FUNCTION: sim_filtg
+## This function filters for the data that will be evaluated.For greyscale.
+################################################################################
+
+sim_filtg <- function(inputdata) {
+  
+  # Filter the data by resource, creates a table for each resource
+  Coal <- inputdata %>%
+    filter(ID=="LTO_Coal")
+  #Force zero output if negative
+  #Coal2Gas$Output_MWH[Coal2Gas$Output_MWH <= 0] <- 0
+  Cogen  <- inputdata %>%
+    filter(ID=="LTO_Cogen")
+  
+  # Combine Gas Groups
+  NatGas <- inputdata %>%
+    filter(ID=="LTO_NatGas")
+  Coal2Gas  <- inputdata %>%
+    filter(ID=="AB_NGCONV")
+  
+  NatGasTot<-rbind(NatGas,Coal2Gas)%>%
+    mutate(ID="NG")%>%
+    group_by(ID,Time_Period)%>%
+    summarise(Output_MWH=sum(Output_MWH),
+              Capacity=sum(Capacity))%>%
+    ungroup()
+  
+  NatGas_CCS <- inputdata %>%
+    filter(ID=="AB_CC90CCS_noncogen")
+  Other <- inputdata %>%
+    filter(ID=="LTO_Other")
+  Hydro <- inputdata %>%
+    filter(ID=="LTO_Hydro")
+  Solar <- inputdata %>%
+    filter(ID=="LTO_Solar")
+  Storage <- inputdata %>%    
+    filter(ID=="LTO_Storage")
+  Wind <- inputdata %>%
+    filter(ID=="LTO_Wind")  
+  H2 <-inputdata %>%
+    filter(ID=="LTO_H2") 
+  NGH2_Blend <-inputdata %>%
+    filter(ID %in% c("AB_CCCT_Blended","AB_SCCT_Blended") ) %>%
+    mutate(ID=ifelse(is.na(ID),NA,"NGH2_Blend"))
+  
+  # Not added yet, can add if building
+  Nuclear <-inputdata %>%
+    filter(ID=="LTO_Nuclear") 
+  
+  
+  # Combine the grouped data tables into one
+  { case <- rbind(NatGasTot,NatGas_CCS, NGH2_Blend,H2,Other, Hydro, Storage, Solar, Wind, Coal,Cogen)
+    
+    # Sort the table by case ID
+    #A factor is a categorical variable 
+    case$ID <- factor(case$ID, levels=c( "NG","AB_CC90CCS_noncogen",
+                                         "NGH2_Blend","LTO_H2","LTO_Other", 
+                                         "LTO_Hydro", "LTO_Storage", "LTO_Solar",  
+                                         "LTO_Wind","LTO_Coal", "LTO_Cogen"))
+    # Replace ID value with name 
+    levels(case$ID) <- c("Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
+                         "Other","Hydro", "Storage", "Solar","Wind","Coal","Cogen")   }
   return(case)  
 }
 
@@ -370,7 +437,7 @@ sim_filt4 <- function(inputdata) {
   # Other
   Other <- inputdata %>%
     filter(Fuel_Type %in% c('OT','BIO'))%>%
-    mutate(Fuel_Type=ifelse(is.na(Fuel_Type),NA,"Other"))
+    mutate(Fuel_Type=as.character(ifelse(is.na(Fuel_Type),NA,"Other")))
   
   # Storage Types
   Stor_B <-    inputdata %>%    
@@ -380,6 +447,9 @@ sim_filt4 <- function(inputdata) {
   Stor_CA <- inputdata  %>%    
     filter(Fuel_Type=="PS2") 
   
+  Stor<-rbind(Stor_B,Stor_CA,Stor_HP)%>%
+    mutate(Fuel_Type=as.character(ifelse(is.na(Fuel_Type),NA,"PSAll")))
+  
   # Units as defined by New Resources Table
   #First split up the fuel types
   H2 <- inputdata %>%
@@ -388,26 +458,24 @@ sim_filt4 <- function(inputdata) {
     filter(Fuel_Type == "GasCCS")
   Blend <- inputdata %>%
     filter(grepl( 'GasB_CC|GasB_SC',Fuel_Type)) %>%
-    mutate(Fuel_Type=ifelse(is.na(Fuel_Type),NA,"GasB"))
+    mutate(Fuel_Type=as.character(ifelse(is.na(Fuel_Type),NA,"GasB")))
   NG <-inputdata %>%
-    filter(grepl( 'Gas|Gas1|Gas2|GasCCS',Fuel_Type)) %>%
-    mutate(Fuel_Type=ifelse(is.na(Fuel_Type),NA,"NG")) 
+    filter(grepl( 'Gas|Gas1|Gas2',Fuel_Type)) %>%
+    mutate(Fuel_Type=as.character(ifelse(is.na(Fuel_Type),NA,"NG"))) 
   
   
   # Combine the grouped data
   { case <- rbind(H2,Blend,NG,NG_CCS,
-                  Hydro, Other, Solar, Wind, Stor_B,Stor_CA, Stor_HP)
+                  Hydro, Other, Solar, Wind, Stor)
     
     case$Fuel_Type <- factor(case$Fuel_Type, levels=c(
       "H2","GasB","NG","GasCCS",
       "WAT", "OT",
       "WND", "SUN", 
-      "PS", "PS2","PS3"))
+      "PSAll"))
     
-    levels(case$Fuel_Type) <- c("Hydrogen","Natual Gas and Hydrogen Blend","Natural Gas", "Natural Gas with CCS",
-                                "Hydro", "Other",
-                                "Wind", "Solar", 
-                                "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro") }
+    levels(case$Fuel_Type) <- c("Hydrogen","Natual Gas and Hydrogen Blend","Natural Gas", "Natural Gas + CCS",
+                                "Hydro", "Other","Wind", "Solar","Storage") }
   return(case)  
 }
 

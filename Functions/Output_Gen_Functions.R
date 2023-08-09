@@ -467,7 +467,17 @@
 ##    Import - Import table derived of zone average table
 ################################################################################
   
-  Evalyr <- function(case) {
+  Evalyr <- function(case,CType) {
+    
+    #Set color
+    if (CType=="g"){
+      C_to_Fill<-colours4g
+      Plot_Trans_Choice<-1
+    }
+    else {
+      C_to_Fill<-colours4
+      Plot_Trans_Choice<-Plot_Trans
+    }
     
     # Get imports
     Imp <- Import_Yr %>%
@@ -479,9 +489,10 @@
     # Filters for the desired case study
     data <- ResGroupYr %>%
       filter(Run_ID == case & Condition == "Average") %>%
+      select(ID, Time_Period, Output_MWH,Capacity) %>%
+      sim_filtg(.) %>%
       select(ID, Time_Period, Output_MWH) %>%
-      sim_filt(.) %>%
-      rbind(.,Imp) 
+      rbind(.,Imp)
     
     # Add imports to factor list
     data$ID<-fct_relevel(data$ID, "Import")
@@ -506,7 +517,7 @@
     data %>%
       ggplot() +
       aes(YEAR, (Output_MWH/1000000), fill = ID) +
-      geom_area(alpha=Plot_Trans, linewidth=.5, colour="black") +
+      geom_area(alpha=Plot_Trans_Choice, linewidth=.5, colour="black") +
       
       theme_bw() +
       
@@ -525,10 +536,12 @@
             #panel.grid.major.y = element_line(size=0.25,
             #linetype=1,color = 'gray90'),                         # Adds horizontal lines
         # X-axis
-            axis.text.x = element_text(vjust = 1),                 # Horizontal text
+            axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
             axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
         # Y-axis
             axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+            axis.text.y = element_text(colour = "black"),                 # Horizontal text
+        
         # Legend
             legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
             legend.position = "bottom",                            # Move legend to the bottom
@@ -540,14 +553,13 @@
       scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
       scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       
+      guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
       # Plot labels
       labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
-      
-      # Legend guides - number of rows
-      guides(fill = guide_legend(nrow = 2)) +
+
       
       # Legend color scheme
-      scale_fill_manual(values = colours4,drop = FALSE) 
+      scale_fill_manual(values = C_to_Fill,drop = TRUE) 
     
   }
 ################################################################################  
@@ -559,13 +571,23 @@
 ##    case - Run_ID which you want to plot
 ################################################################################
   
-  Evalcap <- function(case) {
+  Evalcap <- function(case,CType) {
+    
+    #Set color
+    if (CType=="g"){
+      C_to_Fill<-colours4g
+      Plot_Trans_Choice<-1
+    }
+    else {
+      C_to_Fill<-colours4
+      Plot_Trans_Choice<-Plot_Trans
+    }
     
     # Filters for the desired case study
     data <- ResGroupYr %>%
       filter(Run_ID == case & Condition == "Average") %>%
-      select(ID, Time_Period, Capacity) %>%
-      sim_filt(.)
+      select(ID, Time_Period,Output_MWH,Capacity) %>%
+      sim_filtg(.)
     
     # Get year and format as a number (easier to plot!)
     data$YEAR <- as.Date(data$Time_Period)
@@ -587,7 +609,7 @@
     
     data %>%
       ggplot() +
-      geom_area(aes(YEAR, (Capacity), fill = ID, colour=ID),alpha=Plot_Trans, size=.5,color='black') +
+      geom_area(aes(YEAR, (Capacity), fill = ID, colour=ID),alpha=Plot_Trans_Choice, size=.5,color='black') +
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -621,9 +643,9 @@
       
       labs(x = "Year", y = "Capacity (MW)", fill = "Resource",colour="Resource") +
     
-      guides(fill = guide_legend(nrow = 2)) +
+      guides(fill = guide_legend(nrow = 1)) +
       
-      scale_fill_manual(values = colours2,drop = FALSE)
+      scale_fill_manual(values = C_to_Fill,drop = TRUE)
     
   }
  
@@ -636,13 +658,24 @@
 ##    case - Run_ID which you want to plot
 ################################################################################ 
   
-  EvalPerc <- function(case) {
+  EvalPerc <- function(case,CType) {
+    #Set color
+    if (CType=="g"){
+      C_to_Fill<-colours4g
+      Plot_Trans_Choice<-1
+    }
+    else {
+      C_to_Fill<-colours4
+      Plot_Trans_Choice<-Plot_Trans
+    }
+    
     # Filters for the desired case study
     data <- ResGroupYr %>%
-      filter(Run_ID == case & Condition == "Average")# %>%
-
+      filter(Run_ID == case & Condition == "Average") %>%
+      select(ID, Time_Period,Output_MWH,Capacity) 
+    
     # Filter the data by resource
-    case_Time <- sim_filt(data)
+    case_Time <- sim_filtg(data)
     
     # Remove negative generation (Storage)
     case_Time$Output_MWH[case_Time$Output_MWH < 0] <- NA
@@ -659,13 +692,21 @@
     data <- case_Time%>%
       filter(YEAR<=YearMX)
     
+    # Get max
+    FinalYr<-case_Time %>%
+      filter(YEAR==YearMX)%>%
+      summarise(TotalGen=sum(Output_MWH))
+    FinalYrMax<-as.numeric(max(FinalYr))
+    
     case_Time %>%
       ggplot() +
-      geom_area(aes(YEAR, Output_MWH, fill = ID,colour= ID),
-                position = "fill", alpha = Plot_Trans, size=.5,color="black") +
+      aes(YEAR, Output_MWH)+
+      geom_area(aes(fill = ID,colour= ID),
+                position = "fill", alpha = Plot_Trans_Choice, size=.5,color="black") +
       
-      # geom_vline(xintercept = as.numeric(2035),
-      #            linetype = "dashed", color = "black", size = 1) +
+      # geom_text(aes(label = scales::percent(Output_MWH/FinalYrMax)),
+      #           data=filter(case_Time,YEAR==YearMX),hjust=1,check_overlap =TRUE)+
+      # 
       theme_bw() +
       
       theme(text=element_text(family=Plot_Text)) +
@@ -698,9 +739,9 @@
                          labels = scales::percent, 
                          breaks = sort(c(seq(0,1,length.out=5)))) +
       
-      guides(fill = guide_legend(nrow = 2)) +
+      guides(fill = guide_legend(nrow = 1)) +
       labs(x = "Year", y = "Percentage of Generation", fill = "Resource",colour="Resource") +
-      scale_fill_manual(values = colours2,drop = FALSE) 
+      scale_fill_manual(values = C_to_Fill,drop = TRUE) 
       
   }
 
@@ -1138,6 +1179,92 @@
     
     scale_y_continuous(expand=c(0,0.05),breaks=seq(0, 1, by=0.2),labels = percent) 
   
+  }
+  
+################################################################################  
+## FUNCTION: MaxCurtail 
+## Max curtailed load annually
+##
+## INPUTS: 
+##    input - ResgroupMnor ResGroupYr
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Import - Import table derived of zone average table
+################################################################################
+  
+  MaxCurtail <- function(case) {
+    
+    # Filters for the desired case study
+    data <- ResHr %>%
+      filter(Run_ID == case & Condition == "Average",
+             Primary_Fuel %in% c("Customer Curtailment Level I","Customer Curtailment Level II",
+                                 "Customer Curtailment Level III","Customer Curtailment Level IV",
+                                 "Customer Curtailment Level V","Customer Curtailment Final")) %>%
+      select(Name, date, Capacity,Capability,
+             Primary_Fuel,Dispatch_Cost,Total_Cost_MWh,Percent_Marginal,Total_Hours_Run,
+             Revenue,Output_MWH)%>%
+      mutate(Time_Period=as.numeric(year(date)))%>%
+      group_by(Primary_Fuel,Name,Time_Period)%>%
+      summarise(MaxCap=max(Output_MWH))%>%
+      ungroup()
+    
+      data$MaxCap[data$MaxCap==0]<-NA
+    
+      data$CurtOrder<-factor(data$Primary_Fuel,levels=c("Customer Curtailment Final","Customer Curtailment Level V",
+                                                        "Customer Curtailment Level IV","Customer Curtailment Level III",
+                                                        "Customer Curtailment Level II","Customer Curtailment Level I"))
+     # arrange(.,Time_Period)
+    
+    # Get max and min year for plot
+    YearMX<-max(data$Time_Period) #Take off the last 5 years
+    YearMN<-2025
+    
+    # Plot
+    data %>%
+      ggplot() +
+      aes(Time_Period, MaxCap, fill = CurtOrder) +
+      geom_area(alpha=Plot_Trans,linewidth=.5, colour="black") +
+      
+      geom_label(aes(label = round(MaxCap,0)),
+                 position = position_stack(1),alpha=0.5,label.size = NA,show.legend = NA) +
+      
+      theme_bw() +
+      
+      theme(
+        # General Plot Settings
+        panel.grid = element_blank(),
+        # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+        plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+        panel.background = element_rect(fill = "transparent"), # Transparent background
+        text = element_text(size = GenText_Sz-4),                # Text size
+        plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+        plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+        #panel.grid.major.y = element_line(size=0.25,
+        #linetype=1,color = 'gray90'),                         # Adds horizontal lines
+        # X-axis
+        axis.text.x = element_text(vjust = 0.5,angle=45,size =GenText_Sz),                 # Horizontal text
+        axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        # Y-axis
+        axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+        axis.text.y = element_text(size =GenText_Sz),                 # Horizontal text
+        
+        # Legend
+        legend.position = c(.01, .99),                            # Move legend to the bottom
+        legend.justification = c("left", "top"),                     # Center the legend
+        legend.text = element_text(size =GenText_Sz-5),              # Size of legend text
+        legend.title=element_blank(),                                  # Remove legend title
+        legend.key = element_rect(fill = "transparent"),
+        legend.key.size = unit(1,"lines")
+        ) +                        
+      
+      # Set axis scales
+      scale_x_continuous(expand=c(0.02,0.02),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
+      scale_y_continuous(expand=c(0,0),limits=c(0,4000),breaks=pretty_breaks(6)) +
+      
+      # Plot labels
+      labs(x = "Year", y = "Maximum Capacity Curtailed in Any Hour (MW)", fill = "Level",colour="Level",caption = SourceDB)
+    
+    
   }
 ################################################################################
 #

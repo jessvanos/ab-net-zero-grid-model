@@ -81,7 +81,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_July_18_2023"
+  SourceDB<-"LZ_Aug_03_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -123,7 +123,7 @@
   ResGroupMn <- dbReadTable(con,'ResourceGroupMonth1')
   ResGroupHr <- dbReadTable(con,'ResourceGroupHour1')
   ResGroupEmYr <- dbReadTable(con,'ResourceGroupEmissionsYear1')
-  ResGroupEmHr <- dbReadTable(con,'ResourceGroupEmissionsHour1')
+#  ResGroupEmHr <- dbReadTable(con,'ResourceGroupEmissionsHour1')
 #  ResGroupEmSt <- dbReadTable(con,'ResourceGroupEmissionsStudy1')
   
   # Other Tables
@@ -179,8 +179,8 @@
                         format = "%Y")
   ResGroupEmYr$Time_Period  <- as.Date(as.character(ResGroupEmYr$Time_Period), 
                         format = "%Y")
-  ResGroupEmHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResGroupEmHr$Time_Period))), 
-                                tz = "MST")-(60*60)
+ # ResGroupEmHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResGroupEmHr$Time_Period))), 
+ #                               tz = "MST")-(60*60)
   
   # Other Tables
   ResStackYr$Time_Period  <- as.Date(as.character(ResStackYr$Time_Period), 
@@ -520,13 +520,13 @@
             
       # Color Fill info
           # Import/Export
-          cOL_IMPORT <- "#F8B660" 
+          cOL_IMPORT <- "rosybrown1" 
           cOL_EXPORT <- "#DDCC77"
           
           # Coal/Cogen
           cOL_NUCLEAR <- "black"
-          cOL_COAL <- "gray80"
-          cOL_COGEN <- "gray40"
+          cOL_COAL <- "gray50"
+          cOL_COGEN <- "gray20"
           
           # H2 groups (blues)
           cOL_SCGT_H2 <- "#C1DBEC"
@@ -536,7 +536,6 @@
               #cOL_NGCC_Blend <- "#3573B9"
               #COL_Blend <- cOL_NGCC_Blend 
 
-          
           # Gas Groups (Purples)
           cOL_COal2Gas <-  "#440154FF" #"mediumorchid4"
           cOL_NGConv <- cOL_COal2Gas
@@ -546,21 +545,38 @@
           cOL_NGCC_CCS <-"#403891b2"
           
           # Renewables and Other
-          cOL_HYDRO <- "royalblue2"
-          cOL_OTHER <- "#1F968BFF"
-          cOL_WIND <- "#73D055FF"
+          cOL_OTHER <- "steelblue1"
+          cOL_HYDRO <- "royalblue3"
           cOL_SOLAR <- "#FDE725FF"
-          
-          
+          cOL_WIND <- "#73D055FF"
+
           # Storage Groups
           cOL_STORAGE <- "coral3" 
           COL_Battery <-"coral3"
-          COL_CompAir <-"rosybrown1"
+          COL_CompAir <-"#F8B660"
           COL_Pumped <-"firebrick4"
           
           # Special Groups
           cOL_DSM <-"grey10"
           
+          # Gray-scale colors
+          cOL_IMPORTg<- "gray90"
+          COL_NatGasg<-"gray70"
+          cOL_COal2Gasg<-"gray60"
+          cOL_NGCC_CCSg<-"gray30"
+          
+          cOL_OTHERg<-"gray40"
+          cOL_HYDROg<-"lightsteelblue"
+          cOL_STORAGEg<-"steelblue1"
+          cOL_SOLARg<-"steelblue3"
+          cOL_WINDg<-"steelblue4"
+          
+          cOL_COALg<-"gray50"
+          cOL_COGENg<-"gray20"
+          
+          cOL_NUCLEARg<-"gray10"
+          COL_H2g<-"gray95"
+
           # Set plot color transparacny 
           Plot_Trans<-0.8
               
@@ -593,7 +609,6 @@
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN,
                    "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,"Hydrogen"=COL_H2,
                    #"Natual Gas and Hydrogen Blend"=COL_Blend,
-
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
                    "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
 
@@ -612,6 +627,12 @@
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
                  "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
 
+      colours4g=c("Import"= cOL_IMPORTg, "Coal-to-Gas"=cOL_COal2Gasg, "Coal"=cOL_COALg,"Cogen"=cOL_COGENg,"Nuclear"=cOL_NUCLEARg, 
+                 "Natural Gas"=COL_NatGasg,"Natural Gas + CCS"=cOL_NGCC_CCSg,"Hydrogen"=COL_H2g,
+                 #"Natual Gas and Hydrogen Blend"=COL_Blend,
+                 "Hydro"=cOL_HYDROg, "Other"=cOL_OTHERg, 
+                 "Wind"=cOL_WINDg, "Solar"=cOL_SOLARg, "Storage"=cOL_STORAGEg)
+      
       colours5 = c("Cogeneration"=cOL_COGEN, 
                    "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
                    #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
@@ -674,7 +695,7 @@ Legend_PlotMain(0.7)
 ####
 
 # Create folder name to save as
-CaseName <- "Limit to Zero - High Curt"
+CaseName <- "Limit to Zero - Low Curt"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -711,15 +732,15 @@ CaseName <- "Limit to Zero - High Curt"
       windows(14,10,buffered=FALSE)
       
       # Yearly Output
-      Evalyr(BC)
+      Evalyr(BC,"g")
       SaveRun_Loc(CaseName,"Annual Generation (Stacked Area)")
       
       # Yearly Capacity
-      Evalcap(BC)
+      Evalcap(BC,"g")
       SaveRun_Loc(CaseName,"Annual Capacity")
       
       # Yearly percentage of generation
-      EvalPerc(BC)
+      EvalPerc(BC,"g")
       SaveRun_Loc(CaseName,"Annual Generation (Percent)")
     
       # Bar chart showing each resource groups yearly output
@@ -768,7 +789,7 @@ CaseName <- "Limit to Zero - High Curt"
       windows(14,10,buffered=FALSE)
       
       # Difference in capacity
-      Eval_diffcap(BC)
+      TotalCapChange(BC)
       SaveRun_Loc(CaseName,"Capacity Changes")
   
   # PRICES AND COSTS
@@ -825,7 +846,7 @@ CaseName <- "Limit to Zero - High Curt"
     CompDay_Solar(2035,BC)
     SaveRun_Loc(CaseName,"Daily Output - Max Solar 2040")
     
-    CompDay_Years(2023,2050,08,10,BC)
+    CompDay_Years(2023,2035,08,10,BC)
     SaveRun_Loc(CaseName,"Daily Output October- Years")
     
     CompDay_AESO(2022,10,08,BC)
@@ -861,7 +882,7 @@ CaseName <- "Limit to Zero - High Curt"
       # Net present value of all plants in resource group
       ResValue_NPV(1,BC)
       SaveRun_Loc(CaseName,"2023$ NPV Wind")
-      
+
   # WRITE TO EXCEL
       # Annual data
       AnnualDataExcel(CaseName,BC)
@@ -881,8 +902,8 @@ CaseName <- "Limit to Zero - High Curt"
 ################################################################################
   
     # Gives stacked area chart for single week
-    Week1(2035,12,08,BC)
-      SaveRun_Loc(CaseName,"December 2035 Normal")
+    Week1(2035,02,08,BC)
+      SaveRun_Loc(CaseName,"Feb 2035 Output")
       
       WeekTest(2035,12,08,BC)
       SaveRun_Loc(CaseName,"December 2035 Adjusted")
@@ -932,6 +953,9 @@ CaseName <- "Limit to Zero - High Curt"
     # Wind duration curve with Output normalized
     Wind_DurNorm(BC)
     
+    # Max curtailment that occured
+    MaxCurtail(BC)
+    
     # One year of weeks for storage output and pool price
     year_stor(2035,BC)
 ################################################################################    
@@ -956,9 +980,9 @@ CaseName <- "Limit to Zero - High Curt"
     # Shows production costs and fixed costs for full system
     System_Cost(BC)
 
-    # Shows new resrouce value each year 
-    # 1 - wind, 2 - Solar, 3 - Storage, 4 - Natural gas, 5 - Hydrogen and Natural gas blend, 
-    # 6 - Hydrogen, 7 - All rest (other, hydro, cogen, cola-to-gas)
+    # Shows new resource value each year 
+    # 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen
+    # 7 - Hydro, 8 - Other, 9 - Cogen
     ResValue_Annual(1,BC)
     
     # Shows new resource value added up to be cumulative (nominal values to each year)
@@ -983,8 +1007,11 @@ CaseName <- "Limit to Zero - High Curt"
     # All new capacity
     BuildMW(BC)
     
-    # Shows capacity changes from previous year
-    Eval_diffcap(BC)
+    # Shows net capacity changes from previous year
+    Eval_CapChange(BC)
+    
+    # Shows total capacity changes from previous year
+    TotalCapChange(BC)
     
     # Lets you get where units were built 
     Units(BC,wind)
@@ -999,7 +1026,7 @@ CaseName <- "Limit to Zero - High Curt"
 ## Emission Functions (Emission_Functions)
 ################################################################################
     
-    # Annual emissions in stacked area chart, outputs total annaul emissions in console
+    # Annual emissions in stacked area chart, outputs total annual emissions in console
     AnnualEmLine(case)
     
     # Annual emissions in individual lines
