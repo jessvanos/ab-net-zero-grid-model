@@ -47,8 +47,7 @@ imsave_git <- function(name) {
 imsave_loc <- function(name) {
   ggsave(path = here("Figures (Local)"), 
          filename = paste(name,".png", sep = ""),
-         width = 14, height=10, units=c("cm"),dpi=300, bg = "transparent")
-}
+         width = 14, height=10, units=c("cm"),dpi=300, bg = "transparent")}
 
 ################################################################################
 ## FUNCTION: SaveRun_Loc

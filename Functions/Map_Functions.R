@@ -68,7 +68,7 @@ ProjectMap_bytype<-function(PlanMapDataCombined,ResType,IncludedProjects) {
     labs(fill="Capacity (MW)",
          title=paste("Alberta", ResType, "Generation Projects at Various Stages of Development"),
          subtitle=paste(AddText,captiontext),
-         caption ="Figure by Jessica Van Os, Data from AESO LTA report and connection project list (May 2023)") +
+         caption ="Figure by Jessica Van Os, Data from AESO LTA report and connection project list (Aug 2023)") +
     
     geom_sf_text (aes(label = Area_ID),size=2,color="black")
   

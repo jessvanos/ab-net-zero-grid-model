@@ -624,13 +624,13 @@
       colours4=c("Import"= cOL_IMPORT, "Coal-to-Gas"=cOL_COal2Gas, "Coal"=cOL_COAL,"Cogen"=cOL_COGEN, 
                  "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,"Hydrogen"=COL_H2,
                  #"Natual Gas and Hydrogen Blend"=COL_Blend,
-                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
+                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Nuclear"=cOL_NUCLEAR,
                  "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
 
       colours4g=c("Import"= cOL_IMPORTg, "Coal-to-Gas"=cOL_COal2Gasg, "Coal"=cOL_COALg,"Cogen"=cOL_COGENg,"Nuclear"=cOL_NUCLEARg, 
                  "Natural Gas"=COL_NatGasg,"Natural Gas + CCS"=cOL_NGCC_CCSg,"Hydrogen"=COL_H2g,
                  #"Natual Gas and Hydrogen Blend"=COL_Blend,
-                 "Hydro"=cOL_HYDROg, "Other"=cOL_OTHERg, 
+                 "Hydro"=cOL_HYDROg, "Other"=cOL_OTHERg, "Nuclear"=cOL_NUCLEARg,
                  "Wind"=cOL_WINDg, "Solar"=cOL_SOLARg, "Storage"=cOL_STORAGEg)
       
       colours5 = c("Cogeneration"=cOL_COGEN, 
@@ -686,13 +686,15 @@
   beep(3)
 }
 
-### DELTE LATER. ##
+### CAN DELTE LATER. ##
 # Plot all colors used
 Legend_PlotAll(0.7)
 
 # Plot main colors used
 Legend_PlotMain(0.7)
-####
+# The gray colors used
+Legend_PlotGray(1)
+
 
 # Create folder name to save as
 CaseName <- "Limit to Zero - Low Curt"

@@ -41,24 +41,24 @@ PlanningMapData<-st_read(dsn= here("Data Files","AESO Planning Locations","AESO_
 # Data from excel to merge with rest
 # Data Source: https://www.aeso.ca/market/market-and-system-reporting/long-term-adequacy-metrics/
     # Save new data
-    # saveRDS(May_2023_AESO_planning_analytics,file=here("Data Files","AESO Planning Locations","May_2023_AESO_Planning_Data.RData"))
+    #  saveRDS(August_2023_AESO_planning_analytics,file=here("Data Files","AESO Planning Locations","Aug_2023_AESO_Planning_Data.RData"))
 
 # Read in the saved data
-May2023AllProjects<-readRDS(here("Data Files","AESO Planning Locations","May_2023_AESO_Planning_Data.RData"))%>%
+AllProjectsData<-readRDS(here("Data Files","AESO Planning Locations","Aug_2023_AESO_Planning_Data.RData"))%>%
   subset(., select = c("Area_ID","Solar_Capacity","Wind_Capacity","Storage_Capacity","Gas_Capacity"))
 
-May2023Projects_ExclAnnounced<-readRDS(here("Data Files","AESO Planning Locations","May_2023_AESO_Planning_Data.RData"))%>%
+AllProjectsData_ExclAnnounced<-readRDS(here("Data Files","AESO Planning Locations","Aug_2023_AESO_Planning_Data.RData"))%>%
   subset(., select = c("Area_ID","Solar_Capacity_Const&ApprovedOnly","Wind_Capacity_Const&ApprovedOnly",
                        "Storage_Capacity_Const&ApprovedOnly","Gas_Capacity_Const&ApprovedOnly"))
 
 # Merge together
-PlanMapDataCombined<-merge(PlanningMapData,May2023AllProjects,by="Area_ID")%>%
+PlanMapDataCombined<-merge(PlanningMapData,AllProjectsData,by="Area_ID")%>%
   rename("Solar"="Solar_Capacity",
          "Wind"="Wind_Capacity",
          "Storage"="Storage_Capacity",
          "Gas"="Gas_Capacity")
 
-PlanMapDataCombined_ExclAnnounced<-merge(PlanningMapData,May2023Projects_ExclAnnounced,by="Area_ID")%>%
+PlanMapDataCombined_ExclAnnounced<-merge(PlanningMapData,AllProjectsData_ExclAnnounced,by="Area_ID")%>%
   rename("Solar"="Solar_Capacity_Const&ApprovedOnly",
          "Wind"="Wind_Capacity_Const&ApprovedOnly",
          "Storage"="Storage_Capacity_Const&ApprovedOnly",
@@ -68,7 +68,7 @@ PlanMapDataCombined_ExclAnnounced<-merge(PlanningMapData,May2023Projects_ExclAnn
 ## PLOT IT
 ################################################################################
 # Create folder name to save as
-  CaseName <- "May 2023 Generation Projects"
+  CaseName <- " 2023 Generation Projects"
   
 # Make Window
 # Save all full size images
@@ -76,33 +76,33 @@ PlanMapDataCombined_ExclAnnounced<-merge(PlanningMapData,May2023Projects_ExclAnn
 
 # Plot Solar
   ProjectMap_bytype(PlanMapDataCombined,"Solar","all")
-  SaveIm_Loc(CaseName,"All May 2023 Solar Projects")
+  SaveIm_Loc(CaseName,"All August 2023 Solar Projects")
   
 # Plot Solar excluding announced 
   ProjectMap_bytype(PlanMapDataCombined_ExclAnnounced,"Solar","ExclAnnounced")
-  SaveIm_Loc(CaseName,"May 2023 Solar Projects, underconstruction and recieved AUC approval only")
+  SaveIm_Loc(CaseName,"August 2023 Solar Projects, underconstruction and recieved AUC approval only")
   
 # Plot Wind
   ProjectMap_bytype(PlanMapDataCombined,"Wind","all")
-  SaveIm_Loc(CaseName,"May 2023 Wind Projects")
+  SaveIm_Loc(CaseName,"August 2023 Wind Projects")
   
 # Plot Wind excluding announced 
   ProjectMap_bytype(PlanMapDataCombined_ExclAnnounced,"Wind","ExclAnnounced")
-  SaveIm_Loc(CaseName,"May 2023 Wind Projects, underconstruction and recieved AUC approval only")
+  SaveIm_Loc(CaseName,"August 2023 Wind Projects, underconstruction and recieved AUC approval only")
   
 # Plot Storage
   ProjectMap_bytype(PlanMapDataCombined,"Storage","all")
-  SaveIm_Loc(CaseName,"May 2023 Storage Projects")
+  SaveIm_Loc(CaseName,"August 2023 Storage Projects")
   
 # Plot Storage excluding announced 
   ProjectMap_bytype(PlanMapDataCombined_ExclAnnounced,"Storage","ExclAnnounced")
-  SaveIm_Loc(CaseName,"May 2023 Strorage Projects, underconstruction and recieved AUC approval only")
+  SaveIm_Loc(CaseName,"August 2023 Strorage Projects, underconstruction and recieved AUC approval only")
   
 # Plot Gas
   ProjectMap_bytype(PlanMapDataCombined,"Gas","all")
-  SaveIm_Loc(CaseName,"May 2023 Gas Projects")
+  SaveIm_Loc(CaseName,"August 2023 Gas Projects")
   
 # Plot Gas excluding announced 
   ProjectMap_bytype(PlanMapDataCombined_ExclAnnounced,"Gas","ExclAnnounced")
-  SaveIm_Loc(CaseName,"May 2023 Gas Projects, underconstruction and recieved AUC approval only")
+  SaveIm_Loc(CaseName,"August 2023 Gas Projects, underconstruction and recieved AUC approval only")
   

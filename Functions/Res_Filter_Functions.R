@@ -51,17 +51,17 @@ sim_filt <- function(inputdata) {
   
   
   # Combine the grouped data tables into one
-  { case <- rbind(Coal2Gas, NatGas, NGH2_Blend,H2,Other, Hydro, Storage, Solar, Wind, Coal,Cogen)
+  { case <- rbind(Coal2Gas, NatGas, NatGas_CCS,NGH2_Blend,H2,Other, Hydro, Storage, Solar, Wind, Coal,Nuclear,Cogen)
     
     # Sort the table by case ID
     #A factor is a categorical variable 
     case$ID <- factor(case$ID, levels=c("AB_NGCONV", "LTO_NatGas","AB_CC90CCS_noncogen",
                                          "NGH2_Blend","LTO_H2","LTO_Other", 
                                          "LTO_Hydro", "LTO_Storage", "LTO_Solar",  
-                                         "LTO_Wind","LTO_Coal", "LTO_Cogen"))
+                                         "LTO_Wind","LTO_Coal","LTO_Nuclear", "LTO_Cogen"))
     # Replace ID value with name 
     levels(case$ID) <- c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
-                         "Other","Hydro", "Storage", "Solar","Wind","Coal","Cogen")   }
+                         "Other","Hydro", "Storage", "Solar","Wind","Coal","Nuclear","Cogen")   }
   return(case)  
 }
 
