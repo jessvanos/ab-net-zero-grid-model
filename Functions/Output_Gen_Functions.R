@@ -1312,12 +1312,11 @@
     # Set levels to each category in order specified
     data$ID <- factor(data$ID, levels=c(
       #"Demand Curtailment",
-      "Import","Solar","Wind", "Other", "Hydro", 
-                                        "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                                        "Blended  Simple Cycle","Blended  Combined Cycle",
-                                        "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                                        "Coal-to-Gas", 
-                                        "Coal", "Cogeneration","Storage"))
+      "Import","Solar","Wind","Hydro","Other", 
+                 "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                 "Blended  Simple Cycle","Blended  Combined Cycle",
+                 "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
+                 "Coal", "Cogeneration","Storage"))
     
     data$Output_MWH[data$Output_MWH<0.001] <-0
     

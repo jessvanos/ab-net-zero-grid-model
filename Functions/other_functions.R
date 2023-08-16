@@ -298,4 +298,35 @@ plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1) +
          title=c("Legend"))
 }
 
-
+################################################################################
+## FUNCTION: Legend_PlotGray
+## Plot legend for all things referenced in other plots
+################################################################################
+Legend_PlotGray <- function(InputAplha){
+  
+  plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1) +
+    legend("center", 
+           legend =c("Import","Nuclear","Cogeneration", "Coal",
+                     "Coal-to-Gas",
+                     "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                     "Natural Gas Combined Cycle + CCS",
+                     "Hydrogen",
+                     "Hydro", "Other", "Wind", 
+                     "Solar",  "Storage" 
+                     ),
+           
+           pch=16,          # Type of point
+           pt.cex=2,        # Expansion factor for points relative to text
+           title.cex=1.5,     # Expansion factor for title relative to text
+           bty='o',         # Box around legend
+           ncol=2,          # Allow two columns for legend
+           col = alpha(c(cOL_IMPORTg,cOL_NUCLEARg,cOL_COGENg, cOL_COALg,
+                         cOL_NGConvg,
+                         cOL_SCGTg, cOL_NGCCg, 
+                         cOL_NGCC_CCSg,
+                         COL_H2g,
+                         cOL_HYDROg, cOL_OTHERg, cOL_WINDg, 
+                         cOL_SOLARg,  cOL_STORAGEg 
+                         ),InputAplha),
+           title=c("Legend"))
+}

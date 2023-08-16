@@ -30,11 +30,11 @@ Retirecol <- function(case) {
 
   
   # Set levels to each category in order specified
-  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Solar","Wind","Hydro", "Other",
+                                                                "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                                                 "Blended  Simple Cycle","Blended  Combined Cycle",
-                                                                "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                                                                "Hydro", "Other",
-                                                                "Wind", "Solar", "Storage","Coal", "Cogeneration"))
+                                                                "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                                                                "Coal-to-Gas","Coal", "Cogeneration", "Storage"))
   
   #Get Year max for run and filter for end dates BEFORE this date
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
@@ -124,11 +124,11 @@ RetireMW <- function(case) {
   
   
   # Set levels to each category in order specified
-  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Solar","Wind","Hydro", "Other",
+                                                                "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                                                 "Blended  Simple Cycle","Blended  Combined Cycle",
-                                                                "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                                                                "Hydro", "Other",
-                                                                "Wind", "Solar", "Storage","Coal", "Cogeneration"))
+                                                                "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                                                                "Coal-to-Gas","Coal", "Cogeneration", "Storage"))
   
   #Get Year max for run and filter for end dates BEFORE this date
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)

@@ -107,7 +107,7 @@ Sim_dur <- function(case) {
     
     labs(y = "Pool Price ($/MWh)", x = "Percentage of Time for Hourly Pool Price",caption = SourceDB) +
     
-    #scale_color_brewer(palette= "Dark2") +
+    scale_color_brewer(palette= "RdBu") +
     
     scale_x_continuous(expand=c(0,0), 
                        limits = c(0,1),

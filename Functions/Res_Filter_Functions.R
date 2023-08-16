@@ -117,17 +117,18 @@ sim_filtg <- function(inputdata) {
   
   
   # Combine the grouped data tables into one
-  { case <- rbind(NatGasTot,NatGas_CCS, NGH2_Blend,H2,Other, Hydro, Storage, Solar, Wind, Coal,Cogen)
+  { case <- rbind(Storage, Solar, Wind,Hydro,Other,NGH2_Blend,H2,NatGas_CCS,NatGasTot, Coal,Cogen,Nuclear)
     
     # Sort the table by case ID
     #A factor is a categorical variable 
-    case$ID <- factor(case$ID, levels=c( "NG","AB_CC90CCS_noncogen",
-                                         "NGH2_Blend","LTO_H2","LTO_Other", 
-                                         "LTO_Hydro", "LTO_Storage", "LTO_Solar",  
-                                         "LTO_Wind","LTO_Coal", "LTO_Cogen"))
+    case$ID <- factor(case$ID, levels=c(
+                                         "LTO_Storage", "LTO_Solar","LTO_Wind","LTO_Hydro",   
+                                         "LTO_Other","NGH2_Blend","LTO_H2", 
+                                         "AB_CC90CCS_noncogen","NG","LTO_Coal","LTO_Cogen","LTO_Nuclear"))
     # Replace ID value with name 
-    levels(case$ID) <- c("Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
-                         "Other","Hydro", "Storage", "Solar","Wind","Coal","Cogen")   }
+    levels(case$ID) <- c( "Storage", "Solar","Wind","Hydro", 
+                          "Other","Natual Gas and Hydrogen Blend","Hydrogen",
+                          "Natural Gas + CCS","Natural Gas","Coal","Cogen","Nuclear")   }
   return(case)  
 }
 
@@ -178,24 +179,25 @@ sim_filt1 <- function(inputdata) {
     filter(ID=="LTO_Nuclear") 
   
   # Combine the grouped data
-  { case <- rbind(NGConv, SCCT_H2,CCCT_H2,SCCT_Blend,CCCT_Blend,
-                  SCCT, CCCT_CCS, CCCT, Hydro, Other,Wind, Solar, Storage, Coal, Cogen )
+  { case <- rbind(Solar,Wind,Hydro,Other, 
+                  SCCT_H2,CCCT_H2,SCCT_Blend,CCCT_Blend, 
+                  CCCT_CCS,SCCT,CCCT, NGConv,
+                  Coal, Cogen,Storage)
     
-    case$ID <- factor(case$ID, levels=c("LTO_Solar","LTO_Wind","LTO_Other","LTO_Hydro", 
+    case$ID <- factor(case$ID, levels=c("LTO_Solar","LTO_Wind","LTO_Hydro","LTO_Other", 
                                         "AB_SCCT_0NG100H2","AB_CCCT_0NG100H2",
                                         "AB_SCCT_Blended","AB_CCCT_Blended",
-                                        "AB_SCCT_noncogen", "AB_CC90CCS_noncogen","AB_CCCT_noncogen",
-                                        "AB_NGCONV", 
+                                        "AB_CC90CCS_noncogen","AB_SCCT_noncogen","AB_CCCT_noncogen","AB_NGCONV", 
                                         "LTO_Coal","LTO_Cogen","LTO_Storage"))
     
-    levels(case$ID) <- c("Solar","Wind", "Other", "Hydro", 
+    levels(case$ID) <- c("Solar","Wind","Hydro","Other", 
                          "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                          "Blended  Simple Cycle","Blended  Combined Cycle",
-                         "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                         "Coal-to-Gas", 
+                         "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
                          "Coal", "Cogeneration","Storage")  }
   return(case)  
 }
+
 
 ################################################################################
 ## FUNCTION: sim_filt2
@@ -284,21 +286,22 @@ sim_filt2 <- function(inputdata) {
   
   
   # Combine the grouped data
-  { case <- rbind(NGConv, SC_H2,CC_H2,SC_Blend,CC_Blend,
-                  SCCT, CCC_CCS,CCCT, Hydro, Other, Solar, Wind, Storage, Coal, Cogen)
+  { case <- rbind(Solar, Wind,Hydro, Other, 
+                  SC_H2,CC_H2,SC_Blend,CC_Blend,
+                  CCC_CCS,SCCT, CCCT,
+                  NGConv,  Coal, Cogen,Storage)
     
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
-      "NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
-      "NG-SCCT","Alberta Natural Gas with CCS","WECC-Alberta NaturalGas",
-      "Water", "Other",
-      "Wind", "Solar", "Storage", 
-      "Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
+      "Solar","Wind","Water", "Other",
+      "H2-SC","H2-CC","Blend-SC","Blend-CC",
+      "Alberta Natural Gas with CCS","NG-SCCT","WECC-Alberta NaturalGas",
+      "NGConv","Coal Canada West", "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta","Storage"))
     
-    levels(case$Primary_Fuel) <- c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+    levels(case$Primary_Fuel) <- c("Solar","Wind","Hydro", "Other",
+                                   "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                    "Blended  Simple Cycle","Blended  Combined Cycle",
-                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                                   "Hydro", "Other",
-                                   "Wind", "Solar", "Storage","Coal", "Cogeneration") }
+                                   "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                                    "Coal-to-Gas","Coal", "Cogeneration", "Storage") }
   return(case)  
 }
 

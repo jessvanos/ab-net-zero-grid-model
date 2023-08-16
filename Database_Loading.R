@@ -81,7 +81,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Aug_03_2023"
+  SourceDB<-"LZ_Aug_14_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -518,31 +518,31 @@
         #sequential_hcl(5,palette="oranges)
     { 
             
-      # Color Fill info
+      # Normal Color 
           # Import/Export
-          cOL_IMPORT <- "rosybrown1" 
+          cOL_IMPORT <- "#F8B660"  
           cOL_EXPORT <- "#DDCC77"
           
           # Coal/Cogen
-          cOL_NUCLEAR <- "black"
-          cOL_COAL <- "gray50"
+          cOL_NUCLEAR <- "gray10"
+          cOL_COAL <- "black"
           cOL_COGEN <- "gray20"
           
           # H2 groups (blues)
-          cOL_SCGT_H2 <- "#C1DBEC"
-          cOL_NGCC_H2 <- "#042333b2"
+          cOL_SCGT_H2 <- "#7e4e90ff"
+          cOL_NGCC_H2 <- "#440154FF"
           COL_H2 <- cOL_NGCC_H2  
               #cOL_SCGT_Blend <- "#7FABD3"
               #cOL_NGCC_Blend <- "#3573B9"
               #COL_Blend <- cOL_NGCC_Blend 
 
           # Gas Groups (Purples)
-          cOL_COal2Gas <-  "#440154FF" #"mediumorchid4"
+          cOL_COal2Gas <-  "gray70"
           cOL_NGConv <- cOL_COal2Gas
-          cOL_SCGT <- "#7e4e90ff"
-          cOL_NGCC <- "#A79FE1"
+          cOL_SCGT <- "gray40"
+          cOL_NGCC <- "gray85"
           COL_NatGas <-cOL_NGCC 
-          cOL_NGCC_CCS <-"#403891b2"
+          cOL_NGCC_CCS <-"#A79FE1"
           
           # Renewables and Other
           cOL_OTHER <- "steelblue1"
@@ -551,31 +551,33 @@
           cOL_WIND <- "#73D055FF"
 
           # Storage Groups
-          cOL_STORAGE <- "coral3" 
-          COL_Battery <-"coral3"
-          COL_CompAir <-"#F8B660"
+          cOL_STORAGE <- "rosybrown1" 
+          COL_Battery <-"rosybrown1" 
+          COL_CompAir <-"coral3"
           COL_Pumped <-"firebrick4"
           
-          # Special Groups
-          cOL_DSM <-"grey10"
+      # Gray-scale colors
+          cOL_IMPORTg<- "gray93"
           
-          # Gray-scale colors
-          cOL_IMPORTg<- "gray90"
-          COL_NatGasg<-"gray70"
+          # Gas Groups (Purples)
           cOL_COal2Gasg<-"gray60"
-          cOL_NGCC_CCSg<-"gray30"
+          cOL_NGConvg <- cOL_COal2Gasg
+          cOL_SCGTg <- "gray45"
+          cOL_NGCCg <- "gray80"
+          COL_NatGasg <-"gray45"
+          cOL_NGCC_CCSg<-"gray20"
           
-          cOL_OTHERg<-"gray40"
-          cOL_HYDROg<-"lightsteelblue"
+          cOL_OTHERg<-"gray70"
+          cOL_HYDROg<-"steelblue3"
           cOL_STORAGEg<-"steelblue1"
-          cOL_SOLARg<-"steelblue3"
+          cOL_SOLARg<-"lightsteelblue"
           cOL_WINDg<-"steelblue4"
           
-          cOL_COALg<-"gray50"
-          cOL_COGENg<-"gray20"
+          cOL_COALg<-"black"
+          cOL_COGENg<-"gray30"
           
           cOL_NUCLEARg<-"gray10"
-          COL_H2g<-"gray95"
+          COL_H2g<-"gray89"
 
           # Set plot color transparacny 
           Plot_Trans<-0.8
@@ -697,7 +699,7 @@ Legend_PlotGray(1)
 
 
 # Create folder name to save as
-CaseName <- "Limit to Zero - Low Curt"
+CaseName <- "Limit to Zero - 1000 MW Curt"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -734,15 +736,15 @@ CaseName <- "Limit to Zero - Low Curt"
       windows(14,10,buffered=FALSE)
       
       # Yearly Output
-      Evalyr(BC,"g")
+      Evalyr(BC,"n")
       SaveRun_Loc(CaseName,"Annual Generation (Stacked Area)")
       
       # Yearly Capacity
-      Evalcap(BC,"g")
+      Evalcap(BC,"n")
       SaveRun_Loc(CaseName,"Annual Capacity")
       
       # Yearly percentage of generation
-      EvalPerc(BC,"g")
+      EvalPerc(BC,"n")
       SaveRun_Loc(CaseName,"Annual Generation (Percent)")
     
       # Bar chart showing each resource groups yearly output
@@ -874,7 +876,7 @@ CaseName <- "Limit to Zero - Low Curt"
       # Shows new resource value each year 
       # 1 - wind, 2 - Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen,
       # 7 - Hydro, 8 - Other, 9 - Cogen)
-      ResValue_Annual(1,1899,BC)
+      ResValue_Annual(7,1899,BC)
       SaveRun_Loc(CaseName,"Annual Nomminal Value New Wind")
       
       # Shows new resource value added up to be cumulative (nominal values to each year)
@@ -885,7 +887,7 @@ CaseName <- "Limit to Zero - Low Curt"
       ResValue_NPV(1,BC)
       SaveRun_Loc(CaseName,"2023$ NPV Wind")
 
-  # WRITE TO EXCEL
+    # WRITE TO EXCEL
       # Annual data
       AnnualDataExcel(CaseName,BC)
       
@@ -904,7 +906,7 @@ CaseName <- "Limit to Zero - Low Curt"
 ################################################################################
   
     # Gives stacked area chart for single week
-    Week1(2035,02,08,BC)
+    Week1(2023,02,08,BC)
       SaveRun_Loc(CaseName,"Feb 2035 Output")
       
       WeekTest(2035,12,08,BC)
