@@ -524,7 +524,7 @@
           cOL_EXPORT <- "#DDCC77"
           
           # Coal/Cogen
-          cOL_NUCLEAR <- "gray10"
+          cOL_NUCLEAR <- "midnightblue"
           cOL_COAL <- "black"
           cOL_COGEN <- "gray20"
           
@@ -537,7 +537,7 @@
               #COL_Blend <- cOL_NGCC_Blend 
 
           # Gas Groups (Purples)
-          cOL_COal2Gas <-  "gray70"
+          cOL_COal2Gas <-  "gray60"
           cOL_NGConv <- cOL_COal2Gas
           cOL_SCGT <- "gray40"
           cOL_NGCC <- "gray85"
@@ -557,7 +557,7 @@
           COL_Pumped <-"firebrick4"
           
       # Gray-scale colors
-          cOL_IMPORTg<- "gray93"
+          cOL_IMPORTg<- "gray95"
           
           # Gas Groups (Purples)
           cOL_COal2Gasg<-"gray60"
@@ -574,9 +574,9 @@
           cOL_WINDg<-"steelblue4"
           
           cOL_COALg<-"black"
-          cOL_COGENg<-"gray30"
+          cOL_COGENg<-"gray35"
           
-          cOL_NUCLEARg<-"gray10"
+          cOL_NUCLEARg<-"midnightblue"
           COL_H2g<-"gray89"
 
           # Set plot color transparacny 
