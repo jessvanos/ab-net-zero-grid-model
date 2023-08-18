@@ -60,13 +60,15 @@ AnnualEmStackCol <- function(case) {
     theme(text=element_text(family=Plot_Text)) +
     
     theme(panel.grid = element_blank(),
-          axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size = XTit_Sz),
+          axis.text.x = element_text(vjust = 1,color="black"),
+          axis.text.y = element_text(color="black"),          
+          #axis.title.x = element_text(size = XTit_Sz),
+          axis.title.x = element_blank(),
           axis.title.y = element_text(size = YTit_Sz),
           plot.title = element_text(size = Tit_Sz),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+          #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           legend.key.size = unit(1,"lines"), #Shrink legend
           legend.position = "bottom",
           legend.justification = c(0.5,0.5),
@@ -136,9 +138,10 @@ AnnualEmLine <- function(case) {
     theme(text=element_text(family=Plot_Text)) +
     
     theme(panel.grid = element_blank(),
-          axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size = XTit_Sz),
-          axis.title.y = element_text(size = YTit_Sz),
+          axis.text.x = element_text(vjust = 1,color="black"),
+          axis.text.y = element_text(color="black"),
+          #axis.title.x = element_text(size = XTit_Sz),
+          axis.title.x = element_blank(),          axis.title.y = element_text(size = YTit_Sz),
           plot.title = element_text(size = Tit_Sz),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),

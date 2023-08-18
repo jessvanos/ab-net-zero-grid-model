@@ -699,18 +699,18 @@ sim_filtEm <- function(inputdata) {
     filter(ID=="AB_CCCT_Blended")
   
   # Combine the grouped data
-  { case <- rbind(NGConv,SCCT_Blend,CCCT_Blend,
-                  SCCT, CCCT_CCS, CCCT, Coal, Cogen, Other )
+  { case <- rbind(Other,CCCT_CCS,SCCT_Blend, CCCT_Blend,
+                  SCCT, CCCT,NGConv, Coal, Cogen  )
     
-    case$ID <- factor(case$ID, levels=c("AB_NGCONV",
+    case$ID <- factor(case$ID, levels=c("LTO_Other", "AB_CC90CCS_noncogen",
                                         "AB_SCCT_Blended","AB_CCCT_Blended",
-                                        "AB_SCCT_noncogen", "AB_CC90CCS_noncogen","AB_CCCT_noncogen",
-                                        "LTO_Coal","NAICS221112_Cogen","LTO_Other"))
+                                        "AB_SCCT_noncogen","AB_CCCT_noncogen","AB_NGCONV",
+                                        "LTO_Coal","NAICS221112_Cogen"))
     
-    levels(case$ID) <- c("Coal-to-Gas", 
+    levels(case$ID) <- c("Other", "Natural Gas Combined Cycle + CCS",
                          "Blended  Simple Cycle","Blended  Combined Cycle",
-                         "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                         "Coal", "Cogeneration","Other")  }
+                         "Natural Gas Simple Cycle","Natural Gas Combined Cycle", "Coal-to-Gas", 
+                         "Coal", "Cogeneration")  }
   return(case)
 }
 

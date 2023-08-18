@@ -90,7 +90,8 @@
       
       theme(plot.title = element_text(size= Tit_Sz)) +
       
-      theme(axis.text.x = element_text(vjust = 1),
+      theme(axis.text.x = element_text(vjust = 1,color="black"),
+            axis.text.y = element_text(color="black"),
             axis.title.x = element_text(size= XTit_Sz),
             axis.title.y = element_text(size= YTit_Sz),
             panel.background = element_rect(fill = "transparent"),
@@ -105,7 +106,7 @@
             text = element_text(size= 15)
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
-                         breaks = seq(0, MX, by = MX/4)) +
+                         breaks = seq(0, MX, by = MX/4),labels=comma) +
       guides(fill = guide_legend(nrow = 2)) +
       
       labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",
@@ -191,7 +192,8 @@
       
       theme(plot.title = element_text(size= Tit_Sz)) +
       
-      theme(axis.text.x = element_text(vjust = 1),
+      theme(axis.text.x = element_text(vjust = 1,color="black"),
+            axis.text.y = element_text(color="black"),
             panel.background = element_rect(fill = "transparent", colour = "transparent"),
             panel.grid = element_blank(),
             panel.grid.major.x = element_blank(),
@@ -210,7 +212,7 @@
       guides(fill = guide_legend(nrow = 2)) +
       
       scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
-                         breaks = seq(0, MX, by = MX/4)) +
+                         breaks = seq(0, MX, by = MX/4),labels=comma) +
       
       labs(title=paste("Resource Output, ",day_report),x = "Date", y = "Output (MWh)", fill = "Resource",colour = "Resource",caption=SourceDB ) +
       
@@ -254,7 +256,7 @@
     levels(data$ID)<-c("Import","Solar","Wind", "Other", "Hydro", 
                        "H2SC","H2CC",
                        "Blended  Simple Cycle","Blended  Combined Cycle",
-                       "SCGT", "NGCC+CCS","NGCC", 
+                       "SCCT", "NGCC+CCS","NGCC", 
                        "Coal-to-Gas", 
                        "Coal", "Cogeneration","Storage")
     
@@ -289,7 +291,7 @@
       
       theme(text=element_text(family=Plot_Text)) +
       
-      theme(axis.text.x = element_text(vjust = 1),
+      theme(axis.text = element_text(color="black"),
             panel.background = element_rect(fill = "transparent", colour = "transparent"),
             panel.grid = element_blank(),
             panel.grid.major.x = element_blank(),
@@ -310,7 +312,7 @@
       guides(fill = guide_legend(ncol = 1)) +
       
       scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
-                         breaks = seq(0, MX, by = MX/4)) +
+                         breaks = seq(0, MX, by = MX/4),labels=comma) +
       
       scale_x_datetime(expand=c(0,0),date_labels = "%H:%M",date_breaks = "4 hours") +
       
@@ -357,15 +359,14 @@
       theme(text=element_text(family=Plot_Text)) +
       
       theme(panel.grid = element_blank(),
-            axis.text.x=element_text(vjust = 0),
+            axis.text=element_text(color="black"),
             plot.title = element_text(size=Tit_Sz),
             legend.title = element_blank(),
             legend.position = "none",
             axis.title.x = element_text(size=XTit_Sz,face='bold',vjust = -1),
             axis.title.y = element_text(size=YTit_Sz,face='bold'),
             text = element_text(size= Overall_Sz),
-            panel.grid.major.y = element_line(size=0.25,
-            linetype=2,color = 'gray90'),                         # Adds horizontal lines
+           # panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray90'),                         # Adds horizontal lines
       ) +
       scale_x_datetime(expand=c(0,0),date_labels = "%b-%e",breaks = "day") +
       scale_y_continuous(breaks = seq(-MX, MX, by = MX/4), 
@@ -410,7 +411,7 @@
     # Set the max and min for the plot using annual max storage. Add factor to move price plot up
     MX <- plyr::round_any(max(abs(StorData$Output_MWH)), 10, f = ceiling)*1.2
     ylimStor<-c(-MX,MX)
-    ylimPrice<-c(-1050,1050)
+    ylimPrice<-c(-1020,1020)
     
     b <- diff(ylimStor)/diff(ylimPrice)
     a <- ylimStor[1] - b*ylimPrice[1] 
@@ -421,7 +422,7 @@
                 alpha=Plot_Trans, size=.5, colour="black") +
       geom_hline(yintercept=0, color = "black", size=0.5)+
       geom_line(data = WK_Price, aes(x = date, y = a + Price*b), 
-                size = 1.25, colour = "darkblue",linetype=1) +
+                size = 1.25, colour = "black",linetype=1) +
       
       # Set up plot look and feel
       theme_bw() +
@@ -433,6 +434,7 @@
             plot.title = element_text(size=Overall_Sz),
             legend.title = element_blank(),
             legend.position = "none",
+            axis.text=element_text(color="black"),
             axis.title.x = element_text(size=XTit_Sz,face='bold',vjust = -1),
             axis.title.y = element_text(size=YTit_Sz,face='bold'),
             text = element_text(size= Overall_Sz),
@@ -445,11 +447,12 @@
                          breaks = seq(-MX, MX, by = MX/4), 
                          limits = c(-MX,MX),
                          sec.axis = sec_axis(~(. - a)/b, name="Pool Price ($/MWh)",
-                         breaks = seq(0,1000,by=250))) +
+                         breaks = seq(0,1000,by=250),
+                         labels=comma)) +
       
-      theme(axis.ticks.y.left = element_line(color = cOL_STORAGE),
-            axis.text.y.left = element_text(color = cOL_STORAGE), 
-            axis.title.y.left = element_text(color = cOL_STORAGE)) +
+      theme(axis.ticks.y.left = element_line(color = "black"),
+            axis.text.y.left = element_text(color = "black"), 
+            axis.title.y.left = element_text(color = "black")) +
       
       labs(x = paste("Date (",year,")"),title=month.abb[month]) +
       
@@ -537,7 +540,8 @@
             #linetype=1,color = 'gray90'),                         # Adds horizontal lines
         # X-axis
             axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
-            axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+            #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+            axis.title.x = element_blank(),
         # Y-axis
             axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
             axis.text.y = element_text(colour = "black"),                 # Horizontal text
@@ -626,10 +630,11 @@
             #panel.grid.major.y = element_line(size=0.25,
             #linetype=1,color = 'gray90'),                         # Adds horizontal lines
         # X-axis
-            axis.text.x = element_text(vjust = 1),                 # Horizontal text
-            axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
-        # Y-axis
+            axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
+            #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+            axis.title.x = element_blank(),        # Y-axis
             axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+            axis.text.y = element_text(color="black"),
         # Legend
             legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
             legend.position = "bottom",                            # Move legend to the bottom
@@ -639,7 +644,7 @@
       
       scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
       
-      scale_y_continuous(expand=c(0,0), limits=c(0,MX),breaks = pretty_breaks(6)) +
+      scale_y_continuous(expand=c(0,0), limits=c(0,MX),breaks = pretty_breaks(6),labels=comma) +
       
       labs(x = "Year", y = "Capacity (MW)", fill = "Resource",colour="Resource") +
     
@@ -723,10 +728,11 @@
             panel.grid.major.y = element_line(size=0.25,
             linetype=2,color = 'gray70'),                         # Adds horizontal lines
         # X-axis
-            axis.text.x = element_text(vjust = 1),                 # Horizontal text
-            axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
-            # Y-axis
+            axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
+            #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+            axis.title.x = element_blank(),            # Y-axis
             axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+            axis.text.y=element_text(color="black"),
         # Legend
             legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
             legend.position = "bottom",                            # Move legend to the bottom
@@ -794,7 +800,7 @@
       mutate(PlotOrder= row_number())
     
     # Set the max for the plot
-    MX <- plyr::round_any(max(abs(data$Output_MWH)/1000000), 10, f = ceiling)
+    MX <- plyr::round_any(max(abs(data$Output_MWH)/1000000), 5, f = ceiling)
     
     # Plot
     data %>%
@@ -807,13 +813,16 @@
       theme(text=element_text(family=Plot_Text)) +
       
       theme(panel.grid = element_blank(),
-            axis.text.x = element_text(vjust = 1),
-            axis.title.x = element_text(size = XTit_Sz),
+            axis.text.x = element_text(vjust = 1,color="black"),
+            #axis.title.x = element_text(size = XTit_Sz),
+            axis.title.x = element_blank(),
+            axis.ticks.x = element_blank(),
             axis.title.y = element_text(size = YTit_Sz),
+            axis.text.y=element_text(color="black"),
             plot.title = element_text(size = Tit_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
             panel.background = element_rect(fill = NA),
-            panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'),
+            #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'),
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
             legend.justification = c(0.5,0.5),
@@ -919,35 +928,37 @@
     Sim <- ResGroupHr_sub %>%
       sim_filt1(.) %>%
       group_by(Report_Year, ID) %>%
-      summarise(Cap = mean(Capacity_Factor))
+      summarise(Cap = mean(Capacity_Factor))%>%
+      filter(ID!="Storage")
     
     colnames(Sim) <- c("Year", "Plant_Type", "Cap")
     
-    Sim$Plant_Type <- factor(Sim$Plant_Type, levels=c("Import","Solar","Wind", "Other", "Hydro", 
-                                                      "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                                                      "Blended  Simple Cycle","Blended  Combined Cycle",
-                                                      "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                                                      "Coal-to-Gas", 
-                                                      "Coal", "Cogeneration","Storage"))
+    Sim$Plant_Type <- factor(Sim$Plant_Type, levels=c("Import","Solar","Wind","Hydro","Other", 
+                                                                 "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                                 "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                                 "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
+                                                                 "Coal", "Cogeneration"))
     # Filter for year
     Sim <- Sim %>%
       filter(Year %in% c(year1,year2))
     
-    sz <- 15
-    
     ggplot() +
-      geom_col(data = Sim, position = "dodge", alpha = Plot_Trans, width = 0.7,
+      geom_col(data = Sim, position = "dodge", alpha = Plot_Trans, width = 0.8,color="black",
                aes(x = Plant_Type, y = Cap,
                    fill=as.factor(Year)
                )) +
+      
       #facet_grid(~Year) +
       theme_bw() +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
             axis.title.x = element_blank(),
-            axis.text = element_text(size = sz),
-            axis.title = element_text(size = sz),
-            plot.title = element_text(size = sz+2),
-            legend.text = element_text(size = sz),
+            axis.text = element_text(size = GenText_Sz,color="black"),
+            axis.title = element_text(size = XTit_Sz ,color="black"),
+            plot.title = element_text(size=Tit_Sz),
+            legend.text = element_text(size=Leg_Sz),
             panel.grid = element_blank(),
             legend.title = element_blank(),
             
@@ -959,13 +970,14 @@
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent'),
+            legend.position = c(.95, .925),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
       ) +
       labs(y = "Average Annual Capacity Factor", 
            #title = "AESO Data vs Simulation",
            #subtitle = DB
       ) +
-      scale_fill_manual(values = c("grey50","black")) +
+      scale_fill_manual(values = c("grey70","black")) +
       #scale_fill_manual(values = colours1) +
       #    scale_x_continuous(expand=c(0,0), 
       #                       limits = c(0,1.1),
@@ -993,7 +1005,7 @@
       sim_filt5(.) %>%
       group_by(Report_Year, ID) %>%
       summarise(Cap = mean(Capacity_Factor))%>%
-      mutate(CF_perc=Cap*100)
+      mutate(CF_perc=Cap)
     
     colnames(CFData) <- c("Year", "Plant_Type", "Cap_Factor","CF_perc")
     
@@ -1032,13 +1044,14 @@
             text = element_text(size = GenText_Sz),                # Text size
             plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
             plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
-            panel.grid.major.y = element_line(size=0.25,
-            linetype=1,color = 'gray90'),                         # Adds horizontal lines
+            #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'), # Adds horizontal lines
         # X-axis
-            axis.text.x = element_text(vjust = 1),                 # Horizontal text
-            axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+            axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
+            axis.title.x = element_blank(),                         # y-axis title text size
+            #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
         # Y-axis
             axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+            axis.text.y=element_text(color="black"),
         # Legend
             legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
             legend.position = "right",                             # Move legend to the bottom
@@ -1048,7 +1061,7 @@
       
       # Set axis scales
       scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
-      scale_y_continuous(expand=c(0.01,0),limits = c(0,100),breaks=pretty_breaks(5)) +
+      scale_y_continuous(expand=c(0.01,0),limits = c(0,1),breaks=pretty_breaks(5),labels=percent) +
       
       # Plot labels
       labs(x = "Year", y = "Annual Average Capacity Factor (%)", 
@@ -1097,7 +1110,7 @@
       theme(text=element_text(family=Plot_Text)) +
       
       theme(panel.grid = element_blank(),
-            axis.text.x = element_text(vjust = 1),
+            axis.text = element_text(color="black"),
             axis.title.x = element_text(size = XTit_Sz),
             axis.title.y = element_text(size = YTit_Sz),
             plot.title = element_text(size = Tit_Sz),
@@ -1112,7 +1125,7 @@
       
       labs(x = "Percent of Hours per Year", y = "Fleet Output (MW)",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
       
-      scale_y_continuous(expand = c(0, 0),limits = c(0,MX),breaks=seq(0, MX, by=1000)) +
+      scale_y_continuous(expand = c(0, 0),limits = c(0,MX),breaks=seq(0, MX, by=1000),labels=comma) +
       
       scale_x_continuous(expand=c(0,0.01),breaks=seq(0, 1, by=0.2),labels = percent) 
       
@@ -1158,7 +1171,7 @@
     theme(text=element_text(family=Plot_Text)) +
     
     theme(panel.grid = element_blank(),
-          axis.text.x = element_text(vjust = 1),
+          axis.text = element_text(color="black"),
           axis.title.x = element_text(size = XTit_Sz),
           axis.title.y = element_text(size = YTit_Sz),
           plot.title = element_text(size = Tit_Sz),
@@ -1266,6 +1279,142 @@
     
     
   }
+  
+################################################################################
+## FUNCTION: week12_Curt
+## Plots output for a single week given the case study. 
+## Supporting function To be used in year of weeks function. 
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+  
+  week12_Curt <- function(year, month, day, case) {
+    
+    # Title Formating & filter between dates
+    wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
+    wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
+    
+    # Get any demand curtailment
+    DSM <- ZoneHr_Avg%>%
+      mutate(ID="Demand Curtailment")%>%
+      subset(., select=c(ID,date,Demand_Side_Output,Run_ID))%>%
+      rename(Output_MWH=Demand_Side_Output)
+    
+    # Filters for the desired case study from the resource groups
+    data <- ResGroupHr_sub%>%
+      sim_filt1(.) %>%
+      subset(., select=-c(Report_Year,Capacity_Factor)) %>%
+      rbind(DSM) %>%
+      rbind(.,Import) %>%
+      filter(Run_ID == case) %>%
+      filter(date >= wk_st) %>%
+      filter(date <= wk_end)
+    
+    # Set levels to each category in order specified
+    data$ID <- factor(data$ID, levels=c(
+      "Demand Curtailment",
+      "Import","Solar","Wind","Hydro","Other", 
+      "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+      "Blended  Simple Cycle","Blended  Combined Cycle",
+      "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
+      "Coal", "Cogeneration","Storage"))
+    
+    data$Output_MWH[data$Output_MWH<0.001] <-0
+    
+    ## SELECT A SINGLE WEEK
+    
+    # Select only a single week from the zone Hourly, and Export data
+    WK <- WkTime(data,year,month,day)
+    ZPrice <- WkTime(ZoneHr_Avg,year,month,day) %>%
+      filter(Run_ID == case)
+    Expo <- WkTime(Export,year,month,day) %>%
+      filter(Run_ID == case)
+    
+    # # Set the max and min for the plot
+    ZPrice2 <- ZoneHr_Avg %>%
+      filter(Run_ID == case) 
+    ZPrice2$YEAR  <- as.POSIXct(as.character(ZPrice2$date), format = "%Y")
+    ZPrice2$YEAR <-(format(ZPrice2$YEAR,format="%Y")) # Reformat for year only
+    ZPrice2 <- ZPrice2 %>%
+      filter(YEAR == year)
+    
+    Expo2 <- Export%>%
+      filter(Run_ID == case)
+    Expo2$YEAR  <- as.POSIXct(as.character(Expo2$date), format = "%Y")
+    Expo2$YEAR <-(format(Expo2$YEAR,format="%Y")) # Reformat for year only
+    Expo2 <- Expo2 %>%
+      filter(YEAR == year)
+    
+    # Get y-max, demand to meet + exports
+    MX <- round_any(max(ZPrice2$Baseline_Demand) + max(Expo2$Output_MWH)+1100,1000,f=ceiling) 
+    
+    # # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
+    #MX <- plyr::round_any(max(abs(Max))+1111, 2000, f = ceiling)
+    
+    Mtitle=month.abb[month]
+    
+    ## PLOT WITH AREA PLOT
+    
+    ggplot() +
+      geom_area_pattern(data = WK, aes(x = date, y = Output_MWH, fill = ID, colour=ID,pattern=ID),
+                        alpha=Plot_Trans, size=.25,color='black',
+                        pattern_density = 0.45,
+                        pattern_fill    = "white",
+                        pattern_colour  = "white",
+                        pattern_spacing=0.01) +
+      
+      # Add hourly load line (black line on the top)
+      geom_line(data = ZPrice, 
+                aes(x = date, y = Demand), size=1.25, colour = "black") +
+      scale_x_datetime(expand=c(0,0),date_labels = "%b-%e", breaks = "day") +
+      
+      # Set the theme for the plot
+      theme_bw() +
+      theme(panel.grid = element_blank()) +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
+      theme(plot.title = element_text(size= Tit_Sz),
+            axis.text.y = element_text(color="black"),
+            axis.text.x = element_text(vjust = 1,color="black"),
+            axis.title.x = element_text(size= XTit_Sz),
+            axis.title.y = element_text(size= YTit_Sz),
+            panel.background = element_rect(fill = "transparent"),
+            plot.background = element_rect(fill = "transparent", color = NA),
+            legend.title=element_blank(),
+            legend.key = element_rect(colour = "transparent", fill = "transparent"),
+            legend.background = element_rect(fill='transparent',colour ='transparent'),
+            legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+            legend.key.size = unit(1,"lines"), #Shrink legend
+            legend.position = "bottom",
+            legend.text = element_text(size= Leg_Sz),
+            text = element_text(size= GenText_Sz)
+      ) +
+      scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
+                         breaks = seq(0, MX, by = MX/8),
+                         labels=comma) +
+      
+      labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",pattern="Resource",title=year) +
+      
+      guides(fill = guide_legend(nrow = 2)) +
+      
+      #Add colour
+      scale_fill_manual(values = colours1b) +
+      
+      scale_pattern_manual(values=c("Import"= "none", "Coal"="none", "Cogeneration"="none", 
+                                    "Coal-to-Gas"="none","Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
+                                    "Natural Gas Combined Cycle + CCS"="none",
+                                    "Natural Gas Simple Cycle"="none", "Natural Gas Combined Cycle"="none", 
+                                    "Hydro"="none", "Other"="none", "Wind"="none", 
+                                    "Solar"="none", "Storage"="none","Demand Curtailment"="stripe"))
+  }
+  
 ################################################################################
 #
 # COMBINED PLOTS SECTION
@@ -1370,8 +1519,9 @@
       
       theme(plot.title = element_text(size= 10)) +
       
-      theme(axis.text.x = element_text(vjust = 1),
+      theme(axis.text.x = element_text(vjust = 1,color="black"),
             axis.title.x = element_text(size= 10),
+            axis.text.y = element_text(color="black"),
             axis.title.y = element_text(size= 10),
             panel.background = element_rect(fill = "transparent"),
             plot.background = element_rect(fill = "transparent", color = NA),

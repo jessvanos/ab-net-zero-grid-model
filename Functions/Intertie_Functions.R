@@ -66,31 +66,33 @@ Imp_Exp1 <- function(case) {
   data %>%
     ggplot() +
     aes(Time_Period, (Output_MWH/1000), fill = ID) +
-    geom_bar(position="dodge",stat="identity",alpha=1) +
+    geom_bar(position="dodge",stat="identity",alpha=1,color="black") +
     
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
     
     theme(panel.grid = element_blank(),
-          axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size = XTit_Sz),
+          axis.text = element_text(color="black"),
+         # axis.title.x = element_text(size = XTit_Sz),
+          axis.title.x = element_blank(),
           axis.title.y = element_text(size = YTit_Sz),
           plot.title = element_text(size = Tit_Sz),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+         # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           legend.key.size = unit(1,"lines"), #Shrink legend
-          legend.position = "bottom",
+          legend.position = c(.94,.95),
+         legend.background = element_rect(fill = NA),
           legend.justification = c(0.5,0.5),
           legend.title=element_blank(),
-          text = element_text(size = 15)) +
+          text = element_text(size = GenText_Sz )) +
     
-    scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
+    scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6),labels=comma) +
     
     labs(x = "Year", y = "Total Annual Imports and Exports (GWh)", fill = "Resource",caption=paste("Database: ",SourceDB)) +
     
-    guides(fill = guide_legend(nrow = 1)) +
+    guides(fill = guide_legend(nrow = 2)) +
     
     scale_fill_manual(values=c("Export"="gray21","Import"="gray71"))
 }
@@ -127,32 +129,33 @@ Imp_Exp2 <- function(year,case) {
   
   # Set the max for the plot
   MX <- plyr::round_any(max(abs(Imp$Output_MWH+11)), 200, f = ceiling)
-  MN <- plyr::round_any(max(abs(Exp$Output_MWH+11))*-1, 200, f = floor)
+  MN <- plyr::round_any(min(abs(Exp$Output_MWH+11))*-1, 200, f = floor)
   
   # Plot
   ggplot() +
     geom_area(data = data, aes(x = date, y = Output_MWH, fill = ID), 
               alpha=1, size=0.5) +
+    geom_hline(yintercept=0, linetype="solid", color="black",size=0.5)+
     
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
     
     theme(panel.grid = element_blank(),
-          axis.text.x = element_text(vjust = 1),
+          axis.text = element_text(color="black"),
           axis.title.x = element_text(size = XTit_Sz),
           axis.title.y = element_text(size = YTit_Sz),
           plot.title = element_text(size = Tit_Sz),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
-          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+        #  panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           legend.key.size = unit(1,"lines"), #Shrink legend
           legend.position = "bottom",
           legend.justification = c(0.5,0.5),
           legend.title=element_blank(),
           text = element_text(size = 15)) +
     
-    scale_y_continuous(expand=c(0,0),limits = c(-1700,1700),breaks=pretty_breaks(12)) +
+    scale_y_continuous(expand=c(0,0),limits = c(MN,MX),breaks=pretty_breaks(12),labels=comma) +
     
     scale_x_datetime(expand=c(0,0),date_labels = "%b" ,breaks = "month") +
     

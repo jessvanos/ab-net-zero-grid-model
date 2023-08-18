@@ -2354,3 +2354,89 @@ Revenue2.0 <- function(case) {
 }
 
 
+################################################################################  
+## FUNCTION: CurtailWk
+## Max curtailed load annually
+##
+## INPUTS: 
+##    input - ResHr
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Import - Import table derived of zone average table
+################################################################################
+
+CurtailWk <- function(case) {
+  
+  # TOTAL CURTAILMENT INFO
+  data <- ResHr %>%
+    filter(Run_ID == case & Condition == "Average",
+           Primary_Fuel %in% c("Customer Curtailment Level I","Customer Curtailment Level II",
+                               "Customer Curtailment Level III","Customer Curtailment Level IV",
+                               "Customer Curtailment Level V","Customer Curtailment Final")) %>%
+    select(Name, date, Capacity,Capability,
+           Primary_Fuel,Dispatch_Cost,Total_Cost_MWh,Percent_Marginal,Total_Hours_Run,
+           Revenue,Output_MWH)%>%
+    mutate(Time_Period=as.numeric(year(date)))%>%
+    group_by(date,Time_Period)%>%
+    summarise(Curt_Cap=sum(Capacity),
+              Curt_DispCost=sum(Dispatch_Cost),
+              Curt_Cost=sum(Total_Cost_MWh),
+              Curt_Hours=max(Total_Hours_Run),
+              Curt_Rev=sum(Revenue),
+              TotalCurtail=sum(Output_MWH))%>%
+    ungroup()
+  
+  #data$MaxCap[data$MaxCap==0]<-NA
+  
+  
+  # Get max and min year for plot
+  YearMX<-max(data$Time_Period) #Take off the last 5 years
+  YearMN<-2025
+  
+  # Plot
+  data %>%
+    ggplot() +
+    aes(Time_Period, MaxCap, fill = CurtOrder) +
+    geom_area(alpha=Plot_Trans,linewidth=.5, colour="black") +
+    
+    geom_label(aes(label = round(MaxCap,0)),
+               position = position_stack(1),alpha=0.5,label.size = NA,show.legend = NA) +
+    
+    theme_bw() +
+    
+    theme(
+      # General Plot Settings
+      panel.grid = element_blank(),
+      # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+      plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+      panel.background = element_rect(fill = "transparent"), # Transparent background
+      text = element_text(size = GenText_Sz-4),                # Text size
+      plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+      plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+      #panel.grid.major.y = element_line(size=0.25,
+      #linetype=1,color = 'gray90'),                         # Adds horizontal lines
+      # X-axis
+      axis.text.x = element_text(vjust = 0.5,angle=45,size =GenText_Sz),                 # Horizontal text
+      axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+      # Y-axis
+      axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+      axis.text.y = element_text(size =GenText_Sz),                 # Horizontal text
+      
+      # Legend
+      legend.position = c(.01, .99),                            # Move legend to the bottom
+      legend.justification = c("left", "top"),                     # Center the legend
+      legend.text = element_text(size =GenText_Sz-5),              # Size of legend text
+      legend.title=element_blank(),                                  # Remove legend title
+      legend.key = element_rect(fill = "transparent"),
+      legend.key.size = unit(1,"lines")
+    ) +                        
+    
+    # Set axis scales
+    scale_x_continuous(expand=c(0.02,0.02),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
+    scale_y_continuous(expand=c(0,0),limits=c(0,4000),breaks=pretty_breaks(6)) +
+    
+    # Plot labels
+    labs(x = "Year", y = "Maximum Capacity Curtailed in Any Hour (MW)", fill = "Level",colour="Level",caption = SourceDB)
+  
+  
+}

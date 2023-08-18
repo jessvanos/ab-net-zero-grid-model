@@ -110,6 +110,26 @@
    # saveRDS(HRcalc, file = here("HRcalc.RData"))
 
 ################################################################################
+## LOAD AESO TRADE INFO FROM R FILE INTO WORKSPACE (OPTIONAL)
+################################################################################
+  
+# HRcalc <- readRDS(here("Data Files","HRcalc.RData")) 
+# 
+# { HRcalc$date <- as.POSIXct(HRcalc$Date_Begin_Local,tz="",format="%Y-%m-%d %H:%M")
+#   
+#   HRcalc<- HRcalc %>%
+#     select(.,-c("DAY_AHEAD_POOL_PRICE")) 
+# 
+# #Replace all NA values with zero
+# HRcalc[HRcalc==0] <- NA
+# 
+# #Reformat Day as day of year
+# HRcalc$Day <- format(HRcalc$date,"%j")
+# HRcalc$Week <- format(HRcalc$date,"%W") 
+# HRcalc$Month2 <- format(HRcalc$date,"%b")
+# }
+    
+################################################################################
 ## CORELATION
 ## Pearson corelation - looks at linear corelation between variables
 ## Check price and import/export correlation

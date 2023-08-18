@@ -176,9 +176,11 @@ RetireMW <- function(case) {
     
     theme(text=element_text(family=Plot_Text)) +
     
-    theme(panel.grid = element_blank(),  
-          axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
-          axis.text.x = element_text(angle = 45,
+    theme(panel.grid = element_blank(),
+          axis.text = element_text(color="black"),
+          #axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
+          axis.title.x = element_blank(),
+          axis.text.x = element_text(angle = 45,color="black",
                                      vjust = 0, hjust = 0),
           axis.title.y = element_text(size = YTit_Sz, vjust=0),
           panel.background = element_rect(fill = "transparent"),
@@ -200,7 +202,7 @@ RetireMW <- function(case) {
                        breaks=seq(MinYr, MaxYr, by=1),position = "top") +
     
     scale_y_continuous(expand=c(0,0),
-                       limits = c((mxc),0),breaks=breaks_pretty(5)) +
+                       limits = c((mxc),0),breaks=breaks_pretty(5),labels=comma) +
     
     scale_fill_manual(values=colours3,drop = FALSE)
   
@@ -316,7 +318,8 @@ Build_A_MW <- function(case) {
     
     theme(panel.grid = element_blank(), 
           axis.title.x = element_text(size = XTit_Sz,face="bold"),
-          axis.text.x=element_text(angle=45,vjust=0.5),
+          axis.text.y=element_text(color="black"),
+          axis.text.x=element_text(angle=45,vjust=0.5,color="black"),
           axis.title.y = element_text(size = YTit_Sz,face="bold"),
           plot.title = element_text(size = Tit_Sz),
           panel.background = element_rect(fill = "transparent"),
@@ -423,10 +426,12 @@ BuildMW <- function(case)
     theme(text=element_text(family=Plot_Text)) +
     
     theme(panel.grid = element_blank(),  
-          axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
+          #axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
+          axis.title.x = element_blank(),
           axis.title.y = element_text(size = YTit_Sz, vjust=0),
           panel.background = element_rect(fill = "transparent"),
-          axis.text.x=element_text(angle=45,vjust = 0.5, hjust = 0.5),
+          axis.text.x=element_text(angle=45,vjust = 0.5, hjust = 0.5,color="black"),
+          axis.text.y=element_text(color="black"),
           plot.title = element_blank(),
           legend.justification = c(0.5,0.5),
           legend.position = ("right"),
@@ -440,7 +445,7 @@ BuildMW <- function(case)
     
     labs(x = "Year", y = "New Capacity (MW)", fill = "Fuel Type",caption=SourceDB)  +
     scale_y_continuous(expand=c(0,0),
-                       limits = c(0,(mxc)),breaks=breaks_pretty(6)) +
+                       limits = c(0,(mxc)),breaks=breaks_pretty(6),label=comma) +
     scale_x_continuous(expand = c(0.01, 0.01),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
     
     scale_fill_manual(values=colours5,drop = FALSE)
@@ -587,11 +592,13 @@ TotalCapChange <- function(case) {
       #panel.grid.major.y = element_line(size=0.25,
       #linetype=1,color = 'gray90'),                         # Adds horizontal lines
       # X-axis
-      axis.text.x = element_text(angle = 45,
+      axis.text.x = element_text(angle = 45,color="black",
                                  vjust = 1, hjust = 1),          # Horizontal text
-      axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+     # axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+      axis.title.x =element_blank(), 
       # Y-axis
       axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+      axis.text.y = element_text(color="black"),
       # Legend
       legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
       legend.position = "right",                             # Move legend to the bottom
@@ -730,7 +737,7 @@ Tot_Change %>%
   geom_hline(yintercept=0, color = "black")+
   
   theme_bw() +
-  
+  theme(text=element_text(family=Plot_Text)) +
   theme(
     # General Plot Settings
     panel.grid = element_blank(),
@@ -744,10 +751,12 @@ Tot_Change %>%
     #linetype=1,color = 'gray90'),                         # Adds horizontal lines
     # X-axis
     axis.text.x = element_text(angle = 45,
-                               vjust = 1, hjust = 1),          # Horizontal text
-    axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+                               vjust = 1, hjust = 1,color="black"),          # Horizontal text
+    #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+    axis.title.x = element_blank(),
     # Y-axis
     axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+    axis.text.y = element_text(color = "black"),
     # Legend
     legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
     legend.position = "right",                             # Move legend to the bottom
@@ -758,7 +767,7 @@ Tot_Change %>%
   scale_x_discrete(expand=c(0.05,0.05),
                    limits = as.character(mnx:mxx)) +
   scale_y_continuous(expand=c(0,0),
-                     limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000)) +
+                     limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),labels=comma) +
   scale_fill_manual(values=colours8,drop = FALSE) +
   
   labs(x = "Year", y = "Net Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
@@ -779,17 +788,17 @@ Tot_Change %>%
 Units <- function(case, Fuel) {
   
   data <- Build %>%
-    filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
+    filter(Run_ID == case & LT_Iteration == 0 & 
              Time_Period == "Study" & Fuel_Type == Fuel) 
   
   data %>%
     ggplot() +
     aes(Name, Units_Built,fill = Fuel_Type) + 
-    geom_col() +
+    geom_col(color="black") +
     labs(x = "Plant Name", y = "Units Built") +
     scale_y_continuous(expand = c(0,0),
                        limits = c(0,(max(data$Units_Built)+1))) +
-    
+    theme(text=element_text(family=Plot_Text)) +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
           
           panel.grid.major.x = element_blank(),
@@ -797,16 +806,19 @@ Units <- function(case, Fuel) {
           panel.grid.minor.y = element_blank(),
           axis.title.x = element_text(size = XTit_Sz,face="bold"),
           axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          axis.text=element_text(color="black"),
           plot.title = element_text(size = Tit_Sz),
           plot.background = element_rect(fill = "transparent", color = NA),
           panel.background = element_rect(fill = "transparent"),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.key.size = unit(1,"lines"), 
           legend.background = element_rect(fill='transparent'),
+          legend.title = element_blank(),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
           text = element_text(size = 15),
           panel.border = element_rect(colour = "black", fill = "transparent"), 
-          panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")) +
+          #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
+          ) +
     
     
     scale_fill_manual(values="gray") +
@@ -827,13 +839,13 @@ Units <- function(case, Fuel) {
 
 Slack <- function(case, Fuel) {
   data <- Build %>%
-    filter(Run_ID == case & LT_Iteration == max(LT_Iteration) & 
+    filter(Run_ID == case & LT_Iteration == 0 & 
              Time_Period == "Study" & Fuel_Type == Fuel) 
   
   data %>%
     ggplot() +
     aes(Name, Max_Limit_Slack,fill = Fuel_Type) + 
-    geom_col() +
+    geom_col(color="black") +
     labs(x = "Plant Name", y = "Units Available") +
     scale_y_continuous(expand = c(0,0),
                        limits = c(0,(max(data$Max_Limit_Slack)+1))) +
@@ -843,9 +855,11 @@ Slack <- function(case, Fuel) {
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
           panel.grid.minor.y = element_blank(),
-          axis.title.x = element_text(size = XTit_Sz,face="bold"),
+          #axis.title.x = element_text(size = XTit_Sz,face="bold"),
+          axis.title.x = element_blank(),
           axis.title.y = element_text(size = YTit_Sz,face="bold"),
           plot.title = element_text(size = Tit_Sz),
+          axis.text=element_text(color="black"),
           plot.background = element_rect(fill = "transparent", color = NA),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.key.size = unit(1,"lines"), 
@@ -853,12 +867,14 @@ Slack <- function(case, Fuel) {
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
           text = element_text(size = 15),
           panel.border = element_rect(colour = "black", fill = "transparent"), 
-          panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")) +  
+          #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
+          ) +  
     
     scale_fill_manual(values="gray") +
     
     theme(text=element_text(family=Plot_Text))
 }
+
 
 ################################################################################
 ## FUNCTION: BuildUnits

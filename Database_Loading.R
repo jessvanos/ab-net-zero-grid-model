@@ -34,7 +34,7 @@
     # dplyr: Data manipulation package
     # reshape2: Restructure data
     # zoo: Used for time series indexing
-    # ggpattern: Geoms for ggplot2
+    # ggpattern: Geoms for ggplot2, allow pattern fills (like stripes)
     # here: Package to set filepaths inside R project
     # beepr: Allows sound to paly when code is done
     # showtext: Allows fonts changes in ggplot
@@ -287,37 +287,17 @@
 }
 
 ################################################################################
-## LOAD AESO TRADE INFO FROM R FILE INTO WORKSPACE (OPTIONAL)
-################################################################################
-
-# HRcalc <- readRDS(here("Data Files","HRcalc.RData")) 
-# 
-# { HRcalc$date <- as.POSIXct(HRcalc$Date_Begin_Local,tz="",format="%Y-%m-%d %H:%M")
-#   
-#   HRcalc<- HRcalc %>%
-#     select(.,-c("DAY_AHEAD_POOL_PRICE")) 
-# 
-# #Replace all NA values with zero
-# HRcalc[HRcalc==0] <- NA
-# 
-# #Reformat Day as day of year
-# HRcalc$Day <- format(HRcalc$date,"%j")
-# HRcalc$Week <- format(HRcalc$date,"%W") 
-# HRcalc$Month2 <- format(HRcalc$date,"%b")
-# }
-
-################################################################################
 ## SAVE OTHER DATA AS R FILE AND MODIFY (OPTIONAL)
 ## Only need to run if new files are available
 ################################################################################
 # 
 # # Load merit data
 # {
-#   merit <- read_csv(here("Data Files","Alberta Data","student_data_2023_Mar_03_21_55.csv.gz"))
-#     # Save as R file
-#     saveRDS(merit, here("Data Files","Alberta Data","Leach_MeritData03Mar2023.RData"))
-#     # Remove from workspace
-#      rm(merit)
+# merit <- read_csv(here("Data Files","Alberta Data","student_data_2023_Aug_15_16_56.csv.gz"))
+#   # Save as R file
+#   saveRDS(merit, here("Data Files","Alberta Data","Leach_MeritData15Aug2023.RData"))
+#   # Remove from workspace
+#    rm(merit)
 #   }
 # 
 # # Load NRG data and rename time column
@@ -493,8 +473,8 @@
     showtext_auto()
     
   # Set size for plot features to be constant. All based on general text size
-  { GenText_Sz =15
-    Tit_Sz = GenText_Sz+5
+  { GenText_Sz =14
+    Tit_Sz = GenText_Sz-2
     XTit_Sz = GenText_Sz+2
     YTit_Sz = GenText_Sz+2
     Leg_Sz=GenText_Sz-2
@@ -526,7 +506,7 @@
           # Coal/Cogen
           cOL_NUCLEAR <- "midnightblue"
           cOL_COAL <- "black"
-          cOL_COGEN <- "gray20"
+          cOL_COGEN <- "gray25"
           
           # H2 groups (blues)
           cOL_SCGT_H2 <- "#7e4e90ff"
@@ -580,7 +560,7 @@
           COL_H2g<-"gray89"
 
           # Set plot color transparacny 
-          Plot_Trans<-0.8
+          Plot_Trans<-1
               
    ## Now Define Lists to assign legends and colors in plots
      colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
@@ -597,14 +577,14 @@
                  "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
                  "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
-                 "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE,"Demand Curtailment"=cOL_DSM)
+                 "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE,"Demand Curtailment"="black")
       
       # Used in Day2
       colours1c=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                  "Coal-to-Gas"=cOL_NGConv,"H2SC"=cOL_SCGT_H2,"H2CC"=cOL_NGCC_H2,
                  #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                  "NGCC+CCS"=cOL_NGCC_CCS,
-                 "SCGT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
+                 "SCCT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
@@ -779,7 +759,7 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
       SaveRun_Loc(CaseName,"Retirements")
        
       # Capacity built by Aurora over study period
-      # Build_A_MW(BC)
+       Build_A_MW(BC)
     
       # All new capacity
       BuildMW(BC)
@@ -909,10 +889,8 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     Week1(2023,02,08,BC)
       SaveRun_Loc(CaseName,"Feb 2035 Output")
       
-      WeekTest(2035,12,08,BC)
-      SaveRun_Loc(CaseName,"December 2035 Adjusted")
     #Gives stacked area chart for a single day, output (MWh vs Date), grouped by resource
-    day1(2022,11,07,BC)
+    Day1(2022,11,08,BC)
 
     # Gives weekly storage function
     Stor1(2035,01,08,BC)
@@ -921,13 +899,13 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     Stor2(2023,02,08,BC)
     
     # Gives overall picture of Output over time period
-    Evalyr(BC)
+    Evalyr(BC,"n")
     
     # Gives overall picture of capacity over time period
-    Evalcap(BC)
+    Evalcap(BC,"n")
     
     # Gives all as % of total generation being met
-    EvalPerc(BC)
+    EvalPerc(BC,"n")
 
     # Capacity of resource groups for selected years as a bar chart
     Output_Comp(BC)
@@ -962,6 +940,7 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     
     # One year of weeks for storage output and pool price
     year_stor(2035,BC)
+    
 ################################################################################    
 ## Price Functions (Price_Functions)
 ################################################################################
@@ -987,7 +966,7 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     # Shows new resource value each year 
     # 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen
     # 7 - Hydro, 8 - Other, 9 - Cogen
-    ResValue_Annual(1,BC)
+    ResValue_Annual(1,1800,BC)
     
     # Shows new resource value added up to be cumulative (nominal values to each year)
     ResValue_Total(1,BC)
@@ -1024,14 +1003,14 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     Slack(BC,wind)
 
     #Compare available units and built units
-    BuildUnits(BC, wind)
+    BuildUnits(BC, "Gas1")
     
 ################################################################################
 ## Emission Functions (Emission_Functions)
 ################################################################################
     
     # Annual emissions in stacked area chart, outputs total annual emissions in console
-    AnnualEmLine(case)
+    AnnualEmStackCol(case)
     
     # Annual emissions in individual lines
     AnnualEmLine(case)
@@ -1058,6 +1037,7 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     # Show all trade for a singe year
     T_month_all_Sim(2035,BC)
     
+    # SPECIAL ONES
     # AB imports and exports from AESO for a month
     Trade_Mn_AESO(2022,03,Imp_Exp)
     
@@ -1162,32 +1142,8 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     
     # Misc Annual Data for sheets
     CompareDataExcel("BAU",BC)
-    
-################################################################################
-## Developing Functions (Developing_Functions)
-################################################################################
-    
-    # Show a single day output for a full year
-    YearOfDays(2022,3,BC,"ALL",14000)
-    
-    # Show a single day output for a full year, one resource group
-    YearOfDays(2030,3,BC,"WIND",10000)
-    
-    # Single day output
-    day1(2032,01,09,BC)
-    
-    # Single day output for single resource group
-    day2(2022,01,11,BC,"WIND",10000)  
-    
-################################################################################
-## OTHER FUNCTIONS
-################################################################################    
-    # Plot all colors used
-    Legend_PlotAll(0.7)
-    
-    # Plot main colors used
-    Legend_PlotMain(0.7)
-    
+  
+
 ################################################################################
 ## AESO FUNCTIONS
 ################################################################################
@@ -1206,6 +1162,34 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     
     # Wind duration curve with Output normalized
     Wind_DurNorm_AESO(BC)
+  
+    
+################################################################################
+## Developing Functions (Developing_Functions)
+################################################################################
+    
+    # Show a single day output for a full year
+    YearOfDays(2022,3,BC,"ALL",14000)
+    
+    # Show a single day output for a full year, one resource group
+    YearOfDays(2030,3,BC,"WIND",10000)
+    
+    # Single day output for single resource group
+    day2(2022,01,11,BC,"WIND",10000)  
+    
+      
+################################################################################
+## OTHER FUNCTIONS
+################################################################################    
+    # Plot all colors used
+    Legend_PlotAll(0.7)
+    
+    # Plot main colors used
+    Legend_PlotMain(0.7)
+    
+    # Plot main colors used
+    Legend_PlotGray(1)
+    
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF
@@ -1220,32 +1204,3 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     windows(10,8)
     windows(18,12)
     windows(16,12)
-
-####
-    # Random stuff, delete later
-    ZnData <- ZoneYr %>%
-      mutate(Year = year(Time_Period),
-             time = Time_Period) %>%
-      filter(Run_ID == case,
-             Condition == "Average",
-             Year<=2035) %>%
-      mutate(Report_Year=as.numeric(Report_Year),
-             Scenario=SourceDB,
-             Production_Cost_Total=1000*Production_Cost_Total,
-             Fixed_Cost_Total=1000*Fixed_Cost_Total)%>%
-      subset(.,select=c(Name,Year,Price, 
-                        Demand_Total,Net_Load_Total,
-                        Production_Cost_Total,Fixed_Cost_Total,Scenario))
-    
-    
-    checkthis <- sub_samp
-    
-    checkthis$Day <- date(checkthis$time)
-    checkthis$Year <- as.factor(year(checkthis$time))
-    
-    checkthis2 <- checkthis %>%
-      filter(Year==2021) %>%
-      group_by(AESO_Name,ID) %>%
-      summarise(Generation=sum(gen),Cap=mean(Capacity),Emissions=sum(co2_est))%>%
-      filter(ID %in% c("TC02","TC01","RL1","MKRC","MKR1","COD1","BCRK","BCR2","ALS1"))
-    
