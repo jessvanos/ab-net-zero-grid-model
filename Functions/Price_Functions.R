@@ -39,7 +39,7 @@ week_price <- function(year, month, day,case) {
   ggplot() +
     geom_line(data = ZPrice, 
               aes(x = date, y = Price), 
-              size = 1.5, colour = "black") +
+              size = 1.25, colour = "darkred") +
     theme_bw() +
     theme(text=element_text(family=Plot_Text)) +
     theme(panel.background = element_rect(fill = "transparent"),
@@ -59,7 +59,7 @@ week_price <- function(year, month, day,case) {
     labs(y = "Pool Price ($/MWh)", x="Date",fill = "Resource",caption=SourceDB) +
     scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "day",date_labels = "%b-%e") +
     scale_y_continuous(expand=c(0,0), 
-                       limits= c(0,1000),
+                       limits= c(0,1050),
                        #                       labels = label_number(accuracy = 1),
                        breaks = seq(0, 1000, by = 200)
     )

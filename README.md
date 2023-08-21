@@ -142,6 +142,8 @@ Functions To use for plotting and evaluating intertie activities. Also shows inf
 
 -   *Imp_Exp2 :* AB imports and exports plotted as annual chart, shows hourly patterns.
 
+-   *Imp_ExpWk:* AB imports and exports for a single week.
+
 -   *BC_SK_IE :* BC and SK imports and exports.
 
 -   *MN_Trade_Price* : Get trade and price each month to compare.
@@ -235,6 +237,9 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 -   *PrOut* : Plots pool price over one week of output data with storage utilization.
 
 -   *year_stor* : Plots storage output and pool price for one week of each month for selected year.
+
+-   *FourMonthSummary* : Shows generation, storage, and price for one week of 4 months in a year.
+
 
 ### <ins>Price_Functions
 

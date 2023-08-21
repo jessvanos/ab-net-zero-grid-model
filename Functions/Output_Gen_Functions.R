@@ -1467,6 +1467,7 @@
                  "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
                  "Coal", "Cogeneration","Storage"))
     
+    # Removes negatives - storage charge
     data$Output_MWH[data$Output_MWH<0.001] <-0
     
     ## SELECT A SINGLE WEEK
@@ -1474,9 +1475,16 @@
     # Select only a single week from the zone Hourly, and Export data
     WK <- WkTime(data,year,month,day)
     ZPrice <- WkTime(ZoneHr_Avg,year,month,day) %>%
-      filter(Run_ID == case)
-    Expo <- WkTime(Export,year,month,day) %>%
-      filter(Run_ID == case)
+      filter(Run_ID == case)%>%
+      group_by(date)%>%
+      summarise(Price,
+                Net_Demand=Demand,
+                Imports,
+                Exports,
+                Demand_Expo=Demand+Exports,
+                Net_Load,
+                Marginal_Resource,
+                Demand_Side_Output)
     
     # # Set the max and min for the plot
     ZPrice2 <- ZoneHr_Avg %>%
@@ -1486,15 +1494,8 @@
     ZPrice2 <- ZPrice2 %>%
       filter(YEAR == year)
     
-    Expo2 <- Export%>%
-      filter(Run_ID == case)
-    Expo2$YEAR  <- as.POSIXct(as.character(Expo2$date), format = "%Y")
-    Expo2$YEAR <-(format(Expo2$YEAR,format="%Y")) # Reformat for year only
-    Expo2 <- Expo2 %>%
-      filter(YEAR == year)
-    
     # Get y-max, demand to meet + exports
-    MX <- round_any(max(ZPrice2$Baseline_Demand) + max(Expo2$Output_MWH)+1100,1000,f=ceiling) 
+    MX <- round_any(max(ZPrice2$Baseline_Demand) + max(ZPrice2$Exports)+1100,1000,f=ceiling) 
     
     # # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
     #MX <- plyr::round_any(max(abs(Max))+1111, 2000, f = ceiling)
@@ -1504,11 +1505,15 @@
     ## PLOT WITH AREA PLOT
     
     ggplot() +
-      geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID, colour=ID),alpha=Plot_Trans, size=.25,color='black') +
+      geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID),alpha=Plot_Trans, size=.25,color='black') +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
-                aes(x = date, y = Demand), size=1.25, colour = "black") +
+                aes(x = date, y = Net_Demand,linetype="Demand"), size=1,color='black') +
+      
+      geom_line(data = ZPrice,
+                aes(x = date, y = Demand_Expo,linetype="Demand + Exports"), size=1,color='black') +
+      
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day") +
       
       # Set the theme for the plot
@@ -1535,14 +1540,17 @@
             text = element_text(size= 8)
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
-                         breaks = seq(0, MX, by = MX/8)) +
+                         breaks = seq(0, MX, by = MX/8),labels=comma) +
       
       labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",title=Mtitle) +
       
       guides(fill = guide_legend(nrow = 2)) +
+      guides(color = guide_legend(nrow = 2)) +
+      guides(linetype = guide_legend(nrow = 2)) +
       
       #Add colour
-      scale_fill_manual(values = colours1)
+      scale_fill_manual(values = colours1) +
+      scale_linetype_manual(values=c("Demand"=1,"Demand + Exports"=2))            
   }
   
 ################################################################################
@@ -1807,3 +1815,136 @@ year_weeks <- function(year,case) {
     
     
   }
+  
+################################################################################
+## FUNCTION: FourMonthSummary
+## Plots output for a single week given the case study
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+  FourMonthSummary <- function(year,case) {
+    
+    
+    # Gather weekly output data (Feb,May,Aug,Nov)
+    p1 <- Week12(year,02,08,case) +
+      theme(plot.title=element_text(face='bold',size=12),
+            axis.title.x=element_blank())
+    
+    p2 <- Week12(year,05,08,case) +
+      theme(plot.title=element_text(face='bold',size=12),
+            legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p3 <- Week12(year,08,08,case) +
+      theme(plot.title=element_text(face='bold',size=12),
+            legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p4 <- Week12(year,11,08,case) +
+      theme(plot.title=element_text(face='bold',size=12),
+            legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    # Gather intertie info (Feb,May,Aug,Nov)
+    p5 <- Imp_ExpWk(year,02,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_text(size=10),
+            plot.title = element_blank(),
+            text = element_text(size= 8),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    p6 <- Imp_ExpWk(year,05,08,case) +
+      theme(legend.position ="none",
+            plot.title = element_blank(),
+            text = element_text(size= 8),
+            axis.title.y.left=element_blank(),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    p7 <- Imp_ExpWk(year,08,08,case) +
+      theme(legend.position ="none",
+            plot.title = element_blank(),
+            text = element_text(size= 8),
+            axis.title.y.left=element_blank(),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    p8 <- Imp_ExpWk(year,11,08,case) +
+      theme(legend.position ="none",
+            plot.title = element_blank(),
+            text = element_text(size= 8),
+            axis.title.y.left=element_blank(),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    # Price info  (Feb,May,Aug,Nov)
+    p9 <- week_price(year,02,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_text(size=10),
+            text = element_text(size= 8),
+            plot.caption=element_blank(),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    p10 <- week_price(year,05,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            text = element_text(size= 8),
+            plot.caption=element_blank(),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    p11 <- week_price(year,08,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            text = element_text(size= 8),
+            plot.caption=element_blank(),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    p12 <- week_price(year,11,08,case) +
+      theme(legend.position ="none",
+            plot.caption=element_blank(),
+            text = element_text(size= 8),
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    # Get a common legend
+    legend <- get_legend(p1)
+    p1 <- p1 + theme(legend.position ="none")
+    
+    # Plot Labels
+    bottom <- textGrob("Date", gp = gpar(fontsize = 15))
+    
+    # Label the source and year
+    xsubtitle <- ggplot() +
+      annotate("text", x = 10,  y = 10,
+               size = 4,
+               label = paste("year:",year,", Database:",SourceDB)) + 
+      theme_void()
+    
+    #Create a big window
+    windows(18,12)
+    
+    # Arrange all the plots
+    grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+                 plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+                 plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+                 plot_grid(legend),
+                 plot_grid(xsubtitle),
+                 ncol=1,nrow=5, 
+                 heights=c(1, 0.4,0.4,0.15,0.1))
+    
+    
+  }  

@@ -166,6 +166,102 @@ Imp_Exp2 <- function(year,case) {
     scale_fill_manual(values=c("Export"="gray21","Import"="gray71"))
 }
 
+###############################################################################  
+## FUNCTION: Imp_ExpWk
+## AB imports and exports plotted as annual chart, shows hourly patterns. 
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+##    year - Year to show trade patterns
+## TABLES REQUIRED: 
+##    Import_Yr - All imports from AB
+##    Export_Yr - All exports from AB
+################################################################################
+
+Imp_ExpWk <- function(year, month, day, case) {
+  Imp <- Import %>%
+    filter(Run_ID == case) %>%
+    mutate(Year = format(.$date, format="%Y")) %>%
+    mutate(ID = "Import") %>%
+    filter(Year==year)
+  
+  Exp <- Export %>%
+    filter(Run_ID == case) %>%
+    mutate(Year = format(.$date, format="%Y")) %>%
+    mutate(ID = "Export")  %>%
+    filter(Year==year) %>%
+    mutate(Output_MWH=Output_MWH*-1)
+  
+  # Filters for the desired case study
+  Intdata <- rbind(Imp,Exp) 
+    # Select only a single week
+    WK_Int <- WkTime(Intdata,year,month,day)
+  
+  # Get price data
+  PriceData <- ZoneHr_Avg%>%
+    filter(Run_ID == case)
+    # Select only a single week using function WkTime
+    WK_Price <- WkTime(PriceData,year,month,day)
+
+  # Set the max and min for the plot using annual max storage. Can opptionally add factor to move price plot up
+  MX <- plyr::round_any(max(abs(Intdata$Output_MWH)), 20, f = ceiling)*1
+  MN<- plyr::round_any(min(Intdata$Output_MWH), 20, f = floor)
+  ylimint<-c(-MX,MX)
+  ylimPrice<-c(-1020,1020)
+  
+  b <- diff(ylimint)/diff(ylimPrice)
+  a <- ylimint[1] - b*ylimPrice[1] 
+  
+  # Plot
+  ggplot() +
+
+    geom_area_pattern(data = WK_Int, aes(x = date, y = Output_MWH, pattern_angle = ID), 
+              alpha=1, size=0.5, 
+              colour="black",fill="black",
+              pattern_density = 0.3,
+              pattern_fill    = "white",
+              pattern_spacing=0.04) +
+    
+    geom_hline(yintercept=0, color = "black", size=1)+
+    
+    # geom_line(data = WK_Price, aes(x = date, y = a + Price*b,color="Pool Price"), 
+    #           size = 1.25,linetype=1) +
+
+    theme_bw() +
+    theme(text=element_text(family=Plot_Text)) +
+    
+    # Set the theme for the plot
+    theme(panel.grid = element_blank(),
+          axis.text=element_text(color="black"),
+          plot.title = element_text(size=Overall_Sz),
+          legend.title = element_blank(),
+          legend.position = "bottom",
+          axis.title.y = element_text(size=YTit_Sz,face='bold'),
+          axis.title.x=element_blank(),
+          text = element_text(size= Overall_Sz),
+
+    ) +
+    scale_x_datetime(expand=c(0,0),date_labels = "%b-%e",breaks = "day") +
+    
+    scale_y_continuous(name="AB Hourly Intertie (MWh)",
+                       breaks = pretty_breaks(8), 
+                       limits = c(MN,MX),
+                       labels=comma,
+                       # sec.axis = sec_axis(~(. - a)/b, name="Wholesale Pool Price ($/MWh)",
+                       #                     breaks = seq(0,1000,by=250),
+                       #                     labels=comma)
+                       ) +
+    
+    theme(axis.ticks.y.left = element_line(color = "black"),
+          axis.text.y.left = element_text(color = "black"), 
+          axis.title.y.left = element_text(color = "black")) +
+    
+    labs(x = paste("Date (",year,")"),title=month.abb[month]) +
+    
+    scale_color_manual(values=c("Pool Price"="black")) +
+    scale_pattern_angle_manual(values=c(45,-45))
+}
+
 ################################################################################  
 ## FUNCTION: BC_SK_IE 
 ## BC and SK imports and exports

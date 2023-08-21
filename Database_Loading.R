@@ -81,7 +81,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Aug_14_2023"
+  SourceDB<-"Zonal_18Aug2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -398,7 +398,7 @@
 ################################################################################
 { 
   # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
-  merit <- readRDS(here("Data Files","Alberta Data","Leach_MeritData03Mar2023.RData"))
+  merit <- readRDS(here("Data Files","Alberta Data","Leach_MeritData15Aug2023.RData"))
   
     #Filter Data to relevant dates & remove old data
     merit_filt <- filter(merit,date >= as.Date("2015-01-1"))
@@ -501,7 +501,7 @@
       # Normal Color 
           # Import/Export
           cOL_IMPORT <- "#F8B660"  
-          cOL_EXPORT <- "#DDCC77"
+          cOL_EXPORT <- "#a07707"
           
           # Coal/Cogen
           cOL_NUCLEAR <- "midnightblue"
@@ -587,6 +587,7 @@
                  "SCCT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
+      
       
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN,
                    "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,"Hydrogen"=COL_H2,
@@ -679,7 +680,7 @@ Legend_PlotGray(1)
 
 
 # Create folder name to save as
-CaseName <- "Limit to Zero - 1000 MW Curt"
+CaseName <- "Aug 18 - Validation Plots"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -924,10 +925,10 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     year_weeks(2022,BC)
     
     # Shows pool price over a week of resource group outputs
-    PrOt(2035,01,08,BC)
+    PrOt(2022,01,08,BC)
     
     # Shows pool price over a week of resource group outputs, includes storage utilization
-    PrOut(2035,01,08,BC)
+    PrOut(2022,01,08,BC)
     
     # Wind duration curve with output as is
     Wind_Dur(BC)
@@ -940,6 +941,9 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     
     # One year of weeks for storage output and pool price
     year_stor(2035,BC)
+    
+    # Four months of generation, intertie, and pool price
+    FourMonthSummary(2022,BC)
     
 ################################################################################    
 ## Price Functions (Price_Functions)
@@ -1024,6 +1028,9 @@ CaseName <- "Limit to Zero - 1000 MW Curt"
     
     # Hourly import and exports for a single year for AB
     Imp_Exp2(2022,BC)
+    
+    # Sinlge week import and export
+    Imp_ExpWk(2022,12,08,BC)
     
     # Imports and exports from BC and SK
     BC_SK_IE(2022,BC)
