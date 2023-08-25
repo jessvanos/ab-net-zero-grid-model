@@ -2173,7 +2173,7 @@ Day_AESO <- function(year,month,day,MX) {
   # Plot the data    
   ggplot() +
     geom_area(data = DY_Tot, aes(x = time, y = total_gen, fill = Plant_Type), colour = "black", 
-              alpha=0.8, size=0.5) +
+              alpha=Plot_Trans, size=0.5) +
     
     # Add hourly load line
     geom_line(data = dmd, 

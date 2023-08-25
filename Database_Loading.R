@@ -81,7 +81,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"Zonal_18Aug2023"
+  SourceDB<-"LZ_Aug_23_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -137,9 +137,12 @@
   ZoneYr <- dbReadTable(con,'ZoneYear1')
   ZoneMn <- dbReadTable(con,'ZoneMonth1')
   ZoneHr <- dbReadTable(con,'ZoneHour1')
+
+  # LT Tables
   #LTRes <- dbReadTable(con,'LTResValue1')
   Build <- dbReadTable(con,'LTBuildReport1')
   Study <- dbReadTable(con,'LTStudyLog1')
+  #CReport <- dbReadTable(con,'LTConstraintReport1')
   
   # Get rid of Unused R memory to keep speed up
   
@@ -510,7 +513,7 @@
           
           # H2 groups (blues)
           cOL_SCGT_H2 <- "#7e4e90ff"
-          cOL_NGCC_H2 <- "#440154FF"
+          cOL_NGCC_H2 <- "darkorchid4"
           COL_H2 <- cOL_NGCC_H2  
               #cOL_SCGT_Blend <- "#7FABD3"
               #cOL_NGCC_Blend <- "#3573B9"
@@ -680,7 +683,7 @@ Legend_PlotGray(1)
 
 
 # Create folder name to save as
-CaseName <- "Aug 18 - Validation Plots"
+CaseName <- "Limit to Zero"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -712,7 +715,11 @@ CaseName <- "Aug 18 - Validation Plots"
           
           year_stor(2023,BC)
           SaveRun_Loc(CaseName,"2023 Storage Output with Pool Price")
-      
+          
+      # Four months of generation, intertie, and pool price
+      FourMonthSummary(2035,BC)
+      SaveRun_Loc(CaseName,"2025 Output, Trade, Price") 
+          
       # Save all full size images
       windows(14,10,buffered=FALSE)
       
@@ -760,7 +767,7 @@ CaseName <- "Aug 18 - Validation Plots"
       SaveRun_Loc(CaseName,"Retirements")
        
       # Capacity built by Aurora over study period
-       Build_A_MW(BC)
+      Build_A_MW(BC)
     
       # All new capacity
       BuildMW(BC)
@@ -822,7 +829,7 @@ CaseName <- "Aug 18 - Validation Plots"
       SaveRun_Loc(CaseName,"Annual Demand")
   
   # DAILY OUTPUT FUNCTIONS
-    CompDay_Season(2050,14,BC)  
+    CompDay_Season(2035,14,BC)  
     SaveRun_Loc(CaseName,"Daily Output - Season 2025")
       
     CompDay_Wind(2035,BC)
@@ -834,8 +841,8 @@ CaseName <- "Aug 18 - Validation Plots"
     CompDay_Years(2023,2035,08,10,BC)
     SaveRun_Loc(CaseName,"Daily Output October- Years")
     
-    CompDay_AESO(2022,10,08,BC)
-    SaveRun_Loc(CaseName,"Daily Output Compared to AESO Oct Day")
+    CompDay_AESO(2022,2,08,BC)
+    SaveRun_Loc(CaseName,"Daily Output Compared to AESO Jan Day")
     
       
   # COMPARING TO AESO
@@ -857,8 +864,8 @@ CaseName <- "Aug 18 - Validation Plots"
       # Shows new resource value each year 
       # 1 - wind, 2 - Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen,
       # 7 - Hydro, 8 - Other, 9 - Cogen)
-      ResValue_Annual(7,1899,BC)
-      SaveRun_Loc(CaseName,"Annual Nomminal Value New Wind")
+      ResValue_Annual(4,1899,BC)
+      SaveRun_Loc(CaseName,"Annual Nomminal Value New Gas")
       
       # Shows new resource value added up to be cumulative (nominal values to each year)
       ResValue_Total(1,BC)
@@ -1007,7 +1014,7 @@ CaseName <- "Aug 18 - Validation Plots"
     Slack(BC,wind)
 
     #Compare available units and built units
-    BuildUnits(BC, "Gas1")
+    BuildUnits(BC, "GasCCS")
     
 ################################################################################
 ## Emission Functions (Emission_Functions)

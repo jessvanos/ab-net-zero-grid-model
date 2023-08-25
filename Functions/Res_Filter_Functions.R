@@ -460,10 +460,10 @@ sim_filt4 <- function(inputdata) {
   NG_CCS <- inputdata %>%
     filter(Fuel_Type == "GasCCS")
   Blend <- inputdata %>%
-    filter(grepl( 'GasB_CC|GasB_SC',Fuel_Type)) %>%
+    filter(grepl( '^GasB_CC$|^GasB_SC$',Fuel_Type)) %>%
     mutate(Fuel_Type=as.character(ifelse(is.na(Fuel_Type),NA,"GasB")))
   NG <-inputdata %>%
-    filter(grepl( 'Gas|Gas1|Gas2',Fuel_Type)) %>%
+    filter(grepl( '^Gas$|^Gas1$|^Gas2$',Fuel_Type)) %>%
     mutate(Fuel_Type=as.character(ifelse(is.na(Fuel_Type),NA,"NG"))) 
   
   

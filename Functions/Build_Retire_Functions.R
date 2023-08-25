@@ -197,14 +197,14 @@ RetireMW <- function(case) {
     
     labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
     
-    scale_x_continuous(#expand = c(0.5, 0.05),
-                       #limits = c(MinYr,MaxYr),
+    scale_x_continuous(expand = c(0, 0),
+                       limits = c(MinYr-1,MaxYr+1),
                        breaks=seq(MinYr, MaxYr, by=1),position = "top") +
     
     scale_y_continuous(expand=c(0,0),
                        limits = c((mxc),0),breaks=breaks_pretty(5),labels=comma) +
     
-    scale_fill_manual(values=colours3,drop = FALSE)
+    scale_fill_manual(values=colours3,drop = TRUE)
   
 }
 
@@ -294,13 +294,17 @@ Build_A_MW <- function(case) {
            LT_Iteration == 0,
            Time_Period != "Study",
            Units_Built>0) %>%
-    group_by(Fuel_Type, Time_Period) %>%
+    mutate(YEAR=as.numeric(Time_Period))%>%
+    group_by(Fuel_Type, Time_Period,YEAR) %>%
     summarise(Units = sum(Units_Built), Capacity = sum(Capacity_Built)) %>%
     sim_filt4(.)
 
    levels(data$Fuel_Type) <- c("Hydrogen","Natual Gas and Hydrogen Blend","Natural Gas", "Natural Gas + CCS",
                                "Hydro", "Other","Wind", "Solar","Storage")
   
+  YrMN <-min(data$YEAR)
+  YrMX <-max(data$YEAR)
+   
   Tot <- data %>%
     group_by(Time_Period) %>%
     summarise(totc = sum(Capacity)) %>%
@@ -310,14 +314,14 @@ Build_A_MW <- function(case) {
   mxc <- plyr::round_any(max(abs(Tot$totc)), 1000, f = ceiling)
   
   ggplot(data) +
-    aes(Time_Period, Capacity, fill = Fuel_Type, group = Fuel_Type) +
+    aes(YEAR, Capacity, fill = Fuel_Type, group = Fuel_Type) +
     geom_bar(position="stack", stat="identity", alpha=Plot_Trans,color='black') +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
     
     theme(panel.grid = element_blank(), 
-          axis.title.x = element_text(size = XTit_Sz,face="bold"),
+          axis.title.x = element_blank(),
           axis.text.y=element_text(color="black"),
           axis.text.x=element_text(angle=45,vjust=0.5,color="black"),
           axis.title.y = element_text(size = YTit_Sz,face="bold"),
@@ -335,7 +339,8 @@ Build_A_MW <- function(case) {
     labs(x = "Date", y = "Capacity Built (MW)", fill = "Fuel Type") +
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,mxc),label=comma) +
-    #    scale_x_discrete(expand=c(0,0)) +
+    scale_x_continuous(expand=c(0,0),
+                       limits = c(YrMN-1,YrMX+1),limiseq(YrMN,YrMX,by=1)) +
     scale_fill_manual(values=colours2,drop = FALSE)
   
 }
@@ -364,7 +369,7 @@ BuildMW <- function(case)
   # Set levels to each category in order specified
   data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                                           "Blended  Simple Cycle","Blended  Combined Cycle",
-                                                          "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                          "Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Natural Gas Combined Cycle + CCS",
                                                           "Hydro", "Other",
                                                           "Wind", "Solar", 
                                                           "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
@@ -413,7 +418,7 @@ BuildMW <- function(case)
   
   #Max Units Built
   dyMX <- aggregate(Builddata["Capacity"], by=Builddata["Beg_Date"], sum)
-  mxc <- round_any(max(dyMX$Capacity+11),1000,f=ceiling)
+  mxc <- round_any(max(dyMX$Capacity+11),500,f=ceiling)
   
   Builddata$Beg_Date <- as.numeric(Builddata$Beg_Date)
   
@@ -446,9 +451,9 @@ BuildMW <- function(case)
     labs(x = "Year", y = "New Capacity (MW)", fill = "Fuel Type",caption=SourceDB)  +
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,(mxc)),breaks=breaks_pretty(6),label=comma) +
-    scale_x_continuous(expand = c(0.01, 0.01),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
+    scale_x_continuous(expand = c(0, 0),limits = c(MinYr-1, MaxYr+1),breaks=seq(MinYr, MaxYr)) +
     
-    scale_fill_manual(values=colours5,drop = FALSE)
+    scale_fill_manual(values=colours5,drop = TRUE)
   
   # BuiltUnitsList <- list(BuiltUnits)
   # return(BuiltUnitsList)
@@ -483,7 +488,7 @@ TotalCapChange <- function(case) {
   Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
                                       levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                                "Blended  Simple Cycle","Blended  Combined Cycle",
-                                               "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                               "Natural Gas Simple Cycle","Natural Gas Combined Cycle", "Natural Gas Combined Cycle + CCS", 
                                                "Hydro", "Other",
                                                "Wind", "Solar", 
                                                "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
@@ -611,7 +616,7 @@ TotalCapChange <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),
                        label=comma) +
-    scale_fill_manual(values=colours8,drop = FALSE) +
+    scale_fill_manual(values=colours8,drop = TRUE) +
     
     labs(x = "Year", y = "Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
 }
@@ -768,7 +773,7 @@ Tot_Change %>%
                    limits = as.character(mnx:mxx)) +
   scale_y_continuous(expand=c(0,0),
                      limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),labels=comma) +
-  scale_fill_manual(values=colours8,drop = FALSE) +
+  scale_fill_manual(values=colours8,drop = TRUE) +
   
   labs(x = "Year", y = "Net Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
 }

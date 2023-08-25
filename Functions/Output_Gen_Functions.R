@@ -746,7 +746,7 @@
                          breaks = sort(c(seq(0,1,length.out=5)))) +
       
       guides(fill = guide_legend(nrow = 1)) +
-      labs(x = "Year", y = "Percentage of Generation", fill = "Resource",colour="Resource") +
+      labs(x = "Year", y = "Percentage of Total Generation", fill = "Resource",colour="Resource") +
       scale_fill_manual(values = C_to_Fill,drop = TRUE) 
       
   }
