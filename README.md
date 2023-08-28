@@ -2,6 +2,8 @@
 
 Code and functions to visually analyze large groups of forecasting energy data. Data is taken from SQL server databases, excel files, and .R files.
 
+Also includes functions and code segments to visualize historical data from Alberta's electricity sector.
+
 ## CONTENTS
 
 -   [CODE FILES](#code-files)
