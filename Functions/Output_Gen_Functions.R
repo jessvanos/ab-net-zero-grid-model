@@ -1306,12 +1306,18 @@
       subset(., select=c(ID,date,Demand_Side_Output,Run_ID))%>%
       rename(Output_MWH=Demand_Side_Output)
     
+    # Get exports
+    TRADE <- Export %>%
+      filter(Run_ID == case)%>%
+      mutate(Output_MWH=Output_MWH*-1+Import$Output_MWH,
+             ID="Trade")
+    
     # Filters for the desired case study from the resource groups
     data <- ResGroupHr_sub%>%
       sim_filt1(.) %>%
       subset(., select=-c(Report_Year,Capacity_Factor)) %>%
       rbind(DSM) %>%
-      rbind(.,Import) %>%
+      rbind(.,TRADE) %>%
       filter(Run_ID == case) %>%
       filter(date >= wk_st) %>%
       filter(date <= wk_end)
@@ -1319,21 +1325,19 @@
     # Set levels to each category in order specified
     data$ID <- factor(data$ID, levels=c(
       "Demand Curtailment",
-      "Import","Solar","Wind","Hydro","Other", 
+      "Solar","Wind","Hydro","Other", 
       "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
       "Blended  Simple Cycle","Blended  Combined Cycle",
       "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
-      "Coal", "Cogeneration","Storage"))
+      "Coal", "Cogeneration","Trade","Storage"))
     
-    data$Output_MWH[data$Output_MWH<0.001] <-0
+    # data$Output_MWH[data$Output_MWH<0.001] <-0
     
     ## SELECT A SINGLE WEEK
     
     # Select only a single week from the zone Hourly, and Export data
     WK <- WkTime(data,year,month,day)
     ZPrice <- WkTime(ZoneHr_Avg,year,month,day) %>%
-      filter(Run_ID == case)
-    Expo <- WkTime(Export,year,month,day) %>%
       filter(Run_ID == case)
     
     # # Set the max and min for the plot
@@ -1344,18 +1348,11 @@
     ZPrice2 <- ZPrice2 %>%
       filter(YEAR == year)
     
-    Expo2 <- Export%>%
-      filter(Run_ID == case)
-    Expo2$YEAR  <- as.POSIXct(as.character(Expo2$date), format = "%Y")
-    Expo2$YEAR <-(format(Expo2$YEAR,format="%Y")) # Reformat for year only
-    Expo2 <- Expo2 %>%
-      filter(YEAR == year)
-    
     # Get y-max, demand to meet + exports
-    MX <- round_any(max(ZPrice2$Baseline_Demand) + max(Expo2$Output_MWH)+1100,1000,f=ceiling) 
+    MX <- round_any(max(ZPrice2$Baseline_Demand) + max(ZPrice2$Exports)+1100,1000,f=ceiling) 
     
-    # # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-    #MX <- plyr::round_any(max(abs(Max))+1111, 2000, f = ceiling)
+    # Get y-min, based on exports
+    MN <- round_any(max(ZPrice2$Exports)+1100,1000,f=floor)*-1 
     
     Mtitle=month.abb[month]
     
@@ -1370,8 +1367,11 @@
                         pattern_spacing=0.01) +
       
       # Add hourly load line (black line on the top)
-      geom_line(data = ZPrice, 
-                aes(x = date, y = Demand), size=1.25, colour = "black") +
+      geom_line(data = ZPrice,
+                aes(x = date, y = Demand,color="Demand"), size=1.25) +
+      
+      geom_hline(yintercept=0, color = "black", size=0.5)+
+      
       scale_x_datetime(expand=c(0,0),date_labels = "%b-%e", breaks = "day") +
       
       # Set the theme for the plot
@@ -1383,7 +1383,7 @@
       theme(plot.title = element_text(size= Tit_Sz),
             axis.text.y = element_text(color="black"),
             axis.text.x = element_text(vjust = 1,color="black"),
-            axis.title.x = element_text(size= XTit_Sz),
+            axis.title.x = element_blank(),
             axis.title.y = element_text(size= YTit_Sz),
             panel.background = element_rect(fill = "transparent"),
             plot.background = element_rect(fill = "transparent", color = NA),
@@ -1392,22 +1392,25 @@
             legend.background = element_rect(fill='transparent',colour ='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             legend.key.size = unit(1,"lines"), #Shrink legend
-            legend.position = "bottom",
+            legend.position = "right",
             legend.text = element_text(size= Leg_Sz),
             text = element_text(size= GenText_Sz)
       ) +
-      scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
-                         breaks = seq(0, MX, by = MX/8),
+      
+      guides(color = guide_legend(ncol = 1)) +
+      guides(fill = guide_legend(ncol = 1)) +
+      
+      scale_y_continuous(expand=c(0,0), limits = c(MN,MX),breaks=seq(MN,MX,by=2000),
                          labels=comma) +
       
       labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",pattern="Resource",title=year) +
       
-      guides(fill = guide_legend(nrow = 2)) +
-      
       #Add colour
       scale_fill_manual(values = colours1b) +
       
-      scale_pattern_manual(values=c("Import"= "none", "Coal"="none", "Cogeneration"="none", 
+      scale_color_manual(values=c("Demand"="black"))+
+      
+      scale_pattern_manual(values=c("Trade"= "none", "Coal"="none", "Cogeneration"="none", 
                                     "Coal-to-Gas"="none","Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
                                     "Natural Gas Combined Cycle + CCS"="none",
                                     "Natural Gas Simple Cycle"="none", "Natural Gas Combined Cycle"="none", 
@@ -1509,10 +1512,10 @@
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
-                aes(x = date, y = Net_Demand,linetype="Demand"), size=1,color='black') +
+                aes(x = date, y = Net_Demand,linetype="Demand"), size=1.25,color='black') +
       
-      geom_line(data = ZPrice,
-                aes(x = date, y = Demand_Expo,linetype="Demand + Exports"), size=1,color='black') +
+      # geom_line(data = ZPrice,
+      #           aes(x = date, y = Demand_Expo,linetype="Demand + Exports"), size=1.25,color='black') +
       
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day") +
       
@@ -1550,7 +1553,7 @@
       
       #Add colour
       scale_fill_manual(values = colours1) +
-      scale_linetype_manual(values=c("Demand"=1,"Demand + Exports"=2))            
+      scale_linetype_manual(values=c("Demand"=1,"Demand + Exports"=3))            
   }
   
 ################################################################################
@@ -1834,7 +1837,10 @@ year_weeks <- function(year,case) {
     # Gather weekly output data (Feb,May,Aug,Nov)
     p1 <- Week12(year,02,08,case) +
       theme(plot.title=element_text(face='bold',size=12),
-            axis.title.x=element_blank())
+            axis.title.x=element_blank(),
+            legend.position = "bottom",) +
+      guides(fill = guide_legend(nrow = 1)) +
+      guides(linetype = guide_legend(nrow = 1))
     
     p2 <- Week12(year,05,08,case) +
       theme(plot.title=element_text(face='bold',size=12),
@@ -1937,14 +1943,21 @@ year_weeks <- function(year,case) {
     #Create a big window
     windows(18,12)
     
-    # Arrange all the plots
+    #Arrange all the plots
     grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
                  plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
                  plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
                  plot_grid(legend),
                  plot_grid(xsubtitle),
-                 ncol=1,nrow=5, 
+                 ncol=1,nrow=5,
                  heights=c(1, 0.4,0.4,0.15,0.1))
     
+    # grid.arrange(arrangeGrob(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+    #              plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+    #              plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+    #              plot_grid(xsubtitle),
+    #              ncol=1,nrow=4, 
+    #              heights=c(1, 0.4,0.4,0.1)),
+    #              plot_grid(legend),ncol=2,widths=c(1,0.1))
     
   }  

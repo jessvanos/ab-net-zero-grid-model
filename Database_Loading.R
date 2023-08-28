@@ -81,7 +81,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Aug_23_2023"
+  SourceDB<-"LZ_Aug_25_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -123,7 +123,7 @@
   ResGroupMn <- dbReadTable(con,'ResourceGroupMonth1')
   ResGroupHr <- dbReadTable(con,'ResourceGroupHour1')
   ResGroupEmYr <- dbReadTable(con,'ResourceGroupEmissionsYear1')
-#  ResGroupEmHr <- dbReadTable(con,'ResourceGroupEmissionsHour1')
+  ResGroupEmHr <- dbReadTable(con,'ResourceGroupEmissionsHour1')
 #  ResGroupEmSt <- dbReadTable(con,'ResourceGroupEmissionsStudy1')
   
   # Other Tables
@@ -182,8 +182,8 @@
                         format = "%Y")
   ResGroupEmYr$Time_Period  <- as.Date(as.character(ResGroupEmYr$Time_Period), 
                         format = "%Y")
- # ResGroupEmHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResGroupEmHr$Time_Period))), 
- #                               tz = "MST")-(60*60)
+  ResGroupEmHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResGroupEmHr$Time_Period))), 
+                                tz = "MST")-(60*60)
   
   # Other Tables
   ResStackYr$Time_Period  <- as.Date(as.character(ResStackYr$Time_Period), 
@@ -504,7 +504,7 @@
       # Normal Color 
           # Import/Export
           cOL_IMPORT <- "#F8B660"  
-          cOL_EXPORT <- "#a07707"
+          cOL_EXPORT <- "burlywood4"
           
           # Coal/Cogen
           cOL_NUCLEAR <- "midnightblue"
@@ -574,7 +574,7 @@
                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                 "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
-      colours1b=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+      colours1b=c("Trade"= cOL_EXPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                  "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
                  #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                  "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
@@ -683,7 +683,7 @@ Legend_PlotGray(1)
 
 
 # Create folder name to save as
-CaseName <- "Limit to Zero"
+CaseName <- "LZ - High Cost Curt"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -722,6 +722,10 @@ CaseName <- "Limit to Zero"
           
       # Save all full size images
       windows(14,10,buffered=FALSE)
+      
+      # One week
+      week12_Curt(2035,02,08,BC)
+      SaveRun_Loc(CaseName,"1 Week Generation")
       
       # Yearly Output
       Evalyr(BC,"n")
@@ -864,8 +868,8 @@ CaseName <- "Limit to Zero"
       # Shows new resource value each year 
       # 1 - wind, 2 - Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen,
       # 7 - Hydro, 8 - Other, 9 - Cogen)
-      ResValue_Annual(4,1899,BC)
-      SaveRun_Loc(CaseName,"Annual Nomminal Value New Gas")
+      ResValue_Annual(9,1899,BC)
+      SaveRun_Loc(CaseName,"Annual Nomminal Value Cogen")
       
       # Shows new resource value added up to be cumulative (nominal values to each year)
       ResValue_Total(1,BC)
