@@ -261,9 +261,13 @@ Functions related to technology capture prices, pool prices, and other cost rela
 
 -   *System_Cost* : Describes the average system costs incured by all resources in the system.
 
+-   *ResValue_Line* : Shows the nominal annual value of resources as a line over entire study length. Based on plant type and year built. Define the Resource type based on number. 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen, 7 - Hydro, 8 - Other, 9 - Cogen.
+
 -   *ResValue_Annual* : Shows the annual value of new resources based on plant type and year built. Define the Resource type based on number. 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen, 7 - Hydro, 8 - Other, 9 - Cogen.
 
--   *ResValue_Total* : Shows the cumulative annaul value of new resources based on plant type. Define the Resource type based on number. 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen, 7 - Hydro, 8 - Other, 9 - Cogen.
+-   *ResValue_Annual_MWh* : Shows the annual value per MWh for new resources based on plant type and year built. Define the Resource type based on number. 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen, 7 - Hydro, 8 - Other, 9 - Cogen.
+
+-   *ResValue_NPV_MWh* : Shows the net present value per MWh generated. 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen, 7 - Hydro, 8 - Other, 9 - Cogen.
 
 -   *ResValue_NPV* : Shows the net present value in 2023. 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen, 7 - Hydro, 8 - Other, 9 - Cogen.
 

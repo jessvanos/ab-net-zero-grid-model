@@ -45,6 +45,7 @@
     # writexl: Easy way to write dataframes to excel files with multiple pages
     # viridis: A color pallete for plots
     # ggnewscale: Allow multiple color scales in one plot
+    # extrafont: Add windows font options to R environment.
   }
 
 { # Must load the here package in order to make sure internal project directories work
@@ -66,7 +67,7 @@
   source(here('Functions','aseo_sim_comp_1.R'))       #
   
   # Packages required
-  packs_to_load = c("tidyverse","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr",
+  packs_to_load = c("tidyverse","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr","extrafont",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
                    "openxlsx","sqldf","timeDate","writexl","viridis","ggnewscale")
@@ -81,7 +82,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"Zonal_18Aug2023"
+  SourceDB<-"LZ_Aug_25_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -467,8 +468,10 @@
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
   
+    # font_import()
+    loadfonts(dev="win")
     font_add(family="Times",regular="times.ttf")
-    Plot_Text <- 'Times'
+    Plot_Text <- "Times"
     
     # font_add(family="Cambrai",regular="CAMBRIA.ttc")
     # Plot_Text <- 'Cambrai'
@@ -683,7 +686,7 @@ Legend_PlotGray(1)
 
 
 # Create folder name to save as
-CaseName <- "Aug 28 Plots"
+CaseName <- "LZ - High Cost Curt"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -871,8 +874,10 @@ CaseName <- "Aug 28 Plots"
       ResValue_Annual(9,1899,BC)
       SaveRun_Loc(CaseName,"Annual Nomminal Value Cogen")
       
+      ResValue_Annual_MWh(1,1899,BC)
+      
       # Shows new resource value added up to be cumulative (nominal values to each year)
-      ResValue_Total(1,BC)
+      ResValue_NPV_MWh(1,BC)
       SaveRun_Loc(CaseName,"Cummulative nominal value")
       
       # Net present value of all plants in resource group
@@ -982,9 +987,15 @@ CaseName <- "Aug 28 Plots"
     # 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen
     # 7 - Hydro, 8 - Other, 9 - Cogen
     ResValue_Annual(1,1800,BC)
+    ResValue_Annual_MWh(1,1800,BC)
+    # Nominal value as line
+    ResValue_Line(1,1800,BC)
     
-    # Shows new resource value added up to be cumulative (nominal values to each year)
-    ResValue_Total(1,BC)
+    # Shows net present value or new resources
+    # 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen
+    # 7 - Hydro, 8 - Other, 9 - Cogen
+    ResValue_NPV(1,BC)
+    ResValue_NPV_MWh(1,BC)
     
     # Show capture price relative to mean price
     Relcapture_p(2019,2022,BC)
