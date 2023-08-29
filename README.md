@@ -158,12 +158,6 @@ Functions To use for plotting and evaluating intertie activities. Also shows inf
 
 -   *HR FIT Functions are also included in this file. These were used to build and analyze historical trade patterns.*
 
-### <ins>Map_Functions
-
-Functions for generating maps to show data and geographical data.
-
--   *ProjectMap_bytype* : Plot a map of Alberta planning regions with projected new projects of specified plant type.
-
 ### <ins>other_functions
 
 Additional functions to use, not related the data itself.
