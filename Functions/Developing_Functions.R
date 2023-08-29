@@ -1,16 +1,16 @@
 ################################################################################
 # TITLE: Developing_Functions
-# DESCRIPTION: Functions I am still working to build, not yet categorized. 
+# DESCRIPTION: Functions in progress, will get moved to respective folder once completed.
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: January 6, 2023; LAST EDIT: January 6, 2023
+# CREATED: January 6, 2023; LAST EDIT: August 28, 2023
 #
 ################################################################################
 
 ################################################################################
 ## FUNCTION: day2
-## Plots output for a single day given the case study
+## Plots output for a single day given the case study, option to filter for wind only.
 ##
 ## INPUTS: 
 ##    year, month, day - Date to plot
@@ -304,8 +304,8 @@ grid.arrange(plot_grid(p1, p2, p3, p4, p5, p6,p7, p8, p9, p10, p11,p12, ncol=12,
 ###############################################################################
 
 ################################################################################
-## FUNCTION: 
-## 
+## FUNCTION: CF_AllR
+## Plot wind capacity factors over time, differentiate potential sites. plot by Taylor.
 ##
 ## INPUTS: 
 ##    
@@ -332,7 +332,7 @@ CF_AllR <- function(case) {
            #                 tz = "MST")-(60*60)
     ) %>%
     #na.omit() %>%
-    subset(.,select=c(Name,Time_Period,Output_MWH,Capacity,
+    subset(.,select=c(Name,date,Output_MWH,Capacity,
                       #Percent_Marginal,Capacity,Capability,ID,Primary_Fuel,
                       Capacity_Factor,
                       #Beg_Date,End_Date,
@@ -386,232 +386,17 @@ CF_AllR <- function(case) {
 }
 
 
-###########################################################################################
-
-# Revenue
 
 
-##########################################################################################
-# Capture Prices
 
-capture_price <- function(year1, year2, case) {
-  # Plots the difference between the average capture price realized by each 
-  # generation technology and the mean price for the same time period. 
-  
-  # Based on a plot designed by Dr. Andrew Leach
-  
-  # Filters data set for required timeframe for simulated data
-  SampleSimZ <- ZoneHr_Avg  %>%
-    filter(year(date) >= year1,
-           year(date) <= year2,
-           Run_ID == case,
-    ) %>%
-    subset(., select = c(date, Price, Imports, Exports))
-  
-  SampleSim <- ResGroupHr %>%
-    filter(year(date) >= year1,
-           year(date) <= year2,
-           Output_MWH >= 0,
-           Run_ID == case) %>%
-    sim_filt(.) %>%
-    mutate(Year = as.factor(Report_Year)) %>%
-    subset(., select = c(date, ID, Output_MWH, Energy_Revenue, Year)) 
-  
-  SamSim <- merge(SampleSimZ, SampleSim, by = "date") %>%
-    subset(., select = -c(Imports,Exports))
-  
-  # This section calculates the achieved prices for imports and exports
-  Imp <- SampleSimZ %>%
-    mutate(Energy_Revenue = Price*Imports/1000, 
-           Year = as.factor(year(date)), 
-           ID = "IMPORT",
-           Output_MWH = Imports) %>%
-    subset(., select = -c(Imports,Exports))
-  
-  Exp <- SampleSimZ %>%
-    mutate(Energy_Revenue = Price*Exports/1000, 
-           Year = as.factor(year(date)), 
-           ID = "EXPORT",
-           Output_MWH = Exports) %>%
-    subset(., select = -c(Imports,Exports))
-  
-  Sim <- rbind(SamSim,Imp,Exp) %>%
-    group_by(ID,Year,date) %>%
-    summarise(total_rev = sum(Energy_Revenue*1000), 
-              total_gen = sum(Output_MWH),
-              price_mean=mean(Price)) %>%
-    ungroup() %>%
-    mutate(Plant_Type = ID) %>%
-    group_by(Plant_Type,Year) %>%
-    summarise(capture = sum(total_rev)/sum(total_gen),
-              avg_rev = sum(total_rev)/sum(total_gen),
-              p_mean=mean(price_mean, na.rm = TRUE)) %>%
-    mutate(sit = "Simulation")
-  
-  sz <- 12
-  
-  # Plot the data
-  ggplot(Sim,
-         aes(Year,capture-p_mean),
-         alpha=0.8)+
-    geom_col(aes(Plant_Type,capture-p_mean),
-             size=1.5,position = position_dodge(width = .9),width = .6)+
-    geom_hline(yintercept=0, linetype="solid", color="gray",size=1)+
-    scale_color_manual("",values=c("grey50","royalblue"))+
-    scale_fill_manual("",values=c("grey50","royalblue"))+
-    facet_grid(~Year) +
-    scale_y_continuous(expand=c(0,0),
-                       #                       limits = c(-50,100),
-                       #                       breaks = seq(-40,100, by = 20)
-    ) +
-    labs(x="",y="Revenue Relative to \nMean Price ($/MWh)",
-         title=paste0("Energy Price Capture Differential ($/MWh, ",year1,"-",year2,")"),
-         caption=SourceDB) +
-    
-    theme(panel.grid.major.y = element_line(color = "gray",linetype="dotted"),
-          panel.grid.minor.y = element_line(color = "lightgray",linetype="dotted"),
-          axis.line.x = element_line(color = "black"),
-          axis.line.y = element_line(color = "black"),
-          axis.text = element_text(size = sz),
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-          axis.title = element_text(size = sz),
-          plot.subtitle = element_text(size = sz-2,hjust=0.5),
-          plot.caption = element_text(face="italic",size = sz-4,hjust=0),
-          plot.title = element_text(hjust=0.5,size = sz+2),
-          #          plot.margin=unit(c(1,1,1.5,1.2),"cm"),
-          
-          # For transparent background
-          panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.spacing = unit(1.5, "lines"),
-          panel.border = element_rect(colour = "black", fill = "transparent"),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.key = element_rect(colour = "transparent", fill = "transparent"),
-          legend.background = element_rect(fill='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-    ) 
-}
-
-
-#################################################################################################
-# AChived pool 
-ach_pool <- function(year1, year2, case) {
-  # Plots the achieved premium-to-pool price realized by each generation 
-  # technology. 
-  #
-  #The ratio of the achieved margin to the average pool price
-  # Achieved price represents the average price realized in the wholesale energy 
-  #
-  # market for electricity delivered to the grid and is calculated as the 
-  # weighted average of the hourly pool price, where the price in each settlement 
-  # interval is weighted by the net-to-grid generation in that interval.
-  #
-  # Like AESO Market Report 2021 Figure 18
-  
-  
-  # Filters data set for required timeframe for simulated data
-  SampleSimZ <- ZoneHr_Avg  %>%
-    filter(year(date) >= year1,
-           year(date) <= year2,
-           Run_ID == case,
-    ) %>%
-    subset(., select = c(date, Price, Imports, Exports))
-  
-  SampleSim <- ResGroupHr %>%
-    filter(year(date) >= year1,
-           year(date) <= year2,
-           Run_ID == case) %>%
-           sim_filt(.) %>%
-    subset(., select = c(date, ID, Output))
-  
-  # Combine the two
-  SampleSim <- merge(SampleSimZ, SampleSim, by = "date")
-  SampleSim <- SampleSim %>%
-    mutate(Year = as.factor(year(date)))
-  
-  # This section calculates the annual average pool prices for simulated data
-  AvgSim <- SampleSim %>%
-    group_by(Year) %>%
-    summarise(Pool = mean(Price))
-  
-  # This section calculates the achieved prices for imports and exports
-  Imp <- SampleSimZ %>%
-    mutate(WeighPrice = Price*Imports, Year = as.factor(year(date))) %>%
-    group_by(Year) %>%
-    summarise(WeighPrice = sum(WeighPrice), gen = sum(Imports)) %>%
-    mutate(AchPrice = WeighPrice/gen, Plant_Type = "IMPORT")
-  
-  Exp <- SampleSimZ %>%
-    mutate(WeighPrice = Price*Exports, Year = as.factor(year(date))) %>%
-    group_by(Year) %>%
-    summarise(WeighPrice = sum(WeighPrice), gen = sum(Exports)) %>%
-    mutate(AchPrice = WeighPrice/gen, Plant_Type = "EXPORT")
-  
-  # This section calculates the achieved prices
-  AchSim <- SampleSim %>%
-    mutate(WeighPrice = Price*Output, Plant_Type = ID) %>%
-    #    ungroup() %>%
-    #    mutate(Year = as.factor(year(time))) %>%
-    group_by(Year, Plant_Type) %>%
-    summarise(WeighPrice = sum(WeighPrice), gen = sum(Output)) %>%
-    mutate(AchPrice = WeighPrice/gen)
-  
-  AchSim <- rbind(AchSim, Imp, Exp)
-  
-  # Combine the two
-  Sim <- merge(AvgSim, AchSim, by = "Year")
-  
-  # Calculate the achieved margin and the achieved premium-to-pool price
-  Sim <- Sim %>%
-    mutate(Margin = AchPrice-Pool, Ratio = Margin/Pool, sit = "Simulation")
-  
-  Sim$Plant_Type <- factor(Sim$Plant_Type, levels=c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
-                                                    "Hydro","Other","Wind", "Solar", "Storage","Coal","Cogen", "EXPORT", "IMPORT"))
-  
-  levels(Sim$Plant_Type) <- c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
-                              "Hydro","Other","Wind", "Solar", "Storage","Coal","Cogen", "Export", "Import")
-  
-
-  sz <- 12
-  
-  # Plot the data
-  ggplot() +
-    geom_col(data = Sim, position = "dodge", alpha = 0.8, width = 0.7,
-             aes(x = Plant_Type, y = Ratio)) +
-    #    geom_text(total, aes(label = gen), vjust = -0.5, angle = 90) +
-    facet_grid(~Year) +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-          axis.title.x = element_blank(),
-          axis.text = element_text(size = sz),
-          axis.title = element_text(size = sz),
-          plot.title = element_text(size = sz+2),
-          legend.text = element_text(size = sz),
-          panel.grid.minor = element_blank(),
-          legend.title = element_blank(),
-          
-          # For transparent background
-          panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.spacing = unit(1.5, "lines"),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.key = element_rect(colour = "transparent", fill = "transparent"),
-          legend.background = element_rect(fill='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-    ) +
-    labs(y = "Achieved Premium to Pool Price", 
-         title = "Annual achieved premium to pool price",
-         subtitle = SourceDB) +
-    scale_fill_manual(values = AESO_colours) +
-    scale_y_continuous(expand=c(0,0),
-                       limits = c(-0.5,1.1),
-                       breaks = c(-0.5, -0.3, -0.1, 0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.1),
-                       labels = percent
-    )
-}
-
+################################################################################
+## FUNCTION: 
+##
+## INPUTS: 
+##    
+## TABLES REQUIRED: 
+##    
+################################################################################
 ##############################################################################################
 # marginal tech
 margin <- function(year1, year2, case) {
@@ -921,23 +706,6 @@ Revenue <- function(case) {
 }
 
 
-## OTHER STUFF
-  # REVENUE. in Can$000
-  Data_Rev <-DataYr %>%
-    subset(.,select=c(Name,Report_Year,
-                      Revenue,Energy_Revenue_MWh)) %>%
-    mutate(Type="Revenue")%>%
-    rename(Total=Revenue,
-           Total_Per_MWh=Energy_Revenue_MWh)
-  # COST
-  Data_Cost <-DataYr %>%
-    subset(.,select=c(Name,Report_Year,
-                      Net_Cost,Total_Cost_MWh)) %>%
-    mutate(Type="Cost")%>%
-    rename(Total=Net_Cost,
-           Total_Per_MWh=Total_Cost_MWh)
-  
-
 ################################################################################
 ## FUNCTION: WeekDSM
 ## Plots output for a week given study case, adjusts demand line for demand side curtailment.
@@ -1039,153 +807,6 @@ WeekDSM <- function(year, month, day, case) {
     scale_fill_manual(values = colours1) 
 }
           
-##############################################################################
-# Bring in Resource Year Table and filter for relevant data. Format date columns
-Add_Ret_data <- ResYr%>%
-  sim_filt6(.) %>% #Filter to rename fuels
-  subset(., select=c(Name,Condition,Capacity,Nameplate_Capacity,End_Date,Beg_Date,
-                     Run_ID,Primary_Fuel,Time_Period,Capacity_Factor)) %>%
-  filter(Run_ID == case)%>%
-  mutate(Time_Period=as.numeric(Time_Period),
-         End_Date=as.Date(End_Date,format = "%m/%d/%Y"),
-         End_Year=year(End_Date),
-         Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
-         Beg_Year=year(Beg_Date))%>%
-  filter(Condition == "Average",
-         Time_Period<=2035) 
-
-# Set levels to each category in order specified
-Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
-                                    levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                                             "Blended  Simple Cycle","Blended  Combined Cycle",
-                                             "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                                             "Hydro", "Other",
-                                             "Wind", "Solar", 
-                                             "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
-                                             "Cogeneration"))
-
-# FILTER CAP RETIREMENTS
-#Further filter peak capacity >0 (it is not yet retired), and end date = time period (to ensure you dont get doubles)
-Retdata <- Add_Ret_data%>%
-  group_by(Name)%>%
-  mutate(In_Cap=max(Nameplate_Capacity))%>%
-  ungroup()%>%
-  filter(End_Year==Time_Period)%>%
-  subset(select=c("Name","In_Cap","Primary_Fuel","Capacity_Factor","Beg_Date","Beg_Year","End_Date","End_Year"))%>%
-  mutate(Type="Retirement")%>%
-  arrange(.,End_Date)
-
-# FILTER CAP ADDITIONS
-Builddata <- Add_Ret_data %>%
-  filter(Beg_Year >= 2022,
-         Beg_Year==Time_Period) %>%
-  group_by(Name)%>%
-  mutate(In_Cap=max(Nameplate_Capacity))%>%
-  ungroup()%>%
-  select(., c("Name","In_Cap","Primary_Fuel","Capacity_Factor","Beg_Date","Beg_Year","End_Date","End_Year")) %>%
-  mutate(Type="Addition")%>%
-  arrange(.,Beg_Date)
-
-# Add cap increases manual
-Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
-                   In_Cap=c(800),
-                   Primary_Fuel=c("Cogeneration"),
-                   Capacity_Factor=NA,
-                   Beg_Date=c(as.Date("07/01/2024", 
-                                      format = "%m/%d/%Y")),
-                   Beg_Year=c(2024),
-                   End_Date=NA,
-                   End_Year=NA,
-                   Type="Addition")
-
-# Add the manual plant to the rest
-Builddata <-  rbind(Builddata,Capinc)%>%
-  arrange(.,Beg_Date)
-
-# NOW PUT IT ALL TOGETHER TO GET TOTALS BY RESOURCE TYPE
-BuilddataTot <- Builddata%>%
-  group_by(Primary_Fuel, Beg_Year) %>%
-  summarise(Capacity_Added = sum(In_Cap))%>%
-  mutate(Year=Beg_Year)%>%
-  subset(select=c(Primary_Fuel,Year,Capacity_Added))
-
-RetdatadataTot <- Retdata%>%
-  group_by(Primary_Fuel, End_Year) %>%
-  summarise(Capacity_Retired = sum(In_Cap))%>%
-  mutate(Year=End_Year)%>%
-  subset(select=c(Primary_Fuel,Year,Capacity_Retired))
-
-# Get summary for each year!
-Tot_Change<-merge(BuilddataTot,RetdatadataTot,by=c("Primary_Fuel","Year"), all.x = TRUE, all.y = TRUE)
-
-# Replace NA values with 0
-Tot_Change[is.na(Tot_Change)]=0
-
-# Find the capacity difference in given year
-Tot_Change <- Tot_Change %>%
-  mutate(diff=Capacity_Added-Capacity_Retired)
-          
-          
-  ##########
-
-Tot_Change$Year <- as.factor(format(Tot_Change$Year, format="%Y"))
-
-# Sum all up
-Tot <- Tot_Change %>%
-  group_by(Year) %>%
-  summarise(maxy = sum(diff[which(diff>0)]), miny = sum(diff[which(diff<0)]))
-
-# Capacity limits for plot
-mny <- plyr::round_any(min(Tot$miny),1000, f=floor)
-mxy <- plyr::round_any(max(Tot$maxy),1000, f=ceiling)
-
-# Year limits for plot. Add 365 to get the year after the first
-mnx <- format(min(ResGroupMn$Time_Period), format="%Y")
-mxx <- format(max(ResGroupMn$Time_Period)-365*5, format="%Y")
-
-# Plot it all
-Tot_Change %>%
-  ggplot() +
-  aes(Year, (diff), fill = Primary_Fuel) +
-  geom_col(alpha=0.7, size=.5, colour="black") +
-  
-  # Add line at y=0
-  geom_hline(yintercept=0, color = "black")+
-  
-  theme_bw() +
-  
-  theme(
-    # General Plot Settings
-    panel.grid = element_blank(),
-    # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
-    plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
-    panel.background = element_rect(fill = "transparent"), # Transparent background
-    text = element_text(size = GenText_Sz),                # Text size
-    plot.title = element_text(size = Tit_Sz,hjust = 0.5),  # Plot title size (if present)
-    plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
-    #panel.grid.major.y = element_line(size=0.25,
-    #linetype=1,color = 'gray90'),                         # Adds horizontal lines
-    # X-axis
-    axis.text.x = element_text(angle = 45,
-                               vjust = 1, hjust = 1),          # Horizontal text
-    axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
-    # Y-axis
-    axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
-    # Legend
-    legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
-    legend.position = "right",                             # Move legend to the bottom
-    legend.justification = c(0.5,0.5),                     # Center the legend
-    legend.text = element_text(size =Leg_Sz),              # Size of legend text
-    legend.title=element_text()) +                         # Legend title
-  
-  scale_x_discrete(expand=c(0.05,0.05),
-                   limits = as.character(mnx:mxx)) +
-  scale_y_continuous(expand=c(0,0),
-                     limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000)) +
-  scale_fill_manual(values=colours8,drop = FALSE) +
-  
-  labs(x = "Year", y = "Annual Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
-  
 #############################################
 # TAYLOR
 #############################################
@@ -2353,90 +1974,3 @@ Revenue2.0 <- function(case) {
     ) 
 }
 
-
-################################################################################  
-## FUNCTION: CurtailWk
-## Max curtailed load annually
-##
-## INPUTS: 
-##    input - ResHr
-##    case - Run_ID which you want to plot
-## TABLES REQUIRED: 
-##    Import - Import table derived of zone average table
-################################################################################
-
-CurtailWk <- function(case) {
-  
-  # TOTAL CURTAILMENT INFO
-  data <- ResHr %>%
-    filter(Run_ID == case & Condition == "Average",
-           Primary_Fuel %in% c("Customer Curtailment Level I","Customer Curtailment Level II",
-                               "Customer Curtailment Level III","Customer Curtailment Level IV",
-                               "Customer Curtailment Level V","Customer Curtailment Final")) %>%
-    select(Name, date, Capacity,Capability,
-           Primary_Fuel,Dispatch_Cost,Total_Cost_MWh,Percent_Marginal,Total_Hours_Run,
-           Revenue,Output_MWH)%>%
-    mutate(Time_Period=as.numeric(year(date)))%>%
-    group_by(date,Time_Period)%>%
-    summarise(Curt_Cap=sum(Capacity),
-              Curt_DispCost=sum(Dispatch_Cost),
-              Curt_Cost=sum(Total_Cost_MWh),
-              Curt_Hours=max(Total_Hours_Run),
-              Curt_Rev=sum(Revenue),
-              TotalCurtail=sum(Output_MWH))%>%
-    ungroup()
-  
-  #data$MaxCap[data$MaxCap==0]<-NA
-  
-  
-  # Get max and min year for plot
-  YearMX<-max(data$Time_Period) #Take off the last 5 years
-  YearMN<-2025
-  
-  # Plot
-  data %>%
-    ggplot() +
-    aes(Time_Period, MaxCap, fill = CurtOrder) +
-    geom_area(alpha=Plot_Trans,linewidth=.5, colour="black") +
-    
-    geom_label(aes(label = round(MaxCap,0)),
-               position = position_stack(1),alpha=0.5,label.size = NA,show.legend = NA) +
-    
-    theme_bw() +
-    
-    theme(
-      # General Plot Settings
-      panel.grid = element_blank(),
-      # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
-      plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
-      panel.background = element_rect(fill = "transparent"), # Transparent background
-      text = element_text(size = GenText_Sz-4),                # Text size
-      plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
-      plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
-      #panel.grid.major.y = element_line(size=0.25,
-      #linetype=1,color = 'gray90'),                         # Adds horizontal lines
-      # X-axis
-      axis.text.x = element_text(vjust = 0.5,angle=45,size =GenText_Sz),                 # Horizontal text
-      axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
-      # Y-axis
-      axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
-      axis.text.y = element_text(size =GenText_Sz),                 # Horizontal text
-      
-      # Legend
-      legend.position = c(.01, .99),                            # Move legend to the bottom
-      legend.justification = c("left", "top"),                     # Center the legend
-      legend.text = element_text(size =GenText_Sz-5),              # Size of legend text
-      legend.title=element_blank(),                                  # Remove legend title
-      legend.key = element_rect(fill = "transparent"),
-      legend.key.size = unit(1,"lines")
-    ) +                        
-    
-    # Set axis scales
-    scale_x_continuous(expand=c(0.02,0.02),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
-    scale_y_continuous(expand=c(0,0),limits=c(0,4000),breaks=pretty_breaks(6)) +
-    
-    # Plot labels
-    labs(x = "Year", y = "Maximum Capacity Curtailed in Any Hour (MW)", fill = "Level",colour="Level",caption = SourceDB)
-  
-  
-}

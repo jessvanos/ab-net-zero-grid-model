@@ -962,3 +962,414 @@ ResValue_NPV<-function(ResNum,case) {
   
 
 }
+
+################################################################################
+## FUNCTION: capture_p
+## Average capture price achieved for each technology and mean zone price.
+##
+## INPUTS: year1 - Select dates greater than or equal to year1.
+##         year2 - Select dates less than or equal to year2.
+##         Case - Case to view
+##    
+## TABLES REQUIRED: ZoneHr_Avg, ResGroupHr
+##    
+################################################################################
+# Capture Prices
+
+capture_p <- function(year1, year2, case) {
+  
+  if (year2-year1<6){
+    # Get zone price data
+    Zone_Data <- ZoneHr_Avg  %>%
+      filter(year(date) >= year1,
+             year(date) <= year2,
+             Run_ID == case,
+      ) %>%
+      subset(., select = c(date, Price, Imports, Exports))
+    
+    # Get resource group data
+    Res_Data <- ResGroupHr %>%
+      filter(year(date) >= year1,
+             year(date) <= year2,
+             Output_MWH >= 0,
+             Run_ID == case) %>%
+      sim_filt(.) %>%
+      mutate(Year = as.factor(Report_Year)) %>%
+      subset(., select = c(date, ID, Output_MWH, Energy_Revenue, Year)) 
+  }else{
+    # Get zone price data
+    Zone_Data <- ZoneHr_Avg  %>%
+      filter(year(date) %in% Years2Disp,
+             Run_ID == case,
+      ) %>%
+      subset(., select = c(date, Price, Imports, Exports))
+    
+    # Get resource group data
+    Res_Data <- ResGroupHr %>%
+      filter(year(date) %in% Years2Disp,
+             Output_MWH >= 0,
+             Run_ID == case) %>%
+      sim_filt(.) %>%
+      mutate(Year = as.factor(Report_Year)) %>%
+      subset(., select = c(date, ID, Output_MWH, Energy_Revenue, Year)) 
+  }
+  # Combine data
+  AllData <- merge(Zone_Data, Res_Data, by = "date") %>%
+    subset(., select = -c(Imports,Exports))
+  
+  # This section calculates the achieved prices for imports and exports to add to rest
+  Imp <- Zone_Data %>%
+    mutate(Energy_Revenue = Price*Imports/1000, 
+           Year = as.factor(year(date)), 
+           ID = "Imports",
+           Output_MWH = Imports) %>%
+    subset(., select = -c(Imports,Exports))
+  
+  Exp <- Zone_Data %>%
+    mutate(Energy_Revenue = Price*Exports/1000, 
+           Year = as.factor(year(date)), 
+           ID = "Exports",
+           Output_MWH = Exports) %>%
+    subset(., select = -c(Imports,Exports))
+  
+  # Combine trade data with rest
+  Sim <- rbind(AllData,Imp,Exp) %>%
+    group_by(ID,Year,date) %>%
+    summarise(total_rev = sum(Energy_Revenue*1000), 
+              total_gen = sum(Output_MWH),
+              price_mean=mean(Price),
+              capture=total_rev/total_gen) %>%
+    ungroup() %>%
+    mutate(Plant_Type = ID) %>%
+    group_by(Plant_Type,Year) %>%
+    summarise(Yr_capture = sum(total_rev)/sum(total_gen),
+              p_mean=mean(price_mean, na.rm = TRUE)) %>%
+    mutate(sit = "Simulation",
+           YrName=paste(Year,"Average Pool Price"))%>%
+    arrange(Yr_capture)
+  
+  #Plot limits
+  PMax<-round(max(Sim$Yr_capture)+10,0)
+
+  # Plot the data
+  ggplot(Sim)+
+    
+    geom_bar(aes(x=fct_rev(fct_reorder(Plant_Type,Yr_capture)),Yr_capture,fill=Year),
+             stat="identity",size=0.5,position = position_dodge(),width = .8,color="black")+
+    
+    geom_point(aes(x=Plant_Type,y=p_mean,shape=YrName), size=1,fill="black",color="black")+
+    
+    scale_fill_brewer(palette="Blues")+
+
+    #   facet_grid(~Year) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,PMax),breaks = pretty_breaks(6)) +
+    
+    labs(x="",y="Avereage Revenue Relative to Mean Price ($/MWh)",
+         title=paste0("Energy Price Capture Differential ($/MWh, ",year1,"-",year2,")"),
+         caption=SourceDB) +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid.major.y = element_line(color = "gray",linetype=2,size=0.25),
+          axis.line.x = element_line(color = "black"),
+          axis.line.y = element_line(color = "black"),
+          axis.text = element_text(size = GenText_Sz,color="black"),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          axis.title = element_text(size = XTit_Sz,face="bold"),
+          plot.subtitle = element_text(size = GenText_Sz-2,hjust=0.5),
+          plot.caption = element_text(face="italic",size = GenText_Sz-4,hjust=0),
+          plot.title = element_blank(),
+          #plot.title = element_text(hjust=0.5,size = GenText_Sz+2),
+          
+          # For transparent background
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.spacing = unit(1.5, "lines"),
+          panel.border = element_rect(colour = "black", fill = "transparent"),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          
+          # Legend stuff
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.key.size = unit(1,"lines"),
+          legend.background = element_rect(fill='transparent'),
+          legend.position="bottom",
+          legend.text = element_text(size=Leg_Sz),
+          legend.title = element_blank(),
+          legend.spacing.y = unit(-0.4,"lines"),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+    ) 
+}
+
+################################################################################
+## FUNCTION: Relcapture_p
+## Plot difference between average capture price achieved for each technology and mean zone price.
+## Based on plot by Dr. Andrew Leach
+##
+## INPUTS: year1 - Select dates greater than or equal to year1.
+##         year2 - Select dates less than or equal to year2.
+##         Case - Case to view
+##    
+## TABLES REQUIRED: ZoneHr_Avg, ResGroupHr
+##    
+################################################################################
+# Capture Prices
+
+Relcapture_p <- function(year1, year2, case) {
+  
+  if (year2-year1<6){
+      # Get zone price data
+    Zone_Data <- ZoneHr_Avg  %>%
+      filter(year(date) >= year1,
+             year(date) <= year2,
+             Run_ID == case,
+      ) %>%
+      subset(., select = c(date, Price, Imports, Exports))
+    
+    # Get resource group data
+    Res_Data <- ResGroupHr %>%
+      filter(year(date) >= year1,
+             year(date) <= year2,
+             Output_MWH >= 0,
+             Run_ID == case) %>%
+      sim_filt(.) %>%
+      mutate(Year = as.factor(Report_Year)) %>%
+      subset(., select = c(date, ID, Output_MWH, Energy_Revenue, Year)) 
+  }else{
+      # Get zone price data
+      Zone_Data <- ZoneHr_Avg  %>%
+        filter(year(date) %in% Years2Disp,
+               Run_ID == case,
+        ) %>%
+        subset(., select = c(date, Price, Imports, Exports))
+      
+      # Get resource group data
+      Res_Data <- ResGroupHr %>%
+        filter(year(date) %in% Years2Disp,
+               Output_MWH >= 0,
+               Run_ID == case) %>%
+        sim_filt(.) %>%
+        mutate(Year = as.factor(Report_Year)) %>%
+        subset(., select = c(date, ID, Output_MWH, Energy_Revenue, Year)) 
+  }
+  # Combine data
+  AllData <- merge(Zone_Data, Res_Data, by = "date") %>%
+    subset(., select = -c(Imports,Exports))
+  
+  # This section calculates the achieved prices for imports and exports to add to rest
+  Imp <- Zone_Data %>%
+    mutate(Energy_Revenue = Price*Imports/1000, 
+           Year = as.factor(year(date)), 
+           ID = "Imports",
+           Output_MWH = Imports) %>%
+    subset(., select = -c(Imports,Exports))
+  
+  Exp <- Zone_Data %>%
+    mutate(Energy_Revenue = Price*Exports/1000, 
+           Year = as.factor(year(date)), 
+           ID = "Exports",
+           Output_MWH = Exports) %>%
+    subset(., select = -c(Imports,Exports))
+  
+  # Combine trade data with rest
+  Sim <- rbind(AllData,Imp,Exp) %>%
+    group_by(ID,Year,date) %>%
+    summarise(total_rev = sum(Energy_Revenue*1000), 
+              total_gen = sum(Output_MWH),
+              price_mean=mean(Price),
+              capture=total_rev/total_gen) %>%
+    ungroup() %>%
+    mutate(Plant_Type = ID) %>%
+    group_by(Plant_Type,Year) %>%
+    summarise(Yr_capture = sum(total_rev)/sum(total_gen),
+              p_mean=mean(price_mean, na.rm = TRUE)) %>%
+    mutate(sit = "Simulation")%>%
+    arrange(Yr_capture)
+  
+  #Plot limits
+  PMax<-round(max(Sim$Yr_capture-Sim$p_mean)+10,0)
+  PMin<-round(min(Sim$Yr_capture-Sim$p_mean)-10,0)
+  
+  # Plot the data
+  ggplot(Sim)+
+    
+    geom_hline(yintercept=0, linetype="solid", color="black",size=0.5)+
+    
+    geom_bar(aes(x=fct_rev(fct_reorder(Plant_Type,Yr_capture)),Yr_capture-p_mean,fill=Year),
+             stat="identity",size=0.5,position = position_dodge(),width = .8,color="black")+
+    
+    scale_fill_brewer(palette="Blues")+
+    
+    #   facet_grid(~Year) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(PMin,PMax),breaks = pretty_breaks(8)) +
+    
+    labs(x="",y="Avereage Revenue Relative to Mean Price ($/MWh)",
+         title=paste0("Energy Price Capture Differential ($/MWh, ",year1,"-",year2,")"),
+         caption=SourceDB) +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid.major.y = element_line(color = "gray",linetype=2,size=0.25),
+          axis.line.x = element_line(color = "black"),
+          axis.line.y = element_line(color = "black"),
+          axis.text = element_text(size = GenText_Sz,color="black"),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          axis.title = element_text(size = XTit_Sz,face="bold"),
+          plot.subtitle = element_text(size = GenText_Sz-2,hjust=0.5),
+          plot.caption = element_text(face="italic",size = GenText_Sz-4,hjust=0),
+          plot.title = element_blank(),
+          #plot.title = element_text(hjust=0.5,size = GenText_Sz+2),
+          
+          # For transparent background
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.spacing = unit(1.5, "lines"),
+          panel.border = element_rect(colour = "black", fill = "transparent"),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          
+          # Legend stuff
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.key.size = unit(1,"lines"),
+          legend.background = element_rect(fill='transparent'),
+          legend.justification = "right",
+          legend.position=c(0.99, 0.94),
+          legend.text = element_text(size=Leg_Sz),
+          legend.title = element_blank(),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+    ) 
+}
+
+################################################################################
+## FUNCTION: ach_poolprem
+## Achieved premium to pool price in each year by generation tech. 
+## Based on wholesale energy revenue, calculated as weighted average of the hourly pool price. 
+## Houly pool price is weighted in each interval by net-to-grid generation.
+## Plot midifed from Taylor P.
+##
+## INPUTS: 
+##    
+## TABLES REQUIRED: 
+##    
+################################################################################
+
+ach_poolprem <- function(year1, year2, case) {
+  
+  # Gather zone and resource data for given years
+  Zone_Data <- ZoneHr_Avg  %>%
+    filter(year(date) >= year1,
+           year(date) <= year2,
+           Run_ID == case,
+    ) %>%
+    subset(., select = c(date, Price, Imports, Exports))
+  
+  Res_Data <- ResGroupHr %>%
+    filter(year(date) >= year1,
+           year(date) <= year2,
+           Output_MWH >= 0,
+           Run_ID == case) %>%
+    sim_filt(.) %>%
+    subset(., select = c(date, ID, Output))
+  
+  # Combine into one dataframe
+  Res_Data2 <- merge(Zone_Data, Res_Data, by = "date")
+  Res_Data2 <- Res_Data2 %>%
+    mutate(Year = as.factor(year(date)))
+  
+  # Calculate the annual average pool prices for simulated data
+  AvgPool <- Res_Data2 %>%
+    group_by(Year) %>%
+    summarise(Pool = mean(Price))
+  
+  # This section calculates the achieved prices for imports and exports
+  Imp <- Zone_Data %>%
+    mutate(WeighPrice = Price*Imports, Year = as.factor(year(date))) %>%
+    group_by(Year) %>%
+    summarise(WeighPrice = sum(WeighPrice), gen = sum(Imports)) %>%
+    mutate(AchPrice = WeighPrice/gen, Plant_Type = "IMPORT")
+  
+  Exp <- Zone_Data %>%
+    mutate(WeighPrice = Price*Exports, Year = as.factor(year(date))) %>%
+    group_by(Year) %>%
+    summarise(WeighPrice = sum(WeighPrice), gen = sum(Exports)) %>%
+    mutate(AchPrice = WeighPrice/gen, Plant_Type = "EXPORT")
+  
+  # This section calculates the achieved prices
+  AchSim <- Res_Data2 %>%
+    mutate(WeighPrice = Price*Output, Plant_Type = ID) %>%
+    group_by(Year, Plant_Type) %>%
+    summarise(WeighPrice = sum(WeighPrice), gen = sum(Output)) %>%
+    mutate(AchPrice = WeighPrice/gen)
+  
+  AchSim <- rbind(AchSim, Imp, Exp)
+  
+  # Combine the two
+  Sim <- merge(AvgPool, AchSim, by = "Year")
+  
+  # Calculate the achieved margin and the achieved premium-to-pool price
+  Sim <- Sim %>%
+    mutate(Margin = AchPrice-Pool, Ratio = Margin/Pool, sit = "Simulation")
+  
+  MaxP<-round(max(Sim$Ratio)+0.1,1)
+  MinP<-round(min(Sim$Ratio,na.rm=TRUE)-0.1,1)
+  
+  Sim$Plant_Type <- factor(Sim$Plant_Type, levels=c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
+                                                    "Hydro","Other","Wind", "Solar", "Storage","Coal","Cogen", "EXPORT", "IMPORT"))
+  
+  levels(Sim$Plant_Type) <- c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
+                              "Hydro","Other","Wind", "Solar", "Storage","Coal","Cogen", "Export", "Import")
+  
+  
+  # Plot the data
+  ggplot() +
+    
+    geom_hline(yintercept=0, linetype="solid", color="black",size=0.5)+
+    
+    geom_bar(data = Sim,aes(x=fct_rev(fct_reorder(Plant_Type,Ratio)),Ratio,fill=Year),
+             stat="identity",size=0.5,position = position_dodge(),width = .8,color="black")+
+    
+    scale_fill_brewer(palette="Blues")+
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme_bw() +
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(axis.line = element_line(color = "black"),
+          axis.text = element_text(size = GenText_Sz,color="black"),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          axis.title.x=element_blank(),
+          axis.title = element_text(size = XTit_Sz,face="bold"),
+          plot.caption = element_text(face="italic",size = GenText_Sz-4,hjust=0),
+          plot.title = element_blank(),
+          
+          # For transparent background
+          panel.grid.major.y = element_line(color = "gray",linetype=2,size=0.25),
+          panel.grid.minor.y=element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.minor = element_blank(),
+          panel.border = element_rect(colour = "black", fill = "transparent"),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          
+          # Legend stuff
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.key.size = unit(1,"lines"),
+          legend.background = element_rect(fill='transparent'),
+          legend.position="bottom",
+          legend.text = element_text(size=Leg_Sz),
+          legend.title = element_blank(),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+    ) +
+    labs(y = "Achieved Premium to Pool Price", 
+         title = "Annual achieved premium to pool price",
+         caption  = SourceDB,) +
+    
+    scale_y_continuous(expand=c(0,0),
+                       limits = c(MinP,MaxP),
+                       breaks = seq(MinP,MaxP,by=0.2),
+                       labels = percent
+    )
+}

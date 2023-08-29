@@ -81,7 +81,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Aug_25_2023"
+  SourceDB<-"Zonal_18Aug2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -683,7 +683,7 @@ Legend_PlotGray(1)
 
 
 # Create folder name to save as
-CaseName <- "LZ - High Cost Curt"
+CaseName <- "Aug 28 Plots"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -985,6 +985,15 @@ CaseName <- "LZ - High Cost Curt"
     
     # Shows new resource value added up to be cumulative (nominal values to each year)
     ResValue_Total(1,BC)
+    
+    # Show capture price relative to mean price
+    Relcapture_p(2019,2022,BC)
+    
+    # Show capture price 
+    capture_p(2019,2022,BC)
+    
+    # Show achived pool price premium
+    ach_poolprem(2019,2022,BC)
     
 ################################################################################
 ## Build and Retire Functions (Build_Retire_Functions)

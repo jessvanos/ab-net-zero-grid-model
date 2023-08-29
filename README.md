@@ -267,6 +267,12 @@ Functions related to technology capture prices, pool prices, and other cost rela
 
 -   *ResValue_NPV* : Shows the net present value in 2023. 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen, 7 - Hydro, 8 - Other, 9 - Cogen.
 
+-   *capture_p* : Shows capture prices by technology.
+
+-   *Relcapture_p* : Shows capture prices by technology relative to pool price.
+
+-   *ach_poolprem* : Shows achieved preium compared to pool price.
+
 ### <ins>Res_Filter_Functions
 
 Functions to select and sort certain resource groups for other functions to use. A collection of filters.
