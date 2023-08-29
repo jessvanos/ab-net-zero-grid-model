@@ -990,6 +990,7 @@ CaseName <- "LZ - High Cost Curt"
     ResValue_Annual_MWh(1,1800,BC)
     # Nominal value as line
     ResValue_Line(1,1800,BC)
+    ResValue_Line_MWh(1,1800,BC)
     
     # Shows net present value or new resources
     # 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen
@@ -998,7 +999,7 @@ CaseName <- "LZ - High Cost Curt"
     ResValue_NPV_MWh(1,BC)
     
     # Show capture price relative to mean price
-    Relcapture_p(2019,2022,BC)
+    Relcapture_p(2019,2030,BC)
     
     # Show capture price 
     capture_p(2019,2022,BC)
@@ -1037,8 +1038,9 @@ CaseName <- "LZ - High Cost Curt"
     # Lets you get where units could have been built 
     Slack(BC,wind)
 
-    #Compare available units and built units
-    BuildUnits(BC, "GasCCS")
+    #Compare available units and built units ("WND", "SUN","GasCCS","BIO","Gas1","Gas2","H2","UR","PS")
+    BuildUnits(BC, "PS")
+    SaveRun_Loc(CaseName,"Res Built SUN")
     
 ################################################################################
 ## Emission Functions (Emission_Functions)

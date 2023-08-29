@@ -602,13 +602,13 @@ ResValue_Line<-function(ResNum,BuildYr,case) {
   
   # Create a plot to show the value of plants 
   ggplot(Data_Val,aes(x=Report_Year,y=Value)) +
-    
-    # Set line at 0
-    geom_hline(yintercept=0, color = "black",size=0.25,linetype=1) +
-    
+
     geom_line(aes(x = Report_Year, y = Value, group= Name,alpha="Individual Plants"),color="gray",na.rm=TRUE) +
     
     geom_line(data=Mean_Val,aes(x = Report_Year, y = MeanV,alpha="Mean Nominal Value"),color="black",group=1,size=1.5,na.rm=TRUE) +
+    
+    # Set line at 0
+    geom_hline(yintercept=0, color = "black",size=0.25,linetype=2) +
     
     # Custom legend
     scale_alpha_manual(name=NULL,
@@ -645,6 +645,157 @@ ResValue_Line<-function(ResNum,BuildYr,case) {
     # Y-Axis 
     scale_y_continuous(name="Net Annual Value ( nominal $M)",limits=c(MinP,MaxP),
                        labels = scales::dollar_format(prefix="$", suffix = "M"),breaks=pretty_breaks(8)) +
+    
+    # X-AXIS
+    scale_x_continuous(expand = c(0.01,0.01),limits=c(YearMin,YearMax),breaks=seq(YearMin,YearMax,by=1)) +
+    
+    # Other Settings
+    labs(caption = SourceDB,
+         title=paste("Resource Type:",FuelIndicator),color="Year Built") 
+}
+
+################################################################################
+## FUNCTION: ResValue_Line_MWh
+## Shows the annual value of new resources based on plant type for all years.
+## Define the Resource type based on number 
+## 1 wind
+## 2- Solar
+## 3 - Storage
+## 4 - Unabated natural gas
+## 5- Abated natural gas
+## 6 - Hydrogen
+## 7 - Hydro
+## 8 - Other
+## 9 - Cogen
+## INPUTS: 
+##    ResNum - The resource you want
+##    case - The case (eg.BC)
+## TABLES REQUIRED: 
+##    ResYr - Annual resource info
+################################################################################
+
+ResValue_Line_MWh<-function(ResNum,BuildYr,case) {
+  
+  # Filter for resource type, use primary fuel
+  if (ResNum==1) {
+    FuelType<-c("Wind")
+    FuelIndicator<-"Wind"
+  } else if (ResNum==2) {
+    FuelType<-c("Solar")
+    FuelIndicator<-"Solar"
+  } else if (ResNum==3) {
+    FuelType<-c("Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro")
+    FuelIndicator<-"Storage"
+  } else if (ResNum==4) {
+    FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
+    FuelIndicator<-"Unabated Gas"
+  } else if (ResNum==5) {
+    FuelType<-c("Alberta Natural Gas with CCS")
+    FuelIndicator<-"Abated Gas"
+  } else if (ResNum==6) {
+    FuelType<-c("Hydrogen")
+    FuelIndicator<-"Hydrogen"
+  } else if (ResNum==7) {
+    FuelType<-c("Water")
+    FuelIndicator<-"Hydro"
+  } else if (ResNum==8) {
+    FuelType<-c("Other, ZZ, WC, WH","Biomass")
+    FuelIndicator<-"Other"
+  } else if (ResNum==9) {
+    FuelType<-c("WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
+    FuelIndicator<-"Cogen"
+  }
+  
+  # Filter the annual resource table for resource group and selected columns
+  DataYr <- ResYr %>%
+    filter(Run_ID == case,
+           Condition == "Average",
+           Zone == "WECC_Alberta",) %>%
+    # Format
+    mutate(Report_Year=as.numeric(YEAR), 
+           Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
+           Beg_Year=year(Beg_Date)) %>%
+    filter(Beg_Year>=BuildYr) %>%
+    filter(Capacity>0) %>%
+    # Get fuel type of interest
+    filter(Primary_Fuel %in% FuelType) %>%
+    subset(.,select=c(Name,Report_Year,Capability,Capacity,Dispatch_Cost,Output_MWH,Capacity_Factor,
+                      Primary_Fuel,
+                      Net_Cost,Total_Cost_MWh,Fixed_Cost,
+                      Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
+                      Revenue,Energy_Revenue_MWh,Value,Value_MWh,
+                      Total_Hours_Run,Beg_Date,Beg_Year,End_Date)) %>%
+    # Remove the first part of name to make it shorter
+    mutate(NameAbb=word(Name,3),
+           # Add capacity of resource to tag
+           NameAbb=paste("NR#:",NameAbb," (",round(Capacity,digits=0),"MW)"))
+  
+  # Filter data further - chose 4 years between the start and end
+  YearMin<-min(DataYr$Report_Year)
+  YearMax<-max(DataYr$Report_Year)-5
+  
+  # Re-arrange the data to plot
+  # VALUE is in Can$000 -> convert to $ M
+  Data_Val <-DataYr %>%
+    subset(.,select=c(Name,Report_Year,Beg_Year,
+                      Value,Value_MWh)) %>%
+    mutate(Value=Value/1000,
+           Report_Year=as.numeric(Report_Year))
+  
+  Mean_Val <- Data_Val %>%
+    group_by(Report_Year)%>%
+    summarise(MeanV=mean(Value),
+              MeanV_MWh=mean(Value_MWh))
+  
+  # Get limits on value
+  MaxP<-plyr::round_any(max(Data_Val$Value_MWh), 10, f = ceiling)
+  MinP<-plyr::round_any(min(Data_Val$Value_MWh), 10, f = floor)
+  
+  # Create a plot to show the value of plants 
+  ggplot(Data_Val,aes(x=Report_Year,y=Value_MWh)) +
+    
+    geom_line(aes(x = Report_Year, y = Value_MWh, group= Name,alpha="Individual Plants"),color="gray",na.rm=TRUE) +
+    
+    geom_line(data=Mean_Val,aes(x = Report_Year, y = MeanV_MWh,alpha="Mean Nominal Value"),color="black",group=1,size=1.5,na.rm=TRUE) +
+    
+    # Set line at 0
+    geom_hline(yintercept=0, color = "black",size=0.25,linetype=2) +
+    
+    # Custom legend
+    scale_alpha_manual(name=NULL,
+                       values=c(1,1),
+                       breaks=c("Individual Plants","Mean Nominal Value"),
+                       guide = guide_legend(override.aes = list(color = c("gray","black")))) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(
+      # General Plot Settings
+      panel.grid = element_blank(),                          # Remove pannel grid
+      panel.spacing=unit(1,"pt"),                            # Control space between plots
+      panel.background = element_rect(fill = "transparent"), # Transparent background
+      text = element_text(size= GenText_Sz),                # Text size
+      plot.title = element_text(size=Tit_Sz ),              # Plot title size (if present)
+      plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+      
+      # X-axis
+      axis.text.x = element_text(color="black"),           # Horizontal text
+      axis.title.x = element_blank(),           # x-axis title text size
+      
+      # Y-axis
+      axis.title.y = element_text(face="bold",XTit_Sz ),           # y-axis title text size
+      axis.text.y = element_text(color="black"),
+      # Legend
+      legend.position = c(0.99, 0.99), 
+      legend.text = element_text(size=Leg_Sz),
+      legend.justification = c(0.99, 0.99),                      
+      legend.title=element_text()) +
+    
+    # Y-Axis 
+    scale_y_continuous(name="Net Annual Value ( nominal $/MWh)",limits=c(MinP,MaxP),
+                       labels = scales::dollar_format(prefix="$", suffix = "/MWh"),breaks=pretty_breaks(8)) +
     
     # X-AXIS
     scale_x_continuous(expand = c(0.01,0.01),limits=c(YearMin,YearMax),breaks=seq(YearMin,YearMax,by=1)) +

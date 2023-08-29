@@ -826,7 +826,7 @@ Units <- function(case, Fuel) {
           ) +
     
     
-    scale_fill_manual(values="gray") +
+    scale_fill_manual(values="lightblue") +
     
     theme(text=element_text(family=Plot_Text))
 }
@@ -851,7 +851,7 @@ Slack <- function(case, Fuel) {
     ggplot() +
     aes(Name, Max_Limit_Slack,fill = Fuel_Type) + 
     geom_col(color="black") +
-    labs(x = "Plant Name", y = "Units Available") +
+    labs(x = "Plant Name", y = "Units Still Available") +
     scale_y_continuous(expand = c(0,0),
                        limits = c(0,(max(data$Max_Limit_Slack)+1))) +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
@@ -901,6 +901,14 @@ BuildUnits <- function(case, Fuel) {
   
   p3 <- plot_grid(p1, p2, ncol = 1, align="v", axis = "l", rel_heights = c(1,1))
   
-  ggdraw(add_sub(p3,paste("Simulation: ",SourceDB,"; ", "Fuel Type:",Fuel, sep = "")))
+  if (Fuel=="WND"){
+    AddedText<-"; Each Unit Capacity = 200 MW"
+  } else if (Fuel=="SUN"){
+    AddedText<-"; Each Unit Capacity = 100 MW"
+  }else{
+    AddedText<-"; Each Unit Capacity = Varries"
+  }
+  
+  ggdraw(add_sub(p3,paste("Simulation: ",SourceDB,"; ", "Fuel Type: ",Fuel, sep = "",AddedText)))
 }
 
