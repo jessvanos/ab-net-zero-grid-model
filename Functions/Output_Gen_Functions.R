@@ -1451,12 +1451,18 @@
       subset(., select=c(ID,date,Demand_Side_Output,Run_ID))%>%
         rename(Output_MWH=Demand_Side_Output)
 
+    # Get exports
+    TRADE <- Export %>%
+      filter(Run_ID == case)%>%
+      mutate(Output_MWH=Output_MWH*-1+Import$Output_MWH,
+             ID="Trade")
+    
     # Filters for the desired case study from the resource groups
     data <- ResGroupHr_sub%>%
       sim_filt1(.) %>%
       subset(., select=-c(Report_Year,Capacity_Factor)) %>%
-     # rbind(DSM) %>%
-      rbind(.,Import) %>%
+      rbind(DSM) %>%
+      rbind(.,TRADE) %>%
       filter(Run_ID == case) %>%
       filter(date >= wk_st) %>%
       filter(date <= wk_end)
@@ -1464,14 +1470,14 @@
     # Set levels to each category in order specified
     data$ID <- factor(data$ID, levels=c(
       #"Demand Curtailment",
-      "Import","Solar","Wind","Hydro","Other", 
+      "Solar","Wind","Hydro","Other", 
                  "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                  "Blended  Simple Cycle","Blended  Combined Cycle",
                  "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
-                 "Coal", "Cogeneration","Storage"))
+                 "Coal", "Cogeneration","Trade","Storage"))
     
     # Removes negatives - storage charge
-    data$Output_MWH[data$Output_MWH<0.001] <-0
+    # data$Output_MWH[data$Output_MWH<0.001] <-0
     
     ## SELECT A SINGLE WEEK
     
@@ -1500,8 +1506,8 @@
     # Get y-max, demand to meet + exports
     MX <- round_any(max(ZPrice2$Baseline_Demand) + max(ZPrice2$Exports)+1100,1000,f=ceiling) 
     
-    # # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
-    #MX <- plyr::round_any(max(abs(Max))+1111, 2000, f = ceiling)
+    # Get y-min, based on exports
+    MN <- round_any(max(ZPrice2$Exports)+1100,1000,f=floor)*-1 
     
     Mtitle=month.abb[month]
     
@@ -1542,14 +1548,14 @@
             legend.text = element_text(size= 12),
             text = element_text(size= 8)
       ) +
-      scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
-                         breaks = seq(0, MX, by = MX/8),labels=comma) +
+      scale_y_continuous(expand=c(0,0), limits = c(MN,MX),breaks=seq(MN,MX,by=2000),
+                         labels=comma) +
       
       labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",title=Mtitle) +
       
-      guides(fill = guide_legend(nrow = 2)) +
-      guides(color = guide_legend(nrow = 2)) +
-      guides(linetype = guide_legend(nrow = 2)) +
+      guides(fill = guide_legend(nrow = 1)) +
+      guides(color = guide_legend(nrow = 1)) +
+      guides(linetype = guide_legend(nrow = 1)) +
       
       #Add colour
       scale_fill_manual(values = colours1) +

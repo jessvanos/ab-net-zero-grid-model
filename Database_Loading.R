@@ -82,7 +82,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Aug_25_2023"
+  SourceDB<-"LZ_Aug_28_2023_HighC"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -469,7 +469,7 @@
   # Uses local computer font files (search font in search bar to confirm font names)
   
     # font_import()
-    loadfonts(dev="win")
+    #loadfonts(dev="win")
     font_add(family="Times",regular="times.ttf")
     Plot_Text <- "Times"
     
@@ -569,7 +569,7 @@
           Plot_Trans<-1
               
    ## Now Define Lists to assign legends and colors in plots
-     colours1=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+     colours1=c("Trade"= cOL_EXPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                 "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
                 #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                 "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
@@ -721,7 +721,7 @@ CaseName <- "LZ - High Cost Curt"
           
       # Four months of generation, intertie, and pool price
       FourMonthSummary(2035,BC)
-      SaveRun_Loc(CaseName,"2025 Output, Trade, Price") 
+      SaveRun_Loc(CaseName,"2035 Output, Trade, Price") 
           
       # Save all full size images
       windows(14,10,buffered=FALSE)
@@ -871,8 +871,8 @@ CaseName <- "LZ - High Cost Curt"
       # Shows new resource value each year 
       # 1 - wind, 2 - Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen,
       # 7 - Hydro, 8 - Other, 9 - Cogen)
-      ResValue_Annual(9,1899,BC)
-      SaveRun_Loc(CaseName,"Annual Nomminal Value Cogen")
+      ResValue_Annual(1,1899,BC)
+      SaveRun_Loc(CaseName,"Annual Nomminal Value Wind")
       
       ResValue_Annual_MWh(1,1899,BC)
       
