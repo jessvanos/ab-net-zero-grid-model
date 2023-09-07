@@ -417,7 +417,8 @@
     
     # Take out dates I don't care about and remove the old table
     sub_samp<-filter(nrgstream_gen, time >= as.Date("2015-01-1"))
-
+    Actdemand<-filter(Actdemand, time >= as.Date("2015-01-1"))
+    
     # Create a list to describe Import/Exports
     trade_excl<-c("AB - WECC Imp Hr Avg MW", 
                   "AB - WECC Exp Hr Avg MW",

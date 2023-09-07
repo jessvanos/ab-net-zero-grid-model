@@ -2324,3 +2324,76 @@ T_month_all <- function(year,Imp_Exp) {
   
   
 }
+
+################################################################################  
+## FUNCTION: AIL_Gen_Gaps
+## Understand differences in AIL and generation
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ActaulDemand - Historical Demand
+##    Df1a - Historical Generation
+################################################################################
+
+# LOOKING AT HOURLY DEMAND AND GENERATION TOTALS
+# Re-format data
+GenData<-df1a %>%
+  filter(Plant_Type %in% c("COAL","NGCONV","COGEN","HYDRO","NGCC", "OTHER", "SCGT","SOLAR","WIND","STORAGE"))%>%
+  group_by(time,Day,Year,Hour)%>%
+  summarise(All_Gen=sum(total_gen))
+ExportG<-df1a %>%
+  filter(Plant_Type=="EXPORT")%>%
+  group_by(time,Day)%>%
+  summarise(Export=sum(total_gen))
+ImportG<-df1a %>%
+  filter(Plant_Type=="IMPORT")%>%
+  group_by(time,Day)%>%
+  summarise(Import=sum(total_gen)*-1)
+
+
+# Put together
+DFlist<-list(GenData,ExportG,ImportG,Actdemand)  
+
+# Merge into one dataframe by date. Gap is AIL - Net Generation
+Gen_Demand<- DFlist %>% 
+  reduce(full_join, by=c("time","Day"),all=FALSE)%>%
+  mutate(Gen_Net=All_Gen-Export+Import,
+         Gap=AIL-Gen_Net)%>%
+  subset(select=c("time","Day","Year","Hour","Price","Demand","AIL","Gen_Net","Gap"))
+
+# Plot all 
+PMin<-round_any(min(Gen_Demand$Gap,na.rm=TRUE)+10,50,f=floor)
+
+ggplot(Gen_Demand) +
+  geom_point(aes(x=time,y=Gap),size=0.5,na.rm=TRUE)+
+  
+  geom_hline(yintercept=-5, color = "blue", size=0.5)+
+  geom_hline(yintercept=-25, color = "blue", size=0.5)+
+  geom_hline(yintercept=-50, color = "blue", size=0.5)+
+  geom_hline(yintercept=-100, color = "blue", size=0.5)+
+  geom_hline(yintercept=-200, color = "blue", size=0.5)+
+  
+  
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  #theme(text=element_text(family=Plot_Text)) +
+  
+  scale_x_datetime(expand=c(0,0),date_labels = "%b %Y", breaks = "year")+
+  scale_y_continuous(expand=c(0,0),limits=c(PMin,0)) +
+  
+  labs(x = "AIL - Net Gen (MW)", y = "Date", caption="From NRGStream data")
+  
+
+# Look at <0 only
+Gen_Demand_Filt<-Gen_Demand%>%
+  filter(Gap<0)
+
+GroupedData<-cut_number(Gen_Demand_Filt$Gap,5)
+
+# Historgram
+ggplot(data = Gen_Demand_Filt, aes(x = Gap)) +
+  geom_histogram(bins=100)+
+  
+  theme_bw() +
+  theme(panel.grid = element_blank()) 
