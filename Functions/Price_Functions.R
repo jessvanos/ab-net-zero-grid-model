@@ -419,16 +419,17 @@ System_Cost<- function(case) {
   YearMX<-max(ZnData$year)-5
   YearMN<-min(ZnData$year)
   
+  # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+  ZnData <- ZnData%>%
+    filter(year<=YearMX)
+  
+  # Get upper and lower plot limit
   Upplim <- round_any(max(ZnData$Production_Cost_Unit,
                           ZnData$Fixed_Cost_Unit,
                           ZnData$Price)+11,10)
   Lowlim <- round_any(min(ZnData$Production_Cost_Unit,
                           ZnData$Fixed_Cost_Unit,
                           ZnData$Price,-10)-11,10)
-  
-  # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
-  ZnData <- ZnData%>%
-    filter(year<=YearMX)
   
   # Re-arrange the data
   PCost <-ZnData %>%

@@ -204,7 +204,7 @@ RetireMW <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c((mxc),0),breaks=breaks_pretty(5),labels=comma) +
     
-    scale_fill_manual(values=colours3,drop = TRUE)
+    scale_fill_manual(values=colours3,drop = FALSE)
   
 }
 
@@ -453,7 +453,7 @@ BuildMW <- function(case)
                        limits = c(0,(mxc)),breaks=breaks_pretty(6),label=comma) +
     scale_x_continuous(expand = c(0, 0),limits = c(MinYr-1, MaxYr+1),breaks=seq(MinYr, MaxYr)) +
     
-    scale_fill_manual(values=colours5,drop = TRUE)
+    scale_fill_manual(values=colours5,drop = FALSE)
   
   # BuiltUnitsList <- list(BuiltUnits)
   # return(BuiltUnitsList)
@@ -616,7 +616,7 @@ TotalCapChange <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),
                        label=comma) +
-    scale_fill_manual(values=colours8,drop = TRUE) +
+    scale_fill_manual(values=colours8,drop = FALSE) +
     
     labs(x = "Year", y = "Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
 }
@@ -773,7 +773,7 @@ Tot_Change %>%
                    limits = as.character(mnx:mxx)) +
   scale_y_continuous(expand=c(0,0),
                      limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),labels=comma) +
-  scale_fill_manual(values=colours8,drop = TRUE) +
+  scale_fill_manual(values=colours8,drop = FALSE) +
   
   labs(x = "Year", y = "Net Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
 }
