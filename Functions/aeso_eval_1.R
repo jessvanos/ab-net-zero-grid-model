@@ -2335,7 +2335,7 @@ T_month_all <- function(year,Imp_Exp) {
 ##    ActaulDemand - Historical Demand
 ##    Df1a - Historical Generation
 ################################################################################
-
+AIL_Gen_Gaps <- function(year,Imp_Exp) {
 # LOOKING AT HOURLY DEMAND AND GENERATION TOTALS
 # Re-format data
 GenData<-df1a %>%
@@ -2397,3 +2397,4 @@ ggplot(data = Gen_Demand_Filt, aes(x = Gap)) +
   
   theme_bw() +
   theme(panel.grid = element_blank()) 
+}

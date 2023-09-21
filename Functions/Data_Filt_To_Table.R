@@ -140,12 +140,13 @@ AnnualDataExcel<- function(ScenarioName,case){
   # Set levels to each category in order specified
   Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
                                       levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                                               "Blended  Simple Cycle","Blended  Combined Cycle",
-                                               "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                                               "Hydro", "Other",
-                                               "Wind", "Solar", 
-                                               "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
-                                               "Cogeneration"))
+                                                #"Blended  Simple Cycle","Blended  Combined Cycle",
+                                                "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle CCS Retrofit",
+                                                "Natural Gas Combined Cycle", 
+                                                "Hydro", "Other",
+                                                "Wind", "Solar", 
+                                                "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
+                                                "Cogeneration"))
   
   # FILTER CAP RETIREMENTS
   #Further filter peak capacity >0 (it is not yet retired), and end date = time period (to ensure you dont get doubles)
@@ -611,12 +612,13 @@ CompareDataExcel<- function(ScenarioName,case){
     # Set levels to each category in order specified
     Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
                                         levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                                                 "Blended  Simple Cycle","Blended  Combined Cycle",
-                                                 "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                                                 "Hydro", "Other",
-                                                 "Wind", "Solar", 
-                                                 "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
-                                                 "Cogeneration"))
+                                                  #"Blended  Simple Cycle","Blended  Combined Cycle",
+                                                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle CCS Retrofit",
+                                                  "Natural Gas Combined Cycle", 
+                                                  "Hydro", "Other",
+                                                  "Wind", "Solar", 
+                                                  "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
+                                                  "Cogeneration"))
     
 # FILTER CAP RETIREMENTS
     #Further filter peak capacity >0 (it is not yet retired), and end date = time period (to ensure you dont get doubles)
@@ -700,27 +702,26 @@ CompareDataExcel<- function(ScenarioName,case){
              "Capacity Retired (MW)"=Capacity_Retired)
     
 # FIND TOTAL CAPACITY CHANGES OVERALL
-    
     # Added in Manually:
         # Define 2023 additions automatically
-        AESO_2023<-Tot_Change %>%
-          filter(Year==2023)%>%
+        AESO_2024<-Tot_Change %>%
+          filter(Year<2025)%>%
           group_by(Primary_Fuel)%>%
-          summarize(AESO_Add2023=sum(Capacity_Added))
+          summarize(AESO_Add=sum(Capacity_Added))
         
-        # EDIT HERE IF CHANGES! 2024 additions
-        AESO_2024<- data.frame(Primary_Fuel=c("Coal","Coal-to-Gas","Natural Gas Simple Cycle","Natural Gas Combined Cycle + CCS",
-                              "Natural Gas Combined Cycle","Other", "Wind", "Solar", "Storage - Battery",
-                              "Storage - Compressed Air", "Cogeneration"),
-                              AESO_Add2024=c(0,0,32,0,0,0,616,380,0,0,808))
+        # Get Canyon
+        Canyon_PS3<- Tot_Change %>%
+          filter(Year<2027,
+                 Primary_Fuel=="Storage - Pumped Hydro")%>%
+          group_by(Primary_Fuel)%>%
+          summarize(AESO_Add=sum(Capacity_Added))
         
-        AESO_Add <-merge(AESO_2023,AESO_2024,by=c("Primary_Fuel"), all.x = TRUE, all.y = TRUE) %>%
-          mutate(AESO_AddTotal=AESO_Add2023+AESO_Add2024)
+        AESO_Add <-rbind(AESO_2024,Canyon_PS3)
     
     # Aurora 
-        # Get additions from 2023-MaxYr
+        # Get additions from 2025-MaxYr
         AllCap_Changes1a <- Tot_Change %>%
-          filter(Year>2022)%>%
+          filter(Year>2024)%>%
           group_by(Primary_Fuel)%>%
           summarize(Capacity_Added=sum(Capacity_Added))%>%
           ungroup()
@@ -740,16 +741,27 @@ CompareDataExcel<- function(ScenarioName,case){
         
         # Now get final values
         AllCap_Changes2 <- AllCap_Changes2 %>%  
-          mutate(AURORA_Add=Capacity_Added-AESO_AddTotal)%>%
-          subset(select=c(Primary_Fuel,Capacity_Added,AESO_AddTotal,AURORA_Add,Capacity_Retired)) %>%
+          mutate(Total_Added=AESO_Add+Capacity_Added)%>%
+          subset(select=c(Primary_Fuel,AESO_Add,Capacity_Added,Total_Added,Capacity_Retired)) %>%
           rename("Plant Type"=Primary_Fuel,
-                 "New Capacity Built by Aurora and Added Manually 2023 - End (MW)"=Capacity_Added,
-                 "New Capacity Added Manually 2023, 2024(MW)"=AESO_AddTotal,
-                 "New Capacity Built by Aurora from 2024 - End (MW)"=AURORA_Add,
-                 "Capacity Retired (MW) 2022 - End (MW)"=Capacity_Retired)
+                 "New Capacity Total (MW)"=Total_Added,
+                 "New Capacity Manual (MW)"=AESO_Add,
+                 "New Capacity Aurora post 2025 (MW)"=Capacity_Added,
+                 "Capacity Retired (MW)"=Capacity_Retired)
       
  
   }
+  
+################################################################################
+## OVERNIGHT CAP COSTS
+################################################################################  
+  
+  # Get additions from 2025-MaxYr
+  NewCap<- Tot_Change %>%
+    filter(Year>2024)%>%
+    group_by(Primary_Fuel)
+  
+  
   
 ################################################################################
 ## ANNUAL ZONE INFO
@@ -823,7 +835,7 @@ CompareDataExcel<- function(ScenarioName,case){
                        '2 Annual Zone Results'=AllZoneData,
                        '3 Full Study Results' =AllCap_Changes2,
                        '3 Retirements and Additions'=Indv_Change,
-                       '4 Annual Cap Changes by Plant Type'=AnnualCap_Change,
+                       '4 Annual Cap Changes'=AnnualCap_Change,
                        '5 Offset Value'=AllRenewData)
   
   filename <-paste("Comparative_Data_",ScenarioName,"_",SourceDB,".xlsx")

@@ -6,7 +6,7 @@
 #
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
-# CREATED: May 2022; LAST EDIT: February 28, 2023
+# CREATED: May 2022
 #
 # NOTES: Make sure the project file is open first or "here" commands wont work right.
 #        Before running, create folder called "Data Files" inside project directory and populate it with 
@@ -59,10 +59,11 @@
   source(here('Functions','Intertie_Functions.R'))    # Plots on trade information and BC/MT/SK information
   source(here('Functions','Table_Functions.R'))       # Summary pivot tables
   source(here('Functions','Res_Filter_Functions.R'))  # Filtering by resource type, required for plots
-  source(here('Functions','Daily_Output_Functions.R'))  # Filtering by resource type, required for plots
+  source(here('Functions','Daily_Output_Functions.R'))# Filtering by resource type, required for plots
   source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
-  #source(here('Functions','Developing_Functions.R'))  # Under construction functions
+  #source(here('Functions','Developing_Functions.R')) # Under construction functions
   source(here('Functions','Data_Filt_To_Table.R'))    # Functions that filter data and export it to excel sehets
+  source(here('Functions','Scenario_Compare.R'))      # 
   source(here('Functions','aeso_eval_1.R'))           #
   source(here('Functions','aseo_sim_comp_1.R'))       #
   
@@ -82,7 +83,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ Sep_18_2023"
+  SourceDB<-"LZ_Aug_25_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -513,7 +514,7 @@
           # Coal/Cogen
           cOL_NUCLEAR <- "midnightblue"
           cOL_COAL <- "black"
-          cOL_COGEN <- "gray25"
+          cOL_COGEN <- "gray30"
           
           # H2 groups (blues)
           cOL_SCGT_H2 <- "#7e4e90ff"
@@ -524,9 +525,9 @@
               #COL_Blend <- cOL_NGCC_Blend 
 
           # Gas Groups (Purples)
-          cOL_COal2Gas <-  "gray60"
+          cOL_COal2Gas <-  "gray65"
           cOL_NGConv <- cOL_COal2Gas
-          cOL_SCGT <- "gray40"
+          cOL_SCGT <- "gray50"
           cOL_NGCC <- "gray85"
           COL_NatGas <-cOL_NGCC 
           cOL_NGCC_CCS <-"#A79FE1"
@@ -626,11 +627,20 @@
       colours5 = c("Cogeneration"=cOL_COGEN, 
                    "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
                    #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
-                   "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                   "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,"Natural Gas Combined Cycle CCS Retrofit"=cOL_NGCC_CCS,
                    "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                    "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
                    "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
+      
+      Patterns5 = c("Cogeneration"="none", 
+                   "Coal-to-Gas"="stripe","Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
+                   #"Blended  Simple Cycle"="none","Blended  Combined Cycle"="none",
+                   "Natural Gas Combined Cycle + CCS"="none","Natural Gas Combined Cycle CCS Retrofit"="stipe",
+                   "Natural Gas Simple Cycle"="none", "Natural Gas Combined Cycle"="none", 
+                   "Hydro"="none", "Other"="none", "Wind"="none", 
+                   "Solar"="none",  "Storage - Battery"="none", 
+                   "Storage - Compressed Air"="none", "Storage - Pumped Hydro"="none")
       
       colours6=c("Natural Gas"=COL_NatGas,"Hydrogen"=COL_H2,
                  #"Natual Gas and Hydrogen Blend"=COL_Blend,
@@ -654,12 +664,22 @@
       colours8 = c("Cogeneration"=cOL_COGEN, "Coal"=cOL_COAL,
                    "Coal-to-Gas"=cOL_NGConv,
                    "Natural Gas Combined Cycle"=cOL_NGCC,"Natural Gas Simple Cycle"=cOL_SCGT, 
-                   "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                   "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,"Natural Gas Combined Cycle CCS Retrofit"=cOL_NGCC_CCS,
                    "Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
                    #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                    "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
                    "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
+     
+       Patterns8 = c("Cogeneration"="none", "Coal"="none",
+                   "Coal-to-Gas"="stripe",
+                   "Natural Gas Combined Cycle"="none","Natural Gas Simple Cycle"="none", 
+                   "Natural Gas Combined Cycle + CCS"="none","Natural Gas Combined Cycle CCS Retrofit"="stripe",
+                   "Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
+                   #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                   "Hydro"="none", "Other"="none", "Wind"="none", 
+                   "Solar"="none",  "Storage - Battery"="none", 
+                   "Storage - Compressed Air"="none", "Storage - Pumped Hydro"="none")
       
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
@@ -687,7 +707,7 @@ Legend_PlotGray(1)
 
 
 # Create folder name to save as
-CaseName <- "LZ - New Updates"
+CaseName <- "LZ - New Code Testing"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -895,6 +915,9 @@ CaseName <- "LZ - New Updates"
       # Misc Annual Data for sheets
       CompareDataExcel(CaseName,BC)
 
+    # GENERATE R FILES TO COMPARE LATER
+      AnnualDataR('AugCase',BC)
+      
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS!
 ################################################################################

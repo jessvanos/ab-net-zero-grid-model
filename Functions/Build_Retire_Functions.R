@@ -368,12 +368,12 @@ BuildMW <- function(case)
   
   # Set levels to each category in order specified
   data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                                                          "Blended  Simple Cycle","Blended  Combined Cycle",
-                                                          "Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Natural Gas Combined Cycle + CCS",
+                                                          #"Blended  Simple Cycle","Blended  Combined Cycle",
+                                                          "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS",
+                                                          "Natural Gas Combined Cycle CCS Retrofit","Natural Gas Combined Cycle", 
                                                           "Hydro", "Other",
                                                           "Wind", "Solar", 
-                                                          "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
-                                                          "Cogeneration") )
+                                                          "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro") )
   
   # Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(data$Time_Period)-5
@@ -423,9 +423,14 @@ BuildMW <- function(case)
   Builddata$Beg_Date <- as.numeric(Builddata$Beg_Date)
   
   #Plot data
-  ggplot(Builddata) +
-    aes(x=Beg_Date, y=Capacity, fill = Primary_Fuel, group = Primary_Fuel) +
-    geom_bar(position="stack", stat="identity", alpha=Plot_Trans,color='black') +
+  ggplot(Builddata,aes(x=Beg_Date, y=Capacity, fill = Primary_Fuel)) +
+    geom_bar_pattern(aes(pattern = Primary_Fuel),
+                       position="stack", stat="identity",
+                       na.rm=TRUE, alpha=Plot_Trans,color='black',
+                       pattern_density = 0.35,
+                       pattern_fill = "black",
+                       pattern_colour  = NA,
+                       pattern_spacing=0.01) +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -448,12 +453,17 @@ BuildMW <- function(case)
     
     #guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
     
-    labs(x = "Year", y = "New Capacity (MW)", fill = "Fuel Type",caption=SourceDB)  +
+    labs(x = "Year", y = "New Capacity (MW)", fill = "Primary_Fuel",pattern="Primary_Fuel",caption=SourceDB)  +
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,(mxc)),breaks=breaks_pretty(6),label=comma) +
     scale_x_continuous(expand = c(0, 0),limits = c(MinYr-1, MaxYr+1),breaks=seq(MinYr, MaxYr)) +
     
-    scale_fill_manual(values=colours5,drop = FALSE)
+    # guides(fill = guide_legend(ncol = 1)) +
+    # guides(pattern=guide_legend(ncol = 1)) +
+    
+    scale_fill_manual(values=colours5) +
+  
+    scale_pattern_manual(values=Patterns5)
   
   # BuiltUnitsList <- list(BuiltUnits)
   # return(BuiltUnitsList)
@@ -487,8 +497,9 @@ TotalCapChange <- function(case) {
   # Set levels to each category in order specified
   Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
                                       levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                                               "Blended  Simple Cycle","Blended  Combined Cycle",
-                                               "Natural Gas Simple Cycle","Natural Gas Combined Cycle", "Natural Gas Combined Cycle + CCS", 
+                                               #"Blended  Simple Cycle","Blended  Combined Cycle",
+                                               "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle CCS Retrofit",
+                                               "Natural Gas Combined Cycle", 
                                                "Hydro", "Other",
                                                "Wind", "Solar", 
                                                "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
@@ -570,12 +581,20 @@ TotalCapChange <- function(case) {
     ggplot() +
     
     # Plot added
-    geom_col(aes(Year, (Capacity_Added), fill = Primary_Fuel),
-             alpha=Plot_Trans, size=.5, colour="black") +
+    geom_col_pattern(aes(Year, (Capacity_Added), fill = Primary_Fuel,pattern=Primary_Fuel),
+             alpha=Plot_Trans, size=.5, colour="black",
+             pattern_density = 0.35,
+             pattern_fill = "black",
+             pattern_colour  = NA,
+             pattern_spacing=0.01) +
     
     # Plot retired
-    geom_col(aes(Year, (Capacity_Retired), fill = Primary_Fuel),
-             alpha=Plot_Trans, size=.5, colour="black") +
+    geom_col_pattern(aes(Year, (Capacity_Retired), fill = Primary_Fuel,pattern=Primary_Fuel),
+             alpha=Plot_Trans, size=.5, colour="black",
+             pattern_density = 0.35,
+             pattern_fill = "black",
+             pattern_colour  = NA,
+             pattern_spacing=0.01) +
     
     # Add line at y=0
     geom_hline(yintercept=0, color = "black",size=0.75)+
@@ -616,9 +635,10 @@ TotalCapChange <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),
                        label=comma) +
-    scale_fill_manual(values=colours8,drop = FALSE) +
+    scale_fill_manual(values=colours8,drop = TRUE) +
+    scale_pattern_manual(values=Patterns8) +
     
-    labs(x = "Year", y = "Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
+    labs(x = "Year", y = "Change in Capacity (MW)", fill = "Resource Options",pattern="Resource Options",caption = paste(SourceDB))
 }
 
 ################################################################################  
@@ -650,7 +670,8 @@ Eval_CapChange <- function(case) {
 Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
                                     levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                              "Blended  Simple Cycle","Blended  Combined Cycle",
-                                             "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                             "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle CCS Retrofit",
+                                             "Natural Gas Combined Cycle", 
                                              "Hydro", "Other",
                                              "Wind", "Solar", 
                                              "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
@@ -736,7 +757,11 @@ mxx <- format(max(ResGroupMn$Time_Period)-365*5, format="%Y")
 Tot_Change %>%
   ggplot() +
   aes(Year, (diff), fill = Primary_Fuel) +
-  geom_col(alpha=Plot_Trans, size=.5, colour="black") +
+  geom_col_pattern(aes(pattern=Primary_Fuel),alpha=Plot_Trans, size=.5, colour="black",
+                   pattern_density = 0.35,
+                   pattern_fill = "black",
+                   pattern_colour  = NA,
+                   pattern_spacing=0.01) +
   
   # Add line at y=0
   geom_hline(yintercept=0, color = "black")+
@@ -773,9 +798,9 @@ Tot_Change %>%
                    limits = as.character(mnx:mxx)) +
   scale_y_continuous(expand=c(0,0),
                      limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),labels=comma) +
-  scale_fill_manual(values=colours8,drop = FALSE) +
-  
-  labs(x = "Year", y = "Net Change in Capacity (MW)", fill = "Resource Options",caption = paste(SourceDB))
+  scale_fill_manual(values=colours8,drop = TRUE) +
+  scale_pattern_manual(values=Patterns8)+
+  labs(x = "Year", y = "Net Change in Capacity (MW)", fill = "Resource Options",pattern="Resource Options",caption = paste(SourceDB))
 }
 
 ################################################################################  

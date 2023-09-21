@@ -258,7 +258,8 @@ sim_filt2 <- function(inputdata) {
   # Units as defined by New Resources Table
   #First split up the fuel types
   CCC_CCS <- inputdata %>%
-    filter(Primary_Fuel=="Alberta Natural Gas with CCS") 
+    filter(Primary_Fuel %in% c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")) %>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Alberta Natural Gas with CCS")) 
   
   # Blended Combined cycle
   CC_Blend <-inputdata %>%
@@ -313,9 +314,10 @@ sim_filt2 <- function(inputdata) {
 
 sim_filt3 <- function(inputdata) {
   
-  # Straight foreward part
+  # Straight forward part
   Cogen  <- inputdata %>%
     filter(Primary_Fuel=="WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
+  
   Hydro <- inputdata %>%
     filter(Primary_Fuel=="Water")
   Solar <- inputdata %>%
@@ -373,6 +375,9 @@ sim_filt3 <- function(inputdata) {
   CCC_CCS <- inputdata %>%
     filter(Primary_Fuel=="Alberta Natural Gas with CCS") 
   
+  CCS_R <- inputdata %>%
+    filter(Primary_Fuel=="Alberta Natural Gas CCS Retrofit")
+  
   H2 <- inputdata %>%
     filter(Primary_Fuel=="Hydrogen")         
   
@@ -397,25 +402,23 @@ sim_filt3 <- function(inputdata) {
   
   
   
-  # Combine the grouped data
+  # Combine the grouped data, cogen is excluded - can add back in if made a resource option
   { case <- rbind(NGConv, SC_H2,CC_H2,SC_Blend,CC_Blend,
-                  SCCT, CCC_CCS,CCCT, Hydro, Other, Solar, Wind, Stor_B,Stor_CA, Stor_HP, Cogen)
+                  SCCT, CCC_CCS,CCS_R,CCCT, Hydro, Other, Solar, Wind, Stor_B,Stor_CA, Stor_HP)
     
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
       "NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
-      "NG-SCCT","Alberta Natural Gas with CCS","WECC-Alberta NaturalGas",
+      "NG-SCCT","Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit","WECC-Alberta NaturalGas",
       "Water", "Other",
       "Wind", "Solar", 
-      "Storage - Battery", "Storage - CompressedAir","Storage - HydroPumped",
-      "WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta"))
+      "Storage - Battery", "Storage - CompressedAir","Storage - HydroPumped"))
     
     levels(case$Primary_Fuel) <- c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                    "Blended  Simple Cycle","Blended  Combined Cycle",
-                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle CCS Retrofit","Natural Gas Combined Cycle", 
                                    "Hydro", "Other",
                                    "Wind", "Solar", 
-                                   "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 
-                                   "Cogeneration") }
+                                   "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro") }
   return(case)  
 }
 
@@ -622,6 +625,9 @@ sim_filt6 <- function(inputdata) {
   CCC_CCS <- inputdata %>%
     filter(Primary_Fuel=="Alberta Natural Gas with CCS") 
   
+  CCS_R <- inputdata %>%
+    filter(Primary_Fuel=="Alberta Natural Gas CCS Retrofit")
+  
   H2 <- inputdata %>%
     filter(Primary_Fuel=="Hydrogen")         
   
@@ -649,11 +655,11 @@ sim_filt6 <- function(inputdata) {
   
   # Combine the grouped data
   { case <- rbind(Coal,NGConv, SC_H2,CC_H2,SC_Blend,CC_Blend,
-                  SCCT, CCC_CCS,CCCT, Hydro, Other, Solar, Wind, Stor_B,Stor_CA, Stor_HP, Cogen)
+                  SCCT, CCC_CCS,CCS_R,CCCT, Hydro, Other, Solar, Wind, Stor_B,Stor_CA, Stor_HP, Cogen)
     
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
       "Coal Canada West","NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
-      "NG-SCCT","Alberta Natural Gas with CCS","WECC-Alberta NaturalGas",
+      "NG-SCCT","Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit","WECC-Alberta NaturalGas",
       "Water", "Other",
       "Wind", "Solar", 
       "Storage - Battery", "Storage - CompressedAir","Storage - HydroPumped",
@@ -661,7 +667,8 @@ sim_filt6 <- function(inputdata) {
     
     levels(case$Primary_Fuel) <- c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                    "Blended  Simple Cycle","Blended  Combined Cycle",
-                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle CCS Retrofit",
+                                   "Natural Gas Combined Cycle", 
                                    "Hydro", "Other",
                                    "Wind", "Solar", 
                                    "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro", 

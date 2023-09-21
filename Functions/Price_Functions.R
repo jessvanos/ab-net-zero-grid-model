@@ -540,7 +540,7 @@ ResValue_Line<-function(ResNum,BuildYr,case) {
     FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
     FuelIndicator<-"Unabated Gas"
   } else if (ResNum==5) {
-    FuelType<-c("Alberta Natural Gas with CCS")
+    FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
     FuelIndicator<-"Abated Gas"
   } else if (ResNum==6) {
     FuelType<-c("Hydrogen")
@@ -691,7 +691,7 @@ ResValue_Line_MWh<-function(ResNum,BuildYr,case) {
     FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
     FuelIndicator<-"Unabated Gas"
   } else if (ResNum==5) {
-    FuelType<-c("Alberta Natural Gas with CCS")
+    FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
     FuelIndicator<-"Abated Gas"
   } else if (ResNum==6) {
     FuelType<-c("Hydrogen")
@@ -842,7 +842,7 @@ ResValue_Annual<-function(ResNum,BuildYr,case) {
     FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
     FuelIndicator<-"Unabated Gas"
   } else if (ResNum==5) {
-    FuelType<-c("Alberta Natural Gas with CCS")
+    FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
     FuelIndicator<-"Abated Gas"
   } else if (ResNum==6) {
     FuelType<-c("Hydrogen")
@@ -980,7 +980,7 @@ ResValue_Annual_MWh<-function(ResNum,BuildYr,case) {
     FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
     FuelIndicator<-"Unabated Gas"
   } else if (ResNum==5) {
-    FuelType<-c("Alberta Natural Gas with CCS")
+    FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
     FuelIndicator<-"Abated Gas"
   } else if (ResNum==6) {
     FuelType<-c("Hydrogen")
@@ -1117,7 +1117,7 @@ ResValue_NPV_MWh<-function(ResNum,case) {
       FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
       FuelIndicator<-"Unabated Gas"
     } else if (ResNum==5) {
-      FuelType<-c("Alberta Natural Gas with CCS")
+      FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
       FuelIndicator<-"Abated Gas"
     } else if (ResNum==6) {
       FuelType<-c("Hydrogen")
@@ -1276,7 +1276,7 @@ ResValue_NPV<-function(ResNum,case) {
     FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
     FuelIndicator<-"Unabated Gas"
   } else if (ResNum==5) {
-    FuelType<-c("Alberta Natural Gas with CCS")
+    FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
     FuelIndicator<-"Abated Gas"
   } else if (ResNum==6) {
     FuelType<-c("Hydrogen")
