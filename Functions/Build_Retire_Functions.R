@@ -367,7 +367,7 @@ BuildMW <- function(case)
   
   
   # Set levels to each category in order specified
-  data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+  data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Cogeneration","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                                           #"Blended  Simple Cycle","Blended  Combined Cycle",
                                                           "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS",
                                                           "Natural Gas Combined Cycle CCS Retrofit","Natural Gas Combined Cycle", 

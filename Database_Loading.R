@@ -661,26 +661,25 @@
                "Natural Gas Simple Cycle"=5, "Natural Gas Combined Cycle"=3, "Other"=4)
       
       # EVERYTHING
-      colours8 = c("Cogeneration"=cOL_COGEN, "Coal"=cOL_COAL,
-                   "Coal-to-Gas"=cOL_NGConv,
+      colours8 = c("Coal"=cOL_COAL,"Coal-to-Gas"=cOL_NGConv,
                    "Natural Gas Combined Cycle"=cOL_NGCC,"Natural Gas Simple Cycle"=cOL_SCGT, 
                    "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,"Natural Gas Combined Cycle CCS Retrofit"=cOL_NGCC_CCS,
                    "Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
                    #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                    "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
-                   "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
+                   "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped,"Cogeneration"=cOL_COGEN)
      
-       Patterns8 = c("Cogeneration"="none", "Coal"="none",
-                   "Coal-to-Gas"="stripe",
+       Patterns8 = c("Coal"="none","Coal-to-Gas"="stripe",
                    "Natural Gas Combined Cycle"="none","Natural Gas Simple Cycle"="none", 
                    "Natural Gas Combined Cycle + CCS"="none","Natural Gas Combined Cycle CCS Retrofit"="stripe",
                    "Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
                    #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                    "Hydro"="none", "Other"="none", "Wind"="none", 
                    "Solar"="none",  "Storage - Battery"="none", 
-                   "Storage - Compressed Air"="none", "Storage - Pumped Hydro"="none")
+                   "Storage - Compressed Air"="none", "Storage - Pumped Hydro"="none","Cogeneration"="none")
       
+       
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
     }
