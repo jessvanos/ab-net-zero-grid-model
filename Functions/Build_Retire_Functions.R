@@ -427,7 +427,7 @@ BuildMW <- function(case)
     geom_bar_pattern(aes(pattern = Primary_Fuel),
                        position="stack", stat="identity",
                        na.rm=TRUE, alpha=Plot_Trans,color='black',
-                       pattern_density = 0.35,
+                       pattern_density = 0.3,
                        pattern_fill = "black",
                        pattern_colour  = NA,
                        pattern_spacing=0.01) +
@@ -461,9 +461,9 @@ BuildMW <- function(case)
     # guides(fill = guide_legend(ncol = 1)) +
     # guides(pattern=guide_legend(ncol = 1)) +
     
-    scale_fill_manual(values=colours5) +
+    scale_fill_manual(values=colours5,drop=FALSE) +
   
-    scale_pattern_manual(values=Patterns5)
+    scale_pattern_manual(values=Patterns5,drop=FALSE)
   
   # BuiltUnitsList <- list(BuiltUnits)
   # return(BuiltUnitsList)
@@ -591,7 +591,7 @@ TotalCapChange <- function(case) {
     # Plot retired
     geom_col_pattern(aes(Year, (Capacity_Retired), fill = Primary_Fuel,pattern=Primary_Fuel),
              alpha=Plot_Trans, size=.5, colour="black",
-             pattern_density = 0.35,
+             pattern_density = 0.3,
              pattern_fill = "black",
              pattern_colour  = NA,
              pattern_spacing=0.01) +
@@ -635,8 +635,8 @@ TotalCapChange <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),
                        label=comma) +
-    scale_fill_manual(values=colours8,drop = TRUE) +
-    scale_pattern_manual(values=Patterns8) +
+    scale_fill_manual(values=colours8,drop = FALSE) +
+    scale_pattern_manual(values=Patterns8,drop = FALSE) +
     
     labs(x = "Year", y = "Change in Capacity (MW)", fill = "Resource Options",pattern="Resource Options",caption = paste(SourceDB))
 }
@@ -758,7 +758,7 @@ Tot_Change %>%
   ggplot() +
   aes(Year, (diff), fill = Primary_Fuel) +
   geom_col_pattern(aes(pattern=Primary_Fuel),alpha=Plot_Trans, size=.5, colour="black",
-                   pattern_density = 0.35,
+                   pattern_density = 0.3,
                    pattern_fill = "black",
                    pattern_colour  = NA,
                    pattern_spacing=0.01) +
@@ -798,8 +798,8 @@ Tot_Change %>%
                    limits = as.character(mnx:mxx)) +
   scale_y_continuous(expand=c(0,0),
                      limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),labels=comma) +
-  scale_fill_manual(values=colours8,drop = TRUE) +
-  scale_pattern_manual(values=Patterns8)+
+  scale_fill_manual(values=colours8,drop = FALSE) +
+  scale_pattern_manual(values=Patterns8,drop = FALSE)+
   labs(x = "Year", y = "Net Change in Capacity (MW)", fill = "Resource Options",pattern="Resource Options",caption = paste(SourceDB))
 }
 

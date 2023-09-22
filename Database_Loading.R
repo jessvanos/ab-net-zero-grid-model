@@ -83,7 +83,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Aug_25_2023"
+  SourceDB<-"LZ Sep_18_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -636,7 +636,7 @@
       Patterns5 = c("Cogeneration"="none", 
                    "Coal-to-Gas"="stripe","Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
                    #"Blended  Simple Cycle"="none","Blended  Combined Cycle"="none",
-                   "Natural Gas Combined Cycle + CCS"="none","Natural Gas Combined Cycle CCS Retrofit"="stipe",
+                   "Natural Gas Combined Cycle + CCS"="none","Natural Gas Combined Cycle CCS Retrofit"="stripe",
                    "Natural Gas Simple Cycle"="none", "Natural Gas Combined Cycle"="none", 
                    "Hydro"="none", "Other"="none", "Wind"="none", 
                    "Solar"="none",  "Storage - Battery"="none", 
