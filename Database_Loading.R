@@ -63,7 +63,7 @@
   source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
   #source(here('Functions','Developing_Functions.R')) # Under construction functions
   source(here('Functions','Data_Filt_To_Table.R'))    # Functions that filter data and export it to excel sehets
-  source(here('Functions','Scenario_Compare.R'))      # 
+  source(here('Functions','Data_Filt_To_RFile.R'))    # Filter data and save in .R files to be accessed and compared later
   source(here('Functions','aeso_eval_1.R'))           #
   source(here('Functions','aseo_sim_comp_1.R'))       #
   

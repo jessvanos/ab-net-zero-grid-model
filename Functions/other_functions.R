@@ -330,3 +330,35 @@ Legend_PlotGray <- function(InputAplha){
                          ),InputAplha),
            title=c("Legend"))
 }
+
+################################################################################
+## FUNCTION: SaveR_Loc
+## Saves all plots to a new folder names after case
+##
+## INPUTS: 
+##    CaseName - name for folder. Enter as "folder"
+##    FileName - Name for image. Enter as "name"
+################################################################################
+#NEEDS WORK
+SaveR_Loc <- function(Data,ScenarioName,ScenarioType) {
+  
+  # Set up folder if it does not exist
+  fold_name<-paste(ScenarioName)
+  
+  # Check if folder exists, if not, make one
+  if (file.exists(here("Data Files","Case Specific R Files",paste(fold_name)))) {
+    
+    cat("The folder exists\n")
+    
+  } else {
+    
+    # Create the folder
+    FoldLocation <-
+      dir.create(here("Data Files","Case Specific R Files",paste(fold_name)))
+    
+  }
+
+  # Save to a local file 
+  saveRDS(Data, here("Data Files","Case Specific R Files",paste(fold_name),paste(ScenarioType,ScenarioName, sep = "")))
+  
+}
