@@ -1,6 +1,6 @@
 ################################################################################
 # TITLE: Scenario_Compare
-# DESCRIPTION:  Compare filtered .R datafiles between scnearios
+# DESCRIPTION:  Compare filtered .R datafiles between scenarios.
 #
 #
 # AUTHOR: Jessica Van Os
@@ -25,7 +25,7 @@
   source(here('Functions','Data_Filt_To_RFile.R'))    # 
   
   # Packages required
-  packs_to_load = c("tidyverse","ggplot2","scales","grid","gtable","gridExtra","ggpubr","extrafont",
+  packs_to_load = c("tidyverse","scales","grid","gtable","gridExtra","ggpubr","extrafont",
                     "lubridate","cowplot","scales","dplyr","reshape2","zoo",
                     "ggpattern","here","showtext","DescTools",
                     "openxlsx","timeDate","writexl","viridis","ggnewscale")
@@ -111,24 +111,272 @@
   }
   
 ################################################################################
+## REFORMAT FILES AS DESIRED FOR EXCEL SHEET ONLY
+################################################################################
+{
+# General info Tab - work this into the original filter eventually
+  Sim_Info<-ResGrYr %>%
+    group_by(Sim_Name)%>%
+    summarize(MinYr=min(Year),
+              MaxYr=max(Year))%>%
+    rotate_df()
+  
+  # Sheet info
+  ContentsDF=data.frame(
+    V1=c("",
+         'FORMATED RESULTS',
+         '1 Capacity by Tech',
+         '2 Model Capaity Added',
+         '3 Total Capacity Changes',
+         '4 Percent Capacity',
+         '5 Generation by Tech',
+         '6 Percent Generation',
+         '7 Emissions by Tech',
+         '8 Emissions Cost by Tech',
+         '9 Emissions Total',
+         '10 Cost by Tech',
+         '11 Total Costs',
+         '12  Average Pool Price',
+         '13 Imports / Exports',
+         '14 Net Imports',
+         "",
+         'COMPILED RESULTS',
+         'A All Groups Data',
+         'B Annual Zone',
+         'C Annual Capacity Changes',
+         'D EPC Values',
+         'E Annual Fuel Data',
+         'F Average Heat Rates'))
+  ContentsDF$V2=""
+  
+  Sim_Info<-rbind(Sim_Info,ContentsDF)
+  Sim_Info<-janitor::row_to_names(Sim_Info,1)
+
+# Available model capacity for each year by resource group
+  Cap1<-ResGrYr %>%
+    group_by(Plant_Type,Sim_Name,Year)%>%
+      summarize(Avail_Cap=sum(Capacity_MW))
+  
+  Cap2<-ResGrYr %>%
+    group_by(Sim_Name,Year)%>%
+    summarise(Avail_Cap=sum(Capacity_MW))%>%
+    mutate(Plant_Type="Total")%>%
+    subset(.,select=c(Plant_Type,Sim_Name,Year,Avail_Cap))
+    
+  Cap_ByGroup<-rbind(Cap1,Cap2)%>%
+    mutate(Sim_Name=paste(Sim_Name,"Capacity_MW", sep="\n"))%>%
+    pivot_wider(names_from=Sim_Name,values_from =Avail_Cap)%>%
+    arrange(.,(Year))
+    
+  
+# Available model capacity by percentage
+  Perc_Cap<-ResGrYr %>%
+    group_by(Sim_Name,Year)%>%
+    mutate(TotalCap=sum(Capacity_MW),
+           PercGen=Capacity_MW/TotalCap)%>%
+    group_by(Plant_Type,Sim_Name,Year)%>%
+    summarize(Percent_Cap=paste(round(100*PercGen,2),'%'))%>%
+    mutate(Sim_Name=paste(Sim_Name,"% Capacity", sep="\n"))%>%
+    pivot_wider(names_from=Sim_Name,values_from =Percent_Cap)%>%
+    arrange(.,(Year)) 
+  
+# Total Capacity added by model
+  Auroraadd<-Tot_Cap %>%
+    group_by(Plant_Type,Scenario)%>%
+    summarize(Cap=sum(New_Cap_AURORA))%>%
+    mutate(Scenario=paste(Scenario,"Model_Capacity_Added_MW", sep="\n"))%>%
+    pivot_wider(names_from=Scenario,values_from =Cap)
+  
+  # Total Capacity added
+ Totaladd<-Tot_Cap %>%
+    group_by(Plant_Type,Scenario)%>%
+    summarize(Cap=sum(New_Cap_Total))%>%
+    mutate(Scenario=paste(Scenario,"Total_Capacity_Added_MW", sep="\n"))%>%
+    pivot_wider(names_from=Scenario,values_from =Cap)
+  
+# Total generation 
+  Gen_ByGroup<-ResGrYr %>%
+    group_by(Plant_Type,Sim_Name,Year)%>%
+    summarize(TotalGen=sum(Output_MWH)/1000000)%>%
+    mutate(Sim_Name=paste(Sim_Name,"Generation TWh", sep="\n"))%>%
+    pivot_wider(names_from=Sim_Name,values_from =TotalGen)%>%
+    arrange(.,(Year))
+    
+# Percent generation 
+  Perc_Gen<-ResGrYr %>%
+    group_by(Sim_Name,Year)%>%
+    mutate(TotalGen=sum(Output_MWH),
+           PercGen=Output_MWH/TotalGen)%>%
+    group_by(Plant_Type,Sim_Name,Year)%>%
+    summarize(Percent_Gen=paste(round(100*PercGen,2),'%'))%>%
+    mutate(Sim_Name=paste(Sim_Name,"% Generation", sep="\n"))%>%
+    pivot_wider(names_from=Sim_Name,values_from =Percent_Gen)%>%
+    arrange(.,(Year))  
+  
+# Emissions 
+  Em_ByGroup<-ResGrYr %>%
+    group_by(Plant_Type,Sim_Name,Year)%>%
+    summarize(TotalEm=sum(Emissions_Tonne)/1000000)%>%
+    mutate(Sim_Name=paste(Sim_Name,"Emissions Mtonne", sep="\n"))%>%
+    filter(TotalEm>0)%>%
+    pivot_wider(names_from=Sim_Name,values_from =TotalEm)%>%
+    arrange(.,(Year))
+  
+  # Emissions Cost
+  EmCost_ByGroup<-ResGrYr %>%
+    group_by(Plant_Type,Sim_Name,Year)%>%
+    summarize(TotalEm=sum(Emissions_Cost)/1000000)%>%
+    mutate(Sim_Name=paste(Sim_Name,"Emissions Cost ($M)", sep="\n"))%>%
+    pivot_wider(names_from=Sim_Name,values_from =TotalEm)%>%
+    arrange(.,(Year))
+  
+  # Emissions Total
+  #   Filters out cogen - may want to add back in later
+  Em_Total<-ResGrYr %>%
+    filter(Emissions_Tonne>0,
+           !Plant_Type %in% c("Cogeneration"))%>%
+    group_by(Sim_Name,Year)%>%
+    summarize(TotalEm=sum(Emissions_Tonne)/1000000)%>%
+    mutate(Sim_Name=paste(Sim_Name,"Non-Cogen Emissions (Mt)", sep="\n"))%>%
+    pivot_wider(names_from=Sim_Name,values_from =TotalEm)%>%
+    arrange(.,(Year))
+  
+  # Resource Group Costs 
+  OPEX_G<-ResGrYr %>%
+    group_by(Plant_Type,Sim_Name,Year)%>%
+    summarize(Cost_Tot=sum(OPEX)/1000000)%>%
+    mutate(Cost_Type="OPEX ($M)")
+  
+  CAPEX_G<-ResGrYr %>%
+    group_by(Plant_Type,Sim_Name,Year)%>%
+    summarize(Cost_Tot=sum(CAPEX)/1000000)%>%
+    mutate(Cost_Type="CAPEX ($M)")
+  
+  Rev_G<-ResGrYr %>%
+    group_by(Plant_Type,Sim_Name,Year)%>%
+    summarize(Cost_Tot=sum(Revenue)/1000000)%>%
+    mutate(Cost_Type="Revenue ($M)")
+  
+  Value_G<-ResGrYr %>%
+    group_by(Plant_Type,Sim_Name,Year)%>%
+    summarize(Cost_Tot=sum(Value)/1000000)%>%
+    mutate(Cost_Type="Value ($M)")
+  
+  Costs_G<-bind_rows(Rev_G,OPEX_G,CAPEX_G,Value_G)%>%
+    pivot_wider(names_from=Sim_Name,values_from =Cost_Tot)%>%
+    arrange(.,Cost_Type,Year)
+  
+  # Zone Costs
+  OPEX_T<-ResGrYr %>%
+    group_by(Sim_Name,Year)%>%
+    summarize(Cost_Tot=sum(OPEX)/1000000000)%>%
+    mutate(Cost_Type="OPEX ($B)")
+  
+  CAPEX_T<-ResGrYr %>%
+    group_by(Sim_Name,Year)%>%
+    summarize(Cost_Tot=sum(CAPEX)/1000000000)%>%
+    mutate(Cost_Type="CAPEX ($B)")
+  
+  Rev_T<-ResGrYr %>%
+    group_by(Sim_Name,Year)%>%
+    summarize(Cost_Tot=sum(Revenue)/1000000000)%>%
+    mutate(Cost_Type="Revenue ($B)")
+  
+  Value_T<-ResGrYr %>%
+    group_by(Sim_Name,Year)%>%
+    summarize(Cost_Tot=sum(Value)/1000000000)%>%
+    mutate(Cost_Type="Value ($B)")
+  
+  Costs_T<-bind_rows(
+    Rev_T,
+    #OPEX_T,CAPEX_T,
+    Value_T)%>%
+    pivot_wider(names_from=Sim_Name,values_from =Cost_Tot)%>%
+    arrange(.,Cost_Type,Year)
+    
+ # Pool Price
+  PoolPrice<-Zone %>%
+    group_by(Scenario,Year)%>%
+    summarize(Avg_P=sum(Avg_Price))%>%
+    mutate(Scenario=paste(Scenario,"Average Price ($/MWh)", sep="\n"))%>%
+    pivot_wider(names_from=Scenario,values_from =Avg_P)%>%
+    arrange(.,(Year)) 
+  
+  # Import/Export
+  # Import/Export
+  Z_Imp<-Zone %>%
+    group_by(Scenario,Year)%>%
+    summarize(Amount=(Imports_Total)/1000000)%>%
+    mutate(Type="Import")
+  
+  Z_Exp<-Zone %>%
+    group_by(Scenario,Year)%>%
+    summarize(Amount=(Exports_Total)/1000000)%>%
+    mutate(Type="Export")
+  
+  Imp_Exp<-rbind(Z_Imp,Z_Exp)%>%
+    pivot_wider(names_from=Scenario,values_from =Amount)%>%
+    arrange(.,Type,Year)
+  
+  
+  # Net Import
+  Net_Imp<-Zone %>%
+    group_by(Scenario,Year)%>%
+    summarize(Net_Imp=(Imports_Total-Exports_Total)/1000000)%>%
+    mutate(Scenario=paste(Scenario,"Net Import (TWh)", sep="\n"))%>%
+    pivot_wider(names_from=Scenario,values_from =Net_Imp)%>%
+    arrange(.,(Year)) 
+  
+  # Fuel Usage
+  Fuel_Used<-Ann_Fuel %>%
+    group_by(ID,Scenario,Year)%>%
+    summarize(Burn=sum(Usage_GJ))%>%
+    mutate(Scenario=paste(Scenario,"Fuel Used (GJ)", sep="\n"))%>%
+    pivot_wider(names_from=Scenario,values_from =Burn)%>%
+    arrange(.,(Year))
+  
+  Fuel_P<-Ann_Fuel %>%
+    group_by(ID,Scenario,Year)%>%
+    summarize(Burn=sum(`Price_$/GJ`))%>%
+    mutate(Scenario=paste(Scenario,"Fuel Price ($/GJ)", sep="\n"))%>%
+    pivot_wider(names_from=Scenario,values_from =Burn)%>%
+    arrange(.,(Year))
+  
+}  
+################################################################################
 ## SEND ALL TO ONE EXCEL FILE
 ################################################################################
   
-  dataset_names <-list('1 Reource Groups'=ResGrYr,
-                       '2 Annual Zone'=Zone,
-                       '3 Annual Capacity Changes' =Ann_Cap,
-                       '4 Total Capacity Changes'=Tot_Cap,
-                       '5 EPC Values'=EPC_Values,
-                       '6 Annual Fuel Data'=Ann_Fuel,
-                       '7 Average Heat Rates'=Ann_HR)
+  dataset_names <-list('Info'=Sim_Info,
+                       '1 Capacity by Tech'=Cap_ByGroup,
+                       '2 Model Capaity Added'=Auroraadd,
+                       '3 Total Capacity Changes'=Totaladd,
+                       '4 Percent Capacity'=Perc_Cap,
+                       '5 Generation by Tech'=Gen_ByGroup,
+                       '6 Percent Generation'=Perc_Gen,
+                       '7 Emissions by Tech'=Em_ByGroup,
+                       '8 Emissions Cost by Tech'=EmCost_ByGroup,
+                       '9 Emissions Total'=Em_Total,
+                       '10 Cost by Tech'=Costs_G,
+                       '11 Total Costs'=Costs_T,
+                       '12  Average Pool Price'=PoolPrice,
+                       '13 Imports_Exports'=Imp_Exp,
+                       '14 Net Imports'=Net_Imp,
+                       '15 Fuel Usage'=Fuel_Used,
+                       '16 Fuel Price'=Fuel_P,
+                       
+                       'A All Groups Data'=ResGrYr,
+                       'B Annual Zone'=Zone,
+                       'C Annual Capacity Changes' =Ann_Cap,
+                       'D EPC Values'=EPC_Values,
+                       'E Annual Fuel Data'=Ann_Fuel,
+                       'F Average Heat Rates'=Ann_HR)
   
   filename <-paste(CScenarioName,".xlsx", sep = "")
   
-  write_xlsx(dataset_names, path = here("Data Files",filename),
+  # Save the excel sheet to folder
+  write_xlsx(dataset_names, path = here("Data Files","Scenario Compare",filename),
              col_names = TRUE, format_headers = TRUE)  
-  
-  
-  
   
   
   

@@ -47,11 +47,12 @@ AnnualDataR<- function(ScenarioName,case){
              Sim_Name=paste(SourceDB),
              Revenue=Revenue*1000,
              Total_Fuel_Cost=Total_Fuel_Cost*1000,
-             Fixed_Cost=Fixed_Cost*1000,
-             Fixed_Cost_Base=Fixed_Cost_Base*1000,
+             Startup_Cost=Startup_Cost*1000,
              Variable_OM_Cost=Variable_OM_Cost*1000,
+             Fixed_OM_Cost=Fixed_Cost_Base*1000,
+             CAPEX=Fixed_Cost_Aux1*1000,
              Value=Value*1000,
-             Total_Cost=Value-Revenue,
+             Total_Cost=Revenue-Value, # Or Startup costs+fuel costs+CAPEX+Fixed_OM+Variable_OM+Emissions Cost
              Storage_Charging_Cost*1000,
              Capacity=round(Capacity,digits=0)) %>%
       # Filter out dates after MaxYr
@@ -59,7 +60,7 @@ AnnualDataR<- function(ScenarioName,case){
       # Choose what to keep
       subset(., select=c(ID,Year,Output_MWH,Capacity,
                          Dispatch_Cost,Fuel_Usage,
-                         Total_Fuel_Cost,Fixed_Cost,Fixed_Cost_Base,Variable_OM_Cost,
+                         Total_Fuel_Cost,Startup_Cost,Variable_OM_Cost,Fixed_OM_Cost,CAPEX,
                          Total_Cost,Revenue,Value,
                          Total_Hours_Run,Percent_Marginal,
                          Capacity_Factor,Sim_Name)) %>%
@@ -73,18 +74,18 @@ AnnualDataR<- function(ScenarioName,case){
     
     # Re-sort the columns
     AllDataGrYr <- AllDataGrYr1 %>%
+      mutate(OPEX=Emissions_Cost+Total_Fuel_Cost+Startup_Cost+Variable_OM_Cost+Fixed_OM_Cost)
       subset(., select=c(Plant_Type,Year,Output_MWH,Capacity_MW,
-                         Avg_Dispatch_Cost,Fuel_Usage_GJ,
-                         Total_Fuel_Cost,Fixed_Cost_Base,Fixed_Cost,Variable_OM_Cost,
-                         Emissions_Tonne,Emissions_Cost,
+                         Avg_Dispatch_Cost,Fuel_Usage_GJ,Emissions_Tonne,
+                         Emissions_Cost,Total_Fuel_Cost,Startup_Cost,Variable_OM_Cost,Fixed_OM_Cost,
+                         CAPEX,OPEX,
                          Total_Cost,Revenue,Value,
                          Total_Hours_Run,Percent_Marginal,
-                         Capacity_Factor,Sim_Name)) %>%
-      rename("Fixed_O&M"=Fixed_Cost_Base,
-             "Variable_O&M"=Variable_OM_Cost)
+                         Capacity_Factor,Sim_Name)) 
     
-    # Save R file
-    saveRDS(AllDataGrYr, here("Data Files","Case Specific R Files",paste("ResGrYr_",ScenarioName, sep = "")))
+    # Save R file in folder
+    SaveR_Loc(AllDataGrYr,ScenarioName,"ResGrYr_")
+    
   }
 ################################################################################
 ## EMISSION PERFORMANCE CREDIT VALUES
@@ -103,8 +104,8 @@ AnnualDataR<- function(ScenarioName,case){
             "Other_Revenue"=Revenue)
   
   # Save R file
-  saveRDS(EPC_Values, here("Data Files","Case Specific R Files",paste("EPC_Values_",ScenarioName, sep = "")))
-  
+  SaveR_Loc(EPC_Values,ScenarioName,"EPC_Values_")
+
 ################################################################################
 ## ANNUAL CAPACITY CHANGE
 ## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
@@ -210,7 +211,8 @@ AnnualDataR<- function(ScenarioName,case){
       rename("Plant_Type"=Primary_Fuel)
     
     # Save R file
-    saveRDS(AnnualCap_Change, here("Data Files","Case Specific R Files",paste("Ann_Cap_",ScenarioName, sep = "")))
+    SaveR_Loc(AnnualCap_Change,ScenarioName,"Ann_Cap_")
+    
   }
   
 ################################################################################
@@ -269,8 +271,9 @@ AnnualDataR<- function(ScenarioName,case){
            "Cap_Retired"=Capacity_Retired)
   
   # Save R file
-  saveRDS(AllCap_Changes2, here("Data Files","Case Specific R Files",paste("Tot_Cap_",ScenarioName, sep = "")))
+  SaveR_Loc(AllCap_Changes2,ScenarioName,"Tot_Cap_")
   
+
 ################################################################################
 ## ANNUAL AVERAGE HEAT RATES
 ## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
@@ -299,7 +302,7 @@ AnnualDataR<- function(ScenarioName,case){
       mutate(Scenario=SourceDB)
     
     # Save R file
-    saveRDS(AVG_HeatRates, here("Data Files","Case Specific R Files",paste("Ann_HR_",ScenarioName, sep = "")))
+    SaveR_Loc(AVG_HeatRates,ScenarioName,"Ann_HR_")
     
   }
   
@@ -316,12 +319,13 @@ AnnualDataR<- function(ScenarioName,case){
              Year=year(Time_Period),
              Year<=MaxYrStudy,
              Scenario=SourceDB) %>%
-      subset(select=c(ID,Year,Price,Cost,Usage)) %>%
+      subset(select=c(ID,Year,Price,Cost,Usage,Scenario)) %>%
       rename("Usage_GJ"=Usage,
              "Price_$/GJ"=Price)
     
     # Save R file
-    saveRDS(FuelData, here("Data Files","Case Specific R Files",paste("Ann_Fuel_",ScenarioName, sep = "")))
+    SaveR_Loc(FuelData,ScenarioName,"Ann_Fuel_")
+    
   }
   
 ################################################################################
@@ -377,7 +381,21 @@ AnnualDataR<- function(ScenarioName,case){
       rename("Avg_Price"=Price)
     
     # Save R file
-    saveRDS(AllZoneData, here("Data Files","Case Specific R Files",paste("Zone_",ScenarioName, sep = "")))
+    SaveR_Loc(AllZoneData,ScenarioName,"Zone_")
+    
   }
 }
  
+################################################################################
+## FUNCTION: CombineFilesR
+## Combine all relevant annual data from to files, use after AnnualDataR.
+## INPUTS: 
+##    ScenarioName - Name of scenario (EX: "BAU:)
+##    case - Filter by run case
+## TABLES REQUIRED: 
+##    ResGroupEmYr
+##    ResGroupYr
+##    ResYr
+##    FuelYr
+##    ZoneYr
+################################################################################
