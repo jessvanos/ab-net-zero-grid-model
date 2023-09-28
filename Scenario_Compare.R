@@ -21,9 +21,8 @@
   
   # Import functions from other R files, take from the functions folder in R project
   source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
-  source(here('Functions','Data_Filt_To_Table.R'))    # Functions that filter data and export it to excel sheets
-  source(here('Functions','Data_Filt_To_RFile.R'))    # 
-  
+  source(here('Functions','Data_Filt_To_File.R'))     # Functions that filter data and export it to excel sheets
+
   # Packages required
   packs_to_load = c("tidyverse","scales","grid","gtable","gridExtra","ggpubr","extrafont",
                     "lubridate","cowplot","scales","dplyr","reshape2","zoo",

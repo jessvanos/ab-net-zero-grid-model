@@ -346,7 +346,7 @@ SaveR_Loc <- function(Data,ScenarioName,ScenarioType) {
   fold_name<-paste(ScenarioName)
   
   # Check if folder exists, if not, make one
-  if (file.exists(here("Data Files","Case Specific R Files",paste(fold_name)))) {
+  if (file.exists(here("Data Files","Result Files",paste(fold_name)))) {
     
     cat("The folder exists\n")
     
@@ -354,11 +354,11 @@ SaveR_Loc <- function(Data,ScenarioName,ScenarioType) {
     
     # Create the folder
     FoldLocation <-
-      dir.create(here("Data Files","Case Specific R Files",paste(fold_name)))
+      dir.create(here("Data Files","Result Files",paste(fold_name)))
     
   }
 
   # Save to a local file 
-  saveRDS(Data, here("Data Files","Case Specific R Files",paste(fold_name),paste(ScenarioType,ScenarioName, sep = "")))
+  saveRDS(Data, here("Data Files","Result Files",paste(fold_name),paste(ScenarioType,ScenarioName, sep = "")))
   
 }

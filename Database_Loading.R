@@ -62,8 +62,7 @@
   source(here('Functions','Daily_Output_Functions.R'))# Filtering by resource type, required for plots
   source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
   #source(here('Functions','Developing_Functions.R')) # Under construction functions
-  source(here('Functions','Data_Filt_To_Table.R'))    # Functions that filter data and export it to excel sehets
-  source(here('Functions','Data_Filt_To_RFile.R'))    # Filter data and save in .R files to be accessed and compared later
+  source(here('Functions','Data_Filt_To_File.R'))    # Functions that filter data and export it to excel sheets
   source(here('Functions','aeso_eval_1.R'))           #
   source(here('Functions','aseo_sim_comp_1.R'))       #
   
@@ -706,7 +705,7 @@ Legend_PlotGray(1)
 
 
 # Create folder name to save as
-CaseName <- "LZ"
+CaseName <- "LZ Retrofits"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -910,9 +909,6 @@ CaseName <- "LZ"
       
       # Hourly data
       HourlyDataExcel(CaseName,BC)
-      
-      # Misc Annual Data for sheets
-      CompareDataExcel(CaseName,BC)
 
     # GENERATE R FILES TO COMPARE LATER ('name',case)
       AnnualDataR('Sep21',BC)
@@ -1202,10 +1198,6 @@ CaseName <- "LZ"
     
     # Hourly data
     HourlyDataExcel("BAU",BC)
-    
-    # Misc Annual Data for sheets
-    CompareDataExcel("BAU",BC)
-  
 
 ################################################################################
 ## AESO FUNCTIONS

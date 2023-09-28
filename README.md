@@ -8,6 +8,7 @@ Also includes functions and code segments to visualize historical data from Albe
 
 -   [CODE FILES](#code-files)
     -   [Database_Loading](#database_loading)
+    -   [Scenario_Compare](#scenario_compare)
     -   [AESO_TradeAnalysis](#aeso_tradeanalysis)
     -   [Link_Shaping](#link_shaping)
     -   [Referenced_Code](#referenced_code)
@@ -54,7 +55,7 @@ Contains packages and code to compare R files between scenarios.
 ##### *Scenario_Compare Special Notes:*
 
 -   *Make sure the R project file (ab-net-zero-grid-model) is open first or "here" commands will not function.*
--   *Before running, create a folder called "Data Files"  in the project directory and add two sub-folders called "Case Specific R Files" and "Scenario Compare".*
+-   *Before running, create a folder called "Data Files"  in the project directory and add two sub-folders called "Result Files" and "Scenario Compare".*
     -   *This folder is referenced in the .gitignore file*
 
 ### <ins>AESO_TradeAnalysis
@@ -114,9 +115,9 @@ Functions to evaluate the electricity grid as it approaches possible net zero st
 
 -   *BuildUnits* : Show units built compared to available ones for a resource type.
 
-### <ins>Data_Filt_To_Table<ins>
+### <ins>Data_Filt_To_File<ins>
 
-Filters and organizes annual and hourly data, sends to an excel file which can be easily interpreted and exported to other programs.
+Filters and organizes annual and hourly data, sends to an excel file which can be easily interpreted and exported to other programs.Also includes functions to filter and reformat key data for comparison between scenarios.
 
 #### Functions:
 
@@ -124,21 +125,13 @@ Filters and organizes annual and hourly data, sends to an excel file which can b
 
 -   *HourlyDataExcel* : Writes all relevant hourly data to an excel file on different sheets.
 
--   *CompareDataExcel* : Writes selected annual data to an excel file on different sheets.
+-   *AnnualDataR* : Filters and organizes annual data, sends to R files for easy accessibility.
+
+-   *CombineFilesR* : Reads filtered R data and combines two files into a single excel sheet.
 
 ##### *Data_Filt_To_Table Special Notes:*
 
 -   *Excel sheets will be written to the "Data Files" folder stored locally within the R project. If the name is not changes it will be over-written when running again.*
-
-### <ins>Data_Filt_To_RFile<ins>
-
-Functions to filter and reformat key data for comparison between scenarios.
-
-#### Functions:
-
--   *AnnualDataR* : Filters and organizes annual data, sends to R files for easy accessibility.
-
--   *CombineFilesR* : Reads filtered R data and combines two files into a single excel sheet.
 
 
 ### <ins>Developing_Functions
