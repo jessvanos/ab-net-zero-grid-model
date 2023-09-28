@@ -14,7 +14,8 @@ Also includes functions and code segments to visualize historical data from Albe
     -   [Referenced_Code](#referenced_code)
 -   [FUNCTION FILES](#function-files)
     -   [Build_Retire_Functions](#build_retire_functions)
-    -   [Data_Filt_To_Table](#data_filt_to_table)
+    -   [Daily_Output_Functions](#daily_output_functions)
+    -   [Data_Filt_To_File](#data_filt_to_file)
     -   [Developing_Functions](#developing_functions)
     -   [Emission_Functions](#emission_functions)
     -   [Intertie_Functions](#intertie_functions)
@@ -114,6 +115,20 @@ Functions to evaluate the electricity grid as it approaches possible net zero st
 -   *Slack* : Unit specific bar chart showing units not built (or available) for certain resource type.
 
 -   *BuildUnits* : Show units built compared to available ones for a resource type.
+
+
+### <ins>Daily_Output_Functions
+
+-   *CompDay_Season* : Compare two typical days in winter and summer.
+
+-   *CompDay_Wind* : Plot max and min wind days for a given year.
+
+-   *CompDay_Solar* : Plot max and min solar days for a given year.
+
+-   *CompDay_Years* : Compare the saem day in two different years.
+
+-   *CompDay_AESO* : Compare a specified day from the simulation with actual data.
+
 
 ### <ins>Data_Filt_To_File<ins>
 
@@ -321,17 +336,6 @@ Functions To use for summarizing data within R environment.
 
 -   *Build_A\_Totals* : Report the capacity built for each fuel type in the study by year. Aurora new builds only.
 
-### <ins>Daily_Output_Functions
-
--   *CompDay_Season* : Compare two typical days in winter and summer.
-
--   *CompDay_Wind* : Plot max and min wind days for a given year.
-
--   *CompDay_Solar* : Plot max and min solar days for a given year.
-
--   *CompDay_Years* : Compare the saem day in two different years.
-
--   *CompDay_AESO* : Compare a specified day from the simulation with actual data.
 
 ### <ins>aeso_eval_1
 
