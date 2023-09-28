@@ -47,6 +47,16 @@ The sections referencing AESO data and filtering this data can be skipped if no 
     
 -   *Once this file is run through completion, can call any functions as long as the right tables have been loaded in!*
 
+### <ins>Scenario_Compare
+
+Contains packages and code to compare R files between scenarios.
+
+##### *Scenario_Compare Special Notes:*
+
+-   *Make sure the R project file (ab-net-zero-grid-model) is open first or "here" commands will not function.*
+-   *Before running, create a folder called "Data Files"  in the project directory and add two sub-folders called "Case Specific R Files" and "Scenario Compare".*
+    -   *This folder is referenced in the .gitignore file*
+
 ### <ins>AESO_TradeAnalysis
 
 Script imports data and analyses intertie behavior.
@@ -119,6 +129,17 @@ Filters and organizes annual and hourly data, sends to an excel file which can b
 ##### *Data_Filt_To_Table Special Notes:*
 
 -   *Excel sheets will be written to the "Data Files" folder stored locally within the R project. If the name is not changes it will be over-written when running again.*
+
+### <ins>Data_Filt_To_RFile<ins>
+
+Functions to filter and reformat key data for comparison between scenarios.
+
+#### Functions:
+
+-   *AnnualDataR* : Filters and organizes annual data, sends to R files for easy accessibility.
+
+-   *CombineFilesR* : Reads filtered R data and combines two files into a single excel sheet.
+
 
 ### <ins>Developing_Functions
 

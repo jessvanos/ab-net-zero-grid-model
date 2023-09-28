@@ -83,7 +83,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ Sep_18_2023"
+  SourceDB<-"LZ Sep_21_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -706,7 +706,7 @@ Legend_PlotGray(1)
 
 
 # Create folder name to save as
-CaseName <- "LZ - New Code Testing"
+CaseName <- "LZ"
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -914,8 +914,8 @@ CaseName <- "LZ - New Code Testing"
       # Misc Annual Data for sheets
       CompareDataExcel(CaseName,BC)
 
-    # GENERATE R FILES TO COMPARE LATER
-      AnnualDataR('AugCase',BC)
+    # GENERATE R FILES TO COMPARE LATER ('name',case)
+      AnnualDataR('Sep21',BC)
       
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS!
