@@ -108,7 +108,7 @@ Functions to evaluate the electricity grid as it approaches possible net zero st
 
 -   *Eval_CapChange* : Shows net capacity changes each year. The first year of data does not have a prior capacity to compare to, so it is not used.
 
--   *TotalCapChange* : Shows capacity changes each year, inlcudes additions and retirements.
+-   *TotalCapChange* : Shows capacity changes each year, includes additions and retirements.
 
 -   *Units* : Unit specific bar chart showing builds by unit for certain resource type (ex: "WND").
 

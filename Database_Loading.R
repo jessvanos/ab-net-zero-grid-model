@@ -82,7 +82,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ Sep_21_2023"
+  SourceDB<-"LZ_Sep_29_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -114,7 +114,7 @@
   
   # Resource Tables
   ResYr <- dbReadTable(con,'ResourceYear1')
-#  ResMn <- dbReadTable(con,'ResourceMonth1')
+  ResMn <- dbReadTable(con,'ResourceMonth1')
   ResHr <- dbReadTable(con,'ResourceHour1') # This one takes eons
   ResSt <-dbReadTable(con,'ResourceStudy1')
   ResEmYr <-dbReadTable(con,'ResourceEmissionsYear1')
@@ -165,7 +165,7 @@
                         format = "%Y")
   ResYr$YEAR <- format(ResYr$YEAR,format="%Y") # Reformat for year only
   
-#  ResMn$Time_Period <- ym(ResMn$Time_Period)
+  ResMn$Time_Period <- ym(ResMn$Time_Period)
   
   ResHr$date <- as.POSIXct(as.character(ymd_h(gsub(" Hr ", "_",ResHr$Time_Period))), 
                         tz = "MST")-(60*60)
@@ -704,8 +704,11 @@ Legend_PlotMain(0.7)
 Legend_PlotGray(1)
 
 
-# Create folder name to save as
-CaseName <- "LZ Retrofits"
+# Create folder name to save as 
+#   Casename is long description for figures/files
+#   NameShort is short name for later reference
+CaseName <- "LZ with RM"
+NameShort<-'Sep29'
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -739,15 +742,15 @@ CaseName <- "LZ Retrofits"
           SaveRun_Loc(CaseName,"2023 Storage Output with Pool Price")
           
       # Four months of generation, intertie, and pool price
-      FourMonthSummary(2035,BC)
+      FourMonthSummary(2030,BC)
       SaveRun_Loc(CaseName,"2035 Output, Trade, Price") 
           
       # Save all full size images
       windows(14,10,buffered=FALSE)
       
       # One week
-      week12_Curt(2035,02,08,BC)
-      SaveRun_Loc(CaseName,"1 Week Generation")
+      week12_Curt(2040,02,08,BC)
+      SaveRun_Loc(CaseName,"Curtailment Week 2040")
       
       # Yearly Output
       Evalyr(BC,"n")
@@ -830,6 +833,19 @@ CaseName <- "LZ Retrofits"
       AvgYr_poolprice(BC)
       SaveRun_Loc(CaseName,"Average Annual Pool Prices")
       
+      #Capture Prices
+      capture_p(2023,2035,BC)
+      SaveRun_Loc(CaseName,"Capture Prices")
+      
+      # Relative capture prices
+      Relcapture_p(2023,2035,BC)
+      SaveRun_Loc(CaseName,"Relative Capture Prices")
+      
+      # Premeium to pool price
+      ach_poolprem(BC)
+      SaveRun_Loc(CaseName,"Achived Premium to Pool Price")
+      
+      
   # EMISSIONS
       # Annual emissions in stacked area chart
       AnnualEmStackCol(BC)
@@ -904,14 +920,14 @@ CaseName <- "LZ Retrofits"
       SaveRun_Loc(CaseName,"2023$ NPV Wind")
 
     # WRITE TO EXCEL
-      # Annual data
-      AnnualDataExcel(CaseName,BC)
+      # Annual data ('long name','short name',case)
+      AnnualDataExcel(CaseName,NameShort,BC)
       
-      # Hourly data
-      HourlyDataExcel(CaseName,BC)
+      # Hourly data ('long name','short name',case)
+      HourlyDataExcel(CaseName,NameShort,BC)
 
-    # GENERATE R FILES TO COMPARE LATER ('name',case)
-      AnnualDataR('Sep21',BC)
+    # GENERATE R FILES TO COMPARE LATER ('short name',case)
+      AnnualDataR(NameShort,BC)
       
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS!

@@ -2,7 +2,7 @@
 ## FUNCTION: AnnaulDataExcel
 ## Writes all relevant annual data to an excel file on different sheets.
 ## INPUTS: 
-##    ScenarioName - Name of scenario (EX: "BAU:)
+##    ScenarioName (CaseName) - Name of scenario (EX: "BAU:)
 ##    case - Filter by run case
 ## TABLES REQUIRED: 
 ##    ResGroupEmYr
@@ -12,7 +12,7 @@
 ##    ZoneYr
 ################################################################################
 
-AnnualDataExcel<- function(ScenarioName,case){
+AnnualDataExcel<- function(ScenarioName,NameShort,case){
 
 ################################################################################
 ## ANNUAL RESOURCE GROUP OUTPUT TABLES
@@ -410,7 +410,7 @@ dataset_names <-list('1 Annual Resource Group Data'=AllDataGrYr,
 
 filename <-paste("Annual_Data_",ScenarioName,"_",SourceDB,".xlsx")
 
-write_xlsx(dataset_names, path = here("Data Files","Result File",filename),
+write_xlsx(dataset_names, path = here("Data Files","Result Files",NameShort,filename),
                      col_names = TRUE, format_headers = TRUE)
 
 }
@@ -427,7 +427,7 @@ write_xlsx(dataset_names, path = here("Data Files","Result File",filename),
 ##    ZoneHr
 ################################################################################
 
-HourlyDataExcel<- function(ScenarioName,case){
+HourlyDataExcel<- function(ScenarioName,NameShort,case){
   
 ################################################################################
 ## HOURLY RESOURCE GROUP OUTPUT TABLES
@@ -535,7 +535,7 @@ HourlyDataExcel<- function(ScenarioName,case){
    
    filename <-paste("Hourly_Data_",ScenarioName,"_",SourceDB,".xlsx")
    
-   write_xlsx(dataset_names, path = here("Data Files","Result File",filename),
+   write_xlsx(dataset_names, path = here("Data Files","Result Files",NameShort,filename),
               col_names = TRUE, format_headers = TRUE)
 }
 
@@ -1342,10 +1342,10 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
                        'E Annual Fuel Data'=Ann_Fuel,
                        'F Average Heat Rates'=Ann_HR)
   
-  filename <-paste(CScenarioName,".xlsx", sep = "")
+  filename <-paste("Compare_",CScenarioName,".xlsx", sep = "")
   
   # Save the excel sheet to folder
-  write_xlsx(dataset_names, path = here("Data Files","Scenario Compare",filename),
+  write_xlsx(dataset_names, path = here("Data Files","Result Files",CScenarioName,filename),
              col_names = TRUE, format_headers = TRUE) 
   
 }

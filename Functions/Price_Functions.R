@@ -137,7 +137,7 @@ AvgMn_price <- function(case) {
     mutate(year = year(date),
            time = date) %>%
     filter(Run_ID == case,
-           year >= 2022 & year <= 2035,
+           year >= 2022 & year <= MaxYrStudy,
            Condition != "Average",
            Name == "WECC_Alberta") %>%
     subset(.,select=-c(Condition,Marginal_Resource,date,Run_ID,Name,Report_Year))
@@ -1506,8 +1506,8 @@ capture_p <- function(year1, year2, case) {
     
     scale_y_continuous(expand=c(0,0),limits = c(0,PMax),breaks = pretty_breaks(6)) +
     
-    labs(x="",y="Avereage Revenue Relative to Mean Price ($/MWh)",
-         title=paste0("Energy Price Capture Differential ($/MWh, ",year1,"-",year2,")"),
+    labs(x="",y="Avereage Revenue Captured ($/MWh)",
+         title=paste0("Energy Price Capture ($/MWh), ",year1,"-",year2,")"),
          caption=SourceDB) +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -1688,7 +1688,7 @@ Relcapture_p <- function(year1, year2, case) {
 ## Achieved premium to pool price in each year by generation tech. 
 ## Based on wholesale energy revenue, calculated as weighted average of the hourly pool price. 
 ## Houly pool price is weighted in each interval by net-to-grid generation.
-## Plot midifed from Taylor P.
+## Plot modifed from Taylor P.
 ##
 ## INPUTS: 
 ##    
@@ -1696,19 +1696,19 @@ Relcapture_p <- function(year1, year2, case) {
 ##    
 ################################################################################
 
-ach_poolprem <- function(year1, year2, case) {
+ach_poolprem <- function(case) {
+  
+  
   
   # Gather zone and resource data for given years
   Zone_Data <- ZoneHr_Avg  %>%
-    filter(year(date) >= year1,
-           year(date) <= year2,
+    filter(year(date) %in% Years2Disp,
            Run_ID == case,
     ) %>%
     subset(., select = c(date, Price, Imports, Exports))
   
   Res_Data <- ResGroupHr %>%
-    filter(year(date) >= year1,
-           year(date) <= year2,
+    filter(year(date) %in% Years2Disp,
            Output_MWH >= 0,
            Run_ID == case) %>%
     sim_filt(.) %>%
@@ -1753,7 +1753,7 @@ ach_poolprem <- function(year1, year2, case) {
   Sim <- Sim %>%
     mutate(Margin = AchPrice-Pool, Ratio = Margin/Pool, sit = "Simulation")
   
-  MaxP<-round(max(Sim$Ratio)+0.1,1)
+  MaxP<-round(max(Sim$Ratio,na.rm=TRUE)+0.1,1)
   MinP<-round(min(Sim$Ratio,na.rm=TRUE)-0.1,1)
   
   Sim$Plant_Type <- factor(Sim$Plant_Type, levels=c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
@@ -1799,7 +1799,7 @@ ach_poolprem <- function(year1, year2, case) {
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.key.size = unit(1,"lines"),
           legend.background = element_rect(fill='transparent'),
-          legend.position="bottom",
+          legend.position="right",
           legend.text = element_text(size=Leg_Sz),
           legend.title = element_blank(),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),

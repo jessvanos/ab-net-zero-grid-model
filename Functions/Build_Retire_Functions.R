@@ -492,7 +492,7 @@ TotalCapChange <- function(case) {
            Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
            Beg_Year=year(Beg_Date))%>%
     filter(Condition == "Average",
-           Time_Period<=2035) 
+           Time_Period<=MaxYrStudy) 
   
   # Set levels to each category in order specified
   Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
@@ -664,7 +664,7 @@ Eval_CapChange <- function(case) {
            Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
            Beg_Year=year(Beg_Date))%>%
     filter(Condition == "Average",
-           Time_Period<=2035) 
+           Time_Period<=MaxYrStudy) 
 
 # Set levels to each category in order specified
 Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 

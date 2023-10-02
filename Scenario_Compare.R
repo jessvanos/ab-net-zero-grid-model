@@ -43,15 +43,19 @@
   # EXISTING SCENARIOS
   #   "Sep18"         September case following major revisions to file.
   #   "Sep21"         September case following CCS retrofit option inclusion (forced here).
-  #   "Sep_Comb"      Sep18 + RetOpt
+  #   "Sep28"         Normal LZ run 2022-2040, RM=0%
+  #   "Sep29"         Normal LZ run 2022-2040, RM=15%
+  #   "Sep_28_29"     Combined Sept 28 and 29 runs to one file
+
+
 
 {
   # Define cases here
-  ScenarioName1<-"Sep21"
-  ScenarioName2<-"Sep18"
+  ScenarioName1<-"Sep28"
+  ScenarioName2<-"Sep29"
   
   # This is the name for the new combined R files and excel sheet
-  CScenarioName <-"Sep_Comb"
+  CScenarioName <-"Sep_28_29"
 }
 
 ################################################################################
