@@ -82,7 +82,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Sep_29_2023"
+  SourceDB<-"LZ_Oct_02_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -707,8 +707,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference
-CaseName <- "LZ with RM"
-NameShort<-'Sep29'
+CaseName <- "LZ - No Emissions in Dispatch Cost"
+NameShort<-'Oct2_NoEminDisp'
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -742,7 +742,7 @@ NameShort<-'Sep29'
           SaveRun_Loc(CaseName,"2023 Storage Output with Pool Price")
           
       # Four months of generation, intertie, and pool price
-      FourMonthSummary(2030,BC)
+      FourMonthSummary(2040,BC)
       SaveRun_Loc(CaseName,"2035 Output, Trade, Price") 
           
       # Save all full size images
@@ -751,6 +751,9 @@ NameShort<-'Sep29'
       # One week
       week12_Curt(2040,02,08,BC)
       SaveRun_Loc(CaseName,"Curtailment Week 2040")
+      
+      # One week each resource ("free_y", "fixed")
+      EachResWeek(2040,02,08,BC,"free_y")
       
       # Yearly Output
       Evalyr(BC,"n")

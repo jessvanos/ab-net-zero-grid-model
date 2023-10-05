@@ -1419,6 +1419,121 @@
   }
   
 ################################################################################
+## FUNCTION: EachResWeek
+## Plots output for a single week given the case study. 
+## Separates each resource into individual plots.
+## Scale options: "free_y" or "fixed"
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average curtailment
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+  
+  EachResWeek <- function(year, month, day, case,ScaleY) {
+    
+    # Title Formating & filter between dates
+    wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
+    wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
+    
+    # Get any demand curtailment
+    DSM <- ZoneHr_Avg%>%
+      mutate(ID="Demand Curtailment")%>%
+      subset(., select=c(ID,date,Demand_Side_Output,Run_ID))%>%
+      rename(Output_MWH=Demand_Side_Output)%>%
+      filter(Output_MWH>0)
+    
+    # Get exports
+    TRADE <- Export %>%
+      filter(Run_ID == case)%>%
+      mutate(Output_MWH=Output_MWH*-1+Import$Output_MWH,
+             ID="Trade")
+    
+    # Filters for the desired case study from the resource groups
+    data <- ResGroupHr_sub%>%
+      sim_filt1(.) %>%
+      subset(., select=-c(Report_Year,Capacity_Factor)) %>%
+      rbind(DSM) %>%
+      rbind(.,TRADE) %>%
+      filter(Run_ID == case) %>%
+      filter(date >= wk_st) %>%
+      filter(date <= wk_end)
+    
+    # Set levels to each category in order specified
+    data$ID <- factor(data$ID, levels=c(
+      "Demand Curtailment",
+      "Solar","Wind","Hydro","Other", 
+      "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+      "Blended  Simple Cycle","Blended  Combined Cycle",
+      "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
+      "Coal", "Cogeneration","Trade","Storage"))
+    
+    ## SELECT A SINGLE WEEK
+    
+    # Select only a single week from the zone Hourly, and Export data.
+    WK <- WkTime(data,year,month,day)
+    
+    # Remove unused levels
+    WK <- droplevels(WK)
+    
+    # Get y-max and min for combined approach
+    MX <- round_any(max(WK$Output_MWH)+501,100,f=ceiling) 
+    MN <- round_any(min(WK$Output_MWH)+501,100,f=floor)*-1 
+    
+    
+    ## PLOT WITH AREA PLOTS
+    ggplot() +
+      geom_area(data = na.omit(WK), aes(x = date, y = Output_MWH, 
+                                        #fill = fct_reorder(ID, Output_MWH, .desc = TRUE)),
+                                        fill=ID),
+                alpha=Plot_Trans, size=.25,color='black',position = "identity") +
+      
+      # line at 0
+      geom_hline(yintercept=0, color = "black",size=0.5,linetype=1)+
+      
+      scale_x_datetime(expand=c(0,0),date_labels = "%b-%e", breaks = "day") +
+      
+      # Set the theme for the plot
+      theme_bw() +
+      
+      # Individual plots for each resource type
+      facet_wrap(~ID, scales = ScaleY) +
+      theme(strip.background = element_blank(),
+            strip.text = element_text(size= GenText_Sz-6)) +
+      
+      theme(panel.grid = element_blank()) +
+      
+      theme(text=element_text(family=Plot_Text)) +
+      
+      theme(plot.title = element_text(size= Tit_Sz),
+            axis.text.y = element_text(color="black"),
+            axis.text.x = element_text(vjust = 0.5,color="black",angle=45),
+            axis.title.x = element_blank(),
+            axis.title.y = element_text(size= YTit_Sz),
+            panel.background = element_rect(fill = "transparent"),
+            plot.background = element_rect(fill = "transparent", color = NA),
+            legend.title=element_blank(),
+            legend.position = "none",
+            text = element_text(size= GenText_Sz)) +
+      
+      labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",pattern="Resource",title=paste("Year: ",year)) +
+      
+      #Add colour
+      scale_fill_manual(values = colours1) +
+      scale_linetype_manual(values=c("Demand"=1,"Demand + Exports"=3))   +
+      
+      # Adjust scale as needed
+      if (ScaleY=="fixed") {
+        scale_y_continuous(expand=c(0,0), limits = c(MN,MX),breaks=seq(MN,MX,by=500),
+                           labels=comma)}else{
+                             scale_y_continuous(labels=comma)}
+  }
+  
+  
+################################################################################
 #
 # COMBINED PLOTS SECTION
 # Combined plots and supporting functions

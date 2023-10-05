@@ -265,6 +265,8 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 
 -   *FourMonthSummary* : Shows generation, storage, and price for one week of 4 months in a year.
 
+-   *EachResWeek* : Show one week of generation and split wach resource type to its own plot.
+
 
 ### <ins>Price_Functions
 

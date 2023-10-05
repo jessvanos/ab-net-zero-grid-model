@@ -228,32 +228,17 @@ sim_filt2 <- function(inputdata) {
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Other"))
   
   # Get NG Units as defined in Resource Table
-  NG2AB <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
-  
-  # Separate retrofits
-  NGConv1 <- NG2AB[NG2AB$Name %like% "%Retrofit%",] 
-  NGConv1b<-NGConv1 # Set this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
-  NGConv1$Primary_Fuel<- "NGConv"
-  
-  # Separate Simple Cycle
-  SCCT <- sqldf('SELECT * FROM NG2AB EXCEPT SELECT * FROM NGConv1b') #Select left over 
-  
-  SCCT<-SCCT %>%
+  SCCT <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")%>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
   
-  NG1AB <- inputdata %>%
+  # Get coal-to-gas
+  NGConv <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Boiler")%>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NGConv"))
+  
+  CCCT <- inputdata %>%
     filter(Primary_Fuel=="WECC-Alberta NaturalGas")
-  
-  # Separate retrofits
-  NGConv2 <- NG1AB[NG1AB$Name %like% "%Retrofit%",] 
-  NGConv2b<-NGConv2 # Swt this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
-  NGConv2$Primary_Fuel<- "NGConv"
-  
-  NGConv <-rbind(NGConv1,NGConv2)
-  # Separate Simple Cycle
-  CCCT <- sqldf('SELECT * FROM NG1AB EXCEPT SELECT * FROM NGConv2b') #Select left over 
-  
   
   # Units as defined by New Resources Table
   #First split up the fuel types
@@ -352,23 +337,18 @@ sim_filt3 <- function(inputdata) {
   NGConv1b<-NGConv1 # Swt this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
   NGConv1$Primary_Fuel<- "NGConv"
   
-  # Separate Simple Cycle
-  SCCT <- sqldf('SELECT * FROM NG2AB EXCEPT SELECT * FROM NGConv1b') #Select left over 
-  
-  SCCT<-SCCT %>%
+  # Get NG Units as defined in Resource Table
+  SCCT <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")%>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
   
-  NG1AB <- inputdata %>%
+  # Get coal-to-gas
+  NGConv <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Boiler")%>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NGConv"))
+  
+  CCCT <- inputdata %>%
     filter(Primary_Fuel=="WECC-Alberta NaturalGas")
-  
-  # Separate retrofits
-  NGConv2 <- NG1AB[NG1AB$Name %like% "%Retrofit%",] 
-  NGConv2b<-NGConv2 # Set this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
-  NGConv2$Primary_Fuel<- "NGConv"
-  
-  NGConv <-rbind(NGConv1,NGConv2)
-  # Separate Simple Cycle
-  CCCT <- sqldf('SELECT * FROM NG1AB EXCEPT SELECT * FROM NGConv2b') #Select left over 
   
   # Units as defined by New Resources Table
   #First split up the fuel types
@@ -466,7 +446,7 @@ sim_filt4 <- function(inputdata) {
     filter(grepl( '^GasB_CC$|^GasB_SC$',Fuel_Type)) %>%
     mutate(Fuel_Type=as.character(ifelse(is.na(Fuel_Type),NA,"GasB")))
   NG <-inputdata %>%
-    filter(grepl( '^Gas$|^Gas1$|^Gas2$',Fuel_Type)) %>%
+    filter(grepl( '^Gas3$|^Gas1$|^Gas2$|^Gas$',Fuel_Type)) %>%
     mutate(Fuel_Type=as.character(ifelse(is.na(Fuel_Type),NA,"NG"))) 
   
   
@@ -593,32 +573,18 @@ sim_filt6 <- function(inputdata) {
     filter(Primary_Fuel %in% c('20-NaturalGas-80-Hydrogen Simple Cycle','50-NaturalGas-50-Hydrogen Simple Cycle','70-NaturalGas-30-Hydrogen Simple Cycle')) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC")) 
   
-  NG2AB <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
-  
-  # Separate retrofits
-  NGConv1 <- NG2AB[NG2AB$Name %like% "%Retrofit%",] 
-  NGConv1b<-NGConv1 # Swt this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
-  NGConv1$Primary_Fuel<- "NGConv"
-  
-  # Separate Simple Cycle
-  SCCT <- sqldf('SELECT * FROM NG2AB EXCEPT SELECT * FROM NGConv1b') #Select left over 
-  
-  SCCT<-SCCT %>%
+  # Get NG Units as defined in Resource Table
+  SCCT <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")%>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NG-SCCT")) 
   
-  NG1AB <- inputdata %>%
+  # Get coal-to-gas
+  NGConv <- inputdata %>%
+    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Boiler")%>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"NGConv"))
+  
+  CCCT <- inputdata %>%
     filter(Primary_Fuel=="WECC-Alberta NaturalGas")
-  
-  # Separate retrofits
-  NGConv2 <- NG1AB[NG1AB$Name %like% "%Retrofit%",] 
-  NGConv2b<-NGConv2 # Swt this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
-  NGConv2$Primary_Fuel<- "NGConv"
-  
-  NGConv <-rbind(NGConv1,NGConv2)
-  # Separate Simple Cycle
-  CCCT <- sqldf('SELECT * FROM NG1AB EXCEPT SELECT * FROM NGConv2b') #Select left over  
-  
   
   # Units as defined by New Resources Table
   #First split up the fuel types
@@ -758,6 +724,8 @@ sim_filtFuel <- function(inputdata) {
     filter(ID=="NG2AB")
   NGBase <-inputdata %>%
     filter(ID=="NG1AB")
+  NGConv <-inputdata %>%
+    filter(ID=="NG3AB")
   NG_CCS <-inputdata %>%
     filter(ID=="NG_CCS")
   
@@ -787,7 +755,7 @@ sim_filtFuel <- function(inputdata) {
   # Combine the grouped data
   { case <- rbind(H2,
                   Blend1,Blend2,Blend3,Blend4,Blend5,Blend6,
-                  NGPeak,NGBase,NG_CCS,HHub,Coal
+                  NGPeak,NGBase,NGConv,NG_CCS,HHub,Coal
                   # ,Hydro, Other, Wind, Solar,
                   # Stor_B,Stor_CA, Stor_HP
   )
@@ -795,7 +763,7 @@ sim_filtFuel <- function(inputdata) {
     case$ID <- factor(case$ID, levels=c(
       "H2AB",
       "20CC80H2","50CC50H2","70CC30H2","20SC80H2","50SC50H2","70SC30H2",
-      "NG2AB","NG1AB","NG_CCS","NGHenry","CoalWCA"
+      "NG2AB","NG1AB","NG3AB","NG_CCS","NGHenry","CoalWCA"
       # ,"WAT", "OT","WND", "SUN", 
       # "PS", "PS2","PS3"
     ))
@@ -803,7 +771,7 @@ sim_filtFuel <- function(inputdata) {
     levels(case$ID) <- c("Hydrogen",
                          "NG H2 Blend CC - 20/80","NG H2 Blend CC - 50/50","NG H2 Blend CC - 70/30",
                          "NG H2 Blend SC - 20/80","NG H2 Blend SC - 50/50","NG H2 Blend SC - 70/30",
-                         "Natural Gas - Peaking","Natural Gas - Base","Natural Gas","Henry Hub Natural Gas","Coal"
+                         "Natural Gas - Peaking","Natural Gas - Base","Natural Gas - Boiler","Natural Gas","Henry Hub Natural Gas","Coal"
                          # ,"Water", "Other","Wind", "Sun", 
                          # "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro"
     ) }
