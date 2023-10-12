@@ -36,11 +36,17 @@
     wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
     wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
     
+    # Get exports
+    TRADE <- Export %>%
+      filter(Run_ID == case)%>%
+      mutate(Output_MWH=Output_MWH*-1+Import$Output_MWH,
+             ID="Trade")
+    
     # Filters for the desired case study from the resource groups
     data <- ResGroupHr_sub %>%
       sim_filt1(.) %>%
       subset(., select=-c(Report_Year,Capacity_Factor)) %>%
-      rbind(.,Import) %>%
+      rbind(.,TRADE) %>%
       filter(Run_ID == case) %>%
       filter(date >= wk_st) %>%
       filter(date <= wk_end)
@@ -48,12 +54,11 @@
     data$Output_MWH[data$Output_MWH<0.001] <-0
     
     # Set levels to each category in order specified
-    data$ID <- factor(data$ID, levels=c("Import","Solar","Wind", "Other", "Hydro", 
+    data$ID <- factor(data$ID, levels=c("Solar","Wind","Hydro","Other", 
                                         "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                         "Blended  Simple Cycle","Blended  Combined Cycle",
-                                        "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                                        "Coal-to-Gas", 
-                                        "Coal", "Cogeneration","Storage"))
+                                        "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
+                                        "Coal", "Cogeneration","Storage","Trade"))
     ## SELECT A SINGLE WEEK
 
     # Select only a single week from the zone Hourly, and Export data
@@ -1620,7 +1625,7 @@
     
     # Get y-max, demand to meet + exports
     MX <- round_any(max(ZPrice2$Baseline_Demand) + max(ZPrice2$Exports)+1100,1000,f=ceiling) 
-    
+
     # Get y-min, based on exports
     MN <- round_any(max(ZPrice2$Exports)+1100,1000,f=floor)*-1 
     
@@ -1629,7 +1634,7 @@
     ## PLOT WITH AREA PLOT
     
     ggplot() +
-      geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID),alpha=Plot_Trans, size=.25,color='black') +
+      geom_area(data = na.omit(WK), aes(x = date, y = Output_MWH, fill = ID),alpha=Plot_Trans, size=.25,color='black') +
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 

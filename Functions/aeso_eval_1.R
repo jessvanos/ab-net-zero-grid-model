@@ -38,35 +38,43 @@ Week_act <- function(year,month,day) {
     filter(time >= wk_st, time <= wk_end)
   
   WKIM <- df1a %>%
-    filter(Plant_Type == "IMPORT") %>%
-    filter(time >= wk_st & time <= wk_end)
-  
-  WKIM$total_gen <- WKIM$total_gen * -1
+    filter(Plant_Type %in% c("EXPORT","IMPORT")) %>%
+    filter(time >= wk_st & time <= wk_end)%>%
+    group_by(time,Year,Day,Hour)%>%
+    summarise(total_gen=sum(total_gen)*-1)%>%
+    mutate(Plant_Type="TRADE",
+           meancap="",
+           total_rev="",
+           price_mean="",
+           heatrt_mean="")%>%
+    ungroup()%>%
+    subset(.,select=c(Plant_Type,time,meancap,total_gen,total_rev,price_mean,heatrt_mean,Day,Year,Hour))
   
   WK <- rbind(WKIM, WKa)
   
   {
-    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "IMPORT", after = Inf)
+    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "SOLAR", after = Inf)
+    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "WIND", after = Inf)
+    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "HYDRO", after = Inf)
+    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "OTHER", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "SCGT", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "NGCC", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "NGCONV", after = Inf)
-    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "HYDRO", after = Inf)
-    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "OTHER", after = Inf)
-    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "WIND", after = Inf)
-    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "SOLAR", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "COAL", after = Inf)
     WK$Plant_Type<-fct_relevel(WK$Plant_Type, "COGEN", after = Inf)
+    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "STORAGE", after = Inf)
+    WK$Plant_Type<-fct_relevel(WK$Plant_Type, "TRADE", after = Inf)
+    
   }
   
-  WK$Plant_Type <- factor(WK$Plant_Type, levels=c("IMPORT", 
-                                                  "SCGT", "NGCC","NGCONV", "HYDRO", 
-                                                  "OTHER", "WIND", "SOLAR", 
-                                                  "COAL", "COGEN"))
+  WK$Plant_Type <- factor(WK$Plant_Type, levels=c("SOLAR","WIND", "HYDRO",  
+                                                  "OTHER","SCGT","NGCC","NGCONV",
+                                                  "COAL", "COGEN","STORAGE","TRADE"))
   
-  levels(WK$Plant_Type) <- c("Import","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
-                            "Hydro", "Other",
-                            "Wind", "Solar", "Coal", "Cogeneration")
-  
+  levels(WK$Plant_Type) <- c("Solar","Wind","Hydro",
+                             "Other","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
+                             "Coal", "Cogeneration","Storage","Trade")
+
   
   
   dmd <- Actdemand %>%
@@ -75,7 +83,7 @@ Week_act <- function(year,month,day) {
   # Plot the data    
   ggplot() +
     geom_area(data = WK, aes(x = time, y = total_gen, fill = Plant_Type), colour = "black", 
-              alpha=0.7, size=0.5) +
+              alpha=Plot_Trans, size=0.5) +
     
     # Add hourly load line
     geom_line(data = dmd, 

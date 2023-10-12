@@ -54,7 +54,8 @@ AESO_SimOP <- function(year,month,day,case) {
   
   p2 <- Week1(year,month,day,case)+
           theme(legend.position ="none",
-                axis.title.y=element_text(size=sz)) + 
+                axis.title.y=element_text(size=sz),
+                plot.title=element_blank(),) + 
           scale_y_continuous(expand=c(0,0), limits = c(MNO,MXO), 
                              breaks = seq(0, MXO, by = MXO/4)) 
 
@@ -65,7 +66,7 @@ AESO_SimOP <- function(year,month,day,case) {
                 axis.title.y=element_blank(),
                 legend.position ="none",
                 plot.title = element_text(hjust = 0.5, size = sz),
-                plot.subtitle = element_text(hjust = 0.5, size = sz-2, face="italic")) + 
+                plot.subtitle = element_blank()) + 
           scale_y_continuous(expand=c(0,0), limits = c(MNP,MXP), 
                              breaks = pretty_breaks(4))
   
@@ -116,7 +117,7 @@ AESO_SimP <- function(year,month,day,case) {
     
   #Get AESO Data
     
-    price_WK <- demand %>%
+    price_WK <- Actdemand %>%
       filter(time >= day_MN & time <= day_MX)
     
     # Set the max for the plot
@@ -197,7 +198,7 @@ AESO_SimP2 <- function(year,case) {
   
   #Get AESO Data
   
-  price_WK <- demand %>%
+  price_WK <- Actdemand %>%
     filter(time >= day_MN & time <= day_MX)
   
   # Set the max for the plot
@@ -214,6 +215,7 @@ AESO_SimP2 <- function(year,case) {
     geom_line(data = ZPrice, 
               aes(x = date, y = Price,colour = "Simulated (AURORA)"), 
               size = 1) +
+    drop_na() +
     
     theme_bw() +
     
@@ -424,7 +426,7 @@ year_comp <- function(year,case) {
     subset(., select = c(date, Price))
   
   
-  act <- demand
+  act <- Actdemand
   act$ActPrice <- act$Price
   
   act_wk <- act %>%
@@ -474,7 +476,7 @@ year_dif <- function(year,case) {
     filter(date >= wk_st & date <= wk_end & Run_ID == case) %>%
     subset(., select = c(date, Price))
   
-  act <- demand
+  act <- Actdemand
   act_wk <- act %>%
     filter(time >= wk_st & time <= wk_end) %>%
     subset(., select = c(time, Price))
@@ -538,7 +540,7 @@ year_avg <- function(year,case) {
   
   sim_wk$sit <- "Simulated"
   
-  act <- demand
+  act <- Actdemand
   act$sit <- "Actual"
   
   act_wk <- act %>%
@@ -623,7 +625,7 @@ year_pool <- function(year1, year2,case) {
     ))
   
   # Prepare AESO data by creating Year and Month columns
-  Actual <- na.omit(demand)
+  Actual <- na.omit(Actdemand)
   Actual$Year <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%Y")
   Actual$Month <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%m")
   
@@ -728,7 +730,7 @@ comp_dur <- function(year1, year2, case) {
   # Load and filter AESO data, 
   # Calculate the percentage of time
   # Create column 'sit' to indicate Actual AESO data
-  Actual <- na.omit(demand)
+  Actual <- na.omit(Actdemand)
   Actual$Year <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%Y")
   Actual$Hour <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%H")
   
@@ -815,7 +817,7 @@ load_dur <- function(year1, year2, case) {
   # Calculate the percentage of time
   # Use AIL as demand
   # Create column 'sit' to indicate Actual AESO data
-  Actual <- na.omit(demand)
+  Actual <- na.omit(Actdemand)
   Actual$Year <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%Y")
   Actual$Hour <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%H")
   

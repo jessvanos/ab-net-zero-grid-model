@@ -82,7 +82,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_Oct_02_2023"
+  SourceDB<-"LZ_B_Oct_05_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -707,8 +707,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference
-CaseName <- "LZ - No Emissions in Dispatch Cost"
-NameShort<-'Oct2_NoEminDisp'
+CaseName <- "LZ - Aggresive Bid"
+NameShort<-'Oct5_AggBid'
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -725,8 +725,8 @@ NameShort<-'Oct2_NoEminDisp'
           year_weeks(2030,BC)
           SaveRun_Loc(CaseName,"2030 Hourly Generation for One Week (Stacked Area)")
           
-          year_weeks(2035,BC)
-          SaveRun_Loc(CaseName,"2035 Hourly Generation for One Week (Stacked Area)")
+          year_weeks(2034,BC)
+          SaveRun_Loc(CaseName,"2034 Hourly Generation for One Week (Stacked Area)")
       
           year_weeks(2040,BC)
           SaveRun_Loc(CaseName,"2040 Hourly Generation for One Week (Stacked Area)")
@@ -742,18 +742,19 @@ NameShort<-'Oct2_NoEminDisp'
           SaveRun_Loc(CaseName,"2023 Storage Output with Pool Price")
           
       # Four months of generation, intertie, and pool price
-      FourMonthSummary(2040,BC)
-      SaveRun_Loc(CaseName,"2035 Output, Trade, Price") 
+      FourMonthSummary(2030,BC)
+      SaveRun_Loc(CaseName,"2030 Output, Trade, Price") 
           
       # Save all full size images
       windows(14,10,buffered=FALSE)
       
       # One week
-      week12_Curt(2040,02,08,BC)
-      SaveRun_Loc(CaseName,"Curtailment Week 2040")
+      week12_Curt(2022,02,08,BC)
+      SaveRun_Loc(CaseName,"Curtailment Week 2022")
       
       # One week each resource ("free_y", "fixed")
-      EachResWeek(2040,02,08,BC,"free_y")
+      EachResWeek(2030,02,08,BC,"free_y")
+      SaveRun_Loc(CaseName,"Indv Week 2030")
       
       # Yearly Output
       Evalyr(BC,"n")
@@ -1177,16 +1178,16 @@ NameShort<-'Oct2_NoEminDisp'
     AESO_SimP(2022,04,08,BC)
     
     #Plot the full year pool price
-    AESO_SimP2(2021,BC)
+    AESO_SimP2(2022,BC)
     
     #Show difference between pool price for year in graph
-    year_comp(2021,BC)
+    year_comp(2022,BC)
     
     # Pool price diff as bar chart with labels
-    year_dif(2021,BC)
+    year_dif(2022,BC)
     
     # Monthly average prices, sim vs act
-    year_avg(2021,BC)
+    year_avg(2022,BC)
     
     #Plot Average Monthly Pool Price vs AESO
     year_pool(2021,2022,BC)
