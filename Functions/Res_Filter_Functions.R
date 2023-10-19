@@ -261,13 +261,13 @@ sim_filt2 <- function(inputdata) {
     filter(Primary_Fuel=="Hydrogen")
   
   # H2 Combined cycle
-  CC_H2 <-H2[H2$Name %like% "%2022CC_0NG100H2%",] %>%
+  CC_H2 <-H2[H2$Name %like% "%CC_0NG100H2%",] %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
   
   # H2 Simple cycle
   SC_H2 <-H2 %>%
-    filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
-    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC")) 
+    filter(grepl( 'Frame_0NG100H2|Aeroderivative_0NG100H2',Name)) %>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC"))  
   
   
   
@@ -329,14 +329,6 @@ sim_filt3 <- function(inputdata) {
     filter(Primary_Fuel %in% c('20-NaturalGas-80-Hydrogen Simple Cycle','50-NaturalGas-50-Hydrogen Simple Cycle','70-NaturalGas-30-Hydrogen Simple Cycle')) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Blend-SC")) 
   
-  NG2AB <- inputdata %>%
-    filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")
-  
-  # Separate retrofits
-  NGConv1 <- NG2AB[NG2AB$Name %like% "%Retrofit%",] 
-  NGConv1b<-NGConv1 # Swt this as the retrofits to output, will use the dataframe with non-edited values to filter the remaining
-  NGConv1$Primary_Fuel<- "NGConv"
-  
   # Get NG Units as defined in Resource Table
   SCCT <- inputdata %>%
     filter(Primary_Fuel=="WECC-Alberta NaturalGas-Peaking")%>%
@@ -362,12 +354,12 @@ sim_filt3 <- function(inputdata) {
     filter(Primary_Fuel=="Hydrogen")         
   
   # H2 Combined cycle
-  CC_H2 <-H2[H2$Name %like% "%2022CC_0NG100H2%",] %>%
+  CC_H2 <-H2[H2$Name %like% "%CC_0NG100H2%",] %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
   
   # H2 Simple cycle
   SC_H2 <-H2 %>%
-    filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
+    filter(grepl( 'Frame_0NG100H2|Aeroderivative_0NG100H2',Name)) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC")) 
   
   # Storage Types
@@ -384,21 +376,21 @@ sim_filt3 <- function(inputdata) {
   
   # Combine the grouped data, cogen is excluded - can add back in if made a resource option
   { case <- rbind(NGConv, SC_H2,CC_H2,SC_Blend,CC_Blend,
-                  SCCT, CCC_CCS,CCS_R,CCCT, Hydro, Other, Solar, Wind, Stor_B,Stor_CA, Stor_HP)
+                  SCCT, CCC_CCS,CCS_R,CCCT, Hydro, Other, Solar, Wind, Stor_B,Stor_CA, Stor_HP,Nuclear)
     
     case$Primary_Fuel <- factor(case$Primary_Fuel, levels=c(
       "NGConv","H2-SC","H2-CC","Blend-SC","Blend-CC",
       "NG-SCCT","Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit","WECC-Alberta NaturalGas",
       "Water", "Other",
       "Wind", "Solar", 
-      "Storage - Battery", "Storage - CompressedAir","Storage - HydroPumped"))
+      "Storage - Battery", "Storage - CompressedAir","Storage - HydroPumped","Uranium"))
     
     levels(case$Primary_Fuel) <- c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                                    "Blended  Simple Cycle","Blended  Combined Cycle",
                                    "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle CCS Retrofit","Natural Gas Combined Cycle", 
                                    "Hydro", "Other",
                                    "Wind", "Solar", 
-                                   "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro") }
+                                   "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro","Nuclear") }
   return(case)  
 }
 
@@ -452,16 +444,16 @@ sim_filt4 <- function(inputdata) {
   
   # Combine the grouped data
   { case <- rbind(H2,Blend,NG,NG_CCS,
-                  Hydro, Other, Solar, Wind, Stor)
+                  Hydro, Other, Solar, Wind, Stor,Nuclear)
     
     case$Fuel_Type <- factor(case$Fuel_Type, levels=c(
       "H2","GasB","NG","GasCCS",
       "WAT", "OT",
       "WND", "SUN", 
-      "PSAll"))
+      "PSAll","UR"))
     
     levels(case$Fuel_Type) <- c("Hydrogen","Natual Gas and Hydrogen Blend","Natural Gas", "Natural Gas + CCS",
-                                "Hydro", "Other","Wind", "Solar","Storage") }
+                                "Hydro", "Other","Wind", "Solar","Storage","Nuclear") }
   return(case)  
 }
 
@@ -598,12 +590,12 @@ sim_filt6 <- function(inputdata) {
     filter(Primary_Fuel=="Hydrogen")         
   
   # H2 Combined cycle
-  CC_H2 <-H2[H2$Name %like% "%2022CC_0NG100H2%",] %>%
+  CC_H2 <-H2[H2$Name %like% "%CC_0NG100H2%",] %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-CC"))  
   
   # H2 Simple cycle
   SC_H2 <-H2 %>%
-    filter(grepl( '2022Frame|2022Aeroderivative',Name)) %>%
+    filter(grepl( 'Frame_0NG100H2|Aeroderivative_0NG100H2',Name)) %>%
     mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"H2-SC")) 
   
   # Storage Types

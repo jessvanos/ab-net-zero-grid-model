@@ -215,7 +215,7 @@ AESO_SimP2 <- function(year,case) {
     geom_line(data = ZPrice, 
               aes(x = date, y = Price,colour = "Simulated (AURORA)"), 
               size = 1) +
-    drop_na() +
+    #drop_na() +
     
     theme_bw() +
     

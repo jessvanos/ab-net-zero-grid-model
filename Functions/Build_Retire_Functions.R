@@ -300,10 +300,10 @@ Build_A_MW <- function(case) {
     sim_filt4(.)
 
    levels(data$Fuel_Type) <- c("Hydrogen","Natual Gas and Hydrogen Blend","Natural Gas", "Natural Gas + CCS",
-                               "Hydro", "Other","Wind", "Solar","Storage")
+                               "Hydro", "Other","Wind", "Solar","Storage","Nuclear")
   
   YrMN <-min(data$YEAR)
-  YrMX <-max(data$YEAR)
+  YrMX <-max(data$YEAR)-5
    
   Tot <- data %>%
     group_by(Time_Period) %>%
@@ -340,7 +340,7 @@ Build_A_MW <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,mxc),label=comma) +
     scale_x_continuous(expand=c(0,0),
-                       limits = c(YrMN-1,YrMX+1),limiseq(YrMN,YrMX,by=1)) +
+                       limits = c(YrMN-1,YrMX+1),breaks=seq(YrMN,YrMX,by=1)) +
     scale_fill_manual(values=colours2,drop = FALSE)
   
 }
@@ -373,7 +373,9 @@ BuildMW <- function(case)
                                                           "Natural Gas Combined Cycle CCS Retrofit","Natural Gas Combined Cycle", 
                                                           "Hydro", "Other",
                                                           "Wind", "Solar", 
-                                                          "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro") )
+                                                          "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro"
+                                                          #"Nuclear"
+                                                          ) )
   
   # Get Year max for run and filter for end dates BEFORE this date
   MaxYr <- max(data$Time_Period)-5

@@ -82,7 +82,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ_B_Oct_05_2023"
+  SourceDB<-"LZ_Oct_17_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -600,7 +600,7 @@
                    "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,"Hydrogen"=COL_H2,
                    #"Natual Gas and Hydrogen Blend"=COL_Blend,
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, 
-                   "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
+                   "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE,"Nuclear"=cOL_NUCLEAR)
 
       colours3 = c("Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                    "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
@@ -630,7 +630,9 @@
                    "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                    "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
-                   "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
+                   "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped
+                   #"Nuclear"=cOL_NUCLEAR
+                   )
       
       Patterns5 = c("Cogeneration"="none", 
                    "Coal-to-Gas"="stripe","Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
@@ -639,7 +641,9 @@
                    "Natural Gas Simple Cycle"="none", "Natural Gas Combined Cycle"="none", 
                    "Hydro"="none", "Other"="none", "Wind"="none", 
                    "Solar"="none",  "Storage - Battery"="none", 
-                   "Storage - Compressed Air"="none", "Storage - Pumped Hydro"="none")
+                   "Storage - Compressed Air"="none", "Storage - Pumped Hydro"="none"
+                   #"Nuclear"="none"
+                   )
       
       colours6=c("Natural Gas"=COL_NatGas,"Hydrogen"=COL_H2,
                  #"Natual Gas and Hydrogen Blend"=COL_Blend,
@@ -684,7 +688,7 @@
     }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2022,2025,2030,2035,2040) # Years to show in figures
+  Years2Disp <- c(2022,2025,2030,2035,2040,2045) # Years to show in figures
   Years2Pivot <- c(2022,2025,2030,2035)  # Years to display in tables
   
   # Get max year to display
@@ -707,8 +711,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference
-CaseName <- "LZ - Aggresive Bid"
-NameShort<-'Oct5_AggBid'
+CaseName <- "LZ"
+NameShort<-'Oct17_LZ_Bid'
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -725,14 +729,14 @@ NameShort<-'Oct5_AggBid'
           year_weeks(2030,BC)
           SaveRun_Loc(CaseName,"2030 Hourly Generation for One Week (Stacked Area)")
           
-          year_weeks(2034,BC)
-          SaveRun_Loc(CaseName,"2034 Hourly Generation for One Week (Stacked Area)")
+          year_weeks(2035,BC)
+          SaveRun_Loc(CaseName,"2035 Hourly Generation for One Week (Stacked Area)")
       
           year_weeks(2040,BC)
           SaveRun_Loc(CaseName,"2040 Hourly Generation for One Week (Stacked Area)")
           
-          year_weeks(2050,BC)
-          SaveRun_Loc(CaseName,"2050 Hourly Generation for One Week (Stacked Area)")
+          year_weeks(2045,BC)
+          SaveRun_Loc(CaseName,"2045 Hourly Generation for One Week (Stacked Area)")
           
       # One year of weeks for storage output and pool price
       year_stor(2035,BC)
@@ -749,12 +753,12 @@ NameShort<-'Oct5_AggBid'
       windows(14,10,buffered=FALSE)
       
       # One week
-      week12_Curt(2022,02,08,BC)
-      SaveRun_Loc(CaseName,"Curtailment Week 2022")
+      week12_Curt(2025,02,08,BC)
+      SaveRun_Loc(CaseName,"Week 2025 Feb")
       
       # One week each resource ("free_y", "fixed")
-      EachResWeek(2030,02,08,BC,"free_y")
-      SaveRun_Loc(CaseName,"Indv Week 2030")
+      EachResWeek(2045,02,08,BC,"free_y")
+      SaveRun_Loc(CaseName,"Indv Week Feb 2035")
       
       # Yearly Output
       Evalyr(BC,"n")
@@ -773,8 +777,8 @@ NameShort<-'Oct5_AggBid'
       SaveRun_Loc(CaseName,"Annual Generation (Bar Chart)")
       
       # capacity factors for 2 years
-      CFcompare(2022,2035,BC)
-      SaveRun_Loc(CaseName,"Capacity Factors 2022 and 2023")
+      CFcompare(2022,2045,BC)
+      SaveRun_Loc(CaseName,"Capacity Factors 2022 and 2045")
       
       # Annual average capacity factors for all resource types
       CF_Annual(BC)
@@ -838,7 +842,7 @@ NameShort<-'Oct5_AggBid'
       SaveRun_Loc(CaseName,"Average Annual Pool Prices")
       
       #Capture Prices
-      capture_p(2023,2035,BC)
+      capture_p(2023,2030,BC)
       SaveRun_Loc(CaseName,"Capture Prices")
       
       # Relative capture prices
@@ -865,7 +869,7 @@ NameShort<-'Oct5_AggBid'
       SaveRun_Loc(CaseName,"Annual Imports and Exports")
       
       # Import and export for full year from AB
-      Imp_Exp2(2050,BC)
+      Imp_Exp2(2045,BC)
       
       #Full Year output
       T_month_all_Sim(2022,BC)
@@ -875,8 +879,8 @@ NameShort<-'Oct5_AggBid'
       SaveRun_Loc(CaseName,"Annual Demand")
   
   # DAILY OUTPUT FUNCTIONS
-    CompDay_Season(2035,14,BC)  
-    SaveRun_Loc(CaseName,"Daily Output - Season 2025")
+    CompDay_Season(2045,14,BC)  
+    SaveRun_Loc(CaseName,"Daily Output - Season 2055")
       
     CompDay_Wind(2035,BC)
     SaveRun_Loc(CaseName,"Daily Output - Max Wind 2040")
@@ -910,7 +914,7 @@ NameShort<-'Oct5_AggBid'
       # Shows new resource value each year 
       # 1 - wind, 2 - Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen,
       # 7 - Hydro, 8 - Other, 9 - Cogen)
-      ResValue_Annual(1,1899,BC)
+      ResValue_Annual(2,1899,BC)
       SaveRun_Loc(CaseName,"Annual Nomminal Value Wind")
       
       ResValue_Annual_MWh(1,1899,BC)
@@ -923,6 +927,9 @@ NameShort<-'Oct5_AggBid'
       ResValue_NPV(1,BC)
       SaveRun_Loc(CaseName,"2023$ NPV Wind")
 
+    # GENERATE R FILES TO COMPARE LATER ('short name',case)
+      AnnualDataR(NameShort,BC)
+      
     # WRITE TO EXCEL
       # Annual data ('long name','short name',case)
       AnnualDataExcel(CaseName,NameShort,BC)
@@ -930,8 +937,7 @@ NameShort<-'Oct5_AggBid'
       # Hourly data ('long name','short name',case)
       HourlyDataExcel(CaseName,NameShort,BC)
 
-    # GENERATE R FILES TO COMPARE LATER ('short name',case)
-      AnnualDataR(NameShort,BC)
+   
       
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS!
@@ -1172,7 +1178,7 @@ NameShort<-'Oct5_AggBid'
     AESO_SimOP(2022,04,08,BC)
     
     # output compare only
-    AESO_SimO(2022,01,08,BC)
+    AESO_SimO(2022,06,08,BC)
     
     # Price compare only
     AESO_SimP(2022,04,08,BC)

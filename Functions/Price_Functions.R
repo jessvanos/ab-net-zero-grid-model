@@ -1454,9 +1454,18 @@ capture_p <- function(year1, year2, case) {
       mutate(Year = as.factor(Report_Year)) %>%
       subset(., select = c(date, ID, Output_MWH, Energy_Revenue, Year)) 
   }
+ 
+  # Avg pool price
+  ZonePAvg<-Zone_Data%>%
+    mutate(YEAR=year(date),
+           YrName=paste(YEAR,"Average Pool Price"))%>%
+    group_by(YEAR,YrName)%>%
+    summarize(AVGPOOL=mean(Price,na.rm=TRUE))
+  
   # Combine data
   AllData <- merge(Zone_Data, Res_Data, by = "date") %>%
-    subset(., select = -c(Imports,Exports))
+    subset(., select = -c(Imports,Exports))%>%
+    filter(!Output_MWH<0) # Remove storage charging times
   
   # This section calculates the achieved prices for imports and exports to add to rest
   Imp <- Zone_Data %>%
@@ -1478,19 +1487,19 @@ capture_p <- function(year1, year2, case) {
     group_by(ID,Year,date) %>%
     summarise(total_rev = sum(Energy_Revenue*1000), 
               total_gen = sum(Output_MWH),
-              price_mean=mean(Price),
               capture=total_rev/total_gen) %>%
     ungroup() %>%
     mutate(Plant_Type = ID) %>%
     group_by(Plant_Type,Year) %>%
-    summarise(Yr_capture = sum(total_rev)/sum(total_gen),
-              p_mean=mean(price_mean, na.rm = TRUE)) %>%
-    mutate(sit = "Simulation",
-           YrName=paste(Year,"Average Pool Price"))%>%
+      summarise(Yr_capture = sum(total_rev)/sum(total_gen)) %>%
+    mutate(sit = "Simulation")%>%
     arrange(Yr_capture)
   
+  # Replace NA values
+  Sim[is.na(Sim)]<-0
+  
   #Plot limits
-  PMax<-round(max(Sim$Yr_capture)+10,0)
+  PMax<-round_any(max(Sim$Yr_capture),50, f = ceiling)
 
   # Plot the data
   ggplot(Sim)+
@@ -1498,7 +1507,7 @@ capture_p <- function(year1, year2, case) {
     geom_bar(aes(x=fct_rev(fct_reorder(Plant_Type,Yr_capture)),Yr_capture,fill=Year),
              stat="identity",size=0.5,position = position_dodge(),width = .8,color="black")+
     
-    geom_point(aes(x=Plant_Type,y=p_mean,shape=YrName), size=1,fill="black",color="black")+
+    geom_hline(data=ZonePAvg,aes(yintercept=AVGPOOL,linetype=YrName), size=0.5,color="black")+
     
     scale_fill_brewer(palette="Blues")+
 
@@ -1512,7 +1521,8 @@ capture_p <- function(year1, year2, case) {
     
     theme(text=element_text(family=Plot_Text)) +
     
-    theme(panel.grid.major.y = element_line(color = "gray",linetype=2,size=0.25),
+    theme(
+      #panel.grid.major.y = element_line(color = "gray",linetype=2,size=0.25),
           axis.line.x = element_line(color = "black"),
           axis.line.y = element_line(color = "black"),
           axis.text = element_text(size = GenText_Sz,color="black"),
@@ -1539,8 +1549,9 @@ capture_p <- function(year1, year2, case) {
           legend.text = element_text(size=Leg_Sz),
           legend.title = element_blank(),
           legend.spacing.y = unit(-0.4,"lines"),
-          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-    ) 
+          legend.box="vertical",
+          legend.box.background = element_rect(fill='transparent', colour = "transparent")) 
+            
 }
 
 ################################################################################
