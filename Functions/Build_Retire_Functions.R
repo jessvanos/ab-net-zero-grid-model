@@ -116,7 +116,7 @@ RetireMW <- function(case) {
   
   # Bring in Resource Year Table and filter columns
   Retdata <- ResYr%>%
-    sim_filt2(.) %>% #Filter to rename fuels
+    sim_filt3(.) %>% #Filter to rename fuels
     subset(., select=c(Name,Condition,YEAR,Capacity,End_Date,Run_ID,Primary_Fuel,Time_Period,Nameplate_Capacity)) %>%
     filter(Run_ID == case) %>%
     filter(Condition == "Average") %>%
@@ -124,11 +124,14 @@ RetireMW <- function(case) {
   
   
   # Set levels to each category in order specified
-  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Solar","Wind","Hydro", "Other",
-                                                                "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                                                                "Blended  Simple Cycle","Blended  Combined Cycle",
-                                                                "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
-                                                                "Coal-to-Gas","Coal", "Cogeneration", "Storage"))
+  Retdata$Primary_Fuel <- factor(Retdata$Primary_Fuel, levels=c("Cogeneration","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                                #"Blended  Simple Cycle","Blended  Combined Cycle",
+                                                                "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS",
+                                                                "Natural Gas Combined Cycle CCS Retrofit","Natural Gas Combined Cycle", 
+                                                                "Hydro", "Other",
+                                                                "Wind", "Solar", 
+                                                                "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro",
+                                                                "Nuclear" ) )
   
   #Get Year max for run and filter for end dates BEFORE this date
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
@@ -169,9 +172,17 @@ RetireMW <- function(case) {
   Retdata2$End_Date <- as.numeric(Retdata2$End_Date)
   
   #Plot data
-  ggplot(Retdata2) +
-    aes(x=End_Date, y=Capacity, fill = Primary_Fuel, group = Primary_Fuel) +
-    geom_bar(position="stack", stat="identity", alpha=Plot_Trans,color='black') +
+  ggplot(Retdata2,aes(x=End_Date, y=Capacity, fill = Primary_Fuel)) +
+   
+    # Plot added
+   geom_bar_pattern(aes(pattern = Primary_Fuel),
+                     position="stack", stat="identity",
+                     na.rm=TRUE, alpha=Plot_Trans,color='black',
+                     pattern_density = 0.3,
+                     pattern_fill = "black",
+                     pattern_colour  = NA,
+                     pattern_spacing=0.01) +
+    
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -195,7 +206,7 @@ RetireMW <- function(case) {
     
     #guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
     
-    labs(x = "End Date", y = "Capacity Retired", fill = "Fuel Type",caption=SourceDB)  +
+    labs(x = "End Date", y = "Capacity Retired", fill = "Primary_Fuel",pattern="Primary_Fuel",caption=SourceDB)  +
     
     scale_x_continuous(expand = c(0, 0),
                        limits = c(MinYr-1,MaxYr+1),
@@ -204,7 +215,9 @@ RetireMW <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c((mxc),0),breaks=breaks_pretty(5),labels=comma) +
     
-    scale_fill_manual(values=colours3,drop = FALSE)
+    scale_fill_manual(values=colours5,drop = FALSE) +
+    
+    scale_pattern_manual(values=Patterns5,drop = FALSE)
   
 }
 
@@ -341,7 +354,9 @@ Build_A_MW <- function(case) {
                        limits = c(0,mxc),label=comma) +
     scale_x_continuous(expand=c(0,0),
                        limits = c(YrMN-1,YrMX+1),breaks=seq(YrMN,YrMX,by=1)) +
-    scale_fill_manual(values=colours2,drop = FALSE)
+    
+    scale_fill_manual(values=colours2,drop = FALSE) 
+  
   
 }
 
@@ -373,8 +388,8 @@ BuildMW <- function(case)
                                                           "Natural Gas Combined Cycle CCS Retrofit","Natural Gas Combined Cycle", 
                                                           "Hydro", "Other",
                                                           "Wind", "Solar", 
-                                                          "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro"
-                                                          #"Nuclear"
+                                                          "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro",
+                                                          "Nuclear"
                                                           ) )
   
   # Get Year max for run and filter for end dates BEFORE this date
@@ -671,7 +686,7 @@ Eval_CapChange <- function(case) {
 # Set levels to each category in order specified
 Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
                                     levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                                             "Blended  Simple Cycle","Blended  Combined Cycle",
+                                             #"Blended  Simple Cycle","Blended  Combined Cycle",
                                              "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle CCS Retrofit",
                                              "Natural Gas Combined Cycle", 
                                              "Hydro", "Other",
@@ -794,14 +809,14 @@ Tot_Change %>%
     legend.position = "right",                             # Move legend to the bottom
     legend.justification = c(0.5,0.5),                     # Center the legend
     legend.text = element_text(size =Leg_Sz),              # Size of legend text
-    legend.title=element_text()) +                         # Legend title
+    legend.title=element_blank()) +                        # Legend title
   
   scale_x_discrete(expand=c(0.05,0.05),
                    limits = as.character(mnx:mxx)) +
   scale_y_continuous(expand=c(0,0),
                      limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),labels=comma) +
   scale_fill_manual(values=colours8,drop = FALSE) +
-  scale_pattern_manual(values=Patterns8,drop = FALSE)+
+  scale_pattern_manual(values=Patterns8,drop = FALSE) +
   labs(x = "Year", y = "Net Change in Capacity (MW)", fill = "Resource Options",pattern="Resource Options",caption = paste(SourceDB))
 }
 

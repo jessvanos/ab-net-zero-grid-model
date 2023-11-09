@@ -216,7 +216,8 @@ sim_filt2 <- function(inputdata) {
   Solar <- inputdata %>%
     filter(Primary_Fuel=="Solar")
   Storage <- inputdata %>%    
-    filter(grepl("Storage",Primary_Fuel))
+    filter(grepl("Storage",Primary_Fuel))%>%
+    mutate(Primary_Fuel=ifelse(is.na(Primary_Fuel),NA,"Storage"))
   Wind <- inputdata %>%
     filter(Primary_Fuel=="Wind")  
   Nuclear <-inputdata %>%
@@ -309,6 +310,7 @@ sim_filt3 <- function(inputdata) {
     filter(Primary_Fuel=="Solar")
   Storage <- inputdata %>%    
     filter(grepl("Storage",Primary_Fuel))
+  
   Wind <- inputdata %>%
     filter(Primary_Fuel=="Wind")  
   Nuclear <-inputdata %>%

@@ -511,7 +511,9 @@ System_Cost<- function(case) {
 ## 1 wind
 ## 2- Solar
 ## 3 - Storage
-## 4 - Unabated natural gas
+## 4 - Unabated gas gen
+## 4.1 - Unabated natural gas simple cycle
+## 4.2 - Unabated natural gas combined cycle
 ## 5- Abated natural gas
 ## 6 - Hydrogen
 ## 7 - Hydro
@@ -539,9 +541,15 @@ ResValue_Line<-function(ResNum,BuildYr,case) {
   } else if (ResNum==4) {
     FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
     FuelIndicator<-"Unabated Gas"
+  } else if (ResNum==4.1) {
+    FuelType<-c("WECC-Alberta NaturalGas-Peaking")
+    FuelIndicator<-"Simple Cycle Gas"
+  } else if (ResNum==4.2) {
+    FuelType<-c("WECC-Alberta NaturalGas")
+    FuelIndicator<-"Unabated Combined Cycle Gas"
   } else if (ResNum==5) {
     FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
-    FuelIndicator<-"Abated Gas"
+    FuelIndicator<-"Combined Cycle Gas + CCS"
   } else if (ResNum==6) {
     FuelType<-c("Hydrogen")
     FuelIndicator<-"Hydrogen"
@@ -690,6 +698,12 @@ ResValue_Line_MWh<-function(ResNum,BuildYr,case) {
   } else if (ResNum==4) {
     FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
     FuelIndicator<-"Unabated Gas"
+  } else if (ResNum==4.1) {
+    FuelType<-c("WECC-Alberta NaturalGas-Peaking")
+    FuelIndicator<-"Simple Cycle Gas"
+  } else if (ResNum==4.2) {
+    FuelType<-c("WECC-Alberta NaturalGas")
+    FuelIndicator<-"Unabated Combined Cycle Gas"
   } else if (ResNum==5) {
     FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
     FuelIndicator<-"Abated Gas"
@@ -789,9 +803,10 @@ ResValue_Line_MWh<-function(ResNum,BuildYr,case) {
       axis.title.y = element_text(face="bold",XTit_Sz ),           # y-axis title text size
       axis.text.y = element_text(color="black"),
       # Legend
-      legend.position = c(0.99, 0.99), 
+        #legend.position = c(0.99, 0.99), 
+      legend.position="bottom",
       legend.text = element_text(size=Leg_Sz),
-      legend.justification = c(0.99, 0.99),                      
+        #legend.justification = c(0.99, 0.99),                      
       legend.title=element_text()) +
     
     # Y-Axis 
@@ -841,6 +856,12 @@ ResValue_Annual<-function(ResNum,BuildYr,case) {
   } else if (ResNum==4) {
     FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
     FuelIndicator<-"Unabated Gas"
+  } else if (ResNum==4.1) {
+    FuelType<-c("WECC-Alberta NaturalGas-Peaking")
+    FuelIndicator<-"Simple Cycle Gas"
+  } else if (ResNum==4.2) {
+    FuelType<-c("WECC-Alberta NaturalGas")
+    FuelIndicator<-"Unabated Combined Cycle Gas"
   } else if (ResNum==5) {
     FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
     FuelIndicator<-"Abated Gas"
@@ -979,6 +1000,12 @@ ResValue_Annual_MWh<-function(ResNum,BuildYr,case) {
   } else if (ResNum==4) {
     FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
     FuelIndicator<-"Unabated Gas"
+  } else if (ResNum==4.1) {
+    FuelType<-c("WECC-Alberta NaturalGas-Peaking")
+    FuelIndicator<-"Simple Cycle Gas"
+  } else if (ResNum==4.2) {
+    FuelType<-c("WECC-Alberta NaturalGas")
+    FuelIndicator<-"Unabated Combined Cycle Gas"
   } else if (ResNum==5) {
     FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
     FuelIndicator<-"Abated Gas"
@@ -1084,7 +1111,7 @@ ResValue_Annual_MWh<-function(ResNum,BuildYr,case) {
 
 
 ################################################################################
-## FUNCTION: ResValue_Total_MWh
+## FUNCTION: ResValue_NPV_MWh
 ## Shows the cumulative annaul value of new resources based on plant type.
 ## Define the Resource type based on number 
 ## 1 wind
@@ -1101,7 +1128,7 @@ ResValue_Annual_MWh<-function(ResNum,BuildYr,case) {
 ##    ResYr - Annual resource info
 ################################################################################
 
-ResValue_NPV_MWh<-function(ResNum,case) {
+ResValue_NPV_MWh<-function(ResNum,BuildYr,case) {
     
     # Filter for resource type, use primary fuel
     if (ResNum==1) {
@@ -1116,6 +1143,12 @@ ResValue_NPV_MWh<-function(ResNum,case) {
     } else if (ResNum==4) {
       FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
       FuelIndicator<-"Unabated Gas"
+    } else if (ResNum==4.1) {
+      FuelType<-c("WECC-Alberta NaturalGas-Peaking")
+      FuelIndicator<-"Simple Cycle Gas"
+    } else if (ResNum==4.2) {
+      FuelType<-c("WECC-Alberta NaturalGas")
+      FuelIndicator<-"Unabated Combined Cycle Gas"
     } else if (ResNum==5) {
       FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
       FuelIndicator<-"Abated Gas"
@@ -1132,17 +1165,18 @@ ResValue_NPV_MWh<-function(ResNum,case) {
       FuelType<-c("WECC-AECO Hub NaturalGas-COGEN_oilsands_Alberta")
       FuelIndicator<-"Cogen"
     }
-    
+
     # Filter the annual resource table for resource group and selected columns
     DataYr <- ResYr %>%
       filter(Run_ID == case,
              Condition == "Average",
              Zone == "WECC_Alberta",) %>%
       # Take out new resources only
-      filter(grepl('New Resource',Name)) %>%
-      mutate(Report_Year=as.numeric(YEAR),
-             Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
-             Beg_Year=year(Beg_Date)) %>%
+      #filter(grepl('New Resource',Name)) %>%
+        mutate(Report_Year=as.numeric(YEAR), 
+               Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
+               Beg_Year=year(Beg_Date)) %>%
+        filter(Beg_Year>=BuildYr) %>%
       filter(Capacity>1) %>%
       # Get fuel type of interest
       filter(Primary_Fuel %in% FuelType) %>%
@@ -1152,11 +1186,11 @@ ResValue_NPV_MWh<-function(ResNum,case) {
                         Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
                         Revenue,Energy_Revenue_MWh,Value,Value_MWh,
                         Total_Hours_Run,Beg_Date,Beg_Year,End_Date)) %>%
-      # Remove the resource number only
-      mutate(NameAbb=word(Name,3),
-             # Add capacity of resource to tag
-             NameAbb=paste("NR#:",NameAbb,", Built:",Beg_Year," (",round(Capacity,digits=0),"MW)"))
-    
+      # Rename based on resource. If new resource, get new resource number, if project, get project number, if existing get AESO code.
+      mutate(NameAbb=if_else(grepl('New Resource',Name)==TRUE,paste("NR:",word(Name,3),", Built:",Beg_Year," (",round(Capacity,digits=0),"MW)"),
+                     if_else(str_detect(Name,"P[0-9][0-9][0-9][0-9]"),paste("P:",word(Name,1),", Built:",Beg_Year," (",round(Capacity,digits=0),"MW)"),
+                             paste("ID:",word(Name,-1),", Built:",Beg_Year," (",round(Capacity,digits=0),"MW)"))))
+
     # Reference Names
     Refnames <-DataYr %>%
       group_by(NameAbb,Name)%>%
@@ -1167,11 +1201,12 @@ ResValue_NPV_MWh<-function(ResNum,case) {
     
     # Filter data further
     YearMin<-min(DataYr$Report_Year)
-    YearMax<-2035
+    YearMax<-max(DataYr$Report_Year)-5
     
     Data_Val <-DataYr %>%
       filter(Report_Year<=YearMax,
-             Report_Year>=YearMin)%>%   
+             Report_Year>=YearMin)%>%  
+      replace(is.na(.),0)%>%
       # Convert to millions
       mutate(Calc_Present=Value_MWh/(1.025)^(Report_Year-2023)) %>%
       group_by(NameAbb,Beg_Year) %>%
@@ -1260,7 +1295,7 @@ ResValue_NPV_MWh<-function(ResNum,case) {
 ##    ResYr - Annual resource info
 ################################################################################
 
-ResValue_NPV<-function(ResNum,case) {
+ResValue_NPV<-function(ResNum,BuildYr,case) {
   
   # Filter for resource type, use primary fuel
   if (ResNum==1) {
@@ -1275,6 +1310,12 @@ ResValue_NPV<-function(ResNum,case) {
   } else if (ResNum==4) {
     FuelType<-c("WECC-Alberta NaturalGas-Peaking", "WECC-Alberta NaturalGas")
     FuelIndicator<-"Unabated Gas"
+  } else if (ResNum==4.1) {
+    FuelType<-c("WECC-Alberta NaturalGas-Peaking")
+    FuelIndicator<-"Simple Cycle Gas"
+  } else if (ResNum==4.2) {
+    FuelType<-c("WECC-Alberta NaturalGas")
+    FuelIndicator<-"Unabated Combined Cycle Gas"
   } else if (ResNum==5) {
     FuelType<-c("Alberta Natural Gas with CCS","Alberta Natural Gas CCS Retrofit")
     FuelIndicator<-"Abated Gas"
@@ -1298,10 +1339,11 @@ ResValue_NPV<-function(ResNum,case) {
            Condition == "Average",
            Zone == "WECC_Alberta",) %>%
     # Take out new resources only
-    filter(grepl('New Resource',Name)) %>%
-    mutate(Report_Year=as.numeric(YEAR),
+    #filter(grepl('New Resource',Name)) %>%
+    mutate(Report_Year=as.numeric(YEAR), 
            Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
            Beg_Year=year(Beg_Date)) %>%
+    filter(Beg_Year>=BuildYr) %>%
     filter(Capacity>1) %>%
     # Get fuel type of interest
     filter(Primary_Fuel %in% FuelType) %>%
@@ -1311,10 +1353,10 @@ ResValue_NPV<-function(ResNum,case) {
                       Variable_OM_Cost,Total_Emission_Cost,Fuel_Cost,Startup_Cost,Build_Cost,
                       Revenue,Energy_Revenue_MWh,Value,Value_MWh,
                       Total_Hours_Run,Beg_Date,Beg_Year,End_Date)) %>%
-    # Remove the resource number only
-    mutate(NameAbb=word(Name,3),
-           # Add capacity of resource to tag
-           NameAbb=paste("NR#:",NameAbb,", Built:",Beg_Year," (",round(Capacity,digits=0),"MW)"))
+    # Rename based on resource. If new resource, get new resource number, if project, get project number, if existing get AESO code.
+    mutate(NameAbb=if_else(grepl('New Resource',Name)==TRUE,paste("NR:",word(Name,3),", Built:",Beg_Year," (",round(Capacity,digits=0),"MW)"),
+                           if_else(str_detect(Name,"P[0-9][0-9][0-9][0-9]"),paste("P:",word(Name,1),", Built:",Beg_Year," (",round(Capacity,digits=0),"MW)"),
+                                   paste("ID:",word(Name,-1),", Built:",Beg_Year," (",round(Capacity,digits=0),"MW)"))))
   
   # Reference Names
   Refnames <-DataYr %>%
@@ -1326,11 +1368,12 @@ ResValue_NPV<-function(ResNum,case) {
   
   # Filter data further
   YearMin<-min(DataYr$Report_Year)
-  YearMax<-2035
-  
+  YearMax<-max(DataYr$Report_Year)-5
+
   Data_Val <-DataYr %>%
     filter(Report_Year<=YearMax,
-           Report_Year>=YearMin)%>%   
+           Report_Year>=YearMin)%>% 
+    replace(is.na(.),0)%>%
     # Convert to millions
     mutate(Value=Value/1000,
            Calc_Present=Value/(1.025)^(Report_Year-2023)) %>%
@@ -1434,7 +1477,7 @@ capture_p <- function(year1, year2, case) {
              year(date) <= year2,
              Output_MWH >= 0,
              Run_ID == case) %>%
-      sim_filt(.) %>%
+      sim_filt1(.) %>%
       mutate(Year = as.factor(Report_Year)) %>%
       subset(., select = c(date, ID, Output_MWH, Energy_Revenue, Year)) 
   }else{
@@ -1450,7 +1493,7 @@ capture_p <- function(year1, year2, case) {
       filter(year(date) %in% Years2Disp,
              Output_MWH >= 0,
              Run_ID == case) %>%
-      sim_filt(.) %>%
+      sim_filt1(.) %>%
       mutate(Year = as.factor(Report_Year)) %>%
       subset(., select = c(date, ID, Output_MWH, Energy_Revenue, Year)) 
   }
@@ -1507,7 +1550,7 @@ capture_p <- function(year1, year2, case) {
     geom_bar(aes(x=fct_rev(fct_reorder(Plant_Type,Yr_capture)),Yr_capture,fill=Year),
              stat="identity",size=0.5,position = position_dodge(),width = .8,color="black")+
     
-    geom_hline(data=ZonePAvg,aes(yintercept=AVGPOOL,linetype=YrName), size=0.5,color="black")+
+   # geom_hline(data=ZonePAvg,aes(yintercept=AVGPOOL,linetype=YrName), size=0.5,color="black")+
     
     scale_fill_brewer(palette="Blues")+
 
@@ -1550,7 +1593,8 @@ capture_p <- function(year1, year2, case) {
           legend.title = element_blank(),
           legend.spacing.y = unit(-0.4,"lines"),
           legend.box="vertical",
-          legend.box.background = element_rect(fill='transparent', colour = "transparent")) 
+          legend.box.background = element_rect(fill='transparent', colour = "transparent")) +
+    guides(fill = guide_legend(nrow = 1)) 
             
 }
 
@@ -1585,7 +1629,7 @@ Relcapture_p <- function(year1, year2, case) {
              year(date) <= year2,
              Output_MWH >= 0,
              Run_ID == case) %>%
-      sim_filt(.) %>%
+      sim_filt1(.) %>%
       mutate(Year = as.factor(Report_Year)) %>%
       subset(., select = c(date, ID, Output_MWH, Energy_Revenue, Year)) 
   }else{
@@ -1601,7 +1645,7 @@ Relcapture_p <- function(year1, year2, case) {
         filter(year(date) %in% Years2Disp,
                Output_MWH >= 0,
                Run_ID == case) %>%
-        sim_filt(.) %>%
+        sim_filt1(.) %>%
         mutate(Year = as.factor(Report_Year)) %>%
         subset(., select = c(date, ID, Output_MWH, Energy_Revenue, Year)) 
   }
@@ -1624,31 +1668,38 @@ Relcapture_p <- function(year1, year2, case) {
            Output_MWH = Exports) %>%
     subset(., select = -c(Imports,Exports))
   
+  # Calculate the annual average pool prices for simulated data
+  AvgPool <- AllData %>%
+    group_by(Year) %>%
+    summarise(Pool = mean(Price))
+  
   # Combine trade data with rest
   Sim <- rbind(AllData,Imp,Exp) %>%
     group_by(ID,Year,date) %>%
     summarise(total_rev = sum(Energy_Revenue*1000), 
               total_gen = sum(Output_MWH),
-              price_mean=mean(Price),
               capture=total_rev/total_gen) %>%
     ungroup() %>%
     mutate(Plant_Type = ID) %>%
     group_by(Plant_Type,Year) %>%
-    summarise(Yr_capture = sum(total_rev)/sum(total_gen),
-              p_mean=mean(price_mean, na.rm = TRUE)) %>%
+    summarise(Yr_capture = sum(total_rev)/sum(total_gen)) %>%
+    replace(is.na(.),0) %>%
     mutate(sit = "Simulation")%>%
     arrange(Yr_capture)
   
+  # Combine average annual pool price with prices achived
+  Sim2<-merge(Sim,AvgPool,by.x="Year")
+  
   #Plot limits
-  PMax<-round(max(Sim$Yr_capture-Sim$p_mean)+10,0)
-  PMin<-round(min(Sim$Yr_capture-Sim$p_mean)-10,0)
+  PMax<-round(max(Sim2$Yr_capture-Sim2$Pool)+10,0)
+  PMin<-round(min(Sim2$Yr_capture-Sim2$Pool)-10,0)
   
   # Plot the data
-  ggplot(Sim)+
+  ggplot(Sim2)+
     
     geom_hline(yintercept=0, linetype="solid", color="black",size=0.5)+
     
-    geom_bar(aes(x=fct_rev(fct_reorder(Plant_Type,Yr_capture)),Yr_capture-p_mean,fill=Year),
+    geom_bar(aes(x=fct_rev(fct_reorder(Plant_Type,Yr_capture)),Yr_capture-Pool,fill=Year),
              stat="identity",size=0.5,position = position_dodge(),width = .8,color="black")+
     
     scale_fill_brewer(palette="Blues")+
@@ -1686,12 +1737,15 @@ Relcapture_p <- function(year1, year2, case) {
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.key.size = unit(1,"lines"),
           legend.background = element_rect(fill='transparent'),
-          legend.justification = "right",
-          legend.position=c(0.99, 0.94),
+          #legend.justification = "right",
+          #legend.position=c(0.99, 0.94),
+          legend.position="bottom",
           legend.text = element_text(size=Leg_Sz),
           legend.title = element_blank(),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-    ) 
+    ) +
+  guides(fill = guide_legend(nrow = 1)) 
+    
 }
 
 ################################################################################
@@ -1722,7 +1776,7 @@ ach_poolprem <- function(case) {
     filter(year(date) %in% Years2Disp,
            Output_MWH >= 0,
            Run_ID == case) %>%
-    sim_filt(.) %>%
+    sim_filt1(.) %>%
     subset(., select = c(date, ID, Output))
   
   # Combine into one dataframe
@@ -1767,11 +1821,19 @@ ach_poolprem <- function(case) {
   MaxP<-round(max(Sim$Ratio,na.rm=TRUE)+0.1,1)
   MinP<-round(min(Sim$Ratio,na.rm=TRUE)-0.1,1)
   
-  Sim$Plant_Type <- factor(Sim$Plant_Type, levels=c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
-                                                    "Hydro","Other","Wind", "Solar", "Storage","Coal","Cogen", "EXPORT", "IMPORT"))
+  c()
   
-  levels(Sim$Plant_Type) <- c("Coal-to-Gas", "Natural Gas","Natural Gas + CCS","Natual Gas and Hydrogen Blend","Hydrogen" , 
-                              "Hydro","Other","Wind", "Solar", "Storage","Coal","Cogen", "Export", "Import")
+  Sim$Plant_Type <- factor(Sim$Plant_Type, levels=c("Solar","Wind","Hydro","Other", 
+                                                    "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                    "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                    "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
+                                                    "Coal", "Cogeneration","Storage", "EXPORT", "IMPORT"))
+  
+  levels(Sim$Plant_Type) <- c("Solar","Wind","Hydro","Other", 
+                              "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                              "Blended  Simple Cycle","Blended  Combined Cycle",
+                              "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
+                              "Coal", "Cogeneration","Storage", "Export", "Import")
   
   
   # Plot the data
@@ -1810,7 +1872,7 @@ ach_poolprem <- function(case) {
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.key.size = unit(1,"lines"),
           legend.background = element_rect(fill='transparent'),
-          legend.position="right",
+          legend.position="bottom",
           legend.text = element_text(size=Leg_Sz),
           legend.title = element_blank(),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
@@ -1821,7 +1883,8 @@ ach_poolprem <- function(case) {
     
     scale_y_continuous(expand=c(0,0),
                        limits = c(MinP,MaxP),
-                       breaks = seq(MinP,MaxP,by=0.2),
+                       breaks = pretty_breaks(12),
                        labels = percent
-    )
+    )+
+    guides(fill = guide_legend(nrow = 1)) 
 }
