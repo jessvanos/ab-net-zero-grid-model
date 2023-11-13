@@ -1205,12 +1205,13 @@ ResValue_NPV_MWh<-function(ResNum,BuildYr,case) {
     
     Data_Val <-DataYr %>%
       filter(Report_Year<=YearMax,
-             Report_Year>=YearMin)%>%  
+             Report_Year>=YearMin)%>% 
       replace(is.na(.),0)%>%
-      # Convert to millions
-      mutate(Calc_Present=Value_MWh/(1.025)^(Report_Year-2023)) %>%
+      # Convert from thousands
+      mutate(Value=Value*1000,
+             Calc_Present=Value/(1.025)^(Report_Year-2023)) %>%
       group_by(NameAbb,Beg_Year) %>%
-      summarise(Calc_NPV=sum(Calc_Present),
+      summarise(Calc_NPV=sum(Calc_Present)/sum(Output_MWH),
                 TotSign=Calc_NPV>=0) %>%
       arrange(Beg_Year)
     
@@ -1263,7 +1264,7 @@ ResValue_NPV_MWh<-function(ResNum,BuildYr,case) {
         legend.position ="none") +                               # Remove legend
       
       # Y-Axis 
-      scale_y_continuous(name="Net Present Value (2023$/MWh)",labels = label_number(accuracy = 0.01),
+      scale_y_continuous(name="Net Present Value per Total Output (2023$/MWh)",labels = label_number(accuracy = 0.01),
                          expand=c(0,0), limits=c(-MaxP,MaxP),breaks = pretty_breaks(12)) +
       coord_flip() +
       # X-axis (flipped)  

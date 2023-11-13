@@ -140,7 +140,7 @@
   ZoneHr <- dbReadTable(con,'ZoneHour1')
 
   # LT Tables
-  #LTRes <- dbReadTable(con,'LTResValue1')
+  LTRes <- dbReadTable(con,'LTResValue1')
   Build <- dbReadTable(con,'LTBuildReport1')
   Study <- dbReadTable(con,'LTStudyLog1')
   #CReport <- dbReadTable(con,'LTConstraintReport1')
@@ -718,8 +718,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference
-CaseName <- "BAU Values"
-NameShort<-'Nov5_BAU Values'
+CaseName <- "New Cost Graphs"
+NameShort<-'Nov13_BAU Values'
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -753,8 +753,8 @@ NameShort<-'Nov5_BAU Values'
           SaveRun_Loc(CaseName,"2023 Storage Output with Pool Price")
           
       # Four months of generation, intertie, and pool price
-      FourMonthSummary(2030,BC)
-      SaveRun_Loc(CaseName,"2030 Output, Trade, Price") 
+      FourMonthSummary(2043,BC)
+      SaveRun_Loc(CaseName,"2043 Output, Trade, Price") 
           
       # Save all full size images
       windows(14,10,buffered=FALSE)
@@ -1054,18 +1054,11 @@ NameShort<-'Nov5_BAU Values'
     # Shows new resource value each year 
     # 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen
     # 7 - Hydro, 8 - Other, 9 - Cogen
-    ResValue_Annual(4.1,1800,BC)
-    ResValue_Annual_MWh(1,1800,BC)
+    ResValue_Annual(1,1800,BC)
+    SaveRun_Loc(CaseName,"Annual Value Wind")
     
-    # Nominal value as line
-    ResValue_Line(4,1800,BC)
-    ResValue_Line_MWh(4,1800,BC)
-    
-    # Shows net present value or new resources
-    # 1 wind, 2- Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen
-    # 7 - Hydro, 8 - Other, 9 - Cogen
-    ResValue_NPV(8,1899,BC)
-    ResValue_NPV_MWh(1,1899,BC)
+    ResValue_Annual_MWh(5,1800,BC)
+    SaveRun_Loc(CaseName,"Annual Value Wind MWh")
     
     # Show capture price relative to mean price
     Relcapture_p(2019,2030,BC)
