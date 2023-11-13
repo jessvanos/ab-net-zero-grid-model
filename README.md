@@ -116,6 +116,14 @@ Functions to evaluate the electricity grid as it approaches possible net zero st
 
 -   *BuildUnits* : Show units built compared to available ones for a resource type.
 
+-   *Build_CCSRet* : Show CCS retrofit options and what took place.
+
+-   *Build_CCSRet2* : Show base units for CCS retrofit options and year retired to allow retrofit.
+
+-   *CC_Fate_study* : Show if combined cycle gas plants continue to opperate, retire, or retrofit over entire study.
+
+-   *CC_Fate_year* : Shows total combined cycle gas capacity in each year of study. Includes retirement and retrofit option.
+
 
 ### <ins>Daily_Output_Functions
 

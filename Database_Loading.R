@@ -718,8 +718,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference
-CaseName <- "BAU"
-NameShort<-'Nov5_BAU'
+CaseName <- "BAU Values"
+NameShort<-'Nov5_BAU Values'
 
 ################################################################################
 ## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
@@ -832,6 +832,14 @@ NameShort<-'Nov5_BAU'
       Eval_CapChange(BC)
       SaveRun_Loc(CaseName,"Net Capacity Changes")
   
+      # CCS retrofits
+      Build_CCSRet(BC)
+      SaveRun_Loc(CaseName,"CCS Retrofit Dates")
+      
+      # Combined cycle study fate by resource
+      CC_Fate_study(BC)
+      SaveRun_Loc(CaseName,"Combined Cycle Gas Fate")
+      
   # PRICES AND COSTS
       # Shows Prices for simulation duration
       Sim_dur(BC)
@@ -928,11 +936,11 @@ NameShort<-'Nov5_BAU'
       ResValue_Annual(1,1899,BC)
       # Nominal value as line
       ResValue_Line(9,1800,BC)
-      SaveRun_Loc(CaseName,"Annual Nomminal Value Cogen")
+      SaveRun_Loc(CaseName,"Annual Nomminal Line Value Cpgen")
       
-      ResValue_Annual_MWh(1,1899,BC)
-      ResValue_Line_MWh(4.1,1800,BC)
-      SaveRun_Loc(CaseName,"Annual Nomminal Value Sun MWh")
+      ResValue_Annual_MWh(4.2,1899,BC)
+      ResValue_Line_MWh(2,1800,BC)
+      SaveRun_Loc(CaseName,"Annual Nomminal line Value sun MWh")
       
       # Net present value of all plants in resource group per MWh
       ResValue_NPV_MWh(9,1899,BC)
@@ -1103,6 +1111,17 @@ NameShort<-'Nov5_BAU'
     BuildUnits(BC, "WND")
     SaveRun_Loc(CaseName,"Res Built UR")
     
+    # CCS retrofits
+    Build_CCSRet(BC)
+    
+    # Original units CCS retorift end date
+    Build_CCSRet2(BC)
+    
+    # Combined cycle study fate by resource
+    CC_Fate_study(BC)
+    
+    # Combined cycle annual capacity changes and fate
+    CC_Fate_year(BC)
 ################################################################################
 ## Emission Functions (Emission_Functions)
 ################################################################################

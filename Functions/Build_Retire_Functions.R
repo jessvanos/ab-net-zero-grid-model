@@ -954,3 +954,372 @@ BuildUnits <- function(case, Fuel) {
   ggdraw(add_sub(p3,paste("Simulation: ",SourceDB,"; ", "Fuel Type: ",Fuel, sep = "",AddedText)))
 }
 
+################################################################################
+## FUNCTION: Build_CCSRet
+## Show units were retrofited with CCS and the year.
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################  
+
+Build_CCSRet <- function(case) {
+  
+  # Get the CCS bulid data first
+  CCSBuild <- Build %>%
+    filter(Run_ID == case,
+           LT_Iteration == 0,
+           Fuel_Type == "GasCCS",
+           Time_Period != "Study",
+           grepl("Retrofit",Name)) %>%
+    mutate(BuildYear=if_else(Units_Built==1,as.numeric(Time_Period),0))%>%
+    group_by(Name)%>%
+    summarise(Units_Built=sum(Units_Built),
+              BuildYear=as.character(max(BuildYear))) %>%
+    ungroup() 
+      
+  # Replace 0's
+  CCSBuild$BuildYear[CCSBuild$BuildYear == 0]<-NA
+
+  # CCS Retrofit Graph
+    ggplot(CCSBuild) +
+    geom_col(aes(Name, Units_Built,fill = BuildYear),color="black") +
+    labs(x = "Plant Name", y = "CCS Retrofit Units Added",fill="Start Year") +
+    
+    scale_y_continuous(expand = c(0,0),
+                       limits = c(0,1.5),breaks=1) +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          axis.title.x = element_text(size = XTit_Sz,face="bold"),
+          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          axis.text=element_text(color="black"),
+          plot.title = element_text(size = Tit_Sz),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          panel.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.key.size = unit(1,"lines"), 
+          legend.background = element_rect(fill='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          text = element_text(size = 15),
+          panel.border = element_rect(colour = "black", fill = "transparent"), 
+          #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
+    ) +
+    
+    # Remove NA from legend
+      scale_fill_brewer(palette= "RdYlBu",na.translate = F) +
+    
+    theme(text=element_text(family=Plot_Text))
+  
+}
+
+################################################################################
+## FUNCTION: Build_CCSRet2
+## Show units were retrofited with CCS and the year.
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################  
+
+Build_CCSRet2 <- function(case) {
+  
+  # Get the CCS retrofit data
+  CCSBuild <- Build %>%
+    filter(Run_ID == case,
+           LT_Iteration == 0,
+           Fuel_Type == "GasCCS",
+           Time_Period != "Study",
+           grepl("Retrofit",Name)) %>%
+    mutate(BuildYear=if_else(Units_Built==1,as.numeric(Time_Period),0))%>%
+    group_by(Name)%>%
+    summarise(Units_Built=sum(Units_Built),
+              BuildYear=as.character(max(BuildYear))) %>%
+    ungroup() 
+  
+  # Replace 0's
+  CCSBuild$BuildYear[CCSBuild$BuildYear == 0]<-NA
+  
+  # Get the retrofits that occured
+  CCSTemp<-CCSBuild %>%
+    filter(Units_Built >0)%>%
+    mutate(Name=word(Name,1,2),
+           Name=gsub("-","",Name))
+  
+  # Extract list of names from retorifts that occurred
+  CCSNames<-list(unique(CCSTemp$Name))
+  
+  
+  # Get all combined cycle data
+  CC_all<-ResYr %>%
+    filter(Primary_Fuel == "WECC-Alberta NaturalGas",
+           Run_ID == case,
+           Condition == "Average") %>%
+    mutate(Time_Period=as.numeric(Time_Period),
+           End_Date=as.Date(End_Date,format = "%m/%d/%Y"),
+           Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
+           End_Date=year(End_Date), 
+           Beg_Date=year(Beg_Date)) %>% 
+    filter(Beg_Date<=2025)%>% # Filter out any new resources
+    subset(., select=c(Name,Condition,Capacity,Nameplate_Capacity,End_Date,Beg_Date,
+                       Run_ID,Primary_Fuel,Time_Period,Capacity_Factor))
+  
+  CC_fate<-CC_all %>%
+    group_by(Name)%>%
+    summarise(Capacity=max(Capacity),
+              End=max(End_Date)) %>%
+    ungroup()%>%
+    mutate(Retro=if_else(grepl(paste(unlist(CCSNames),collapse="|"),Name),1,0),
+           End=as.character(End))
+  
+  CC_fate$End[CC_fate$End == 0]<-NA
+  
+  
+  # PLOT
+  ggplot(CC_fate) +
+    geom_col(aes(Name, Retro,fill = End),color="black") +
+    labs(x = "Plant Name", y = "Units Retrofited",fill="End Year") +
+    
+    scale_y_continuous(expand = c(0,0),
+                       limits = c(0,1.5),breaks=1) +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          axis.text=element_text(color="black"),
+          plot.title = element_text(size = Tit_Sz),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          panel.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.key.size = unit(1,"lines"), 
+          legend.background = element_rect(fill='transparent'),
+          legend.position="right",
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          text = element_text(size = 15),
+          panel.border = element_rect(colour = "black", fill = "transparent"), 
+          #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
+    ) +
+    
+    # Remove NA from legend
+    scale_fill_brewer(palette= "RdYlBu",na.translate = F) +
+    
+    theme(text=element_text(family=Plot_Text))
+  
+}
+
+
+################################################################################
+## FUNCTION: CC_Fate_study
+## Show units were retrofited with CCS and the year.
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################  
+
+CC_Fate_study <- function(case) {
+  
+  # Get the CCS retrofit data
+  CCSBuild <- Build %>%
+    filter(Run_ID == case,
+           LT_Iteration == 0,
+           Fuel_Type == "GasCCS",
+           Time_Period != "Study",
+           grepl("Retrofit",Name)) %>%
+    mutate(BuildYear=if_else(Units_Built==1,as.numeric(Time_Period),0))%>%
+    group_by(Name)%>%
+    summarise(Units_Built=sum(Units_Built),
+              BuildYear=as.character(max(BuildYear))) %>%
+    ungroup() 
+  
+  # Replace 0's
+  CCSBuild$BuildYear[CCSBuild$BuildYear == 0]<-NA
+  
+  # Get the retrofits that occured
+  CCSTemp<-CCSBuild %>%
+    filter(Units_Built >0)%>%
+    mutate(Name=word(Name,1,2),
+           Name=gsub("-","",Name))
+  
+  # Extract list of names from retorifts that occurred
+  CCSNames<-list(unique(CCSTemp$Name))
+  
+  
+  # Get all combined cycle data
+  CC_all<-ResYr %>%
+    filter(Primary_Fuel == "WECC-Alberta NaturalGas",
+           Run_ID == case,
+           Condition == "Average") %>%
+    mutate(Time_Period=as.numeric(Time_Period),
+           End_Date=as.Date(End_Date,format = "%m/%d/%Y"),
+           Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
+           End_Date=year(End_Date), 
+           Beg_Date=year(Beg_Date)) %>% 
+    filter(Beg_Date<=2025)%>% # Filter out any new resources
+    subset(., select=c(Name,Condition,Capacity,Nameplate_Capacity,End_Date,Beg_Date,
+                       Run_ID,Primary_Fuel,Time_Period,Capacity_Factor))
+  
+  CC_fate<-CC_all %>%
+    group_by(Name)%>%
+    summarise(Capacity=max(Capacity),
+              End=max(End_Date)) %>%
+    ungroup()%>%
+    mutate(Fate=if_else(grepl(paste(unlist(CCSNames),collapse="|"),Name),"CCS Retrofit",
+                        if_else(End<MaxYrStudy,"Retired",
+                                "Opperating")))
+  
+  # PLOT
+  ggplot(CC_fate) +
+    geom_col(aes(Name, Capacity,fill = Fate),color="black") +
+    labs(x = "Plant Name", y = "Plant Capacity") +
+    
+    scale_y_continuous(expand = c(0,0),
+                       limits = c(0,max(CC_fate$Capacity)+50)) +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          axis.text=element_text(color="black"),
+          plot.title = element_text(size = Tit_Sz),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          panel.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.key.size = unit(1,"lines"), 
+          legend.background = element_rect(fill='transparent'),
+          legend.title = element_blank(),
+          legend.position="bottom",
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          text = element_text(size = 15),
+          panel.border = element_rect(colour = "black", fill = "transparent"), 
+          #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
+    ) +
+    
+    # Remove NA from legend
+    scale_fill_manual(na.translate = F,
+                      values=c("CCS Retrofit"="lightsteelblue","Opperating"="steelblue2","Retired"="steelblue4")) +
+    
+    theme(text=element_text(family=Plot_Text))
+  
+}
+  
+################################################################################
+## FUNCTION: CC_Fate_year
+## Show units were retrofited with CCS and the year.
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################  
+
+CC_Fate_year <- function(case) {
+  
+  # Get the CCS retrofit data
+  CCSBuild <- Build %>%
+    filter(Run_ID == case,
+           LT_Iteration == 0,
+           Fuel_Type == "GasCCS",
+           Time_Period != "Study",
+           grepl("Retrofit",Name)) %>%
+    mutate(BuildYear=if_else(Units_Built==1,as.numeric(Time_Period),0))%>%
+    group_by(Name)%>%
+    summarise(Units_Built=sum(Units_Built),
+              BuildYear=as.character(max(BuildYear))) %>%
+    ungroup() 
+  
+  # Replace 0's
+  CCSBuild$BuildYear[CCSBuild$BuildYear == 0]<-NA
+  
+  # Get the retrofits that occured
+  CCSTemp<-CCSBuild %>%
+    filter(Units_Built >0)%>%
+    mutate(Name=word(Name,1,2),
+           Name=gsub("-","",Name))
+  
+  # Extract list of names from retorifts that occurred
+  CCSNames<-list(unique(CCSTemp$Name))
+  
+  
+  # Get all combined cycle data
+  CC_all<-ResYr %>%
+    filter(Primary_Fuel == "WECC-Alberta NaturalGas",
+           Run_ID == case,
+           Condition == "Average") %>%
+    mutate(Time_Period=as.numeric(Time_Period),
+           End_Date=as.Date(End_Date,format = "%m/%d/%Y"),
+           Beg_Date=as.Date(Beg_Date,format = "%m/%d/%Y"),
+           End_Date=year(End_Date), 
+           Beg_Date=year(Beg_Date)) %>% 
+    subset(., select=c(Name,Condition,Capacity,Nameplate_Capacity,End_Date,Beg_Date,
+                       Run_ID,Primary_Fuel,Time_Period,Capacity_Factor))
+  
+  CC_fate<-CC_all %>%
+    group_by(Name)%>%
+    mutate(MaxCap=max(Capacity))%>%
+    ungroup()%>%
+    mutate(Fate=if_else(End_Date<Time_Period & grepl(paste(unlist(CCSNames),collapse="|"),Name),"CCS Retrofit",
+                        if_else(End_Date<Time_Period,"Retired",
+                                "Opperating"))) %>%
+    group_by(Time_Period,Fate) %>%
+    summarise(Capacity=sum(MaxCap))%>%
+    mutate(Capacity=if_else(Fate == "Opperating",Capacity,Capacity*-1),
+           YR=as.character(Time_Period))%>%
+    ungroup()
+  
+  # PLOT
+  ggplot(CC_fate) +
+    geom_col(aes(YR, Capacity,fill = Fate),color="black") +
+    labs(x = "Year", y = "Annual Combined Cycle Natural Gas Fate") +
+    
+    geom_hline(yintercept=0, color = "black",size=0.5,linetype=1)+
+    
+    scale_y_continuous(expand = c(0,0),
+                       limits = c(-1*max(CC_fate$Capacity)+100,max(CC_fate$Capacity)+100),breaks=pretty_breaks(8)) +
+
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          axis.text=element_text(color="black"),
+          plot.title = element_text(size = Tit_Sz),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          panel.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.key.size = unit(1,"lines"), 
+          legend.background = element_rect(fill='transparent'),
+          legend.title = element_blank(),
+          legend.position="bottom",
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          text = element_text(size = 15),
+          panel.border = element_rect(colour = "black", fill = "transparent"), 
+          #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
+    ) +
+    
+    # Remove NA from legend
+    scale_fill_manual(na.translate = F,
+                      values=c("CCS Retrofit"="lightsteelblue","Opperating"="steelblue2","Retired"="steelblue4")) +
+    
+    theme(text=element_text(family=Plot_Text))
+  
+}
