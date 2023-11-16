@@ -25,9 +25,8 @@ AnnualEmStackCol <- function(case) {
     filter(Type== "CO2") %>%
     select(ID, Report_Year, Amount, Cost) %>%
     sim_filtEm(.)  %>%
-    mutate(Amount=Amount*0.90718474)
-      # %>% # Convert Ton to Tonne
-      # filter(!ID=="Cogeneration") # Temp remove cogen
+    mutate(Amount=Amount*0.90718474) %>% # Convert Ton to Tonne
+    filter(!ID=="Cogeneration") # Temp remove cogen
   
   # Set the max for the plot
   YearMX <- aggregate(data["Amount"], by=data["Report_Year"], sum)

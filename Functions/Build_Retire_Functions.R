@@ -1012,7 +1012,18 @@ Build_CCSRet <- function(case) {
     ) +
     
     # Remove NA from legend
-      scale_fill_brewer(palette= "RdYlBu",na.translate = F) +
+    #  scale_fill_brewer(palette= "RdYlBu",na.translate = F) +
+      scale_fill_manual(values=c("2026"="#313695",
+                                 "2027"="#4575b4",
+                                 "2028"="#74add1",
+                                 "2029"="#abd9e9",
+                                 "2030"="#e0f3f8",
+                                 "2031"="#ffffbf",
+                                 "2032"="#fee090",
+                                 "2033"="#fdae61",
+                                 "2034"="#f46d43",
+                                 "2035"="#d73027",
+                                 "2036"="#a50026"),na.translate = F,drop=TRUE)+
     
     theme(text=element_text(family=Plot_Text))
   
@@ -1112,8 +1123,20 @@ Build_CCSRet2 <- function(case) {
     ) +
     
     # Remove NA from legend
-    scale_fill_brewer(palette= "RdYlBu",na.translate = F) +
+    #scale_fill_brewer(palette= "RdYlBu",na.translate = F,drop=TRUE) +
     
+    scale_fill_manual(values=c("2026"="#313695",
+                               "2027"="#4575b4",
+                               "2028"="#74add1",
+                               "2029"="#abd9e9",
+                               "2030"="#e0f3f8",
+                               "2031"="#ffffbf",
+                               "2032"="#fee090",
+                               "2033"="#fdae61",
+                               "2034"="#f46d43",
+                               "2035"="#d73027",
+                               "2036"="#a50026"),na.translate = F,drop=TRUE)+
+  
     theme(text=element_text(family=Plot_Text))
   
 }
@@ -1285,7 +1308,7 @@ CC_Fate_year <- function(case) {
   # PLOT
   ggplot(CC_fate) +
     geom_col(aes(YR, Capacity,fill = Fate),color="black") +
-    labs(x = "Year", y = "Annual Combined Cycle Natural Gas Fate") +
+    labs(x = "Year", y = "Combined Cycle Natural Gas Total Fleet Capacity (MW)") +
     
     geom_hline(yintercept=0, color = "black",size=0.5,linetype=1)+
     

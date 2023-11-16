@@ -41,21 +41,17 @@
   # combined file and merge it with a new scenario)
 
   # EXISTING SCENARIOS
-  #   "Sep18"         September case following major revisions to file.
-  #   "Sep21"         September case following CCS retrofit option inclusion (forced here).
-  #   "Sep28"         Normal LZ run 2022-2040, RM=0%
-  #   "Sep29"         Normal LZ run 2022-2040, RM=15%
-  #   "Sep_28_29"     Combined Sept 28 and 29 runs to one file
-
-
+  #   'Nov5_BAU'                  Combined BAU No5 , prior to CCS updates and small resource limit changes
+  #   'Nov13_BAU'                 Combined BAU No5 , new CCS updates and small resource limit changes
+  #   'COMPARE_BAU_Nov5_Nov13'    Nov5 and Nov13 combined
 
 {
   # Define cases here
-  ScenarioName1<-"Sep28"
-  ScenarioName2<-"Sep29"
+  ScenarioName1<-"Nov5_BAU"
+  ScenarioName2<-"Nov13_BAU"
   
   # This is the name for the new combined R files and excel sheet
-  CScenarioName <-"Sep_28_29"
+  CScenarioName <-"COMPARE_BAU_Nov5_Nov13"
 }
 
 ################################################################################

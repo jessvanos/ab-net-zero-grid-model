@@ -1,4 +1,4 @@
-# **NET ZERO GRID MODELING**
+# **AB ELECTRICITY GRID MODELING**
 
 Code and functions to visually analyze large groups of forecasting energy data. Data is taken from SQL server databases, excel files, and .R files.
 
@@ -12,6 +12,7 @@ Also includes functions and code segments to visualize historical data from Albe
     -   [AESO_TradeAnalysis](#aeso_tradeanalysis)
     -   [Link_Shaping](#link_shaping)
     -   [Referenced_Code](#referenced_code)
+    -   [Extra_Analysis](#extra_analysis)
 -   [FUNCTION FILES](#function-files)
     -   [Build_Retire_Functions](#build_retire_functions)
     -   [Daily_Output_Functions](#daily_output_functions)
@@ -40,7 +41,7 @@ The sections referencing AESO data and filtering this data can be skipped if no 
 ##### *Database_Loading Special Notes:*
 
 -   *Make sure the R project file (ab-net-zero-grid-model) is open first or "here" commands will not function.*
--   *Before running, create a folder called "Data Files"  in the project directory and populate it with other (AESO) data. This just prevents said data from being uploaded to GitHub*
+-   *Before running, create a folder called "Data Files"  in the project directory. Create two folders inside names "Result Files" and "Alberta Data", populate "Alberta Data" with nrgstream data. This just prevents said data from being uploaded to GitHub*
     -   *This folder is referenced in the .gitignore file*
 -   *A folder called "Figures (Local)" should also be created in the project directory of R, this allows figures to be saved locally as opposed to on GitHub.*
         -   *This folder is referenced in the .gitignore file*
@@ -85,6 +86,10 @@ Code that was used to gather and format historical intertie data.
 ### <ins>Referenced_Code
 
 Helper codes adapted from Dr. Andrew Leach and Taylor Pawlenchuk
+
+### <ins>Extra_Analysis
+
+Additional code segments for detailed resource group plots involving new build slack and NPV. To be run after Database_Loading.
 
 ## FUNCTION FILES
 
