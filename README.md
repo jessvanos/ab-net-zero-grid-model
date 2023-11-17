@@ -12,13 +12,13 @@ Also includes functions and code segments to visualize historical data from Albe
     -   [AESO_TradeAnalysis](#aeso_tradeanalysis)
     -   [Link_Shaping](#link_shaping)
     -   [Referenced_Code](#referenced_code)
-    -   [Extra_Analysis](#extra_analysis)
 -   [FUNCTION FILES](#function-files)
     -   [Build_Retire_Functions](#build_retire_functions)
     -   [Daily_Output_Functions](#daily_output_functions)
     -   [Data_Filt_To_File](#data_filt_to_file)
     -   [Developing_Functions](#developing_functions)
     -   [Emission_Functions](#emission_functions)
+    -   [Group_PlotSave](#group_plotsave)
     -   [Intertie_Functions](#intertie_functions)
     -   [other_functions](#other_functions)
     -   [Output_Gen_Functions](#output_gen_functions)
@@ -86,10 +86,6 @@ Code that was used to gather and format historical intertie data.
 ### <ins>Referenced_Code
 
 Helper codes adapted from Dr. Andrew Leach and Taylor Pawlenchuk
-
-### <ins>Extra_Analysis
-
-Additional code segments for detailed resource group plots involving new build slack and NPV. To be run after Database_Loading.
 
 ## FUNCTION FILES
 
@@ -175,6 +171,20 @@ Functions to evaluate and show emissions.
 -   *AnnualEmStackCol* : Plot annual emissions by resource group as as stacked chart.
 
 -   *AnnualEmLine* : Plot annual emissions by resource group as as line chart.
+
+### <ins>Group_PlotSave
+
+Save groups of plots to folders.
+
+#### Functions:
+
+-   *GGSave_Loc* : Saves all plots to a new folder named after case using ggplot.
+
+-   *GGSave_Loc_Ex* : Saves all plots to a new folder called "Additional Analysis" inside image folder named after case using ggplot.
+
+-   *Value_saveall* : Save all value plots including NPV, annual value, annual value per MWh generated.
+
+-   *Slack_saveall* : Save plots to compare available units and built units in capacity expansion.
 
 ### <ins>Intertie_Functions<ins>
 
