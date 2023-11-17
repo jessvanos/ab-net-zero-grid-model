@@ -62,9 +62,11 @@
   source(here('Functions','Daily_Output_Functions.R'))# Filtering by resource type, required for plots
   source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
   #source(here('Functions','Developing_Functions.R')) # Under construction functions
-  source(here('Functions','Data_Filt_To_File.R'))    # Functions that filter data and export it to excel sheets
+  source(here('Functions','Data_Filt_To_File.R'))     # Functions that filter data and export it to excel sheets
   source(here('Functions','aeso_eval_1.R'))           #
   source(here('Functions','aseo_sim_comp_1.R'))       #
+  source(here('Functions','Group_PlotSave'))          #
+  
   
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr","extrafont",
@@ -82,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"BAU_Nov_5_2023"
+  SourceDB<-"BAU_Nov_13_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -474,6 +476,10 @@
     font_add(family="Times",regular="times.ttf")
     Plot_Text <- "Times"
     
+    # Make ggplot show text changes
+       #showtext::showtext_auto()
+       #showtext::showtext_opts(dpi = 300)
+    
     # font_add(family="Cambrai",regular="CAMBRIA.ttc")
     # Plot_Text <- 'Cambrai'
     
@@ -717,18 +723,44 @@ Legend_PlotGray(1)
 
 # Create folder name to save as 
 #   Casename is long description for figures/files
-#   NameShort is short name for later reference
-CaseName <- "New Cost Graphs"
-NameShort<-'Nov13_BAU Values'
+#   NameShort is short name for later reference in r files
+CaseName <- "test delete"
+NameShort<-'Nov13_BAU'
 
 ################################################################################
-## THE MOST USEFULL FUNCTIONS, AND SAVING OPTIONS
+## OUTPUT PLOTS AND DATA TO FOLDERS:
+##  Data Files > Result Files
+##  Figures (Local)
+################################################################################
+
+# SAVE PLOTS AND FIGURES  
+  
+  # ADDITIONAL ANALYSIS
+    # Value plots
+      Value_saveall(CaseName)
+    # Slack plots
+      Slack_saveall(CaseName)
+      
+# SAVE DATA
+      
+  # WRITE TO EXCEL
+    # Annual data ('long name','short name',case)
+    AnnualDataExcel(CaseName,NameShort,BC)
+      
+    # Hourly data ('long name','short name',case)
+    HourlyDataExcel(CaseName,NameShort,BC)
+      
+  # GENERATE R FILES TO COMPARE LATER ('short name',case) -  skip if this is not needed
+    AnnualDataR(NameShort,BC)
+      
+################################################################################
+## THE MOST USEFULL FUNCTIONS, AND INDIVIDUAL PLOT SAVING OPTIONS
 ################################################################################
   
   # GENERATION
       # Grid of weekly output - need to edit for more than one week of data
-      year_weeks(2022,BC)
-      SaveRun_Loc(CaseName,"2022 Hourly Generation for One Week (Stacked Area)")
+      year_weeks(2023,BC)
+      SaveRun_Loc(CaseName,"2022 Hourly Generation for One Week (Stacked Area)",year_weeks(2023,BC))
           
           year_weeks(2025,BC)
           SaveRun_Loc(CaseName,"2025 Hourly Generation for One Week (Stacked Area)")
@@ -834,10 +866,12 @@ NameShort<-'Nov13_BAU Values'
   
       # CCS retrofits
       Build_CCSRet(BC)
+        #Build_CCSRet2(BC)
       SaveRun_Loc(CaseName,"CCS Retrofit Dates")
       
       # Combined cycle study fate by resource
       CC_Fate_study(BC)
+        #CC_Fate_year(BC)
       SaveRun_Loc(CaseName,"Combined Cycle Gas Fate")
       
   # PRICES AND COSTS
@@ -888,7 +922,7 @@ NameShort<-'Nov13_BAU Values'
       SaveRun_Loc(CaseName,"Annual Imports and Exports")
       
       # Import and export for full year from AB
-      Imp_Exp2(2045,BC)
+      Imp_Exp2(2043,BC)
       
       #Full Year output
       T_month_all_Sim(2022,BC)
@@ -925,43 +959,7 @@ NameShort<-'Nov13_BAU Values'
                   
       # Tell R the files are done and close window
       dev.off()
-   
-   # NEW STUFF (NOT DONE)
-      # New window
-      windows(14,10,buffered=FALSE)
-      
-      # Shows new resource value each year 
-      # 1 - wind, 2 - Solar, 3 - Storage, 4 - Unabated natural gas, 5- Abated natural gas, 6 - Hydrogen,
-      # 7 - Hydro, 8 - Other, 9 - Cogen)
-      ResValue_Annual(1,1899,BC)
-      # Nominal value as line
-      ResValue_Line(9,1800,BC)
-      SaveRun_Loc(CaseName,"Annual Nomminal Line Value Cpgen")
-      
-      ResValue_Annual_MWh(4.2,1899,BC)
-      ResValue_Line_MWh(2,1800,BC)
-      SaveRun_Loc(CaseName,"Annual Nomminal line Value sun MWh")
-      
-      # Net present value of all plants in resource group per MWh
-      ResValue_NPV_MWh(9,1899,BC)
-      SaveRun_Loc(CaseName,"2023$ NPV cogen MWh")
-      
-      # Net present value of all plants in resource group
-      ResValue_NPV(1,1899,BC)
-      SaveRun_Loc(CaseName,"2023$ NPV Wind")
-
-    # GENERATE R FILES TO COMPARE LATER ('short name',case)
-      AnnualDataR(NameShort,BC)
-      
-    # WRITE TO EXCEL
-      # Annual data ('long name','short name',case)
-      AnnualDataExcel(CaseName,NameShort,BC)
-      
-      # Hourly data ('long name','short name',case)
-      HourlyDataExcel(CaseName,NameShort,BC)
-
-   
-      
+  
 ################################################################################  
 ## BUT THERE ARE MORE ... HERE ARE ALL THE AVAILABLE FUNCTIONS!
 ################################################################################
@@ -1109,12 +1107,14 @@ NameShort<-'Nov13_BAU Values'
     
     # Original units CCS retorift end date
     Build_CCSRet2(BC)
+    SaveRun_Loc(CaseName,"CC Retrofit Retire Date")
     
     # Combined cycle study fate by resource
     CC_Fate_study(BC)
     
     # Combined cycle annual capacity changes and fate
     CC_Fate_year(BC)
+    SaveRun_Loc(CaseName,"CC Fate Year")
 ################################################################################
 ## Emission Functions (Emission_Functions)
 ################################################################################
