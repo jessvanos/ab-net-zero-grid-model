@@ -65,7 +65,7 @@
   source(here('Functions','Data_Filt_To_File.R'))     # Functions that filter data and export it to excel sheets
   source(here('Functions','aeso_eval_1.R'))           #
   source(here('Functions','aseo_sim_comp_1.R'))       #
-  source(here('Functions','Group_PlotSave'))          #
+  source(here('Functions','Group_PlotSave.R'))          #
   
   
   # Packages required
@@ -477,13 +477,12 @@
     Plot_Text <- "Times"
     
     # Make ggplot show text changes
-       #showtext::showtext_auto()
-       #showtext::showtext_opts(dpi = 300)
-    
+       # showtext_opts(dpi = 300)
+        showtext_auto()
     # font_add(family="Cambrai",regular="CAMBRIA.ttc")
     # Plot_Text <- 'Cambrai'
     
-    showtext_auto()
+    
     
   # Set size for plot features to be constant. All based on general text size
   { GenText_Sz =14
@@ -729,8 +728,8 @@ NameShort<-'Nov13_BAU'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
-##  Data Files > Result Files
-##  Figures (Local)
+##  Data: Data Files > Result Files
+##  Figures: Figures (Local)
 ################################################################################
 
 # SAVE PLOTS AND FIGURES  
@@ -760,7 +759,7 @@ NameShort<-'Nov13_BAU'
   # GENERATION
       # Grid of weekly output - need to edit for more than one week of data
       year_weeks(2023,BC)
-      SaveRun_Loc(CaseName,"2022 Hourly Generation for One Week (Stacked Area)",year_weeks(2023,BC))
+      SaveRun_Loc(CaseName,"2022 Hourly Generation for One Week (Stacked Area)")
           
           year_weeks(2025,BC)
           SaveRun_Loc(CaseName,"2025 Hourly Generation for One Week (Stacked Area)")
@@ -1099,7 +1098,7 @@ NameShort<-'Nov13_BAU'
     Slack(BC,wind)
 
     #Compare available units and built units ("WND", "SUN","GasCCS","BIO","Gas1","Gas2","H2","UR","PS")
-    BuildUnits(BC, "WND")
+    BuildUnits(BC, "Gas2")
     SaveRun_Loc(CaseName,"Res Built UR")
     
     # CCS retrofits
