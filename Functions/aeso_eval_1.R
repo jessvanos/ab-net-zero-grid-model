@@ -2406,3 +2406,129 @@ ggplot(data = Gen_Demand_Filt, aes(x = Gap)) +
   theme_bw() +
   theme(panel.grid = element_blank()) 
 }
+
+################################################################################  
+## FUNCTION: Evalyr_AESO 
+## Plotting year profiles of resource output
+##
+## INPUTS: 
+##    input - ResgroupMnor ResGroupYr
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Import - Import table derived of zone average table
+################################################################################
+
+Evalyr_AESO <- function() {
+
+  # Select only a single week
+  YRall <- df1a %>%
+    filter(Plant_Type != "EXPORT" & Plant_Type != "IMPORT") %>%
+    mutate(across(Plant_Type,str_replace,'NGCONV|NGCC|SCGT',"GAS"))%>%
+    mutate(YEAR=as.numeric(year(Day)))%>%
+    group_by(Plant_Type,Year,YEAR)%>%
+    summarise(Gen=sum(total_gen),
+              Gen_TWh=Gen/1000000)
+  
+  YRtrade <- df1a %>%
+    filter(Plant_Type %in% c("EXPORT","IMPORT")) %>%
+    group_by(time,Year,Day,Hour)%>%
+    summarise(total_gen=sum(total_gen)*-1)%>%
+    mutate(Plant_Type="TRADE",
+           meancap="",
+           total_rev="",
+           price_mean="",
+           heatrt_mean="",
+           YEAR=as.numeric(year(Day)))%>%
+    ungroup()%>%
+    group_by(Plant_Type,Year,YEAR)%>%
+    summarise(Gen=sum(total_gen),
+              Gen_TWh=Gen/1000000)
+  
+  YR <- rbind(YRall, YRtrade)
+  
+  {
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "TRADE", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "SOLAR", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "WIND", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "HYDRO", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "OTHER", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "GAS", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "COGEN", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "COAL", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "STORAGE", after = Inf)
+  }
+  
+  YR$Plant_Type <- factor(YR$Plant_Type, levels=c("TRADE","SOLAR","WIND", "HYDRO",  
+                                                  "OTHER","GAS","COGEN",
+                                                  "COAL", "STORAGE"))
+  
+  levels(YR$Plant_Type) <- c("Net Imports","Solar","Wind","Hydro",
+                             "Other","Natural Gas","Cogeneration", 
+                             "Coal", "Storage")
+
+  # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+  YR <- YR%>%
+    filter(YEAR >=2018,
+           YEAR<=2022) 
+  
+  # Plot
+  plotyr<-YR %>%
+    ggplot() +
+    geom_area(aes(YEAR, Gen_TWh, fill = Plant_Type),alpha=1, size=.5, colour="black") +
+    
+    theme_bw() +
+    
+    # Changes the font type
+    theme(text=element_text(family=Plot_Text)) +             
+    
+    theme(
+      # General Plot Settings
+      panel.grid = element_blank(),
+      # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+      plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+      panel.background = element_rect(fill = "transparent"), # Transparent background
+      text = element_text(size = GenText_Sz),                # Text size
+      plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+      plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+
+      # X-axis
+      axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
+      #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+      axis.title.x = element_blank(),
+      # Y-axis
+      axis.title.y = element_text(size = GenText_Sz+4,face="bold"),           # y-axis title text size
+      axis.text.y = element_text(colour = "black"),                 # Horizontal text
+      
+      # Legend
+      legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+      legend.position = "right",                            # Move legend to the bottom
+      legend.justification = c(0.5,0.5),                     # Center the legend
+      legend.text = element_text(size =GenText_Sz-2),              # Size of legend text
+      legend.title=element_blank()) +                        # Remove legend title
+    
+    # Set axis scales
+    scale_x_continuous(expand=c(0,0),limits = c(2018,2022),breaks=seq(2018, 2022, 1)) +
+    scale_y_continuous(expand=c(0,0),
+                       limits = c(0,100),
+                       breaks=pretty_breaks(6)) +
+    
+    #guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    # Plot labels
+    labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = "Data from NRGStream") +
+    
+    
+    # Legend color scheme
+    scale_fill_manual(values = c("Net Imports"="#fff7bc","Solar"="darkgoldenrod2","Wind"="#238b45","Hydro"="lightsteelblue",
+                                 "Other"="steelblue4","Natural Gas"="gray50", 
+                                 "Cogeneration"="gray25","Coal"="black", "Storage"="gray15"),
+                      drop = TRUE) 
+ 
+  ggsave(
+    filename = here(paste("Figures (Local)/","Historical Gen",".png", sep = "")),
+    device = "png",
+    plot = plotyr,
+    width=6,
+    height=3,
+    dpi=300)
+                        
+}
