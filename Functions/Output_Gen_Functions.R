@@ -510,7 +510,7 @@
     data$YEAR <- as.numeric(format(data$YEAR,"%Y"))
 
     # Get max and min year for plot
-    YearMX<-max(data$YEAR)-5 #Take off the last 5 years
+    YearMX<-MaxYrStudy #Take off the last 5 years
     YearMN<-min(data$YEAR)
     
     # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
@@ -603,7 +603,7 @@
     data$YEAR <- as.numeric(format(data$YEAR,"%Y"))
     
     # Get max and min year for plot
-    YearMX<-max(data$YEAR)-5 #Take off the last 5 years
+    YearMX<-MaxYrStudy #Take off the last 5 years
     YearMN<-min(data$YEAR)
     
     # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
@@ -695,7 +695,7 @@
     case_Time$YEAR <- as.numeric(format(case_Time$YEAR,"%Y"))
     
     # Get max and min year for plot
-    YearMX<-max(case_Time$YEAR)-5
+    YearMX<-MaxYrStudy
     YearMN<-min(case_Time$YEAR)
     
     # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
@@ -1022,7 +1022,7 @@
                                                        "Coal", "Cogeneration"))
     
     # Get max and min year for plot
-    YearMX<-max(CFData$Year)-5 #Take off the last 5 years
+    YearMX<-MaxYrStudy #Take off the last 5 years
     YearMN<-min(CFData$Year)
     
     # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)

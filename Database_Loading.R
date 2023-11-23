@@ -84,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"BAU_Nov_13_2023"
+  SourceDB<-"LZ2050_CF5_23Nov2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -100,9 +100,7 @@
 ## Value can be found in the "Run_Id" column of any AURORA table
 ################################################################################
 
-{ BC <- "Base Case" 
-  C2 <- "Case2"
-}
+BC <- "Base Case" 
 
 ################################################################################
 ## READ TABLES FROM DATABASE INTO ENVIRONMENT
@@ -451,7 +449,7 @@
      # Then filter AESO data to exclude dates without information (till end of 2022)
      df1a <- df1 %>%
      filter(Plant_Type %in% plant_types,
-            year(time)<2023)
+            year(time)<2024)
       
          # Put in desired order: Coal, Cogen, NGCC, SCGT, Other, Hydro, Wind, Solar, Import, Export
          df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "OTHER",after=Inf)
@@ -704,7 +702,8 @@
   Years2Pivot <- c(2023,2025,2030,2035)  # Years to display in tables
   
   # Get max year to display
-  MaxYrStudy <-max(as.numeric(ResYr$Time_Period))-5
+  MaxYrStudy<-2043
+  #MaxYrStudy <-max(as.numeric(ResYr$Time_Period))-5
 
   #For fun, make the code beep when its all done
   beep(3)
@@ -723,8 +722,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "test delete"
-NameShort<-'Nov13_BAU'
+CaseName <- "LZ50_CF"
+NameShort<-'Nov23_LZ50_CF'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -759,7 +758,7 @@ NameShort<-'Nov13_BAU'
   # GENERATION
       # Grid of weekly output - need to edit for more than one week of data
       year_weeks(2023,BC)
-      SaveRun_Loc(CaseName,"2022 Hourly Generation for One Week (Stacked Area)")
+      SaveRun_Loc(CaseName,"2023 Hourly Generation for One Week (Stacked Area)")
           
           year_weeks(2025,BC)
           SaveRun_Loc(CaseName,"2025 Hourly Generation for One Week (Stacked Area)")
@@ -784,8 +783,8 @@ NameShort<-'Nov13_BAU'
           SaveRun_Loc(CaseName,"2023 Storage Output with Pool Price")
           
       # Four months of generation, intertie, and pool price
-      FourMonthSummary(2043,BC)
-      SaveRun_Loc(CaseName,"2043 Output, Trade, Price") 
+      FourMonthSummary(2040,BC)
+      SaveRun_Loc(CaseName,"2040 Output, Trade, Price") 
           
       # Save all full size images
       windows(14,10,buffered=FALSE)
@@ -931,20 +930,20 @@ NameShort<-'Nov13_BAU'
       SaveRun_Loc(CaseName,"Annual Demand")
   
   # DAILY OUTPUT FUNCTIONS
-    CompDay_Season(2043,14,BC)  
-    SaveRun_Loc(CaseName,"Daily Output - Season 2043")
+    CompDay_Season(2040,14,BC)  
+    SaveRun_Loc(CaseName,"Daily Output - Season 2040")
       
-    CompDay_Wind(2035,BC)
+    CompDay_Wind(2040,BC)
     SaveRun_Loc(CaseName,"Daily Output - Max Wind 2040")
     
-    CompDay_Solar(2035,BC)
+    CompDay_Solar(2040,BC)
     SaveRun_Loc(CaseName,"Daily Output - Max Solar 2040")
     
-    CompDay_Years(2023,2035,08,10,BC)
-    SaveRun_Loc(CaseName,"Daily Output October- Years")
+    CompDay_Years(2023,2043,11,10,BC)
+    SaveRun_Loc(CaseName,"Daily Output Nov- Years")
     
-    CompDay_AESO(2022,2,08,BC)
-    SaveRun_Loc(CaseName,"Daily Output Compared to AESO Jan Day")
+    CompDay_AESO(2023,2,14,BC)
+    SaveRun_Loc(CaseName,"Daily Output Compared to AESO Feb Day")
     
       
   # COMPARING TO AESO

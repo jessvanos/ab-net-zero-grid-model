@@ -135,7 +135,7 @@ RetireMW <- function(case) {
   
   #Get Year max for run and filter for end dates BEFORE this date
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
-  MaxYr <- as.numeric(max(ResYr$Time_Period))-5
+  MaxYr <- MaxYrStudy
   MinYr <- 2022
   
   Retdata$End_Date  <- as.Date(Retdata$End_Date, 
@@ -316,7 +316,7 @@ Build_A_MW <- function(case) {
                                "Hydro", "Other","Wind", "Solar","Storage","Nuclear")
   
   YrMN <-min(data$YEAR)
-  YrMX <-max(data$YEAR)-5
+  YrMX <-MaxYrStudy
    
   Tot <- data %>%
     group_by(Time_Period) %>%
@@ -393,7 +393,7 @@ BuildMW <- function(case)
                                                           ) )
   
   # Get Year max for run and filter for end dates BEFORE this date
-  MaxYr <- max(data$Time_Period)-5
+  MaxYr <- MaxYrStudy
   MinYr <- min(data$Time_Period)
   
   # Give start date so that already built are not listed as new additions
@@ -591,7 +591,7 @@ TotalCapChange <- function(case) {
   
   # Year limits for plot. Add 365 to get the year after the first
   mnx <- format(min(ResGroupMn$Time_Period), format="%Y")
-  mxx <- format(max(ResGroupMn$Time_Period)-365*5, format="%Y")
+  mxx <- format(MaxYrStudy, format="%Y")
   
   # Plot it all
   Tot_Change %>%
@@ -768,7 +768,7 @@ mxy <- plyr::round_any(max(Tot$maxy),1000, f=ceiling)
 
 # Year limits for plot. Add 365 to get the year after the first
 mnx <- format(min(ResGroupMn$Time_Period), format="%Y")
-mxx <- format(max(ResGroupMn$Time_Period)-365*5, format="%Y")
+mxx <- format(MaxYrStudy, format="%Y")
 
 # Plot it all
 Tot_Change %>%

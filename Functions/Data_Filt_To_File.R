@@ -903,7 +903,10 @@ AnnualDataR<- function(ScenarioName,case){
     
     # Get the non-cogen emissions in each year
     DataAnnualEm1 <- DataGrEmYr %>%
-      filter(Plant_Type!="Cogeneration")%>%
+      filter(Plant_Type %in% c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                               "Blended  Simple Cycle","Blended  Combined Cycle",
+                               "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                "Other","Coal"))%>%
       group_by(Year)%>%
       summarise(NonCogen_Emissions=sum(Emissions_Tonne)/1000000)%>%
       ungroup()

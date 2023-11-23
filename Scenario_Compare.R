@@ -44,14 +44,16 @@
   #   'Nov5_BAU'                  Combined BAU No5 , prior to CCS updates and small resource limit changes
   #   'Nov13_BAU'                 Combined BAU No5 , new CCS updates and small resource limit changes
   #   'COMPARE_BAU_Nov5_Nov13'    Nov5 and Nov13 combined
+  #   'Nov19_BAU'
+  #   'Nov23_LZ50_CF'
 
 {
   # Define cases here
-  ScenarioName1<-"Nov5_BAU"
-  ScenarioName2<-"Nov13_BAU"
+  ScenarioName1<-"Nov19_BAU"
+  ScenarioName2<-"Nov23_LZ50_CF"
   
   # This is the name for the new combined R files and excel sheet
-  CScenarioName <-"COMPARE_BAU_Nov5_Nov13"
+  CScenarioName <-"Nov19BAU_Nov23LZ50CF"
 }
 
 ################################################################################

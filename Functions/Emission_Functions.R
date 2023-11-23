@@ -37,7 +37,7 @@ AnnualEmStackCol <- function(case) {
   data$Report_Year  <- as.numeric(data$Report_Year)
   
   # Get Year max for run
-  MaxYr <- as.numeric(max(data$Report_Year))-5
+  MaxYr <- MaxYrStudy
   MinYr <- (min(data$Report_Year))
   
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
@@ -109,7 +109,7 @@ AnnualEmLine <- function(case) {
   data$Report_Year  <- as.numeric(data$Report_Year)
   
   # Get Year max for run
-  MaxYr <- as.numeric(max(data$Report_Year))
+  MaxYr <- MaxYrStudy
   MinYr <- (min(data$Report_Year))
   
   # Get total emissions per year

@@ -318,7 +318,7 @@ Sim <- ZoneHr_All %>%
 Sim$YEAR <- as.numeric(format(Sim$Report_Year))
 
 # Get max and min year for plot
-YearMX<-max(Sim$YEAR)-5
+YearMX<-MaxYrStudy
 YearMN<-min(Sim$YEAR)
 
 Upplim <- round_any(max(Sim$Price)+11,100)
@@ -416,7 +416,7 @@ System_Cost<- function(case) {
   
   
   # Get max and min year for plot
-  YearMX<-max(ZnData$year)-5
+  YearMX<-MaxYrStudy
   YearMN<-min(ZnData$year)
   
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)

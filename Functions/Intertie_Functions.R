@@ -55,7 +55,7 @@ Imp_Exp1 <- function(case) {
   MX <- plyr::round_any(max(abs(data$Output_MWH+11)/1000), 1000, f = ceiling)
   
   # Get Year max for run
-  MaxYr <- as.numeric(max(data$Time_Period))-5
+  MaxYr <- MaxYrStudy
   MinYr <- (min(data$Time_Period))
   
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
