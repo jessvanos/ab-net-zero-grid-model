@@ -764,8 +764,8 @@ T_month_all_Sim <- function(year,case) {
 
 ###############################################################################  
 ################################################################################
-## HR FIT FUNCTIONS
-## Used to build trade pattrens
+## HISTORICAL FIT FUNCTIONS
+## Used to build trade pattrens, intertie capacities
 ################################################################################
 ############################################################################### 
 
@@ -1540,6 +1540,337 @@ HR_year_SK_all <- function() {
                left=yleft)
   
   
+}
+
+###############################################################################################
+## Monthly capability plot, years colored
+###############################################################################################
+Capab_mn <- function(data,dataITC,type,month) {
+  
+  # Set y scale based on sereis
+  if (data %like% '%BC%') {
+    ymax=1110 
+  } else {
+    ymax=160
+  }
+  
+  # Create new sub-sereis 
+  ITC3 <- dataITC %>%
+    select(.,c('date',"Year",'Day','he',data))
+  # Rename so I can index
+  names(ITC3) <- c('Date','Year','Day','he','data')
+  
+  if (type ==" Avg") {
+       # Use for Daily Average
+       ITC3 <- ITC3 %>%
+         group_by(Date,Year,Day) %>%
+         summarise(Day_Avg = mean(data, na.rm = TRUE))
+       names(ITC3) <- c('Date','Year','Day','data')
+  } else if (type=='Max'){
+      # Use for Daily max
+      ITC3<- ITC3 %>%
+        group_by(Date,Year,Day) %>%
+        summarise(Day_Max = max(data, na.rm = TRUE))
+      names(ITC3) <- c('Date','Year','Day','data')
+  } else {
+      # Use for Daily min
+      type = 'Min'
+      ITC3<- ITC3 %>%
+        group_by(Date,Year,Day) %>%
+        summarise(Day_Min = min(data, na.rm = TRUE))
+      names(ITC3) <- c('Date','Year','Day','data')
+  }
+
+  # Min for date (x-axis)
+  day_MN <- as.POSIXct(paste(01,month,2012, sep = "/"), format="%d/%m/%Y")
+  day_lab <-as.POSIXct(paste(05,month,2012, sep = "/"), format="%d/%m/%Y")
+  
+  # December is special
+  if (month <12) {
+    # Max for date
+    day_MX <- as.POSIXct(paste(01,month+1,2012, sep = "/"), format="%d/%m/%Y")
+    day_MX <- ceiling_date(day_MX, "month") - 1 
+    
+  }else {
+    day_MX <- as.POSIXct(paste(31,month,2012, sep = "/"), format="%d/%m/%Y") }
+  
+  # Format the dates as we have in set
+  day_MN <- as.numeric(format(day_MN,"%j"))
+  day_MX <- as.numeric(format(day_MX,"%j"))
+  
+  #Convert to numeric so that it scales well
+  ITC3$Day <- as.numeric(ITC3$Day)
+  
+  # Plot based on data given
+  ggplot(ITC3) +
+    geom_point(aes(x=Day, y=data,color=Year),na.rm = TRUE,
+               alpha = 1,size=1)+
+    #position=position_jitter(h=0.1, w=0.1)
+    scale_size(range = c(5,1)) +
+    
+    theme_bw() +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(),
+          axis.title.y = element_text(),
+          plot.title =element_text(size = 15),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = 'bottom',
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(-5,ymax),breaks=pretty_breaks(5)) +
+    
+    scale_x_continuous(limits=c(day_MN,day_MX)) +
+    
+    labs(x = "Day of Year", y = paste("SK Import Capacity",type), title=month.abb[month]) +
+    
+    guides(color = guide_legend(nrow = 1) )      
+  
+  
+}
+
+###############################################################################################
+## Plot all Months
+###############################################################################################
+Capab_Allmn <- function(data,type) {
+  
+  
+  # Create a graph for each month of the year
+  p1 <- Capab_mn(data,ITC2,type,01) +
+    theme(axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p2 <- Capab_mn(data,ITC2,type,02) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p3 <- Capab_mn(data,ITC2,type,03) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p4 <- Capab_mn(data,ITC2,type,04) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p5 <- Capab_mn(data,ITC2,type,05) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p6 <- Capab_mn(data,ITC2,type,06) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p7 <- Capab_mn(data,ITC2,type,07) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p8 <- Capab_mn(data,ITC2,type,08) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p9 <- Capab_mn(data,ITC2,type,09) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p10 <- Capab_mn(data,ITC2,type,10) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p11 <- Capab_mn(data,ITC2,type,11) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  p12 <- Capab_mn(data,ITC2,type,12) +
+    theme(legend.position ="none",
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank())
+  
+  # Get a common legend
+  legend <- get_legend(p1)
+  p1 <- p1 + theme(legend.position ="none")
+  
+  # Plot Labels
+  yleft <- textGrob(paste("Capability, ",type), rot = 90, gp = gpar(fontsize = 15))
+  
+  # Cheat way to put an x title in
+  xtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 6,
+             label = "Day of Year") + 
+    theme_void()
+  
+  # Label the source and year
+  # First, generate correct name
+  if (data=='SKImp_c') {
+    subt <- 'SK Import Capability'
+  } else if (data=='SKExp_c') { 
+    subt <- 'SK Export Capability'
+  } else if (data=='BCMTExp_c') { 
+    subt <- 'BC_MT Export Capability'
+  } else { 
+    subt <- 'BC_MT Import Capability'
+  }
+  
+  xsubtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 4,
+             label = paste("Data from the AESO ATC and Intertie Capability Public Reports,","Series:",subt)) + 
+    theme_void()
+  
+  #Create a big window
+  windows(20,12)
+  
+  # Arrange all the plots
+  grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(xtitle),
+               plot_grid(legend),
+               plot_grid(xsubtitle),
+               ncol=1,nrow=6, 
+               heights=c(1, 1,1,0.1,0.2,0.1),
+               left=yleft)
+  
+  
+}  
+
+###############################################################################################
+## Check the capacities for full year (function)
+###############################################################################################  
+
+Capab_yr <- function(data,yearMin,yearMax) {
+  
+  # Set y scale based on sereis
+  if (data %like% '%BC%') {
+    ymax=1110 
+  } else {
+    ymax=160
+  }
+  
+  # Create new subsereis 
+  ITC3 <- ITC2 %>%
+    select(.,c('Fdate',"Year",'Day','he',data)) %>%
+    filter(Year>=yearMin) %>%
+    filter(Year<=yearMax)
+  
+  # Rename so I can index
+  names(ITC3) <- c('Fdate','Year','Day','he','data')
+  
+  ITC3$YrHour<-yhour(as.POSIXct(ITC3$Fdate))
+  
+  # Generate correct name
+  if (data=='SKImp_c') {
+    subt <- 'SK Import Capability'
+  } else if (data=='SKExp_c') { 
+    subt <- 'SK Export Capability'
+  } else if (data=='BCMTExp_c') { 
+    subt <- 'BC_MT Export Capability'
+  } else { 
+    subt <- 'BC_MT Import Capability'
+  }
+  
+  # Plot for chosen series
+  p1 <- ggplot(ITC3) +
+    geom_point(aes(x=YrHour, y=data,color=Year),size=1,na.rm = TRUE)+
+    
+    theme_bw() +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(),
+          axis.title.y = element_text(),
+          plot.title =element_text(size = 15),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(-10,ymax),breaks=pretty_breaks(5)) +
+    
+    scale_x_continuous(expand=c(0,0),limits = c(0,8783),breaks=pretty_breaks(5)) +
+    
+    guides(color = guide_legend(nrow = 1)) +
+    
+    labs(x = "Hour of Year", y = "Link Capacity", title=subt)
+  
+  # Create a big pop out window to see it
+  windows(20,8)
+  plot(p1)
+  
+  
+}
+
+###############################################################################################
+## Get Some Stats!
+###############################################################################################
+Capab_Stats <- function(data,yearMN,yearMX) {
+  
+  # Create new sereis which only has the year data
+  ITC4 <- data %>%
+    subset(.,select=c("Year",'SKImp_c','SKExp_c','BCMTExp_c','BCMTImp_c')) %>%
+    filter(Year<=yearMX) %>%
+    filter(Year>=yearMN) %>%
+    select(.,-c("Year"))
+  #Name them again 
+  names(ITC4) <- c('SK_Import_Capability','SK_Export_Capability','BC_MT_Export_Capability','BC_MT_Import_Capability')
+  
+  # Bring them all into one big line and give keys
+  data_long <- gather(ITC4, factor_key=TRUE)
+  
+  #Generate the result
+  Result <- data_long%>% group_by(key)%>%
+    summarise(mean= mean(value), sd= sd(value), max = max(value),min = min(value))
+  
+  #Print the result 
+  print(Result, width = Inf)
+  
+  # QQ Plots
+  # windows(10,8)
+  qqPlot(ITC4$SK_Import_Capability)
+  # windows(10,8)
+  qqPlot(ITC4$SK_Export_Capability)
+  # windows(10,8)
+  qqPlot(ITC4$BC_MT_Export_Capability)
+  #windows(10,8)
+  qqPlot(ITC4$BC_MT_Import_Capability)
+}  
+
+###############################################################################################
+## Get % of zero capability hours
+############################################################################################### 
+
+ZeroTrade<-function(data,dataITC,FILTYEAR) {
+
+  ITC_yr <- dataITC %>%
+    filter(Year==FILTYEAR) %>%
+    select(.,c('Fdate',"Year",'Day','he',data)) 
+  
+  names(ITC_yr) <- c('Fdate','Year','Day','he','data')
+  
+  ZeroHours = sum(ITC_yr$data==0)
+  AllHours = length(ITC_yr$data)
+  
+  PZero=(100*ZeroHours)/AllHours
+  
+  print(paste('Trade Zone:',data,', Zero Trade Hours(%):',round(PZero,2)))
 }
 
 ###############################################################################  

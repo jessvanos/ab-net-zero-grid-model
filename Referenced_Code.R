@@ -80,3 +80,69 @@ assign_peaks<-function(data_orig,time_var=time){
   data_mod<-data_mod %>% dplyr::select(stat,on_peak,off_peak,ext_peak,ext_off_peak,super_peak)
   bind_cols(data_orig,data_mod)
 }
+
+###############################################################################################
+## Leach Intertie Functions
+###############################################################################################
+
+get_intertie_capacity_report<-function(start_date,end_date){ 
+  #testing  
+  #start_date<-"2018-01-01"
+  #end_date<-"2019-12-31"
+  #max date is today
+  if(ymd(end_date)>today())
+    end_date<-today()
+  #max number of days is 400 days
+  if(as.numeric(ymd(end_date)-ymd(start_date))>=400)
+    end_date<-as.character(ymd(start_date)+days(399))
+  #build url
+  url<-paste("http://itc.aeso.ca/itc/public/queryHistoricalIntertieReport.do?availableEffectiveDate=943279200000+1999-11-22+07%3A00%3A00+MST+%281999-11-22+14%3A00%3A00+GMT%29&availableExpiryDate=1582354800000+2020-02-22+00%3A00%3A00+MST+%282020-02-22+07%3A00%3A00+GMT%29&fileFormat=CSV&startDate=",start_date,"&endDate=",end_date,sep = "")  
+  #download data
+  download_indic<-download.file(url,"test.csv",mode="wb")
+  stop_for_status(download_indic)
+  #process data to build capability by hour and data
+  itc_data<-read.csv("test.csv",skip = 2,stringsAsFactors = F) %>% clean_names() %>%
+    mutate(date=ymd(date),hour_ending=as.character(hour_ending)) %>% 
+    rename("he"="hour_ending") %>%
+    select(date,he,sk_import_capability,sk_export_capability,bc_export_capability,bc_import_capability,matl_export_capability,matl_import_capability,bc_matl_export_capability,bc_matl_import_capability)
+  itc_data
+}
+
+
+get_all_itc_data<-function(){
+  itc_store <- list()
+  index<-1
+  for(year in seq(2000,year(today()))){
+    start_date<-paste(year,"01","01",sep="-")
+    end_date<-paste(year,"12","31",sep="-")
+    itc_store[[index]]<-get_intertie_capacity_report(start_date,end_date)
+    index<-index+1
+  }  
+  itc_data<-data.frame(do.call(rbind,itc_store))
+  singles<-seq(1,9)
+  for(hour in singles){
+    itc_data$he[itc_data$he==hour]<-paste(0,hour,sep="")
+  }  
+  itc_data$he[itc_data$he=="2*"]<-"02*"
+  save(itc_data, file= "aeso_itc_data.RData") 
+}  
+
+#get_all_itc_data()
+
+
+update_itc_data<-function(){
+  load(file= "aeso_itc_data.RData") 
+  #find max date in file
+  start_date<-max(itc_data$date)
+  end_date<-today()
+  itc_update<-get_intertie_capacity_report(start_date,end_date)
+  #fix he characters
+  singles<-seq(1,9)
+  for(hour in singles){
+    itc_update$he[itc_update$he==hour]<-paste(0,hour,sep="")
+  }  
+  itc_data$he[itc_update$he=="2*"]<-"02*"
+  #take out today's last day obs from itc data, append updated data
+  itc_data<-itc_data %>% filter(date<ymd(start_date)) %>% bind_rows(itc_update)
+  save(itc_data, file= "aeso_itc_data.RData") 
+}  

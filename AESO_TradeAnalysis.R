@@ -1,6 +1,6 @@
 ################################################################################
 # TITLE: AESO_Analysis
-# DESCRIPTION:  Script imports data and analyses intertie behavior
+# DESCRIPTION:  Script imports data and analyses intertie behavior. includes heat rate analysis and link capabaility analysis.
 
 
 # AUTHOR: Jessica Van Os
@@ -40,8 +40,8 @@
   
   # Import functions from files, take from the functions folder in R project
   source(here('Functions','other_functions.R'))
-  source(here('Functions','intertie_info.R'))
-  
+  source(here('Functions','Intertie_Functions.R'))    # Intertie Plots
+
   # Packages required
   packs_to_load = c("tidyverse","ggplot2","grid","gtable","gridExtra","odbc","ggpubr",
                     "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
@@ -62,6 +62,10 @@
   # Years to show in duration curve
   Years2See <- c(2010,2012,2014,2016,2018,2020,2022)
 
+################################################################################
+## PART 1: INTERTIE BEHAVIOR AND HEAT RATE
+################################################################################  
+  
 ################################################################################
 ## LOAD FROM >R FILE INTO WORKSPACE
 
@@ -555,4 +559,84 @@
     HR_year_SK_all()
     HR_year_BC_all()
     
+    
+################################################################################
+## PART 2: LINK SHAPING (OPTIONAL)
+## Functions found in "Intertie Functions" file
+################################################################################
+    
+###############################################################################################
+# 2.A Load the ITC data
+###############################################################################################
+    # Load the ITC data
+    {  load(here('Data Files','Alberta Data',"aeso_itc_data.RData"))
+      
+      # Re-name the dataset
+      ITC <- itc_data 
+      # Min date based on first date where BC_matl is not an NA value
+      MTin <- "2013-01-02"
+      # Filter for dates greater than the one mentioned above
+      ITC <- ITC %>%
+        filter(date>MTin)
+      
+      # Re-format the date
+      ITC$Date <- format(ITC$date,"%Y-%m-%d")
+      # Get year
+      ITC$Year <- (format(ITC$date,"%Y"))
+      # Get day (1-365)
+      ITC$Day <- format(ITC$date,"%j")
+      
+      # Combine date and time, remove white space
+      ITC$Hr <-paste((ITC$he),":00:00")
+      ITC$Hr <- gsub(" ", "", ITC$Hr, fixed = TRUE)
+      
+      # Full date
+      ITC$Fdate <- as.POSIXct(paste(ITC$Date,ITC$Hr), format="%Y-%m-%d %H:%M:%S",tz='MST')
+      
+      # Re-order the columns and rename them
+      ITC2 <- ITC[, c(15, 1,12, 13, 2, 3:4,9:10)]
+      names(ITC2) <- c('Fdate','date',"Year",'Day','he','SKImp_c','SKExp_c','BCMTExp_c','BCMTImp_c')
+      
+      # For easy later Reference
+      { SKI <- 'SKImp_c'
+        SKE <- 'SKExp_c'
+        BCI <- 'BCMTImp_c'
+        BCE <- 'BCMTExp_c'
+      }
+    }  
+    
+###############################################################################################
+## 2.B Print ITC data to excel
+############################################################################################### 
+    YEAR2PRINT <- 2018
+    
+    AuroraData <- ITC2 %>%
+      filter(Year==YEAR2PRINT) %>%
+      select(.,c('date','he','SKImp_c','SKExp_c','BCMTExp_c','BCMTImp_c')) 
+    
+    names(AuroraData)<-c('Date','Hour','SKImp','SKExp','BCMTExp','BCMTImp')
+    
+    AuroraData$Date <- format(AuroraData$Date,"%m/%d/%Y")
+    write_xlsx(AuroraData,here("Data Files",'Alberta Data',"Capabilitydata2018.xlsx"))
+    
+###############################################################################################
+## 2.C ITC Capability Plots and Stats
+###############################################################################################  
+    
+    # Percentage of zero trade hours
+    ZeroTrade(BCI,ITC2,2018)
+    
+    Capab_yr(SKE,2018,2018)
+    Capab_yr(SKI,2018,2018)
+    Capab_yr(BCE,2016,2022)
+    Capab_yr(BCI,2018,2018)
+    
+    # Choose between "Avg", "Max", "Min" and get monthly capability
+    Capab_Allmn(SKE,"Avg")
+    Capab_Allmn(SKI,"Avg")
+    Capab_Allmn(BCE,"Avg")
+    Capab_Allmn(BCI,"Avg")
+    
+    # Give stats for timeperiod selected and QQ plots
+    Capab_Stats(ITC2,2018,2018)  
     

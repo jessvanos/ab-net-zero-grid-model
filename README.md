@@ -10,7 +10,7 @@ Also includes functions and code segments to visualize historical data from Albe
     -   [Database_Loading](#database_loading)
     -   [Scenario_Compare](#scenario_compare)
     -   [AESO_TradeAnalysis](#aeso_tradeanalysis)
-    -   [Link_Shaping](#link_shaping)
+    -   [AESO-Analysis](#aeso_analysis)
     -   [Referenced_Code](#referenced_code)
 -   [FUNCTION FILES](#function-files)
     -   [Build_Retire_Functions](#build_retire_functions)
@@ -62,9 +62,17 @@ Contains packages and code to compare R files between scenarios.
 
 ### <ins>AESO_TradeAnalysis
 
-Script imports data and analyses intertie behavior.
+Script imports data and analyses intertie behavior. Also looks at link capabilities over selected time periods.
 
 ##### *AESO_TradeAnalysis Special Notes:*
+
+-   *Make sure the project file is open first or "here" commands wont work right.*
+-   *Before running, create folder called "Data Files" within project directory and populate it with AESO data.*
+-   *Once this file is run through completion, can call any functions with environment that is loaded.*
+
+### <ins>AESO-Analysis
+
+Script for general analysis and plots related to historical generation.
 
 -   *Make sure the project file is open first or "here" commands wont work right.*
 -   *Before running, create folder called "Data Files" within project directory and populate it with AESO data.*
@@ -78,10 +86,6 @@ Plots not directly related to simulation and modeling work. Inlcudes AESO planni
 
 -   *Make sure the project file is open first or "here" commands wont work right.*
 -   *Before running, create folder called "Data Files/AESO Planning Locations" within project directory and populate it geographical data and project information.*
-
-### <ins>Link_Shaping
-
-Code that was used to gather and format historical intertie data.
 
 ### <ins>Referenced_Code
 
@@ -205,6 +209,19 @@ Functions To use for plotting and evaluating intertie activities. Also shows inf
 -   *MN_TradeOnly* : AB imports and exports and pool price for specific month.
 
 -   *T_month_all_Sim* : All trade for each month over one year.
+
+Historical Fit Functions. Included for looking at historical trade patterns only.
+
+-   *Capab_year* : Capability of intertie over entire year.
+
+-   *Capab_mn* : Capability of intertie over selected month. Choose between min, max, or average.
+
+-   *Capab_Allmn* : Capability of intertie over all months of year. Choose between min, max, or average.
+
+-   *Capab_stats* : Gives mean, max, min, and standard deviation for capabilities over intertie lines.
+
+-   *ZeroTrade* : Percentage of time where intertie capability is zero.
+
 
 ##### *Intertie_Functions Special Notes:*
 
