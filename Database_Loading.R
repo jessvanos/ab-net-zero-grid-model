@@ -483,10 +483,10 @@ BC <- "Base Case"
     
     
   # Set size for plot features to be constant. All based on general text size
-  { GenText_Sz =14
+  { GenText_Sz =18
     Tit_Sz = GenText_Sz-2
-    XTit_Sz = GenText_Sz+2
-    YTit_Sz = GenText_Sz+2
+    XTit_Sz = GenText_Sz+4
+    YTit_Sz = GenText_Sz+4
     Leg_Sz=GenText_Sz-2
     Overall_Sz=GenText_Sz}
     
@@ -722,8 +722,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "LZ50_CF"
-NameShort<-'Nov23_LZ50_CF'
+CaseName <- "Text Size Up"
+NameShort<-'Nov23_BAU'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
