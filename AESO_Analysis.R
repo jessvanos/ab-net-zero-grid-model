@@ -22,15 +22,14 @@
   
   # Import functions from other R files, take from the functions folder in R project
   source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
-  source(here('Functions','aeso_eval_1.R'))           #
+  source(here('Functions','aeso_gen.R'))           #
   source(here('Functions','Group_PlotSave.R'))          #
   
   
-  # Packages required
-  packs_to_load = c("tidyverse","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr","extrafont",
-                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
-                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
-                    "openxlsx","sqldf","timeDate","writexl","viridis","ggnewscale")
+  packs_to_load = c("tidyverse","ggridges","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr","extrafont",
+                   "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
+                   "ggpattern","here","beepr","showtext","DescTools","pivottabler",
+                   "openxlsx","sqldf","timeDate","writexl","viridis","ggnewscale")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
   
@@ -181,6 +180,7 @@
     group_by(Plant_Type,time) %>% 
     summarise(meancap = mean(Cap_Fac),
               total_gen=sum(gen,na.rm = T),
+              total_cap=sum(Capacity,rm = T),
               total_rev=sum(Revenue,na.rm = T),
               price_mean=mean(Price),
               heatrt_mean=mean(Heat.Rate)) %>% 
@@ -217,8 +217,170 @@
 ################################################################################
 
 
+## PART 3
 ################################################################################
-## PART 3: OTHER AESO FUNCTIONS 
+## FILTER DATA
+################################################################################
+# Filter data for wind and solar data in selected years
+# Arrange by timepoint - important for calculation!
+WSdata<-df1 %>%
+  filter(Plant_Type %in% c("WIND","SOLAR"),
+         Year == 2021) %>%
+  mutate(Month=month(Day))%>%
+  group_by(time,Day,Hour,Month,Year) %>%
+  summarise(GEN=sum(total_gen),
+            CAPACITY=sum(total_cap))%>%
+  arrange(time)
+
+# Fill missing timepoints
+all_time_points <- seq(min(WSdata$time), max(WSdata$time), by = "1 hour")
+all_times <- data.frame(time = all_time_points)
+WSdata <- merge(all_times, WSdata, by = "time", all = TRUE) %>%
+  mutate(GEN = ifelse(is.na(GEN), 0, GEN))
+
+################################################################################
+## CALCULATE ALL
+################################################################################
+# Group data by adding a descriptive column.
+# Create labels for:  generation data < 500 MW
+#                     500 MW <= generation data < 750 MW
+#                     1000 MW <= generation data < 1500 MW
+#                     1500 MW <= generation data < MAX
+WSdata2<-WSdata %>%
+  mutate(gen_range=ifelse(GEN<500,"< 500 MW",
+                          ifelse((GEN>=500 & GEN<750),"500 - 750 MW",
+                                 ifelse((GEN>=750 & GEN<1000),"750 - 1000 MW",
+                                        ifelse((GEN>=1000 & GEN<1500),"1000 - 1500 MW",
+                                               ifelse((GEN>=1500),"1500+ MW",0))))))%>%
+  arrange(time) %>%
+  # Steps to look up dates later -> shows the count for low gen days
+  group_by(gen_range, grp = with(rle(gen_range), rep(seq_along(lengths), lengths))) %>%
+  mutate(COUNTER = seq_along(grp)) %>%
+  ungroup() %>%
+  select(-grp)
+
+
+# Get consecutive days for each value using the "rle" function, where "unclass" converts to dataframe
+WSstats<-data.frame(unclass(rle(WSdata2$gen_range))) %>%
+  rename(consec_hours=lengths,
+         max_gen=values) %>%
+  mutate(Hour_range=cut(consec_hours,breaks=c(0,2,5,10,20,30,40,50,100,150,200)))
+
+# Take data and group by generation group (ie: <500 MW) and hour range. Count number of instances
+WSstats2<-WSstats %>%
+  group_by(max_gen,Hour_range)%>%
+  count(Hour_range)%>%
+  rename(count="n")
+
+################################################################################
+## PLOT ALL
+################################################################################
+
+# Plot the all data!
+WSstats2 %>%
+  ggplot(aes(x=Hour_range,y=count,fill=max_gen)) +
+  geom_bar(position=position_dodge(preserve = 'single'),stat="identity",'color'="black") +
+  
+  theme_bw() +
+  
+  theme(panel.grid = element_blank(),
+        panel.background = element_rect(fill = NA),
+        panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'),
+        legend.position = "right") +
+  
+  scale_y_continuous(expand=c(0,0),limits=c(0,round(max(WSstats2$count),-1)),breaks=pretty_breaks(10)) +
+  
+  labs(x = "Consecutive Hours in Generation Range", y = "Number of Instances", fill = "Generation Range") +
+  
+  scale_fill_brewer(palette="Blues")       
+
+################################################################################
+## PLOT 2
+################################################################################
+
+# Same data, remove the lowest hour range and 1500+ category
+WSstats3 <- WSstats2 %>%
+  filter(
+    #Hour_range != "(0,2]",
+    max_gen != "1500+ MW")
+
+# Plot more filtered data
+WSstats3 %>%
+  ggplot(aes(x=Hour_range,y=count,fill=max_gen)) +
+  geom_bar(position=position_dodge(preserve = 'single'),stat="identity",'color'="black") +
+  
+  theme_bw() +
+  
+  theme(panel.grid = element_blank(),
+        panel.background = element_rect(fill = NA),
+        panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'),
+        legend.position = "right") +
+  
+  scale_y_continuous(expand=c(0,0),limits=c(0,round(max(WSstats3$count),-1)),breaks=pretty_breaks(10)) +
+  
+  labs(x = "Consecutive Hours in Generation Range", y = "Number of Instances", fill = "Generation Range") +
+  
+  scale_fill_brewer(palette="Blues")   
+
+################################################################################
+## CALCULATE SMALL GROUPS
+################################################################################
+# Group data by adding a descriptive column.
+# Create labels for:  generation data < 500 MW
+#                     500 MW <= generation data < 750 MW
+#                     1000 MW <= generation data < 1500 MW
+#                     1500 MW <= generation data < MAX
+
+WSdataLOW<-WSdata %>%
+  mutate(gen_range=ifelse(GEN<150,"< 150 MW",
+                          ifelse((GEN>=150 & GEN<300),"150 - 300 MW",
+                                 ifelse((GEN>=300 & GEN<450),"300 - 450 MW",
+                                        ifelse((GEN>=450 & GEN<600),"450 - 600 MW",
+                                               ifelse((GEN>=600),"600+ MW",0))))))%>%
+  arrange(time)  %>%
+  # Steps to look up dates later
+  group_by(gen_range, grp = with(rle(gen_range), rep(seq_along(lengths), lengths))) %>%
+  mutate(COUNTER = seq_along(grp)) %>%
+  ungroup() %>%
+  select(-grp)
+
+# Get consecutive days for each value using the "rle" function, where "unclass" converts to dataframe
+WSdataLOW2<-data.frame(unclass(rle(WSdataLOW$gen_range))) %>%
+  rename(consec_hours=lengths,
+         max_gen=values) %>%
+  mutate(Hour_range=cut(consec_hours,breaks=c(0,2,5,10,20,30,40,50,100,150,200)))
+
+# Take data and group by generation group (ie: <500 MW) and hour range. Count number of instances
+WSdataLOW3<-WSdataLOW2 %>%
+  group_by(max_gen,Hour_range)%>%
+  count(Hour_range)%>%
+  rename(count="n")%>%
+  filter(max_gen != "600+ MW")
+
+################################################################################
+## PLOT 3
+################################################################################
+
+# Plot more filtered data
+WSdataLOW3 %>%
+  ggplot(aes(x=Hour_range,y=count,fill=max_gen)) +
+  geom_bar(position=position_dodge(preserve = 'single'),stat="identity",'color'="black") +
+  
+  theme_bw() +
+  
+  theme(panel.grid = element_blank(),
+        panel.background = element_rect(fill = NA),
+        panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'),
+        legend.position = "right") +
+  
+  scale_y_continuous(expand=c(0,0),limits=c(0,round(max(WSdataLOW3$count),-1)),breaks=pretty_breaks(10)) +
+  
+  labs(x = "Consecutive Hours in Generation Range", y = "Number of Instances", fill = "Generation Range") +
+  
+  scale_fill_brewer(palette="Blues")   
+
+################################################################################
+## PART 4: OTHER AESO FUNCTIONS 
 ################################################################################
 
 #AESO Output
