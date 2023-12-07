@@ -22,14 +22,14 @@
   
   # Import functions from other R files, take from the functions folder in R project
   source(here('Functions','Other_Functions.R'))       # Other functions used in plotting functions
-  source(here('Functions','aeso_gen.R'))           #
+  #source(here('Functions','aeso_gen.R'))           #
   source(here('Functions','Group_PlotSave.R'))          #
   
   
   packs_to_load = c("tidyverse","ggridges","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr","extrafont",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
-                   "openxlsx","sqldf","timeDate","writexl","viridis","ggnewscale")
+                   "openxlsx","sqldf","timeDate","writexl","viridis","ggnewscale","readxl")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
   
@@ -215,6 +215,12 @@
 ################################################################################
 ## PART 2: COGEN ANALYSIS (OPTIONAL)
 ################################################################################
+
+# Read data
+Cogen_Hourly_Data <- readRDS(here("Data Files","Alberta Data","Cogen_Hourly_Data.RData"))
+
+
+
 
 
 ## PART 3
