@@ -84,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"LZ2050_CF5_23Nov2023"
+  SourceDB<-"BAU_15_Dec_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -469,13 +469,12 @@ BC <- "Base Case"
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
   
-    # font_import()
-    #loadfonts(dev="win")
+    #font_import()
+    loadfonts(dev="win")
     font_add(family="Times",regular="times.ttf")
     Plot_Text <- "Times"
     
     # Make ggplot show text changes
-       # showtext_opts(dpi = 300)
         showtext_auto()
     # font_add(family="Cambrai",regular="CAMBRIA.ttc")
     # Plot_Text <- 'Cambrai'
@@ -483,10 +482,10 @@ BC <- "Base Case"
     
     
   # Set size for plot features to be constant. All based on general text size
-  { GenText_Sz =18
+  { GenText_Sz =20
     Tit_Sz = GenText_Sz-2
-    XTit_Sz = GenText_Sz+4
-    YTit_Sz = GenText_Sz+4
+    XTit_Sz = GenText_Sz+6
+    YTit_Sz = GenText_Sz+6
     Leg_Sz=GenText_Sz-2
     Overall_Sz=GenText_Sz}
     
@@ -661,7 +660,7 @@ BC <- "Base Case"
                  "Wind"=cOL_WIND, "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
                  "Storage - Compressed Air"=COL_CompAir, "Storage - Pumped Hydro"=COL_Pumped)
 
-      colours7=c("Total Emissions"="black","Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+      colours7=c("Total Emissions"="black","Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN,"NAICS 221112 Cogeneration"= cOL_COGEN,
                  "Coal-to-Gas"=cOL_NGConv, 
                  #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                  "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
@@ -722,8 +721,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "Text Size Up"
-NameShort<-'Nov23_BAU'
+CaseName <- "New Cogen"
+NameShort<-'Dec15_BAU'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -732,7 +731,9 @@ NameShort<-'Nov23_BAU'
 ################################################################################
 
 # SAVE PLOTS AND FIGURES  
-  
+  # GENERAL ANALYSIS 
+    Gen_Analysis_saveall(CaseName)
+
   # ADDITIONAL ANALYSIS
     # Value plots
       Value_saveall(CaseName)
@@ -740,19 +741,18 @@ NameShort<-'Nov23_BAU'
       Slack_saveall(CaseName)
       
 # SAVE DATA
-      
   # WRITE TO EXCEL
     # Annual data ('long name','short name',case)
-    AnnualDataExcel(CaseName,NameShort,BC)
+      AnnualDataExcel(CaseName,NameShort,BC)
       
     # Hourly data ('long name','short name',case)
-    HourlyDataExcel(CaseName,NameShort,BC)
+      HourlyDataExcel(CaseName,NameShort,BC)
       
   # GENERATE R FILES TO COMPARE LATER ('short name',case) -  skip if this is not needed
     AnnualDataR(NameShort,BC)
       
 ################################################################################
-## THE MOST USEFULL FUNCTIONS, AND INDIVIDUAL PLOT SAVING OPTIONS
+## COMMON INDIVIDUAL PLOT SAVING OPTIONS
 ################################################################################
   
   # GENERATION
@@ -907,11 +907,11 @@ NameShort<-'Nov23_BAU'
       
   # EMISSIONS
       # Annual emissions in stacked area chart
-      AnnualEmStackCol(BC)
+      AnnualEmStackCol(BC,"NAICS")
       SaveRun_Loc(CaseName,"Annual Emissions (Bar)")
       
       # Annual emissions in individual lines
-      AnnualEmLine(BC)
+      AnnualEmLine(BC,"ALL")
       SaveRun_Loc(CaseName,"Annual Emissions (Line)")
       
   # OTHER STUFF
@@ -1311,3 +1311,64 @@ NameShort<-'Nov23_BAU'
     windows(10,8)
     windows(18,12)
     windows(16,12)
+
+    
+################################################################################    
+    data <- ResGroupEmYr %>%
+      filter(Run_ID == case & Condition == "Average") %>%
+      filter(Type== "CO2") %>%
+      select(ID, Report_Year, Amount, Cost) %>%
+      mutate(Amount=Amount*0.90718474) %>% # Convert Ton to Tonne
+      filter(ID %in% c("LTO_Cogen","NAICS221112_Cogen")) 
+    
+             # Set the max for the plot
+             YearMX <- aggregate(data["Amount"], by=data["Report_Year"], sum)
+             YearMX$Amount <-YearMX$Amount/1000000
+             MX <- plyr::round_any(max(abs(YearMX$Amount+1)), 5, f = ceiling)
+             
+             # Format years to assist plot
+             data$Report_Year  <- as.numeric(data$Report_Year)
+             
+             # Get Year max for run
+             MaxYr <- MaxYrStudy
+             MinYr <- (min(data$Report_Year))
+             
+             # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+             data <- data%>%
+               filter(Report_Year<=MaxYr)
+             
+             # Print the result out for 2035 
+             message("Total Annaul Emissions (Mt)")
+             print(YearMX)
+             
+             # Plot 
+             data %>%
+             ggplot() +
+               geom_line(size=1.5,alpha = 1) +
+               aes(Report_Year, (Amount/1000000),colour = ID,linetype = ID) +
+               
+               theme_bw() +
+               
+               theme(text=element_text(family=Plot_Text)) +
+               
+               theme(panel.grid = element_blank(),
+                     axis.text.x = element_text(vjust = 1,color="black"),
+                     axis.text.y = element_text(color="black"),
+                     #axis.title.x = element_text(size = XTit_Sz),
+                     axis.title.x = element_blank(),          axis.title.y = element_text(size = YTit_Sz),
+                     plot.title = element_text(size = Tit_Sz),
+                     plot.subtitle = element_text(hjust = 0.5), 
+                     panel.background = element_rect(fill = NA),
+                     # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
+                     #legend.key.size = unit(1,"lines"), #Shrink legend
+                     legend.position = "bottom",
+                     legend.justification = c(0.5,0.5),
+                     legend.title=element_blank(),
+                     text = element_text(size = 15)) +
+               
+               labs(x = "Year", y = "Annual Emissions (Mt Co2e)",colour="ID",linetype="ID",caption = paste(SourceDB)) +
+               
+               scale_x_continuous(expand = c(0, 0),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
+               
+               scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6))
+             

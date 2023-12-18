@@ -17,17 +17,47 @@
 ## TABLES REQUIRED: 
 ##    ResGroupEmYr -Yearly resoruce group emissions
 ################################################################################
-AnnualEmStackCol <- function(case) {
+AnnualEmStackCol <- function(case,Ptype) {
   
-  # Filters for the desired case study
-  data <- ResGroupEmYr %>%
-    filter(Run_ID == case & Condition == "Average") %>%
-    filter(Type== "CO2") %>%
-    select(ID, Report_Year, Amount, Cost) %>%
-    sim_filtEm(.)  %>%
-    mutate(Amount=Amount*0.90718474) %>% # Convert Ton to Tonne
-    filter(!ID=="Cogeneration") # Temp remove cogen
-  
+  if (Ptype == "NAICS"){
+    # Filters for the desired case study
+    data <- ResGroupEmYr %>%
+      filter(Run_ID == case & Condition == "Average") %>%
+      filter(Type== "CO2") %>%
+      select(ID, Report_Year, Amount, Cost) %>%
+      sim_filtEm(.)  %>%
+      mutate(Amount=Amount*0.90718474) %>% # Convert Ton to Tonne
+      filter(!ID=="Cogeneration") # Remove non-NAICS cogen
+    
+    CaptionE = paste(SourceDB,',','Includes cogeneration emissions attributed to electricity, reported under NAICS 2211122 only')
+    
+  }
+  else if (Ptype == "ALL"){
+    # Filters for the desired case study
+    data <- ResGroupEmYr %>%
+      filter(Run_ID == case & Condition == "Average") %>%
+      filter(Type== "CO2") %>%
+      select(ID, Report_Year, Amount, Cost) %>%
+      sim_filtEm(.)  %>%
+      mutate(Amount=Amount*0.90718474) %>% # Convert Ton to Tonne
+      filter(!ID=="NAICS 221112 Cogeneration") # Remove NAICS 2211122 Cogen
+    
+    CaptionE = paste(SourceDB,',','Includes cogeneration emissions attributed to electricity only')
+    
+  }
+  else {
+    # Filters for the desired case study
+    data <- ResGroupEmYr %>%
+      filter(Run_ID == case & Condition == "Average") %>%
+      filter(Type== "CO2") %>%
+      select(ID, Report_Year, Amount, Cost) %>%
+      sim_filtEm(.)  %>%
+      mutate(Amount=Amount*0.90718474) %>% # Convert Ton to Tonne
+      filter(!ID %in% c("Cogeneration","NAICS 221112 Cogeneration")) # Remove All cogen
+    
+    CaptionE = paste(SourceDB,',','Cogen has been removed from this figure')
+  }
+
   # Set the max for the plot
   YearMX <- aggregate(data["Amount"], by=data["Report_Year"], sum)
   YearMX$Amount <-YearMX$Amount/1000000
@@ -78,11 +108,11 @@ AnnualEmStackCol <- function(case) {
     
     scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
     
-    labs(x = "Year", y = "Annual Emissions (Mt Co2e)", fill = "Resource",colour="Resource",caption =paste(SourceDB,',','Cogen has been removed for this figure')) +
+    labs(x = "Year", y = "Annual Emissions (Mt Co2e)", fill = "Resource",colour="Resource",caption = CaptionE) +
     
     guides(fill = guide_legend(nrow = 2)) +
     
-    scale_fill_manual(values = colours7,drop = FALSE) 
+    scale_fill_manual(values = colours7,drop = TRUE) 
   
 }
 
@@ -95,16 +125,46 @@ AnnualEmStackCol <- function(case) {
 ## TABLES REQUIRED: 
 ##    ResGroupEmYr -Yearly resoruce group emissions
 ################################################################################
-AnnualEmLine <- function(case) {
+AnnualEmLine <- function(case,Ptype) {
   
-  # Filters for the desired case study
-  data <- ResGroupEmYr %>%
-    filter(Run_ID == case & Condition == "Average") %>%
-    filter(Type== "CO2") %>%
-    select(ID, Report_Year, Amount, Cost) %>%
-    sim_filtEm(.)  %>%
-    mutate(Amount=Amount*0.90718474)%>% # Convert Ton to Tonne
-    filter(!ID=="Cogeneration") # Temp remove cogen for now
+  if (Ptype == "NAICS"){
+    # Filters for the desired case study
+    data <- ResGroupEmYr %>%
+      filter(Run_ID == case & Condition == "Average") %>%
+      filter(Type== "CO2") %>%
+      select(ID, Report_Year, Amount, Cost) %>%
+      sim_filtEm(.)  %>%
+      mutate(Amount=Amount*0.90718474) %>% # Convert Ton to Tonne
+      filter(!ID=="Cogeneration") # Remove non-NAICS cogen
+    
+    CaptionE = paste(SourceDB,',','Includes cogeneration emissions attributed to electricity, reported under NAICS 2211122 only')
+    
+  }
+  else if (Ptype == "ALL"){
+    # Filters for the desired case study
+    data <- ResGroupEmYr %>%
+      filter(Run_ID == case & Condition == "Average") %>%
+      filter(Type== "CO2") %>%
+      select(ID, Report_Year, Amount, Cost) %>%
+      sim_filtEm(.)  %>%
+      mutate(Amount=Amount*0.90718474) %>% # Convert Ton to Tonne
+      filter(!ID=="NAICS 221112 Cogeneration") # Remove NAICS 2211122 Cogen
+    
+    CaptionE = paste(SourceDB,',','Includes cogeneration emissions attributed to electricity only')
+    
+  }
+  else {
+    # Filters for the desired case study
+    data <- ResGroupEmYr %>%
+      filter(Run_ID == case & Condition == "Average") %>%
+      filter(Type== "CO2") %>%
+      select(ID, Report_Year, Amount, Cost) %>%
+      sim_filtEm(.)  %>%
+      mutate(Amount=Amount*0.90718474) %>% # Convert Ton to Tonne
+      filter(!ID %in% c("Cogeneration","NAICS 221112 Cogeneration")) # Remove All cogen
+    
+    CaptionE = paste(SourceDB,',','Cogen has been removed from this figure')
+  }
   
   data$Report_Year  <- as.numeric(data$Report_Year)
   
@@ -120,7 +180,8 @@ AnnualEmLine <- function(case) {
     relocate(Report_Year, .before = Amount)  %>%
     add_column(ID="Total Emissions",.before="Report_Year")
   
-  CombData <-rbind(data,AllEm)
+  CombData <-rbind(data,AllEm) %>%
+    filter(Report_Year<=MaxYr)
   
   
   # Set the max for the plot
@@ -146,19 +207,19 @@ AnnualEmLine <- function(case) {
           panel.background = element_rect(fill = NA),
           # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           #legend.key.size = unit(1,"lines"), #Shrink legend
-          legend.position = "bottom",
+          legend.position = "right",
           legend.justification = c(0.5,0.5),
           legend.title=element_blank(),
           text = element_text(size = 15)) +
     
-    labs(x = "Year", y = "Annual Emissions (Mt Co2e)",colour="ID",linetype="ID",caption = paste(SourceDB,',','Cogen has been removed for this figure')) +
+    labs(x = "Year", y = "Annual Emissions (Mt Co2e)",colour="ID",linetype="ID",caption = CaptionE) +
     
     scale_x_continuous(expand = c(0, 0),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
     
     scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
     
-    scale_colour_manual(name="Guide1",values = colours7,drop = FALSE) +
-    scale_linetype_manual(name="Guide1",values = Lines7,drop = FALSE)
+    scale_colour_manual(name="Guide1",values = colours7,drop = TRUE) +
+    scale_linetype_manual(name="Guide1",values = Lines7,drop = TRUE)
   
   
   

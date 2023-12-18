@@ -926,10 +926,10 @@ ResValue_Annual<-function(ResNum,BuildYr,case) {
     # Set line at 0
     geom_hline(yintercept=0, color = "black",size=0.5,linetype=1) +
     
-    ggbeeswarm::geom_quasirandom(size = 4, width = .33, alpha = .8) +
-    ggbeeswarm::geom_quasirandom(size = 4, width = .33, shape = 1, color = "black", stroke = .8) +
+    ggbeeswarm::geom_quasirandom(size = 2, width = .2, alpha = .8) +
+    ggbeeswarm::geom_quasirandom(size = 2, width = .2, shape = 1, color = "black", stroke = .5) +
     
-    stat_summary(fun = median, geom = "point", shape = 95, size = 20) +
+    stat_summary(fun = median, geom = "point", shape = 95, size = 40,color="darkgoldenrod") +
     
     theme_bw() +
     theme(text=element_text(family=Plot_Text)) +
@@ -938,8 +938,8 @@ ResValue_Annual<-function(ResNum,BuildYr,case) {
       panel.grid = element_blank(),                          # Remove pannel grid
       panel.spacing=unit(1,"pt"),                            # Control space between plots
       panel.background = element_rect(fill = "transparent"), # Transparent background
-      text = element_text(size= GenText_Sz),                # Text size
-      plot.title = element_text(size=Tit_Sz ),              # Plot title size (if present)
+      text = element_text(size= GenText_Sz+4),                # Text size
+      plot.title = element_text(size=Tit_Sz+4 ),              # Plot title size (if present)
       plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
       
       # X-axis
@@ -947,19 +947,20 @@ ResValue_Annual<-function(ResNum,BuildYr,case) {
       axis.title.x = element_blank(),           # x-axis title text size
       axis.ticks.x= element_blank(),
       # Y-axis
-      axis.title.y = element_text(XTit_Sz ),           # y-axis title text size
+      axis.title.y = element_text(YTit_Sz+4 ),           # y-axis title text size
       axis.text.y = element_text(color="black"),
       # Legend
-      legend.position = c(0.99, 0.99), 
+      legend.position = "right", #c(0.99, 0.99), 
       legend.text = element_text(size=Leg_Sz),
-      legend.justification = c(0.99, 0.99),                      
+      #legend.justification = c(0.99, 0.99),                      
       legend.title=element_text()) +
     
     # Y-Axis 
-    scale_y_continuous(name="Plant Value (nominal $M)",labels = scales::dollar_format(prefix="$", suffix = "M"),breaks=pretty_breaks(6)) +
+    scale_y_continuous(labels = scales::dollar_format(prefix="$", suffix = "M"),breaks=pretty_breaks(6)) +
     
     # Other Settings
     labs(caption = SourceDB,
+         y="Plant Value (nominal, $M)",
          title=paste("Resource Type:",FuelIndicator),color="Year Built") +
     
     scale_colour_gradient(low="black",high="skyblue1")
@@ -1070,10 +1071,10 @@ ResValue_Annual_MWh<-function(ResNum,BuildYr,case) {
     # Set line at 0
     geom_hline(yintercept=0, color = "black",size=0.5,linetype=1) +
     
-    ggbeeswarm::geom_quasirandom(size = 4, width = .33, alpha = .8) +
-    ggbeeswarm::geom_quasirandom(size = 4, width = .33, shape = 1, color = "black", stroke = .8) +
+    ggbeeswarm::geom_quasirandom(size = 2, width = .2, alpha = .8) +
+    ggbeeswarm::geom_quasirandom(size = 2, width = .2, shape = 1, color = "black", stroke = .5) +
     
-    stat_summary(fun = median, geom = "point", shape = 95, size = 20) +
+    stat_summary(fun = median, geom = "point", shape = 95, size = 40,color="darkgoldenrod") +
     
     theme_bw() +
     theme(text=element_text(family=Plot_Text)) +
@@ -1082,8 +1083,8 @@ ResValue_Annual_MWh<-function(ResNum,BuildYr,case) {
       panel.grid = element_blank(),                          # Remove pannel grid
       panel.spacing=unit(1,"pt"),                            # Control space between plots
       panel.background = element_rect(fill = "transparent"), # Transparent background
-      text = element_text(size= GenText_Sz),                # Text size
-      plot.title = element_text(size=Tit_Sz ),              # Plot title size (if present)
+      text = element_text(size= GenText_Sz +4),                # Text size
+      plot.title = element_text(size=Tit_Sz+4 ),              # Plot title size (if present)
       plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
       
       # X-axis
@@ -1091,19 +1092,20 @@ ResValue_Annual_MWh<-function(ResNum,BuildYr,case) {
       axis.title.x = element_blank(),           # x-axis title text size
       axis.ticks.x= element_blank(),
       # Y-axis
-      axis.title.y = element_text(face="bold",XTit_Sz ),           # y-axis title text size
+      axis.title.y = element_text(face="bold",XTit_Sz+4 ),           # y-axis title text size
       axis.text.y = element_text(color="black"),
       # Legend
-      legend.position = c(0.99, 0.99), 
+      legend.position = "right", #c(0.99, 0.99), 
       legend.text = element_text(size=Leg_Sz),
-      legend.justification = c(0.99, 0.99),                      
+      #legend.justification = c(0.99, 0.99),                      
       legend.title=element_text()) +
     
     # Y-Axis 
-    scale_y_continuous(name="Plant Value (nominal $/MWh)",labels = scales::dollar_format(prefix="$", suffix = "/MWh"),breaks=pretty_breaks(6)) +
+    scale_y_continuous(labels = scales::dollar_format(prefix="$", suffix = "/MWh"),breaks=pretty_breaks(6)) +
     
     # Other Settings
     labs(caption = SourceDB,
+         y="Plant Value (nominal $/MWh)",
          title=paste("Resource Type:",FuelIndicator),color="Year Built") +
     
     scale_colour_gradient(low="black",high="skyblue1")

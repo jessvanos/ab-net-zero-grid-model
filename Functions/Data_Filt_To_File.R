@@ -21,6 +21,8 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
 ################################################################################
   {
     # FILTER OUT EMISSIONS
+    print("Filtering emissions, cost in $M, convert from Tons to tonnes")
+    
     DataGrEmYr<-ResGroupEmYr%>%
       # Filter to rename fuels
       sim_filt5(.) %>% 
@@ -39,7 +41,10 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
       subset(., select=c(ID,Year,Type,Emissions_Tonne,Emissions_Mt,Emissions_Cost))%>%
       rename(Plant_Type=ID)
     
+
     # ANNUAL RESOURCE GROUP DATA
+    print("Filtering resource group data, convert all costs to $M")
+    
     DataGrYr <- ResGroupYr%>%
       sim_filt5(.) %>% #Filter to rename fuels
       filter(Run_ID == case) %>%
@@ -49,11 +54,11 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
              Sim_Name=paste(SourceDB),
              Revenue=Revenue*1000,
              Total_Fuel_Cost=Total_Fuel_Cost*1000,
-             Fixed_OM_Cost=Fixed_Cost_Base*1000,
-             CAPEX=Fixed_Cost_Aux1*1000,
+             Fixed_OM_Cost=Fixed_Cost_Base*1000, # Fixed_Cost_Base - Fixed O&M
+             CAPEX=Fixed_Cost_Aux1*1000, # Fixed_Cost_Aux1 - Fixed Cost Mod1  (capital cost)
              Variable_OM_Cost=Variable_OM_Cost*1000,
              Value=Value*1000,
-             Storage_Charging_Cost*1000,
+             Storage_Charging_Cost=Storage_Charging_Cost*1000,
              Total_Cost=Revenue-Value, 
              Capacity=round(Capacity,digits=0)) %>%
       # Filter out dates after MaxYr
@@ -74,6 +79,8 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
     AllDataGrYr<-merge(DataGrYr,DataGrEmYr,by=c("Plant_Type","Year"), all.x = TRUE)
     
     # CARBON CREDIT DATA
+    print("Calculating carbon credit data.")
+    
     AllRenewData <- AllDataGrYr %>%
       filter(Plant_Type %in% c("Wind","Solar")) %>%
       mutate(Emissions_Cost=Emissions_Cost*-1,
@@ -126,6 +133,7 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
 ## Resource Group annual Information: 2022-MaxYr Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
+  print("Filtering all resource additions and retirements")
   {
     # Bring in Resource Year Table and filter for relevant data. Format date columns
     Add_Ret_data <- ResYr%>%
@@ -175,11 +183,12 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
       arrange(.,Beg_Date)
     
     # Add cap increases manual
+    print("Manually add Suncor Base plant capacity November 2024 (change not reflected by Aurora output)")
     Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
                        In_Cap=c(800),
                        Primary_Fuel=c("Cogeneration"),
                        Capacity_Factor=NA,
-                       Beg_Date=c(as.Date("07/01/2024", 
+                       Beg_Date=c(as.Date("11/01/2024", 
                                           format = "%m/%d/%Y")),
                        Beg_Year=c(2024),
                        End_Date=NA,
@@ -242,6 +251,7 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
       summarize(AESO_Add=sum(Capacity_Added))
     
     # Get Canyon
+    print("Account for Canyon pumped hydro - added manually post 2025")
     Canyon_PS3<- Tot_Change %>%
       filter(Year<2027,
              Primary_Fuel=="Storage - Pumped Hydro")%>%
@@ -289,6 +299,8 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
 ## costs, outputs, and emission costs. 
 ################################################################################
 {
+  print("Calculating average annual heat rates")
+  
     # Bring in Resource Year Table and filter for relevant data. Format date columns
     AVG_HeatRates <- ResYr%>%
       sim_filt6(.) %>% #Filter to rename fuels
@@ -315,7 +327,9 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
 ## ANNUAL FUEL TABLES
 ################################################################################
 {
-FuelData <- FuelYr %>%
+print("Selecting annual fuel usage data")
+  
+  FuelData <- FuelYr %>%
   # Filter for case
   filter(Run_ID == case,
          Condition == "Average") %>%
@@ -334,6 +348,8 @@ FuelData <- FuelYr %>%
 ################################################################################
   {  
     # First we need the total energy output for this year!
+    print('Filtering for annaul zone information (costs, production, capacity, ect.)')
+    
     AnnualOut <-AllDataGrYr %>%
       group_by(Year)%>%
       summarise(Total_Output=sum(`Output (MWh)`))
@@ -354,8 +370,10 @@ FuelData <- FuelYr %>%
                         Production_Cost_Total,Fixed_Cost_Total,Imports_Total,Exports_Total,Scenario))
     
     # Get the emissions in each year
+    print("Adding emission data to zone info, removing emissions from cogeneration. Removing fake wind and solar emissions")
+    
     DataAnnualEm <- DataGrEmYr %>%
-      filter(Plant_Type!="Cogeneration")%>%
+      filter(!Plant_Type %in% c("Cogeneration","Wind","Solar"))%>%
       group_by(Year)%>%
       summarise(NonCogen_Emissions=sum(Emissions_Tonne)/1000000)%>%
       ungroup()
@@ -410,8 +428,21 @@ dataset_names <-list('1 Annual Resource Group Data'=AllDataGrYr,
 
 filename <-paste("Annual_Data_",ScenarioName,"_",SourceDB,".xlsx")
 
+# Check if folder exists, if not, make one
+if (file.exists(here("Data Files","Result Files",paste(NameShort)))) {
+  cat("The folder exists\n")
+} else {
+  # Create the folder
+  FoldLocation <-
+    dir.create(here("Data Files","Result Files",paste(NameShort)))
+}
+
+print(paste("Sending annual data to excel sheet:",filename))
+
 write_xlsx(dataset_names, path = here("Data Files","Result Files",NameShort,filename),
                      col_names = TRUE, format_headers = TRUE)
+
+print("Annual data complete")
 
 }
 
@@ -434,7 +465,9 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
 ## Resource Group annaul Information: 2022-MaxYr. Gives info on resource group 
 ## costs, outputs, and emission costs. 
 ################################################################################
- ZoneHrData <- ZoneHr_Avg %>%
+ print("Filtering hourly zone data")
+  
+  ZoneHrData <- ZoneHr_Avg %>%
    mutate(Year = year(date),
           Month=month(date),
           Day=day(date),
@@ -456,7 +489,8 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
 ################################################################################
 ## HOURLY ZONE INFO
 ################################################################################
- 
+ print("Converting hourly emission data to tonnes, cost in $M")
+  
  # Get emissions for eay type to start
  DataGrEmHr<-ResGroupEmHr%>%
    # Filter to rename fuels
@@ -483,6 +517,8 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
    rename(Plant_Type=ID)
  
  # Resource groups over entire year
+ print("Filtering hourly resource group data")
+ 
  DataGrHr <- ResGroupHr%>%
    sim_filt5(.) %>% #Filter to rename fuels
    filter(Run_ID == case) %>%
@@ -535,8 +571,21 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
    
    filename <-paste("Hourly_Data_",ScenarioName,"_",SourceDB,".xlsx")
    
+   # Check if folder exists, if not, make one
+   if (file.exists(here("Data Files","Result Files",paste(NameShort)))) {
+     cat("The folder exists\n")
+   } else {
+     # Create the folder
+     FoldLocation <-
+       dir.create(here("Data Files","Result Files",paste(NameShort)))
+   }
+   
+   print(paste("Sending hourly data to excel sheet:",filename))
+   
    write_xlsx(dataset_names, path = here("Data Files","Result Files",NameShort,filename),
               col_names = TRUE, format_headers = TRUE)
+   
+   print("Hourly data complete")
 }
 
 ################################################################################
@@ -561,6 +610,8 @@ AnnualDataR<- function(ScenarioName,case){
 ## costs, outputs, and emission costs. 
 ################################################################################
   { #First get annual emissions data
+    print("Filtering emissions, cost in $000, convert from Tons to tonnes")
+    
     DataGrEmYr<-ResGroupEmYr%>%
       # Filter to rename fuels
       sim_filt5(.) %>% 
@@ -579,6 +630,8 @@ AnnualDataR<- function(ScenarioName,case){
       rename(Plant_Type=ID)
     
     # Resource groups over entire year
+    print("Filtering annual resource group data and appending emissions data")
+    
     DataGrYr <- ResGroupYr%>%
       sim_filt5(.) %>% #Filter to rename fuels
       filter(Run_ID == case) %>%
@@ -625,6 +678,7 @@ AnnualDataR<- function(ScenarioName,case){
                          Capacity_Factor,Sim_Name)) 
     
     # Save R file in folder
+    print(paste("Saving .R file to folder:",ScenarioName,"Prefix: ResGrYr_"))
     SaveR_Loc(AllDataGrYr,ScenarioName,"ResGrYr_")
     
   }
@@ -632,8 +686,10 @@ AnnualDataR<- function(ScenarioName,case){
 ## EMISSION PERFORMANCE CREDIT VALUES
 ################################################################################
   # Here we get value of carbon credits and cost
+  print("Determine emission credit value for wind, solar, hydro, and CCS")
+  
   EPC_Values <- AllDataGrYr1 %>%
-    filter(Plant_Type %in% c("Wind","Solar","Hydro")) %>%
+    filter(Plant_Type %in% c("Wind","Solar","Hydro","Natural Gas Combined Cycle + CCS")) %>%
     mutate(Emissions_Cost=Emissions_Cost*-1000,
            Credit=Emissions_Cost/Output_MWH,
            EPC_Perc_of_Rev=abs(100*Emissions_Cost/(Revenue+Emissions_Cost))) %>%
@@ -645,6 +701,7 @@ AnnualDataR<- function(ScenarioName,case){
            "Other_Revenue"=Revenue)
   
   # Save R file
+  print(paste("Saving .R file to folder:",ScenarioName,"Prefix: EPC_Values_"))
   SaveR_Loc(EPC_Values,ScenarioName,"EPC_Values_")
   
 ################################################################################
@@ -653,6 +710,8 @@ AnnualDataR<- function(ScenarioName,case){
 ## costs, outputs, and emission costs. 
 ################################################################################
   {
+    print("Determine annual capacity changes")
+    
     # Bring in Resource Year Table and filter for relevant data. Format date columns
     Add_Ret_data <- ResYr%>%
       sim_filt6(.) %>% #Filter to rename fuels
@@ -701,11 +760,12 @@ AnnualDataR<- function(ScenarioName,case){
       arrange(.,Beg_Date)
     
     # Add cap increases manual
+    print("Mannualy adjust for Suncore base Plant capacity change in November 2024")
     Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
                        In_Cap=c(800),
                        Primary_Fuel=c("Cogeneration"),
                        Capacity_Factor=NA,
-                       Beg_Date=c(as.Date("07/01/2024", 
+                       Beg_Date=c(as.Date("11/01/2024", 
                                           format = "%m/%d/%Y")),
                        Beg_Year=c(2024),
                        End_Date=NA,
@@ -752,6 +812,7 @@ AnnualDataR<- function(ScenarioName,case){
       rename("Plant_Type"=Primary_Fuel)
     
     # Save R file
+    print(paste("Saving .R file to folder:",ScenarioName,"Prefix: Ann_Cap_"))
     SaveR_Loc(AnnualCap_Change,ScenarioName,"Ann_Cap_")
     
   }
@@ -771,6 +832,7 @@ AnnualDataR<- function(ScenarioName,case){
     summarize(AESO_Add=sum(Capacity_Added))
   
   # Get pumped storage (separate since added post 2025)
+  print("Adjust for Canyon pumped hydro storage")
   Canyon_PS3<- Tot_Change %>%
     filter(Year<2027,
            Primary_Fuel=="Storage - Pumped Hydro")%>%
@@ -820,6 +882,7 @@ AnnualDataR<- function(ScenarioName,case){
            "Cap_Retired"=Capacity_Retired)
   
   # Save R file
+  print(paste("Saving .R file to folder:",ScenarioName,"Prefix: Tot_Cap_"))
   SaveR_Loc(AllCap_Changes2,ScenarioName,"Tot_Cap_")
   
   
@@ -830,6 +893,8 @@ AnnualDataR<- function(ScenarioName,case){
 ################################################################################
   {
     # Bring in Resource Year Table and filter for relevant data. Format date columns
+    print("Calculating average heat rates")
+    
     AVG_HeatRates <- ResYr%>%
       sim_filt6(.) %>% #Filter to rename fuels
       subset(., select=c(Name,Condition,Capacity,Peak_Capacity,
@@ -851,6 +916,7 @@ AnnualDataR<- function(ScenarioName,case){
       mutate(Scenario=SourceDB)
     
     # Save R file
+    print(paste("Saving .R file to folder:",ScenarioName,"Prefix: Ann_HR_"))
     SaveR_Loc(AVG_HeatRates,ScenarioName,"Ann_HR_")
     
   }
@@ -859,6 +925,8 @@ AnnualDataR<- function(ScenarioName,case){
 ## ANNUAL FUEL TABLES
 ################################################################################
   {
+    print("Tabulating annual fuel usage")
+    
     FuelData <- FuelYr %>%
       # Filter for case
       filter(Run_ID == case,
@@ -873,6 +941,7 @@ AnnualDataR<- function(ScenarioName,case){
              "Price_$/GJ"=Price)
     
     # Save R file
+    print(paste("Saving .R file to folder:",ScenarioName,"Prefix: Ann_Fuel_"))
     SaveR_Loc(FuelData,ScenarioName,"Ann_Fuel_")
     
   }
@@ -881,11 +950,15 @@ AnnualDataR<- function(ScenarioName,case){
 ## ANNUAL ZONE INFO
 ################################################################################
   {
+    paste("Filter annual zone information")
+    
     # First we need the total energy output for this year!
     AnnualOut <-AllDataGrYr %>%
       group_by(Year)%>%
       summarise(Total_Output=sum(Output_MWH))
     
+    # Production cost total -  Startup_Cost + Fuel_Cost + Emissions + Variable_OM_Cost for all resources
+    # Fixed cost Total - Fixed O&M + Fixed_Cost_Aux1 + Fixed_Cost_Aux2
     ZnData <- ZoneYr %>%
       mutate(Year = year(Time_Period),
              time = Time_Period) %>%
@@ -903,28 +976,34 @@ AnnualDataR<- function(ScenarioName,case){
     
     # Get the non-cogen emissions in each year
     DataAnnualEm1 <- DataGrEmYr %>%
-      filter(Plant_Type %in% c("Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                               "Blended  Simple Cycle","Blended  Combined Cycle",
-                               "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
-                                "Other","Coal"))%>%
+      filter(!Plant_Type %in% c("Cogeneration","Wind","Solar"))%>%
       group_by(Year)%>%
       summarise(NonCogen_Emissions=sum(Emissions_Tonne)/1000000)%>%
       ungroup()
     
     # Get the total emissions in each year
     DataAnnualEm2 <- DataGrEmYr %>%
+      filter(!Plant_Type %in% c("Wind","Solar"))%>%
       group_by(Year)%>%
       summarise(Emissions=sum(Emissions_Tonne)/1000000)%>%
       ungroup()
     
+    # Get the total emissions cost each year
+    DataAnnualEm3 <- DataGrEmYr %>%
+      group_by(Year)%>%
+      summarise(Emissions_Cost=sum(Emissions_Cost)/1000000)%>%
+      ungroup()
+    
     # Combine the total output in MWh with zone info
+    print("Add emissions data to zone file")
+    
     AllZoneData1a<-merge(ZnData,AnnualOut,by=c("Year"), all.x = TRUE)
     AllZoneData1b<-merge(AllZoneData1a,DataAnnualEm1,by=c("Year"), all.x = TRUE)
     AllZoneData1c<-merge(AllZoneData1b,DataAnnualEm2,by=c("Year"), all.x = TRUE)
-    
+    AllZoneData1d<-merge(AllZoneData1c,DataAnnualEm3,by=c("Year"), all.x = TRUE)
     
     # Now, rename some columns and get unit prices
-    AllZoneData <-AllZoneData1c %>%
+    AllZoneData <-AllZoneData1d %>%
       mutate(Unit_Prod=round(Production_Cost_Total/Total_Output,digits=2),
              Unit_Fix=round(Fixed_Cost_Total/Total_Output,digits=2),
              Price=round(Price,digits=2),
@@ -936,11 +1015,12 @@ AnnualDataR<- function(ScenarioName,case){
       subset(.,select=c(Name,Year,Price, 
                         Demand_Total,Net_Load_Total,Total_Output,
                         Production_Cost_Total,Unit_Prod,Fixed_Cost_Total,Unit_Fix,Total_Costs,
-                        Imports_Total,Exports_Total,NonCogen_Emissions,
+                        Imports_Total,Exports_Total,NonCogen_Emissions,Emissions,Emissions_Cost,
                         Scenario)) %>%
       rename("Avg_Price"=Price)
     
     # Save R file
+    print(paste("Saving .R file to folder:",ScenarioName,"Prefix: Zone_"))
     SaveR_Loc(AllZoneData,ScenarioName,"Zone_")
     
   }
@@ -1055,14 +1135,15 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
            '10 Emissions by Tech',
            '11 Emissions Cost by Tech',
            '12 Emissions Total',
-           '13 Cost by Tech',
-           '14 Total Costs',
-           '15 Zone Costs',
-           '16  Average Pool Price',
-           '17 Imports_Exports',
-           '18 Net Imports',
-           '19 Fuel Usage',
-           '20 Fuel Price',
+           '13 Cogen Emissions',
+           '14 Cost by Tech',
+           '15 Total Costs',
+           '16 Zone Costs',
+           '17  Average Pool Price',
+           '18 Imports_Exports',
+           '19 Net Imports',
+           '20 Fuel Usage',
+           '21 Fuel Price',
            "",
            'COMPILED RESULTS',
            'A All Groups Data',
@@ -1187,6 +1268,16 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
       pivot_wider(names_from=Sim_Name,values_from =TotalEm)%>%
       arrange(.,(Year))
     
+    # Cogen Emissions
+    Em_Cogen<-ResGrYr %>%
+      filter(Emissions_Tonne>0,
+             Plant_Type %in% c("LTO_Cogen","NAICS221112_Cogen"))%>%
+      group_by(Sim_Name,Year)%>%
+      summarize(TotalEmC=sum(Emissions_Tonne)/1000000)%>%
+      mutate(Sim_Name=paste(Sim_Name," Cogen Emissions (Mt)", sep="\n"))%>%
+      pivot_wider(names_from=Sim_Name,values_from =TotalEmC)%>%
+      arrange(.,(Year))
+    
     # Resource Group Costs 
     OPEX_G<-ResGrYr %>%
       group_by(Plant_Type,Sim_Name,Year)%>%
@@ -1222,11 +1313,16 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
       group_by(Sim_Name,Year)%>%
       summarize(Cost_Tot=sum(CAPEX)/1000000)%>%
       mutate(Cost_Type="CAPEX ($B)")
-    
+
     All_C_T<-ResGrYr %>%
       group_by(Sim_Name,Year)%>%
       summarize(Cost_Tot=sum(CAPEX+OPEX)/1000000)%>%
       mutate(Cost_Type="Total Cost ($B)")
+    
+    All_C_T_NoE<-ResGrYr %>%
+      group_by(Sim_Name,Year)%>%
+      summarize(Cost_Tot=sum(CAPEX+OPEX-Emissions_Cost)/1000000)%>%
+      mutate(Cost_Type="Total Cost Excluding Emissions Cost($B)")
     
     Rev_T<-ResGrYr %>%
       group_by(Sim_Name,Year)%>%
@@ -1238,7 +1334,7 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
       summarize(Cost_Tot=sum(Value)/1000000)%>%
       mutate(Cost_Type="Value ($B)")
     
-    Costs_T<-bind_rows(Rev_T,OPEX_T,CAPEX_T,All_C_T,Value_T)%>%
+    Costs_T<-bind_rows(Rev_T,OPEX_T,CAPEX_T,All_C_T_NoE,All_C_T,Value_T)%>%
       pivot_wider(names_from=Sim_Name,values_from =Cost_Tot)%>%
       arrange(.,Cost_Type,Year)
     
@@ -1257,7 +1353,7 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
       group_by(Scenario,Year)%>%
       summarize(ZoneCosts=(Production_Cost_Total+Fixed_Cost_Total))%>%
       mutate(Cost_Type="Total Costs ($B)")
-    
+
     ZCosts<-bind_rows(ZCosts1,ZCosts2,ZCosts3)%>%
       pivot_wider(names_from=Scenario,values_from =ZoneCosts)%>%
       arrange(.,Cost_Type,Year)
@@ -1329,14 +1425,15 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
                        '10 Emissions by Tech'=Em_ByGroup,
                        '11 Emissions Cost by Tech'=EmCost_ByGroup,
                        '12 Emissions Total'=Em_Total,
-                       '13 Cost by Tech'=Costs_G,
-                       '14 Total Resource Costs'=Costs_T,
-                       '15 Zone Costs'=ZCosts,
-                       '16  Average Pool Price'=PoolPrice,
-                       '17 Imports_Exports'=Imp_Exp,
-                       '18 Net Imports'=Net_Imp,
-                       '19 Fuel Usage'=Fuel_Used,
-                       '20 Fuel Price'=Fuel_P,
+                       '13 Cogen Emissions'=Em_Cogen,
+                       '14 Cost by Tech'=Costs_G,
+                       '15 Total Resource Costs'=Costs_T,
+                       '16 Zone Costs'=ZCosts,
+                       '17 Average Pool Price'=PoolPrice,
+                       '18 Imports_Exports'=Imp_Exp,
+                       '19 Net Imports'=Net_Imp,
+                       '20 Fuel Usage'=Fuel_Used,
+                       '21 Fuel Price'=Fuel_P,
                        
                        'A All Groups Data'=ResGrYr,
                        'B Annual Zone'=Zone,
