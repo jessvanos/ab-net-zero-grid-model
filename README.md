@@ -307,6 +307,8 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 
 -   *EachResWeek* : Show one week of generation and split wach resource type to its own plot.
 
+-   *Num_Startups* : Show number of startups by tech and year.
+
 
 ### <ins>Price_Functions
 

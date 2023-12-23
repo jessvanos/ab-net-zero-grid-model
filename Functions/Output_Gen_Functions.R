@@ -1540,6 +1540,126 @@
                              scale_y_continuous(labels=comma)}
   }
   
+################################################################################
+## FUNCTION: Num_Startups
+## Plots total startups in each year by tech.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResYr - Filtered version of Resource year Table
+################################################################################  
+Num_Startups <- function(case)   {
+   
+  # Select startup data from table
+   StartData<-ResYr%>%
+      sim_filt3(.) %>% #Filter to rename fuels
+      subset(., select=c(Name,Condition,Capacity,End_Date,Beg_Date,Run_ID,Primary_Fuel,Time_Period,Capacity_Factor,Startups)) %>%
+      filter(Run_ID == case) %>%
+      filter(Condition == "Average") %>%
+      mutate(Time_Period=as.numeric(Time_Period))
+    
+    
+    # Set levels to each category in order specified
+    StartData$Primary_Fuel <- factor(StartData$Primary_Fuel, levels=c("Cogeneration","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                                      #"Blended  Simple Cycle","Blended  Combined Cycle",
+                                                                      "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS",
+                                                                      "Natural Gas Combined Cycle CCS Retrofit","Natural Gas Combined Cycle", 
+                                                                      "Hydro", "Other",
+                                                                      "Wind", "Solar", 
+                                                                      "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro",
+                                                                      "Nuclear") )
+    
+    # Filter out other fuels
+    fuels_exclude=c("Wind","Solar","Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro","Hydro","Other")
+    
+    # Summarize data by resource group
+    ByType<- StartData %>%
+      filter(!Primary_Fuel %in% fuels_exclude,
+             Time_Period<= max(StartData$Time_Period-5)) %>%
+      group_by(Time_Period,Primary_Fuel) %>%
+      summarise(Capacity=sum(Capacity),
+                Capacity_Factor=mean(Capacity_Factor),
+                Startups=sum(Startups)) %>%
+      mutate(Plant_Type=ifelse(grepl('Simple',Primary_Fuel)==TRUE,'SC',ifelse(grepl('Combined',Primary_Fuel)==TRUE,'CC','Gas_Steam')))
+  
+  # ADDITIONAL CALCS - NOT FOR PLOT
+    # Start up cost estimations (per MW)
+    StartupC<-data.frame(Plant_Type=c("CC",'SC','Gas_Steam','Coal','Nuclear'),
+                         Cost_MW_low=c(75.60,15.12,73.08,112.14,73.5),
+                         Cost_MW_high=c(75.60,47.88,73.08,112.14,73.5))
+    
+    # Calculate estimated cost
+    GroupStartData<-merge(ByType,StartupC,by=c("Plant_Type"), all.x = TRUE) %>%
+      mutate(EstCost_low_M=Cost_MW_low*Capacity*Startups/1000000,
+             EstCost_high_M=Cost_MW_high*Capacity*Startups/1000000)
+    
+    # Remove na data
+    GroupStartData$Startups[is.na(GroupStartData$Startups)]=0
+    
+    # Get total cost range for each plant type in each year
+    TotalCost <- GroupStartData %>%
+      group_by(Time_Period,Plant_Type) %>%
+      summarise( Capacity=sum(Capacity),
+                 Startups=sum(Startups),
+                 EstCost_low_M=sum(EstCost_low_M),
+                 EstCost_high_M=sum(EstCost_high_M)) %>%
+      arrange(Plant_Type,Time_Period) %>%
+      ungroup()
+    
+    # Get overall totals
+    GroupTotals <-TotalCost %>%
+      group_by(Plant_Type)%>%
+      summarise(total_low=sum(EstCost_low_M/1000),
+                total_high=sum(EstCost_high_M/1000)) %>%
+      bind_rows(summarise(., across(where(is.numeric), sum),
+                          across(where(is.character), ~'Total_(Billions)')))
+    print('Estimated startup costs based on number of startups and costs from Power Plant Cycling Costs, NREL, 2012')
+    print(GroupTotals)
+    
+  # Plot
+  ByType %>%
+    ggplot() +
+    aes(Time_Period, Startups, fill = reorder(Primary_Fuel, Startups)) +
+    geom_bar(position="dodge",stat="identity",alpha=Plot_Trans,'color'="black") +
+    
+    facet_grid(cols = vars(Plant_Type), scales = "free_y") +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1,color="black"),
+          #axis.title.x = element_text(size = XTit_Sz),
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(size = YTit_Sz),
+          axis.text.y=element_text(color="black"),
+          plot.title = element_text(size = Tit_Sz),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'),
+          legend.key.size = unit(1,"lines"), #Shrink legend
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title=element_blank(),
+          text = element_text(size = 15)) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,max(ByType$Startups+10)),breaks=pretty_breaks(15)) +
+    scale_x_continuous(expand=c(0,0),breaks=seq(min(ByType$Time_Period),max(ByType$Time_Period),by=5)) +
+    
+    #  geom_text(aes(label = sprintf("%0.1f",Output_MWH/1000000)),
+    #            position = position_dodge(width = 1),vjust=-0.5) +
+    
+    labs(x = "Year", y = "Sum of Individual Plant Startups", fill = "Resource") +
+    
+    guides(fill = guide_legend(nrow = 2)) +
+    
+    scale_fill_manual(values=colours5,drop=TRUE) +
+    
+    scale_pattern_manual(values=Patterns5,drop=TRUE)
+  
+}
   
 ################################################################################
 #
@@ -1652,24 +1772,24 @@
       theme_bw() +
       theme(panel.grid = element_blank()) +
       
-      theme(text=element_text(family=Plot_Text)) +
+      #theme(text=element_text(family=Plot_Text)) +
       
-      theme(plot.title = element_text(size= 10)) +
+      theme(plot.title = element_text(size= 14)) +
       
       theme(axis.text.x = element_text(vjust = 1,color="black"),
-            axis.title.x = element_text(size= 10),
+            axis.title.x = element_text(size= 14),
             axis.text.y = element_text(color="black"),
-            axis.title.y = element_text(size= 10),
+            axis.title.y = element_text(size= 14),
             panel.background = element_rect(fill = "transparent"),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.title=element_blank(),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent',colour ='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            legend.key.size = unit(1,"lines"), #Shrink legend
+            #legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
             legend.text = element_text(size= 12),
-            text = element_text(size= 8)
+            text = element_text(size= 14)
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(MN,MX),breaks=seq(MN,MX,by=2000),
                          labels=comma) +
@@ -1766,14 +1886,13 @@ year_weeks <- function(year,case) {
   p1 <- p1 + theme(legend.position ="none")
   
   # Plot Labels
-  yleft <- textGrob("Output (MWh)", rot = 90, gp = gpar(fontsize = 15))
-  bottom <- textGrob("Date", gp = gpar(fontsize = 15))
-  
+  yleft <- textGrob("Output (MWh)", rot = 90, gp = gpar(fontsize = 20,fontface ='bold'))
+
   # Cheat way to put an x title in
   xtitle <- ggplot() +
     annotate("text", x = 10,  y = 10,
-             size = 6,
-             label = "Date") + 
+             size = 6, fontface ='bold',
+             label = "Day of Month") + 
                theme_void()
   
   # Label the source and year
@@ -1784,7 +1903,7 @@ year_weeks <- function(year,case) {
     theme_void()
   
   #Create a big window
-  windows(18,12)
+  #windows(18,12)
   
   # Arrange all the plots
   grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),

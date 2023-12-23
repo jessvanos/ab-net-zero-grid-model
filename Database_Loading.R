@@ -84,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"BAU_15_Dec_2023"
+  SourceDB<-"BAU_20_Dec_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -470,7 +470,7 @@ BC <- "Base Case"
   # Uses local computer font files (search font in search bar to confirm font names)
   
     #font_import()
-    loadfonts(dev="win")
+    #loadfonts(dev="win")
     font_add(family="Times",regular="times.ttf")
     Plot_Text <- "Times"
     
@@ -722,7 +722,7 @@ Legend_PlotGray(1)
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
 CaseName <- "New Cogen"
-NameShort<-'Dec15_BAU'
+NameShort<-'Dec20_BAU'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -731,8 +731,11 @@ NameShort<-'Dec15_BAU'
 ################################################################################
 
 # SAVE PLOTS AND FIGURES  
-  # GENERAL ANALYSIS 
-    Gen_Analysis_saveall(CaseName)
+  # ANALYSIS 
+    # Normal analysis
+    Analysis_saveall(CaseName)
+    # Detailed generation plots
+    Detail_Gen_save(CaseName)
 
   # ADDITIONAL ANALYSIS
     # Value plots
@@ -759,29 +762,11 @@ NameShort<-'Dec15_BAU'
       # Grid of weekly output - need to edit for more than one week of data
       year_weeks(2023,BC)
       SaveRun_Loc(CaseName,"2023 Hourly Generation for One Week (Stacked Area)")
-          
-          year_weeks(2025,BC)
-          SaveRun_Loc(CaseName,"2025 Hourly Generation for One Week (Stacked Area)")
-          
-          year_weeks(2030,BC)
-          SaveRun_Loc(CaseName,"2030 Hourly Generation for One Week (Stacked Area)")
-          
-          year_weeks(2035,BC)
-          SaveRun_Loc(CaseName,"2035 Hourly Generation for One Week (Stacked Area)")
-      
-          year_weeks(2040,BC)
-          SaveRun_Loc(CaseName,"2040 Hourly Generation for One Week (Stacked Area)")
-          
-          year_weeks(2043,BC)
-          SaveRun_Loc(CaseName,"2043 Hourly Generation for One Week (Stacked Area)")
-          
+ 
       # One year of weeks for storage output and pool price
       year_stor(2035,BC)
       SaveRun_Loc(CaseName,"2035 Storage Output with Pool Price")
-          
-          year_stor(2023,BC)
-          SaveRun_Loc(CaseName,"2023 Storage Output with Pool Price")
-          
+
       # Four months of generation, intertie, and pool price
       FourMonthSummary(2040,BC)
       SaveRun_Loc(CaseName,"2040 Output, Trade, Price") 
@@ -1024,6 +1009,9 @@ NameShort<-'Dec15_BAU'
     
     # Four months of generation, intertie, and pool price
     FourMonthSummary(2022,BC)
+    
+    # Number of startups by plant type
+    Num_Startups(case)
     
 ################################################################################    
 ## Price Functions (Price_Functions)
@@ -1314,61 +1302,14 @@ NameShort<-'Dec15_BAU'
 
     
 ################################################################################    
-    data <- ResGroupEmYr %>%
-      filter(Run_ID == case & Condition == "Average") %>%
-      filter(Type== "CO2") %>%
-      select(ID, Report_Year, Amount, Cost) %>%
-      mutate(Amount=Amount*0.90718474) %>% # Convert Ton to Tonne
-      filter(ID %in% c("LTO_Cogen","NAICS221112_Cogen")) 
+
     
-             # Set the max for the plot
-             YearMX <- aggregate(data["Amount"], by=data["Report_Year"], sum)
-             YearMX$Amount <-YearMX$Amount/1000000
-             MX <- plyr::round_any(max(abs(YearMX$Amount+1)), 5, f = ceiling)
-             
-             # Format years to assist plot
-             data$Report_Year  <- as.numeric(data$Report_Year)
-             
-             # Get Year max for run
-             MaxYr <- MaxYrStudy
-             MinYr <- (min(data$Report_Year))
-             
-             # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
-             data <- data%>%
-               filter(Report_Year<=MaxYr)
-             
-             # Print the result out for 2035 
-             message("Total Annaul Emissions (Mt)")
-             print(YearMX)
-             
-             # Plot 
-             data %>%
-             ggplot() +
-               geom_line(size=1.5,alpha = 1) +
-               aes(Report_Year, (Amount/1000000),colour = ID,linetype = ID) +
-               
-               theme_bw() +
-               
-               theme(text=element_text(family=Plot_Text)) +
-               
-               theme(panel.grid = element_blank(),
-                     axis.text.x = element_text(vjust = 1,color="black"),
-                     axis.text.y = element_text(color="black"),
-                     #axis.title.x = element_text(size = XTit_Sz),
-                     axis.title.x = element_blank(),          axis.title.y = element_text(size = YTit_Sz),
-                     plot.title = element_text(size = Tit_Sz),
-                     plot.subtitle = element_text(hjust = 0.5), 
-                     panel.background = element_rect(fill = NA),
-                     # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-                     #legend.key.size = unit(1,"lines"), #Shrink legend
-                     legend.position = "bottom",
-                     legend.justification = c(0.5,0.5),
-                     legend.title=element_blank(),
-                     text = element_text(size = 15)) +
-               
-               labs(x = "Year", y = "Annual Emissions (Mt Co2e)",colour="ID",linetype="ID",caption = paste(SourceDB)) +
-               
-               scale_x_continuous(expand = c(0, 0),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
-               
-               scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6))
+    
+    
+    
+    
+    
+    
+    
+    
              

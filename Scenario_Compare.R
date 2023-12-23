@@ -49,11 +49,11 @@
 
 {
   # Define cases here
-  ScenarioName1<-"Nov23_BAU"
-  ScenarioName2<-"Dce13_BAU"
+  ScenarioName1<-"Dec15_BAU"
+  ScenarioName2<-"Dec20_BAU"
   
   # This is the name for the new combined R files and excel sheet
-  CScenarioName <-"CogenUpdate"
+  CScenarioName <-"NewCompare"
 }
 
 ################################################################################

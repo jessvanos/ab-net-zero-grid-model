@@ -49,6 +49,41 @@ GGSave_Loc <- function(CaseName,FileName,plotinput,pDPI) {
   
 }
 
+################################################################################
+## FUNCTION: GGSave_Loc_wide
+## Saves all plots to a new folder names after case, bigger and wider image
+##
+## INPUTS: 
+##    CaseName - name for folder. Enter as "folder"
+##    FileName - Name for image. Enter as "name"
+################################################################################
+GGSave_Loc_wide <- function(CaseName,FileName,plotinput,pDPI) {
+  
+  # Set up folder if it does not exist
+  fold_name<-paste(CaseName,SourceDB)
+  
+  # Check if folder exists, if not, make one
+  if (file.exists(here("Figures (Local)",paste(fold_name)))) {
+    cat("The folder exists\n")
+  } else {
+    # Create the folder
+    FoldLocation <-
+      dir.create(here("Figures (Local)",paste(fold_name)))
+  }
+  
+  # Create file name
+  FileName <-paste(FileName,SourceDB)
+  
+  # Save to a local file 
+  ggsave(
+    filename = here(paste("Figures (Local)/",paste(fold_name),"/",FileName,".png", sep = "")),
+    device = "png",
+    plot = plotinput,
+    width=22,
+    height=12,
+    dpi=pDPI)
+  
+}
 
 ################################################################################
 ## FUNCTION: GGSave_Loc_Ex
@@ -236,13 +271,42 @@ Slack_saveall <- function(CaseName) {
 }
 
 ################################################################################
-# Gen_Analysis_saveall
+# Analysis_saveall
 # Save variety of plots related to new run
 ################################################################################
 
-Gen_Analysis_saveall <- function(CaseName) {
+Analysis_saveall <- function(CaseName) {
   
   GGSave_Loc(CaseName,"Annual Generation (Stacked Area)",Evalyr(BC,"n"),300)
   
 }
+
+################################################################################
+# Detail_Gen_save
+# Save detailed year of weeks and daily generation plots.
+################################################################################
+Detail_Gen_save <- function(CaseName) {
+  
+  print('Starting plto generation, this may take a few minutes')
+  
+  # Year of weeks plots
+  GGSave_Loc_wide(CaseName,"2023 Hourly Generation for One Week (Stacked Area)",year_weeks(2023,BC),100)
+  print('Done 2023')
+  GGSave_Loc_wide(CaseName,"2025 Hourly Generation for One Week (Stacked Area)",year_weeks(2025,BC),100)
+  print('Done 2025')
+  GGSave_Loc_wide(CaseName,"2030 Hourly Generation for One Week (Stacked Area)",year_weeks(2030,BC),100)
+  print('Done 2030')
+  GGSave_Loc_wide(CaseName,"2035 Hourly Generation for One Week (Stacked Area)",year_weeks(2035,BC),100)
+  print('Done 2035')
+  GGSave_Loc_wide(CaseName,"2040 Hourly Generation for One Week (Stacked Area)",year_weeks(2040,BC),100)
+  print('Done 2040')
+  GGSave_Loc_wide(CaseName,"2043 Hourly Generation for One Week (Stacked Area)",year_weeks(2043,BC),100)
+  print('Done 2043')
+  
+  
+}
+
+
+
+
 
