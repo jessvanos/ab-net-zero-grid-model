@@ -768,7 +768,7 @@ NameShort<-'Dec20_BAU'
       SaveRun_Loc(CaseName,"2035 Storage Output with Pool Price")
 
       # Four months of generation, intertie, and pool price
-      FourMonthSummary(2040,BC)
+      FourMonthSummary(2040,BC) ### Redo without trade included
       SaveRun_Loc(CaseName,"2040 Output, Trade, Price") 
           
       # Save all full size images
