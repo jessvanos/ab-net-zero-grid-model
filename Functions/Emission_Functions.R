@@ -93,8 +93,8 @@ AnnualEmStackCol <- function(case,Ptype) {
           axis.text.y = element_text(color="black"),          
           #axis.title.x = element_text(size = XTit_Sz),
           axis.title.x = element_blank(),
-          axis.title.y = element_text(size = YTit_Sz),
-          plot.title = element_text(size = Tit_Sz),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          plot.title = element_text(size = GenText_Sz),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
           #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
@@ -102,7 +102,8 @@ AnnualEmStackCol <- function(case,Ptype) {
           legend.position = "bottom",
           legend.justification = c(0.5,0.5),
           legend.title=element_blank(),
-          text = element_text(size = 15)) +
+          legend.text = element_text(size = GenText_Sz-6),
+          text = element_text(size = GenText_Sz)) +
     
     scale_x_continuous(expand = c(0, 0),limits = NULL,breaks=seq(MinYr, MaxYr, by=1)) +
     
@@ -202,15 +203,16 @@ AnnualEmLine <- function(case,Ptype) {
           axis.text.y = element_text(color="black"),
           #axis.title.x = element_text(size = XTit_Sz),
           axis.title.x = element_blank(),          axis.title.y = element_text(size = YTit_Sz),
-          plot.title = element_text(size = Tit_Sz),
+          plot.title = element_text(size = GenText_Sz),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
           # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
           #legend.key.size = unit(1,"lines"), #Shrink legend
           legend.position = "right",
+          legend.text = element_text(size = GenText_Sz-6),
           legend.justification = c(0.5,0.5),
           legend.title=element_blank(),
-          text = element_text(size = 15)) +
+          text = element_text(size = GenText_Sz)) +
     
     labs(x = "Year", y = "Annual Emissions (Mt Co2e)",colour="ID",linetype="ID",caption = CaptionE) +
     

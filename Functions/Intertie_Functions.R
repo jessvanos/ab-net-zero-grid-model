@@ -76,8 +76,8 @@ Imp_Exp1 <- function(case) {
           axis.text = element_text(color="black"),
          # axis.title.x = element_text(size = XTit_Sz),
           axis.title.x = element_blank(),
-          axis.title.y = element_text(size = YTit_Sz),
-          plot.title = element_text(size = Tit_Sz),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          plot.title = element_text(size = GenText_Sz),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
          # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
@@ -143,9 +143,9 @@ Imp_Exp2 <- function(year,case) {
     
     theme(panel.grid = element_blank(),
           axis.text = element_text(color="black"),
-          axis.title.x = element_text(size = XTit_Sz),
-          axis.title.y = element_text(size = YTit_Sz),
-          plot.title = element_text(size = Tit_Sz),
+          axis.title.x = element_text(size = GenText_Sz-8),
+          axis.title.y = element_text(size = GenText_Sz-8),
+          plot.title = element_text(size = GenText_Sz-8),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
         #  panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
@@ -153,13 +153,13 @@ Imp_Exp2 <- function(year,case) {
           legend.position = "bottom",
           legend.justification = c(0.5,0.5),
           legend.title=element_blank(),
-          text = element_text(size = 15)) +
+          text = element_text(size = GenText_Sz-14)) +
     
     scale_y_continuous(expand=c(0,0),limits = c(MN,MX),breaks=pretty_breaks(12),labels=comma) +
     
     scale_x_datetime(expand=c(0,0),date_labels = "%b" ,breaks = "month") +
     
-    labs(x = "Date", y = "AB Hourly Imports and Exports (MWh)",caption=paste("Database: ",SourceDB), title=year) +
+    labs(x = "Date (rep weeks)", y = "AB Hourly Imports and Exports (MWh)",caption=paste("Database: ",SourceDB), title=year) +
     
     guides(fill = guide_legend(nrow = 1)) +
     

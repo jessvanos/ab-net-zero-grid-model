@@ -84,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"BAU_20_Dec_2023"
+  SourceDB<-"BAU_5_Jan_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -481,12 +481,13 @@ BC <- "Base Case"
     
     
     
-  # Set size for plot features to be constant. All based on general text size
-  { GenText_Sz =20
+  # Set default size for plot features to be constant. All based on general text size
+  { GenText_Sz =46 # GGsave
+    #GenText_Sz = 20 # Windows save 
     Tit_Sz = GenText_Sz-2
     XTit_Sz = GenText_Sz+6
     YTit_Sz = GenText_Sz+6
-    Leg_Sz=GenText_Sz-2
+    Leg_Sz=GenText_Sz-6
     Overall_Sz=GenText_Sz}
     
     
@@ -721,8 +722,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "New Cogen"
-NameShort<-'Dec20_BAU'
+CaseName <- "Final Test BAU"
+NameShort<-'Jan5_BAU'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -758,30 +759,32 @@ NameShort<-'Dec20_BAU'
 ## COMMON INDIVIDUAL PLOT SAVING OPTIONS
 ################################################################################
   
-  # GENERATION
+  # HOURLY GENERATION
       # Grid of weekly output - need to edit for more than one week of data
       year_weeks(2023,BC)
       SaveRun_Loc(CaseName,"2023 Hourly Generation for One Week (Stacked Area)")
- 
-      # One year of weeks for storage output and pool price
-      year_stor(2035,BC)
-      SaveRun_Loc(CaseName,"2035 Storage Output with Pool Price")
 
-      # Four months of generation, intertie, and pool price
-      FourMonthSummary(2040,BC) ### Redo without trade included
+      # Four months of generation and pool price
+      FourMonthSummary(2040,01,04,07,10,BC) ### Redo without trade included
       SaveRun_Loc(CaseName,"2040 Output, Trade, Price") 
           
+  # GENERATION
       # Save all full size images
       windows(14,10,buffered=FALSE)
       
-      # One week
-      week12_Curt(2043,08,08,BC)
-      SaveRun_Loc(CaseName,"Week 2043 Aug")
+      # RUN TO CHECK CURTAIL OR SPECIFIC RESOURCE
+          # One week
+          week12_Curt(2043,08,08,BC)
+          SaveRun_Loc(CaseName,"Week 2043 Aug")
+          
+          # One week each resource ("free_y", "fixed")
+          EachResWeek(2030,02,08,BC,"free_y")
+          SaveRun_Loc(CaseName,"Indv Week Oct 2040")
       
-      # One week each resource ("free_y", "fixed")
-      EachResWeek(2030,02,08,BC,"free_y")
-      SaveRun_Loc(CaseName,"Indv Week Oct 2040")
-      
+          # capacity factors for 2 years
+          CFcompare(2023,2040,BC)
+          SaveRun_Loc(CaseName,"Capacity Factors 2022 and 2045")
+          
       # Yearly Output
       Evalyr(BC,"n")
       SaveRun_Loc(CaseName,"Annual Generation (Stacked Area)")
@@ -797,10 +800,6 @@ NameShort<-'Dec20_BAU'
       # Bar chart showing each resource groups yearly output
       Output_Comp(BC)
       SaveRun_Loc(CaseName,"Annual Generation (Bar Chart)")
-      
-      # capacity factors for 2 years
-      CFcompare(2023,2043,BC)
-      SaveRun_Loc(CaseName,"Capacity Factors 2022 and 2045")
       
       # Annual average capacity factors for all resource types
       CF_Annual(BC)
@@ -831,6 +830,7 @@ NameShort<-'Dec20_BAU'
       # All new capacity
       BuildMW(BC)
       SaveRun_Loc(CaseName,"Additions")
+      
       Build_Totals(BC)
   
       # Tell R the files are done and close window
@@ -847,14 +847,10 @@ NameShort<-'Dec20_BAU'
       Eval_CapChange(BC)
       SaveRun_Loc(CaseName,"Net Capacity Changes")
   
-      # CCS retrofits
-      Build_CCSRet(BC)
-        #Build_CCSRet2(BC)
-      SaveRun_Loc(CaseName,"CCS Retrofit Dates")
-      
+
       # Combined cycle study fate by resource
       CC_Fate_study(BC)
-        #CC_Fate_year(BC)
+        CC_Fate_year(BC)
       SaveRun_Loc(CaseName,"Combined Cycle Gas Fate")
       
   # PRICES AND COSTS
@@ -906,13 +902,6 @@ NameShort<-'Dec20_BAU'
       
       # Import and export for full year from AB
       Imp_Exp2(2043,BC)
-      
-      #Full Year output
-      T_month_all_Sim(2022,BC)
-  
-      # Shows demand in AB 
-      AnnualDemand(ZoneMn,BC)
-      SaveRun_Loc(CaseName,"Annual Demand")
   
   # DAILY OUTPUT FUNCTIONS
     CompDay_Season(2040,14,BC)  
@@ -1006,6 +995,7 @@ NameShort<-'Dec20_BAU'
     
     # One year of weeks for storage output and pool price
     year_stor(2035,BC)
+    SaveRun_Loc(CaseName,"2035 Storage Output with Pool Price")
     
     # Four months of generation, intertie, and pool price
     FourMonthSummary(2022,BC)
@@ -1087,9 +1077,11 @@ NameShort<-'Dec20_BAU'
     #Compare available units and built units ("WND", "SUN","GasCCS","BIO","Gas1","Gas2","H2","UR","PS")
     BuildUnits(BC, "Gas2")
     SaveRun_Loc(CaseName,"Res Built UR")
-    
-    # CCS retrofits
+
+    # CCS retrofits - shows year of retrofit and year of retirement
     Build_CCSRet(BC)
+    Build_CCSRet2(BC)
+    SaveRun_Loc(CaseName,"CCS Retrofit Dates")
     
     # Original units CCS retorift end date
     Build_CCSRet2(BC)

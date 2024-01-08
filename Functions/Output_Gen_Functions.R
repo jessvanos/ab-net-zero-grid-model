@@ -308,10 +308,11 @@
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.background = element_rect(fill='transparent'),
             legend.position = 'right',
+            legend.text = element_text(size=14),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            axis.title.x = element_text(size=XTit_Sz),
-            axis.title.y = element_text(size=YTit_Sz),
-            text = element_text(size= Overall_Sz)
+            axis.title.x = element_text(size=20),
+            axis.title.y = element_text(size=26),
+            text = element_text(size= 20)
       ) +
       
       guides(fill = guide_legend(ncol = 1)) +
@@ -520,9 +521,6 @@
     # Set the max generation for the plot
     GenMX <- aggregate(data["Output_MWH"], by=data["Time_Period"], sum)
     MX <- plyr::round_any(max(abs(GenMX$Output_MWH)/1000000), 20, f = ceiling)
-    
-    # Increase text size
-    TextUp=20
       
     # Plot
     data %>%
@@ -541,31 +539,33 @@
             # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
             plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
             panel.background = element_rect(fill = "transparent"), # Transparent background
-            text = element_text(size = Tit_Sz+TextUp),                # Text size
-            plot.title = element_text(size = Tit_Sz+TextUp),              # Plot title size (if present)
+            text = element_text(size = GenText_Sz),                # Text size
+            plot.title = element_text(size =GenText_Sz ),              # Plot title size (if present)
             plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
             #panel.grid.major.y = element_line(size=0.25,
-            #linetype=1,color = 'gray90'),                         # Adds horizontal lines
+            #linetype=1,color = 'gray90'),  
+            # Adds horizontal lines
+            plot.caption=element_text(size =30), 
         # X-axis
             axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
-            #axis.title.x = element_text(size = XTit_Sz+TextUp),           # x-axis title text size
+            #axis.title.x = element_text(size = GenText_Sz),           # x-axis title text size
             axis.title.x = element_blank(),
         # Y-axis
-            axis.title.y = element_text(size = YTit_Sz+TextUp+6),           # y-axis title text size
+            axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
             axis.text.y = element_text(colour = "black"),                 # Horizontal text
         
         # Legend
             legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
-            legend.position = "bottom",                            # Move legend to the bottom
+            legend.position = "right",                            # Move legend to the bottom
             legend.justification = c(0.5,0.5),                     # Center the legend
-            legend.text = element_text(size =Leg_Sz+TextUp),              # Size of legend text
+            legend.text = element_text(size = GenText_Sz-6),              # Size of legend text
             legend.title=element_blank()) +                        # Remove legend title
       
       # Set axis scales
       scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
       scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       
-      guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+      #guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
       # Plot labels
       labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = SourceDB) +
 
@@ -618,7 +618,6 @@
     ppMX <-  aggregate(data["Capacity"], by=data["Time_Period"], sum)
     MX <- plyr::round_any(max(abs(ppMX$Capacity)), 5000, f = ceiling)
     
-    
     data %>%
       ggplot() +
       geom_area(aes(YEAR, (Capacity), fill = ID, colour=ID),alpha=Plot_Trans_Choice, size=.5,color='black') +
@@ -633,21 +632,21 @@
             plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
             panel.background = element_rect(fill = "transparent"), # Transparent background
             text = element_text(size = GenText_Sz),                # Text size
-            plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+            plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
             plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
             #panel.grid.major.y = element_line(size=0.25,
             #linetype=1,color = 'gray90'),                         # Adds horizontal lines
         # X-axis
             axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
-            #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+            #axis.title.x = element_text(size = GenText_Sz),           # x-axis title text size
             axis.title.x = element_blank(),        # Y-axis
-            axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+            axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
             axis.text.y = element_text(color="black"),
         # Legend
             legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
-            legend.position = "bottom",                            # Move legend to the bottom
+            legend.position = "right",                            # Move legend to the bottom
             legend.justification = c(0.5,0.5),                     # Center the legend
-            legend.text = element_text(size =Leg_Sz),              # Size of legend text
+            legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
             legend.title=element_blank()) +                        # Remove legend title
       
       scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
@@ -656,7 +655,7 @@
       
       labs(x = "Year", y = "Capacity (MW)", fill = "Resource",colour="Resource") +
     
-      guides(fill = guide_legend(nrow = 1)) +
+      #guides(fill = guide_legend(nrow = 1)) +
       
       scale_fill_manual(values = C_to_Fill,drop = TRUE)
     
@@ -731,21 +730,21 @@
             plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
             panel.background = element_rect(fill = "transparent"), # Transparent background
             text = element_text(size = GenText_Sz),                # Text size
-            plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+            plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
             plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
             panel.grid.major.y = element_line(size=0.25,
             linetype=2,color = 'gray70'),                         # Adds horizontal lines
         # X-axis
             axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
-            #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+            #axis.title.x = element_text(size = GenText_Sz),           # x-axis title text size
             axis.title.x = element_blank(),            # Y-axis
-            axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+            axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
             axis.text.y=element_text(color="black"),
         # Legend
             legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
-            legend.position = "bottom",                            # Move legend to the bottom
+            legend.position = "right",                            # Move legend to the bottom
             legend.justification = c(0.5,0.5),                     # Center the legend
-            legend.text = element_text(size =Leg_Sz),              # Size of legend text
+            legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
             legend.title=element_blank()) +                        # Remove legend title
       
       scale_x_continuous(expand=c(0,0),limits = c(YearMN,YearMX),breaks=seq(YearMN, YearMX, 1)) +
@@ -753,7 +752,7 @@
                          labels = scales::percent, 
                          breaks = sort(c(seq(0,1,length.out=5)))) +
       
-      guides(fill = guide_legend(nrow = 1)) +
+      #guides(fill = guide_legend(nrow = 1)) +
       labs(x = "Year", y = "Percentage of Total Generation", fill = "Resource",colour="Resource") +
       scale_fill_manual(values = C_to_Fill,drop = TRUE) 
       
@@ -801,7 +800,8 @@
     
     # Filter by year and re-arrange in assending order
     data <- data %>%
-      filter(Time_Period %in% Years2Disp) %>%
+      filter(Time_Period %in% Years2Disp,
+             !ID == "Storage") %>%
       group_by(Time_Period) %>%
       arrange(Output_MWH, .by_group = TRUE) %>%
       ungroup() %>%
@@ -822,12 +822,12 @@
       
       theme(panel.grid = element_blank(),
             axis.text.x = element_text(vjust = 1,color="black"),
-            #axis.title.x = element_text(size = XTit_Sz),
+            #axis.title.x = element_text(size = GenText_Sz),
             axis.title.x = element_blank(),
             axis.ticks.x = element_blank(),
-            axis.title.y = element_text(size = YTit_Sz),
+            axis.title.y = element_text(size = GenText_Sz+6),
             axis.text.y=element_text(color="black"),
-            plot.title = element_text(size = Tit_Sz),
+            plot.title = element_text(size = GenText_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
             panel.background = element_rect(fill = NA),
             #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'),
@@ -835,7 +835,7 @@
             legend.position = "bottom",
             legend.justification = c(0.5,0.5),
             legend.title=element_blank(),
-            text = element_text(size = 15)) +
+            text = element_text(size = GenText_Sz)) +
       
       scale_y_continuous(expand=c(0,0),limits = c(0,MX),breaks=pretty_breaks(6)) +
       scale_x_discrete(drop=TRUE) +
@@ -847,7 +847,7 @@
       
       guides(fill = guide_legend(nrow = 2)) +
       
-      scale_fill_manual(values = colours4,drop = FALSE) 
+      scale_fill_manual(values = colours4,drop = TRUE) 
     
   }
   
@@ -895,11 +895,11 @@
       
       theme(text=element_text(family=Plot_Text)) +
       
-      theme(plot.title = element_text(size= Tit_Sz)) +
+      theme(plot.title = element_text(size= GenText_Sz)) +
       
       theme(axis.text.x = element_text(vjust = 1),
-            axis.title.x = element_text(size= XTit_Sz),
-            axis.title.y = element_text(size= YTit_Sz),
+            axis.title.x = element_text(size= GenText_Sz+6),
+            axis.title.y = element_text(size= GenText_Sz+6),
             panel.background = element_rect(fill = "transparent"),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.title=element_blank(),
@@ -908,7 +908,7 @@
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
-            text = element_text(size= 15)) +
+            text = element_text(size= GenText_Sz)) +
       
       scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
                          breaks = seq(0, MX, by = MX/4)) +
@@ -949,7 +949,6 @@
     # Filter for year
     Sim <- Sim %>%
       filter(Year %in% c(year1,year2))
-    
     ggplot() +
       geom_col(data = Sim, position = "dodge", alpha = Plot_Trans, width = 0.8,color="black",
                aes(x = Plant_Type, y = Cap,
@@ -964,9 +963,9 @@
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
             axis.title.x = element_blank(),
             axis.text = element_text(size = GenText_Sz,color="black"),
-            axis.title = element_text(size = XTit_Sz ,color="black"),
-            plot.title = element_text(size=Tit_Sz),
-            legend.text = element_text(size=Leg_Sz),
+            axis.title = element_text(size = GenText_Sz+6 ,color="black"),
+            plot.title = element_text(size=GenText_Sz),
+            legend.text = element_text(size=GenText_Sz-6),
             panel.grid = element_blank(),
             legend.title = element_blank(),
             
@@ -975,7 +974,7 @@
             panel.grid.major.x = element_blank(),
             panel.grid.minor.x = element_blank(),
             panel.spacing = unit(1.5, "lines"),
-            plot.background = element_rect(fill = "transparent", color = NA),
+            #plot.background = element_rect(fill = "transparent", color = NA),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent'),
             legend.position = c(.95, .925),
@@ -992,6 +991,7 @@
       #                       labels = percent) +
       scale_y_continuous(expand=c(0,0),
                          limits = c(0,1),
+                         labels=percent,
                          breaks = seq(0,1, by = 0.2)
       )
   } 
@@ -1050,21 +1050,22 @@
             plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
             panel.background = element_rect(fill = "transparent"), # Transparent background
             text = element_text(size = GenText_Sz),                # Text size
-            plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+            plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
             plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
             #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'), # Adds horizontal lines
+            plot.caption = element_text(size = 30),
         # X-axis
             axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
             axis.title.x = element_blank(),                         # y-axis title text size
             #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
         # Y-axis
-            axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+            axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
             axis.text.y=element_text(color="black"),
         # Legend
             legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
             legend.position = "right",                             # Move legend to the bottom
             legend.justification = c(0.5,0.5),                     # Center the legend
-            legend.text = element_text(size =Leg_Sz),              # Size of legend text
+            legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
             legend.title=element_blank()) +                        # Remove legend title
       
       # Set axis scales
@@ -1072,7 +1073,7 @@
       scale_y_continuous(expand=c(0.01,0),limits = c(0,1),breaks=pretty_breaks(5),labels=percent) +
       
       # Plot labels
-      labs(x = "Year", y = "Annual Average Capacity Factor (%)", 
+      labs(x = "Year", y = "Annual Average Capacity Factor", 
            colour="Plant_Type",caption = SourceDB) +
 
       # Legend color scheme
@@ -1119,9 +1120,9 @@
       
       theme(panel.grid = element_blank(),
             axis.text = element_text(color="black"),
-            axis.title.x = element_text(size = XTit_Sz),
-            axis.title.y = element_text(size = YTit_Sz),
-            plot.title = element_text(size = Tit_Sz),
+            axis.title.x = element_text(size = GenText_Sz+6),
+            axis.title.y = element_text(size = GenText_Sz+6),
+            plot.title = element_text(size = GenText_Sz),
             plot.subtitle = element_text(hjust = 0.5), 
             panel.background = element_rect(fill = NA),
             # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
@@ -1129,9 +1130,9 @@
             legend.position = "right",
             legend.justification = c(0.5,0.5),
             legend.title=element_blank(),
-            text = element_text(size = 15)) +
+            text = element_text(size = GenText_Sz)) +
       
-      labs(x = "Percent of Hours per Year", y = "Fleet Output (MW)",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+      labs(x = "Hours per Year", y = "Fleet Output (MW)",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
       
       scale_y_continuous(expand = c(0, 0),limits = c(0,MX),breaks=seq(0, MX, by=1000),labels=comma) +
       
@@ -1180,9 +1181,9 @@
     
     theme(panel.grid = element_blank(),
           axis.text = element_text(color="black"),
-          axis.title.x = element_text(size = XTit_Sz),
-          axis.title.y = element_text(size = YTit_Sz),
-          plot.title = element_text(size = Tit_Sz),
+          axis.title.x = element_text(size = GenText_Sz+6),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          plot.title = element_text(size = GenText_Sz),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
           # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
@@ -1190,10 +1191,10 @@
           legend.position = "right",
           legend.justification = c(0.5,0.5),
           legend.title=element_blank(),
-          text = element_text(size = 15)) +
+          text = element_text(size = GenText_Sz)) +
          # plot.margin=unit(c(5,1,5,1), 'cm')) +
     
-    labs(x = "Percent of Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)", 
+    labs(x = "Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)", 
          colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
     
     scale_x_continuous(expand = c(0, 0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) +
@@ -1754,6 +1755,9 @@ Num_Startups <- function(case)   {
     
     Mtitle=month.abb[month]
     
+    # Adjust textsize
+    GenText_Sz=14
+    
     ## PLOT WITH AREA PLOT
     
     ggplot() +
@@ -1774,12 +1778,12 @@ Num_Startups <- function(case)   {
       
       #theme(text=element_text(family=Plot_Text)) +
       
-      theme(plot.title = element_text(size= 14)) +
+      theme(plot.title = element_text(size= GenText_Sz)) +
       
       theme(axis.text.x = element_text(vjust = 1,color="black"),
-            axis.title.x = element_text(size= 14),
+            axis.title.x = element_text(size= GenText_Sz),
             axis.text.y = element_text(color="black"),
-            axis.title.y = element_text(size= 14),
+            axis.title.y = element_text(size= GenText_Sz),
             panel.background = element_rect(fill = "transparent"),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.title=element_blank(),
@@ -1788,8 +1792,8 @@ Num_Startups <- function(case)   {
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             #legend.key.size = unit(1,"lines"), #Shrink legend
             legend.position = "bottom",
-            legend.text = element_text(size= 12),
-            text = element_text(size= 14)
+            legend.text = element_text(size= GenText_Sz-2),
+            text = element_text(size= GenText_Sz)
       ) +
       scale_y_continuous(expand=c(0,0), limits = c(MN,MX),breaks=seq(MN,MX,by=2000),
                          labels=comma) +
@@ -2079,97 +2083,94 @@ year_weeks <- function(year,case) {
 ##    ZoneHr_Avg - Average hourly info in zone
 ##    Export - Exports selected from Zone Hourly Table
 ################################################################################
-  FourMonthSummary <- function(year,case) {
+  FourMonthSummary <- function(year,m1,m2,m3,m4,case) {
     
     
     # Gather weekly output data (Feb,May,Aug,Nov)
-    p1 <- Week12(year,02,08,case) +
+    p1 <- Week12(year,m1,08,case) +
       theme(plot.title=element_text(face='bold',size=12),
+            axis.title.y=element_text(size=18),
             axis.title.x=element_blank(),
             legend.position = "bottom",) +
       guides(fill = guide_legend(nrow = 1)) +
       guides(linetype = guide_legend(nrow = 1))
     
-    p2 <- Week12(year,05,08,case) +
+    p2 <- Week12(year,m2,08,case) +
       theme(plot.title=element_text(face='bold',size=12),
             legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p3 <- Week12(year,08,08,case) +
+    p3 <- Week12(year,m3,08,case) +
       theme(plot.title=element_text(face='bold',size=12),
             legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p4 <- Week12(year,11,08,case) +
+    p4 <- Week12(year,m4,08,case) +
       theme(plot.title=element_text(face='bold',size=12),
             legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
     # Gather intertie info (Feb,May,Aug,Nov)
-    p5 <- Imp_ExpWk(year,02,08,case) +
-      theme(legend.position ="none",
-            axis.title.y=element_text(size=10),
-            plot.title = element_blank(),
-            text = element_text(size= 8),
-            axis.title.x=element_blank())+
-      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
-    
-    p6 <- Imp_ExpWk(year,05,08,case) +
-      theme(legend.position ="none",
-            plot.title = element_blank(),
-            text = element_text(size= 8),
-            axis.title.y.left=element_blank(),
-            axis.title.x=element_blank())+
-      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
-    
-    p7 <- Imp_ExpWk(year,08,08,case) +
-      theme(legend.position ="none",
-            plot.title = element_blank(),
-            text = element_text(size= 8),
-            axis.title.y.left=element_blank(),
-            axis.title.x=element_blank())+
-      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
-    
-    p8 <- Imp_ExpWk(year,11,08,case) +
-      theme(legend.position ="none",
-            plot.title = element_blank(),
-            text = element_text(size= 8),
-            axis.title.y.left=element_blank(),
-            axis.title.x=element_blank())+
-      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    # p5 <- Imp_ExpWk(year,m1,08,case) +
+    #   theme(legend.position ="none",
+    #         axis.title.y=element_text(size=10),
+    #         plot.title = element_blank(),
+    #         text = element_text(size= 8),
+    #         axis.title.x=element_blank())+
+    #   scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    # 
+    # p6 <- Imp_ExpWk(year,m2,08,case) +
+    #   theme(legend.position ="none",
+    #         plot.title = element_blank(),
+    #         text = element_text(size= 8),
+    #         axis.title.y.left=element_blank(),
+    #         axis.title.x=element_blank())+
+    #   scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    # 
+    # p7 <- Imp_ExpWk(year,m3,08,case) +
+    #   theme(legend.position ="none",
+    #         plot.title = element_blank(),
+    #         text = element_text(size= 8),
+    #         axis.title.y.left=element_blank(),
+    #         axis.title.x=element_blank())+
+    #   scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    # 
+    # p8 <- Imp_ExpWk(year,m4,08,case) +
+    #   theme(legend.position ="none",
+    #         plot.title = element_blank(),
+    #         text = element_text(size= 8),
+    #         axis.title.y.left=element_blank(),
+    #         axis.title.x=element_blank())+
+    #   scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
     
     # Price info  (Feb,May,Aug,Nov)
-    p9 <- week_price(year,02,08,case) +
+    p9 <- week_price(year,m1,08,case) +
       theme(legend.position ="none",
-            axis.title.y=element_text(size=10),
-            text = element_text(size= 8),
             plot.caption=element_blank(),
+            axis.title.y=element_text(size=18),
             axis.title.x=element_blank())+
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
     
-    p10 <- week_price(year,05,08,case) +
+    p10 <- week_price(year,m2,08,case) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
-            text = element_text(size= 8),
             plot.caption=element_blank(),
             axis.title.x=element_blank())+
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
     
-    p11 <- week_price(year,08,08,case) +
+    p11 <- week_price(year,m3,08,case) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
-            text = element_text(size= 8),
             plot.caption=element_blank(),
             axis.title.x=element_blank())+
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
     
-    p12 <- week_price(year,11,08,case) +
+    p12 <- week_price(year,m4,08,case) +
       theme(legend.position ="none",
             plot.caption=element_blank(),
-            text = element_text(size= 8),
             axis.title.y=element_blank(),
             axis.title.x=element_blank())+
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
@@ -2179,7 +2180,7 @@ year_weeks <- function(year,case) {
     p1 <- p1 + theme(legend.position ="none")
     
     # Plot Labels
-    bottom <- textGrob("Date", gp = gpar(fontsize = 15))
+    bottom <- textGrob("Day of Month", gp = gpar(fontsize = 18))
     
     # Label the source and year
     xsubtitle <- ggplot() +
@@ -2189,23 +2190,20 @@ year_weeks <- function(year,case) {
       theme_void()
     
     #Create a big window
-    windows(18,12)
+    #windows(18,12)
+    
+    # Set up plots
+    p_m1=plot_grid(p1,p9,ncol=1, align="v", axis = "l", rel_heights = c(1,0.4))
+    p_m2=plot_grid(p2,p10,ncol=1, align="v", axis = "l", rel_heights = c(1,0.4))
+    p_m3=plot_grid(p3,p11,ncol=1, align="v", axis = "l", rel_heights = c(1,0.4))
+    p_m4=plot_grid(p4,p12,ncol=1, align="v", axis = "l", rel_heights = c(1,0.4))
     
     #Arrange all the plots
-    grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
-                 plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
-                 plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+    grid.arrange(plot_grid(p_m1, p_m2, p_m3, p_m4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+                 plot_grid(bottom),
                  plot_grid(legend),
                  plot_grid(xsubtitle),
-                 ncol=1,nrow=5,
-                 heights=c(1, 0.4,0.4,0.15,0.1))
-    
-    # grid.arrange(arrangeGrob(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
-    #              plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
-    #              plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
-    #              plot_grid(xsubtitle),
-    #              ncol=1,nrow=4, 
-    #              heights=c(1, 0.4,0.4,0.1)),
-    #              plot_grid(legend),ncol=2,widths=c(1,0.1))
+                 ncol=1,nrow=4,
+                 heights=c(1, 0.05,0.05,0.05))
     
   }  

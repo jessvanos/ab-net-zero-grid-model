@@ -44,7 +44,7 @@ CompDay_Season<-function(year1,day1,case) {
             plot.title=element_blank())
   
   # Plot Labels
-    yleft <- textGrob("Output (MWh)", rot = 90, gp = gpar(fontsize = 15))
+    yleft <- textGrob("Output (MWh)", rot = 90, gp = gpar(fontsize = 26))
 
 
 # PLOT TOGETHER

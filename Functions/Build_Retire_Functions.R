@@ -193,16 +193,16 @@ RetireMW <- function(case) {
           axis.title.x = element_blank(),
           axis.text.x = element_text(angle = 45,color="black",
                                      vjust = 0, hjust = 0),
-          axis.title.y = element_text(size = YTit_Sz, vjust=0),
+          axis.title.y = element_text(size = GenText_Sz+6, vjust=0),
           panel.background = element_rect(fill = "transparent"),
           plot.title = element_blank(),
           legend.justification = c(0.5,0.5),
           legend.position = ("right"),
           legend.title=element_blank(), 
           legend.key.size = unit(1,"lines"),
-          plot.caption=element_text(size=10),
+          plot.caption=element_text(size=30),
           #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          text = element_text(size = 15)) +
+          text = element_text(size = GenText_Sz)) +
     
     #guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
     
@@ -455,18 +455,19 @@ BuildMW <- function(case)
     theme(panel.grid = element_blank(),  
           #axis.title.x = element_text(size = XTit_Sz,hjust=0.5),
           axis.title.x = element_blank(),
-          axis.title.y = element_text(size = YTit_Sz, vjust=0),
+          axis.title.y = element_text(size = GenText_Sz+6, vjust=0),
           panel.background = element_rect(fill = "transparent"),
           axis.text.x=element_text(angle=45,vjust = 0.5, hjust = 0.5,color="black"),
           axis.text.y=element_text(color="black"),
           plot.title = element_blank(),
           legend.justification = c(0.5,0.5),
           legend.position = ("right"),
+          legend.text = element_text(size=GenText_Sz-6),
           legend.title=element_blank(), 
           legend.key.size = unit(1,"lines"),
-          plot.caption=element_text(size=10),
+          plot.caption=element_text(size=30),
           #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
-          text = element_text(size = 15)) +
+          text = element_text(size = GenText_Sz)) +
     
     #guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
     
@@ -617,7 +618,7 @@ TotalCapChange <- function(case) {
     geom_hline(yintercept=0, color = "black",size=0.75)+
     
     theme_bw() +
-    
+  
     # Changes the font type
     theme(text=element_text(family=Plot_Text)) + 
     
@@ -627,24 +628,24 @@ TotalCapChange <- function(case) {
       # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
       plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
       panel.background = element_rect(fill = "transparent"), # Transparent background
-      text = element_text(size = GenText_Sz),                # Text size
-      plot.title = element_text(size = Tit_Sz,hjust = 0.5),  # Plot title size (if present)
+      text = element_text(size = 20),                # Text size
+      plot.title = element_text(size = 20,hjust = 0.5),  # Plot title size (if present)
       plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
       #panel.grid.major.y = element_line(size=0.25,
       #linetype=1,color = 'gray90'),                         # Adds horizontal lines
       # X-axis
       axis.text.x = element_text(angle = 45,color="black",
                                  vjust = 1, hjust = 1),          # Horizontal text
-     # axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+     # axis.title.x = element_text(size = GenText_Sz+6),           # x-axis title text size
       axis.title.x =element_blank(), 
       # Y-axis
-      axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+      axis.title.y = element_text(size = 26),           # y-axis title text size
       axis.text.y = element_text(color="black"),
       # Legend
       legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
       legend.position = "right",                             # Move legend to the bottom
       legend.justification = c(0.5,0.5),                     # Center the legend
-      legend.text = element_text(size =Leg_Sz),              # Size of legend text
+      legend.text = element_text(size =14),              # Size of legend text
       legend.title=element_blank()) +                         # Legend title
     
     scale_x_discrete(expand=c(0.01,0.01),
@@ -792,23 +793,23 @@ Tot_Change %>%
     plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
     panel.background = element_rect(fill = "transparent"), # Transparent background
     text = element_text(size = GenText_Sz),                # Text size
-    plot.title = element_text(size = Tit_Sz,hjust = 0.5),  # Plot title size (if present)
+    plot.title = element_text(size = GenText_Sz,hjust = 0.5),  # Plot title size (if present)
     plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
     #panel.grid.major.y = element_line(size=0.25,
     #linetype=1,color = 'gray90'),                         # Adds horizontal lines
     # X-axis
     axis.text.x = element_text(angle = 45,
                                vjust = 1, hjust = 1,color="black"),          # Horizontal text
-    #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+    #axis.title.x = element_text(size = GenText_Sz+6),           # x-axis title text size
     axis.title.x = element_blank(),
     # Y-axis
-    axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+    axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
     axis.text.y = element_text(color = "black"),
     # Legend
     legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
     legend.position = "right",                             # Move legend to the bottom
     legend.justification = c(0.5,0.5),                     # Center the legend
-    legend.text = element_text(size =Leg_Sz),              # Size of legend text
+    legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
     legend.title=element_blank()) +                        # Legend title
   
   scale_x_discrete(expand=c(0.05,0.05),
@@ -851,10 +852,10 @@ Units <- function(case, Fuel) {
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
           panel.grid.minor.y = element_blank(),
-          axis.title.x = element_text(size = XTit_Sz,face="bold"),
-          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          axis.title.x = element_text(size = 26,face="bold"),
+          axis.title.y = element_text(size = 26,face="bold"),
           axis.text=element_text(color="black"),
-          plot.title = element_text(size = Tit_Sz),
+          plot.title = element_text(size = 20),
           plot.background = element_rect(fill = "transparent", color = NA),
           panel.background = element_rect(fill = "transparent"),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
@@ -862,7 +863,7 @@ Units <- function(case, Fuel) {
           legend.background = element_rect(fill='transparent'),
           legend.title = element_blank(),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size = 15),
+          text = element_text(size = 18),
           panel.border = element_rect(colour = "black", fill = "transparent"), 
           #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
           ) +
@@ -904,15 +905,15 @@ Slack <- function(case, Fuel) {
           panel.grid.minor.y = element_blank(),
           #axis.title.x = element_text(size = XTit_Sz,face="bold"),
           axis.title.x = element_blank(),
-          axis.title.y = element_text(size = YTit_Sz,face="bold"),
-          plot.title = element_text(size = Tit_Sz),
+          axis.title.y = element_text(size = 26,face="bold"),
+          plot.title = element_text(size = 20),
           axis.text=element_text(color="black"),
           plot.background = element_rect(fill = "transparent", color = NA),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.key.size = unit(1,"lines"), 
           legend.background = element_rect(fill='transparent'),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size = 15),
+          text = element_text(size = 18),
           panel.border = element_rect(colour = "black", fill = "transparent"), 
           #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
           ) +  
@@ -996,17 +997,17 @@ Build_CCSRet <- function(case) {
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
           panel.grid.minor.y = element_blank(),
-          axis.title.x = element_text(size = XTit_Sz,face="bold"),
-          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          axis.title.x = element_text(size = 26,face="bold"),
+          axis.title.y = element_text(size = 26,face="bold"),
           axis.text=element_text(color="black"),
-          plot.title = element_text(size = Tit_Sz),
+          plot.title = element_text(size = 20),
           plot.background = element_rect(fill = "transparent", color = NA),
           panel.background = element_rect(fill = "transparent"),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.key.size = unit(1,"lines"), 
           legend.background = element_rect(fill='transparent'),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size = 15),
+          text = element_text(size = 20),
           panel.border = element_rect(colour = "black", fill = "transparent"), 
           #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
     ) +
@@ -1107,9 +1108,9 @@ Build_CCSRet2 <- function(case) {
           panel.grid.minor.x = element_blank(),
           panel.grid.minor.y = element_blank(),
           axis.title.x = element_blank(),
-          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          axis.title.y = element_text(size = 26,face="bold"),
           axis.text=element_text(color="black"),
-          plot.title = element_text(size = Tit_Sz),
+          plot.title = element_text(size = 20),
           plot.background = element_rect(fill = "transparent", color = NA),
           panel.background = element_rect(fill = "transparent"),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
@@ -1117,7 +1118,7 @@ Build_CCSRet2 <- function(case) {
           legend.background = element_rect(fill='transparent'),
           legend.position="right",
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size = 15),
+          text = element_text(size = 20),
           panel.border = element_rect(colour = "black", fill = "transparent"), 
           #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
     ) +
@@ -1218,9 +1219,9 @@ CC_Fate_study <- function(case) {
           panel.grid.minor.x = element_blank(),
           panel.grid.minor.y = element_blank(),
           axis.title.x = element_blank(),
-          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          axis.title.y = element_text(size = GenText_Sz+6,face="bold"),
           axis.text=element_text(color="black"),
-          plot.title = element_text(size = Tit_Sz),
+          plot.title = element_text(size = GenText_Sz),
           plot.background = element_rect(fill = "transparent", color = NA),
           panel.background = element_rect(fill = "transparent"),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
@@ -1229,7 +1230,7 @@ CC_Fate_study <- function(case) {
           legend.title = element_blank(),
           legend.position="bottom",
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size = 15),
+          text = element_text(size = GenText_Sz),
           panel.border = element_rect(colour = "black", fill = "transparent"), 
           #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
     ) +
@@ -1301,19 +1302,25 @@ CC_Fate_year <- function(case) {
                                 "Opperating"))) %>%
     group_by(Time_Period,Fate) %>%
     summarise(Capacity=sum(MaxCap))%>%
-    mutate(Capacity=if_else(Fate == "Opperating",Capacity,Capacity*-1),
-           YR=as.character(Time_Period))%>%
-    ungroup()
-  
+    mutate(Capacity=if_else(Fate == "Retired",Capacity*-1,Capacity),
+           YR=as.character(Time_Period),
+           YEAR_trim=as.numeric(format(YR)))%>%
+    ungroup() %>%
+    filter(YEAR_trim<=MaxYrStudy) %>%
+    # Optional line to remove retire instead of showing on graph
+    filter(!Fate=="Retired")
+
   # PLOT
   ggplot(CC_fate) +
     geom_col(aes(YR, Capacity,fill = Fate),color="black") +
-    labs(x = "Year", y = "Combined Cycle Natural Gas Total Fleet Capacity (MW)") +
+    labs(x = "Year", y = "NGCC Annual Capacity (MW)") +
     
     geom_hline(yintercept=0, color = "black",size=0.5,linetype=1)+
     
     scale_y_continuous(expand = c(0,0),
-                       limits = c(-1*max(CC_fate$Capacity)+100,max(CC_fate$Capacity)+100),breaks=pretty_breaks(8)) +
+                       limits = c(0,
+                         #min(CC_fate$Capacity)-500,
+                         max(CC_fate$Capacity)+500),breaks=pretty_breaks(8)) +
 
     theme(text=element_text(family=Plot_Text)) +
     
@@ -1323,9 +1330,9 @@ CC_Fate_year <- function(case) {
           panel.grid.minor.x = element_blank(),
           panel.grid.minor.y = element_blank(),
           axis.title.x = element_blank(),
-          axis.title.y = element_text(size = YTit_Sz,face="bold"),
+          axis.title.y = element_text(size = GenText_Sz+6,face="bold"),
           axis.text=element_text(color="black"),
-          plot.title = element_text(size = Tit_Sz),
+          plot.title = element_text(size = GenText_Sz),
           plot.background = element_rect(fill = "transparent", color = NA),
           panel.background = element_rect(fill = "transparent"),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
@@ -1334,14 +1341,14 @@ CC_Fate_year <- function(case) {
           legend.title = element_blank(),
           legend.position="bottom",
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size = 15),
+          text = element_text(size = GenText_Sz),
           panel.border = element_rect(colour = "black", fill = "transparent"), 
           #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray36")
     ) +
     
     # Remove NA from legend
     scale_fill_manual(na.translate = F,
-                      values=c("CCS Retrofit"="lightsteelblue","Opperating"="steelblue2","Retired"="steelblue4")) +
+                      values=c("CCS Retrofit"=cOL_NGCC_CCS,"Opperating"=cOL_NGCC,"Retired"="steelblue4")) +
     
     theme(text=element_text(family=Plot_Text))
   

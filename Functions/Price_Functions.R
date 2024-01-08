@@ -35,33 +35,36 @@ week_price <- function(year, month, day,case) {
   day_MN <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
   day_MX <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
   
+  # Adjust textsize
+  GenText_Sz=14
+  
   # Plot the data    
   ggplot() +
     geom_line(data = ZPrice, 
               aes(x = date, y = Price), 
               size = 1.25, colour = "darkred") +
     theme_bw() +
-    theme(text=element_text(family=Plot_Text)) +
+   # theme(text=element_text(family=Plot_Text)) +
     theme(panel.background = element_rect(fill = "transparent"),
           axis.text.x=element_text(vjust=-1,color="black"),
-          axis.title.x = element_text(vjust=-1,size= XTit_Sz,face="bold"),
+          axis.title.x = element_text(vjust=-1,size= GenText_Sz,face="bold"),
           axis.text.y=element_text(color="black"),
-          axis.title.y = element_text(vjust=2,size= YTit_Sz,face="bold"),
+          axis.title.y = element_text(vjust=2,size= GenText_Sz+6),
           #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'grey'),
           panel.grid.minor.y = element_blank(),
           panel.grid.major.x = element_blank(),
           panel.grid = element_blank(),
           plot.background = element_rect(fill = "transparent", color = NA),
-          plot.title = element_text(size = Tit_Sz),
-          text = element_text(size = 15) 
+          plot.title = element_text(size = GenText_Sz),
+          text = element_text(size = GenText_Sz) 
           
     ) +
     labs(y = "Pool Price ($/MWh)", x="Date",fill = "Resource",caption=SourceDB) +
     scale_x_datetime(expand=c(0,0),limits=c(day_MN,day_MX),breaks = "day",date_labels = "%b-%e") +
     scale_y_continuous(expand=c(0,0), 
-                       limits= c(0,1050),
+                       limits= c(0,1010),
                        #                       labels = label_number(accuracy = 1),
-                       breaks = seq(0, 1000, by = 200)
+                       breaks = seq(0, 1000, by = 250)
     )
 }
 
@@ -99,13 +102,66 @@ Sim_dur <- function(case) {
     
     theme(panel.grid = element_blank(),
           panel.spacing = unit(2, "lines"),
-          axis.title.x = element_text(size = XTit_Sz,face="bold"),
+          axis.title.x = element_text(size = GenText_Sz+6,face="bold"),
           axis.text=element_text(colour = "black"),
-          axis.title.y = element_text(size = YTit_Sz,face="bold"),
-          text = element_text(size = 15),
+          axis.title.y = element_text(size = GenText_Sz+6,face="bold"),
+          text = element_text(size = GenText_Sz),
           legend.title = element_blank(),
           #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray70")
           ) +
+    
+    labs(y = "Wholesale Pool Price ($/MWh)", x = "Percentage of Time",caption = SourceDB) +
+    
+    scale_color_brewer(palette= "RdYlBu") +
+    
+    scale_x_continuous(expand=c(0,0), 
+                       limits = c(0,1),
+                       labels = percent) +
+    
+    scale_y_continuous(expand=c(0,0),limits = c(0,1000),breaks = pretty_breaks(5)) 
+}
+
+###############################################################################  
+## FUNCTION: Sim_dur_avg
+## Simulation duration curve ploted each year
+## The price duration curve represents the percentage of hours in which pool price 
+## equaled or exceeded a specified level.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_All - Zone hourly table for all conditions
+################################################################################  
+
+Sim_dur_avg <- function(case) {
+  
+  tot <- ZoneHr_All%>%
+    group_by(Condition, Report_Year)%>%
+    mutate(perc = 1-ecdf(Price)(Price)) %>%
+    filter(Condition == "Average")
+  
+  tot$Report_Year <- as.factor(tot$Report_Year)
+  
+  tot <- tot %>%
+    filter(Report_Year %in% Years2Disp)
+  
+  ggplot() +
+    geom_line(data = tot, 
+              aes(x = perc, y = Price, colour = Report_Year), size = 1.25) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          panel.spacing = unit(2, "lines"),
+          axis.title.x = element_text(size = GenText_Sz+6,face="bold"),
+          axis.text=element_text(colour = "black"),
+          axis.title.y = element_text(size = GenText_Sz+6,face="bold"),
+          text = element_text(size = GenText_Sz),
+          legend.title = element_blank(),
+          #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray70")
+    ) +
     
     labs(y = "Wholesale Pool Price ($/MWh)", x = "Percentage of Time",caption = SourceDB) +
     
@@ -199,12 +255,12 @@ AvgMn_price <- function(case) {
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
           panel.grid = element_blank(),
-          plot.background = element_rect(fill = "transparent", color = NA),
+         # plot.background = element_rect(fill = "transparent", color = NA),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.background = element_rect(fill='transparent'),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size= 15),
-          legend.text = element_text(colour="black", size = 12),
+          text = element_text(size= GenText_Sz),
+          legend.text = element_text(colour="black", size = GenText_Sz-6),
           plot.title = element_text(hjust = 0.5),
           #axis.title.y = element_text(margin = margin(t = 0, r = 5, b = 0, l = 0, unit = "pt")),
     )+
@@ -330,11 +386,12 @@ ggplot() +
   theme_bw() +
   theme(text=element_text(family=Plot_Text)) +
   theme(axis.text = element_text(color="black"),
-        axis.title = element_text(size = XTit_Sz ),
+        axis.title = element_text(size = GenText_Sz ),
         axis.text.x = element_text(angle = 45, hjust=1,color="black"),
         plot.title = element_blank(),
+        text = element_text(size=GenText_Sz),
         axis.title.x=element_blank(),
-        legend.text = element_text(size = Leg_Sz),
+        legend.text = element_text(size = GenText_Sz-6),
         panel.grid = element_blank(),
         legend.title = element_blank(),
         legend.position = "bottom",
@@ -614,7 +671,7 @@ ResValue_Line<-function(ResNum,BuildYr,case) {
 
     geom_line(aes(x = Report_Year, y = Value, group= Name,alpha="Individual Plants"),color="gray",na.rm=TRUE) +
     
-    geom_line(data=Mean_Val,aes(x = Report_Year, y = MeanV,alpha="Mean Nominal Value"),color="black",group=1,size=1.5,na.rm=TRUE) +
+    geom_line(data=Mean_Val,aes(x = Report_Year, y = MeanV,alpha="Mean Nominal Value"),color="black",group=1,size=1.25,na.rm=TRUE) +
     
     # Set line at 0
     geom_hline(yintercept=0, color = "black",size=0.25,linetype=2) +
@@ -634,8 +691,8 @@ ResValue_Line<-function(ResNum,BuildYr,case) {
       panel.grid = element_blank(),                          # Remove pannel grid
       panel.spacing=unit(1,"pt"),                            # Control space between plots
       panel.background = element_rect(fill = "transparent"), # Transparent background
-      text = element_text(size= GenText_Sz),                # Text size
-      plot.title = element_text(size=Tit_Sz ),              # Plot title size (if present)
+      text = element_text(size= 20),                # Text size
+      plot.title = element_text(size=20 ),              # Plot title size (if present)
       plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
       
       # X-axis
@@ -643,11 +700,11 @@ ResValue_Line<-function(ResNum,BuildYr,case) {
       axis.title.x = element_blank(),           # x-axis title text size
       
       # Y-axis
-      axis.title.y = element_text(face="bold",XTit_Sz ),           # y-axis title text size
+      axis.title.y = element_text(face="bold",size=26 ),           # y-axis title text size
       axis.text.y = element_text(color="black"),
       # Legend
       legend.position = c(0.99, 0.99), 
-      legend.text = element_text(size=Leg_Sz),
+      legend.text = element_text(size=14),
       legend.justification = c(0.99, 0.99),                      
       legend.title=element_text()) +
     
@@ -932,14 +989,14 @@ ResValue_Annual<-function(ResNum,BuildYr,case) {
     stat_summary(fun = median, geom = "point", shape = 95, size = 40,color="darkgoldenrod") +
     
     theme_bw() +
-    theme(text=element_text(family=Plot_Text)) +
+   # theme(text=element_text(family=Plot_Text)) +
     theme(
       # General Plot Settings
       panel.grid = element_blank(),                          # Remove pannel grid
       panel.spacing=unit(1,"pt"),                            # Control space between plots
       panel.background = element_rect(fill = "transparent"), # Transparent background
-      text = element_text(size= GenText_Sz+4),                # Text size
-      plot.title = element_text(size=Tit_Sz+4 ),              # Plot title size (if present)
+      text = element_text(size= 24),                # Text size
+      plot.title = element_text(size=24),              # Plot title size (if present)
       plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
       
       # X-axis
@@ -951,7 +1008,7 @@ ResValue_Annual<-function(ResNum,BuildYr,case) {
       axis.text.y = element_text(color="black"),
       # Legend
       legend.position = "right", #c(0.99, 0.99), 
-      legend.text = element_text(size=Leg_Sz),
+      legend.text = element_text(size=14),
       #legend.justification = c(0.99, 0.99),                      
       legend.title=element_text()) +
     
@@ -1083,8 +1140,8 @@ ResValue_Annual_MWh<-function(ResNum,BuildYr,case) {
       panel.grid = element_blank(),                          # Remove pannel grid
       panel.spacing=unit(1,"pt"),                            # Control space between plots
       panel.background = element_rect(fill = "transparent"), # Transparent background
-      text = element_text(size= GenText_Sz +4),                # Text size
-      plot.title = element_text(size=Tit_Sz+4 ),              # Plot title size (if present)
+      text = element_text(size= 24),                # Text size
+      plot.title = element_text(size=24),              # Plot title size (if present)
       plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
       
       # X-axis
@@ -1092,11 +1149,11 @@ ResValue_Annual_MWh<-function(ResNum,BuildYr,case) {
       axis.title.x = element_blank(),           # x-axis title text size
       axis.ticks.x= element_blank(),
       # Y-axis
-      axis.title.y = element_text(face="bold",XTit_Sz+4 ),           # y-axis title text size
+      axis.title.y = element_text(face="bold",24),           # y-axis title text size
       axis.text.y = element_text(color="black"),
       # Legend
       legend.position = "right", #c(0.99, 0.99), 
-      legend.text = element_text(size=Leg_Sz),
+      legend.text = element_text(size=14),
       #legend.justification = c(0.99, 0.99),                      
       legend.title=element_text()) +
     
@@ -1249,17 +1306,17 @@ ResValue_NPV_MWh<-function(ResNum,BuildYr,case) {
         panel.grid = element_blank(),                          # Remove pannel grid
         panel.spacing=unit(5,"pt"),                            # Control space between plots
         panel.background = element_rect(fill = "transparent"), # Transparent background
-        text = element_text(size = GenText_Sz),                # Text size
-        plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+        text = element_text(size = 20),                # Text size
+        plot.title = element_text(size = 20),              # Plot title size (if present)
         plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
         panel.grid.major.y = element_line(size=0.25,
                                           linetype=1,color = 'gray90'),                          # Adds horizontal lines
         # X-axis
         axis.text.x = element_text(face="bold",
                                    size=8, angle=45,vjust=0.5),# Horizontal text
-        axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        axis.title.x = element_text(size = 26),           # x-axis title text size
         # Y-axis
-        axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+        axis.title.y = element_text(size = 26),           # y-axis title text size
         axis.text.y = element_text(face="bold",
                                    size=8, angle=0),
         # Legend
@@ -1417,17 +1474,17 @@ ResValue_NPV<-function(ResNum,BuildYr,case) {
       panel.grid = element_blank(),                          # Remove pannel grid
       panel.spacing=unit(5,"pt"),                            # Control space between plots
       panel.background = element_rect(fill = "transparent"), # Transparent background
-      text = element_text(size = GenText_Sz),                # Text size
-      plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
+      text = element_text(size = 20),                # Text size
+      plot.title = element_text(size = 20),              # Plot title size (if present)
       plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
       panel.grid.major.y = element_line(size=0.25,
                                         linetype=1,color = 'gray90'),                          # Adds horizontal lines
       # X-axis
       axis.text.x = element_text(face="bold",
                                  size=8, angle=45,vjust=0.5),# Horizontal text
-      axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+      axis.title.x = element_text(size = 26),           # x-axis title text size
       # Y-axis
-      axis.title.y = element_text(size = YTit_Sz),           # y-axis title text size
+      axis.title.y = element_text(size = 26),           # y-axis title text size
       axis.text.y = element_text(face="bold",
                                  size=8, angle=0),
       # Legend
@@ -1573,9 +1630,9 @@ capture_p <- function(year1, year2, case) {
           axis.line.y = element_line(color = "black"),
           axis.text = element_text(size = GenText_Sz,color="black"),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-          axis.title = element_text(size = XTit_Sz,face="bold"),
-          plot.subtitle = element_text(size = GenText_Sz-2,hjust=0.5),
-          plot.caption = element_text(face="italic",size = GenText_Sz-4,hjust=0),
+          axis.title = element_text(size = GenText_Sz+6,face="bold"),
+          plot.subtitle = element_text(size = GenText_Sz-10,hjust=0.5),
+          plot.caption = element_text(face="italic",size = GenText_Sz-10,hjust=0),
           plot.title = element_blank(),
           #plot.title = element_text(hjust=0.5,size = GenText_Sz+2),
           
@@ -1591,13 +1648,12 @@ capture_p <- function(year1, year2, case) {
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.key.size = unit(1,"lines"),
           legend.background = element_rect(fill='transparent'),
-          legend.position="bottom",
-          legend.text = element_text(size=Leg_Sz),
+          legend.position="right",
+          legend.text = element_text(size=GenText_Sz-6),
           legend.title = element_blank(),
           legend.spacing.y = unit(-0.4,"lines"),
           legend.box="vertical",
-          legend.box.background = element_rect(fill='transparent', colour = "transparent")) +
-    guides(fill = guide_legend(nrow = 1)) 
+          legend.box.background = element_rect(fill='transparent', colour = "transparent")) 
             
 }
 
@@ -1722,9 +1778,9 @@ Relcapture_p <- function(year1, year2, case) {
           axis.line.y = element_line(color = "black"),
           axis.text = element_text(size = GenText_Sz,color="black"),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-          axis.title = element_text(size = XTit_Sz,face="bold"),
+          axis.title = element_text(size = GenText_Sz+6,face="bold"),
           plot.subtitle = element_text(size = GenText_Sz-2,hjust=0.5),
-          plot.caption = element_text(face="italic",size = GenText_Sz-4,hjust=0),
+          plot.caption = element_text(face="italic",size = GenText_Sz-10,hjust=0),
           plot.title = element_blank(),
           #plot.title = element_text(hjust=0.5,size = GenText_Sz+2),
           
@@ -1742,12 +1798,12 @@ Relcapture_p <- function(year1, year2, case) {
           legend.background = element_rect(fill='transparent'),
           #legend.justification = "right",
           #legend.position=c(0.99, 0.94),
-          legend.position="bottom",
-          legend.text = element_text(size=Leg_Sz),
+          legend.position="right",
+          legend.text = element_text(size=GenText_Sz-6),
           legend.title = element_blank(),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-    ) +
-  guides(fill = guide_legend(nrow = 1)) 
+    ) 
+  #guides(fill = guide_legend(nrow = 1)) 
     
 }
 
@@ -1858,8 +1914,8 @@ ach_poolprem <- function(case) {
           axis.text = element_text(size = GenText_Sz,color="black"),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
           axis.title.x=element_blank(),
-          axis.title = element_text(size = XTit_Sz,face="bold"),
-          plot.caption = element_text(face="italic",size = GenText_Sz-4,hjust=0),
+          axis.title = element_text(size = GenText_Sz+6,face="bold"),
+          plot.caption = element_text(face="italic",size = GenText_Sz-10,hjust=0),
           plot.title = element_blank(),
           
           # For transparent background
@@ -1875,8 +1931,8 @@ ach_poolprem <- function(case) {
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.key.size = unit(1,"lines"),
           legend.background = element_rect(fill='transparent'),
-          legend.position="bottom",
-          legend.text = element_text(size=Leg_Sz),
+          legend.position="right",
+          legend.text = element_text(size=GenText_Sz-6),
           legend.title = element_blank(),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
     ) +
@@ -1888,6 +1944,6 @@ ach_poolprem <- function(case) {
                        limits = c(MinP,MaxP),
                        breaks = pretty_breaks(12),
                        labels = percent
-    )+
-    guides(fill = guide_legend(nrow = 1)) 
+    )
+  
 }
