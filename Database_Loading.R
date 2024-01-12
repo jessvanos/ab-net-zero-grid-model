@@ -401,11 +401,13 @@ BC <- "Base Case"
 ## BRING IN DATA FROM AESO FILES & FORMAT  (OPTIONAL)
 ################################################################################
 { 
+  date_filt<-"2005-01-1"
+  
   # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
   merit <- readRDS(here("Data Files","Alberta Data","Leach_MeritData15Aug2023.RData"))
   
     #Filter Data to relevant dates & remove old data
-    merit_filt <- filter(merit,date >= as.Date("2015-01-1"))
+    merit_filt <- filter(merit,date >= as.Date(date_filt))
     rm(merit)
   
   # Load nrgstream_gen - Load and demand info, plus a whole ton more
@@ -416,8 +418,8 @@ BC <- "Base Case"
     Actdemand$Day <- date(Actdemand$time)
     
     # Take out dates I don't care about and remove the old table
-    sub_samp<-filter(nrgstream_gen, time >= as.Date("2015-01-1"))
-    Actdemand<-filter(Actdemand, time >= as.Date("2015-01-1"))
+    sub_samp<-filter(nrgstream_gen, time >= as.Date(date_filt))
+    Actdemand<-filter(Actdemand, time >= as.Date(date_filt))
     
     # Create a list to describe Import/Exports
     trade_excl<-c("AB - WECC Imp Hr Avg MW", 
@@ -1250,7 +1252,10 @@ NameShort<-'Jan5_BAU'
     # Wind duration curve with Output normalized
     Wind_DurNorm_AESO(BC)
   
-    
+    # Historical Gen
+    Evalyr_AESO()
+    SourceDB<-"NRG"
+    GGSave_Loc("Hist Figs","hist_gen_AB",Evalyr_AESO(),300)
 ################################################################################
 ## Developing Functions (Developing_Functions)
 ################################################################################

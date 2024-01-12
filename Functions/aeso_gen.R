@@ -2447,7 +2447,6 @@ Evalyr_AESO <- function() {
   YR <- rbind(YRall, YRtrade)
   
   {
-    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "TRADE", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "SOLAR", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "WIND", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "HYDRO", after = Inf)
@@ -2456,80 +2455,86 @@ Evalyr_AESO <- function() {
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "COGEN", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "COAL", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "STORAGE", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "TRADE", after = Inf)
   }
   
-  YR$Plant_Type <- factor(YR$Plant_Type, levels=c("TRADE","SOLAR","WIND", "HYDRO",  
+  YR$Plant_Type <- factor(YR$Plant_Type, levels=c("SOLAR","WIND", "HYDRO",  
                                                   "OTHER","GAS","COGEN",
-                                                  "COAL", "STORAGE"))
+                                                  "COAL", "STORAGE","TRADE"))
   
-  levels(YR$Plant_Type) <- c("Net Imports","Solar","Wind","Hydro",
+  levels(YR$Plant_Type) <- c("Solar","Wind","Hydro",
                              "Other","Natural Gas","Cogeneration", 
-                             "Coal", "Storage")
+                             "Coal", "Storage","Net Imports")
 
   # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
   YR <- YR%>%
-    filter(YEAR >=2018,
-           YEAR<=2022) 
+    filter(YEAR >=2005,
+           YEAR<=2022,
+           !Plant_Type =="Storage")
   
+  GenText_Sz<-56
   # Plot
-  plotyr<-YR %>%
+  YR %>%
     ggplot() +
-    geom_area(aes(YEAR, Gen_TWh, fill = Plant_Type),alpha=1, size=.5, colour="black") +
+    geom_area(aes(YEAR, Gen_TWh, fill = Plant_Type),alpha=1, size=.25, colour="black") +
     
     theme_bw() +
     
     # Changes the font type
-    theme(text=element_text(family=Plot_Text)) +             
+    #theme(text=element_text(family=Plot_Text)) +             
     
     theme(
       # General Plot Settings
       panel.grid = element_blank(),
       # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
       plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
-      panel.background = element_rect(fill = "transparent"), # Transparent background
+      panel.background = element_blank(), # Transparent background
+      panel.border = element_blank(),
       text = element_text(size = GenText_Sz),                # Text size
-      plot.title = element_text(size = Tit_Sz),              # Plot title size (if present)
-      plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+      plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
+      axis.line.y = element_line(),
+      axis.line.x = element_line(),
+      plot.caption = element_text(hjust = 1,size = GenText_Sz-10,face = "italic"),             # Plot subtitle size (if present)
 
       # X-axis
       axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
       #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
       axis.title.x = element_blank(),
       # Y-axis
-      axis.title.y = element_text(size = GenText_Sz+4,face="bold"),           # y-axis title text size
+      axis.title.y = element_text(size = GenText_Sz+8),           # y-axis title text size
       axis.text.y = element_text(colour = "black"),                 # Horizontal text
       
       # Legend
       legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
       legend.position = "right",                            # Move legend to the bottom
       legend.justification = c(0.5,0.5),                     # Center the legend
-      legend.text = element_text(size =GenText_Sz-2),              # Size of legend text
+      legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
       legend.title=element_blank()) +                        # Remove legend title
     
     # Set axis scales
-    scale_x_continuous(expand=c(0,0),limits = c(2018,2022),breaks=seq(2018, 2022, 1)) +
+    scale_x_continuous(expand=c(0,0),limits = c(2005,2022),breaks=seq(2005, 2022, 2)) +
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,100),
                        breaks=pretty_breaks(6)) +
     
     #guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
     # Plot labels
-    labs(x = "Year", y = "Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = "Data from NRGStream") +
+    labs(x = "Year", y = "Alberta Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = "Data from NRGStream") +
     
     
     # Legend color scheme
-    scale_fill_manual(values = c("Net Imports"="#fff7bc","Solar"="darkgoldenrod2","Wind"="#238b45","Hydro"="lightsteelblue",
-                                 "Other"="steelblue4","Natural Gas"="gray50", 
-                                 "Cogeneration"="gray25","Coal"="black", "Storage"="gray15"),
+    scale_fill_manual(values = c("Solar"="darkgoldenrod2","Wind"="#238b45","Hydro"="#4472C4",
+                                 "Other"='#C9C9C9',"Natural Gas"='#A6A6A6', 
+                                 "Cogeneration"='#767171',"Coal"='#525252',"Net Imports"='#252323'),
                       drop = TRUE) 
- 
-  ggsave(
-    filename = here(paste("Figures (Local)/","Historical Gen",".png", sep = "")),
-    device = "png",
-    plot = plotyr,
-    width=6,
-    height=3,
-    dpi=300)
+  
+  # ggsave(
+  #   filename = here(paste("Figures (Local)/","Historical Gen",".png", sep = "")),
+  #   device = "png",
+  #   plot = plotyr,
+  #   width=6,
+  #   height=3,
+  #   dpi=300)
                         
 }
 
