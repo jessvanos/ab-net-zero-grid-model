@@ -442,8 +442,8 @@ Analysis_saveall <- function(CaseName) {
   
   # Daily gen
   GGSave_Loc(CaseName,"Daily Output - Season 2040",CompDay_Season(2040,14,BC),300)
-  GGSave_Loc(CaseName,"Daily Output - Max Wind 2040",CompDay_Wind(2040,14,BC),300)
-  GGSave_Loc(CaseName,"Daily Output - Max Solar 2040",CompDay_Solar(2040,14,BC),300)
+  GGSave_Loc(CaseName,"Daily Output - Max Wind 2040",CompDay_Wind(2040,BC),300)
+  GGSave_Loc(CaseName,"Daily Output - Max Solar 2040",CompDay_Solar(2040,BC),300)
   GGSave_Loc(CaseName,"Daily Output Nov- Years",CompDay_Years(2023,2043,11,10,BC),300)
   
 }
@@ -485,7 +485,26 @@ Detail_Gen_save <- function(CaseName) {
   
 }
 
+################################################################################
+# CER_saveall
+# Save variety of plots related to CER contraints
+################################################################################
 
+CER_saveall <- function(CaseName) {
 
+  # CER Resource capacity factors
+  GGSave_Loc(CaseName,"CER Plant Capacity Factors",CF_CER_Res(BC),300)
+  
+  # CER group capacity factors
+  GGSave_Loc(CaseName,"CER Capacity Factors by Year Applied",CF_CER_groups(BC),300)
+  
+  # Hours run and emissions for CER resources
+  GGSave_Loc_wide(CaseName,"CER Plant Hours and Emissions",CER_EM_hour_Res(case),300)
+  
+  # Capacity factor and emissions for CER resources grouped by year applied
+  GGSave_Loc_wide(CaseName,"CER Hours and Emissions by Year Applied",CER_EM_hour_group(case),300)
+  
+  
+}
 
 

@@ -49,11 +49,11 @@
 
 {
   # Define cases here
-  ScenarioName1<-"Jan5_BAU"
-  ScenarioName2<-"Dec20_BAU"
+  ScenarioName1<-"Curtail_Compare_Jan19"
+  ScenarioName2<-"Jan19_CER_NoCurt"
   
   # This is the name for the new combined R files and excel sheet
-  CScenarioName <-"UpdatesCheck"
+  CScenarioName <-"CER_BAU_Compare_Jan22"
 }
 
 ################################################################################

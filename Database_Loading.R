@@ -84,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"BAU_8_Jan_2024_NoCurt"
+  SourceDB<-"CER_19_Jan_2024_LimitCurtail"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -724,8 +724,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "No Curtail BAU"
-NameShort<-'Jan8_BAU_NoCurt'
+CaseName <- "CER No Curt"
+NameShort<-'Jan19_CER_NoCurt'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -746,6 +746,9 @@ NameShort<-'Jan8_BAU_NoCurt'
     # Slack plots
       Slack_saveall(CaseName)
       
+  # CER ANALYSIS 
+      CER_saveall(CaseName)
+      
 # SAVE DATA
   # WRITE TO EXCEL
     # Annual data ('long name','short name',case)
@@ -763,7 +766,7 @@ NameShort<-'Jan8_BAU_NoCurt'
   
   # HOURLY GENERATION
       # Grid of weekly output - need to edit for more than one week of data
-      year_weeks(2023,BC)
+      year_weeks(2043,BC)
       SaveRun_Loc(CaseName,"2023 Hourly Generation for One Week (Stacked Area)")
 
       # Four months of generation and pool price
@@ -986,6 +989,15 @@ NameShort<-'Jan8_BAU_NoCurt'
     # Shows pool price over a week of resource group outputs, includes storage utilization
     PrOut(2022,01,08,BC)
     
+    # Show capacity factor for individual resources included in CER
+    CF_CER_Res(BC)
+    
+    # Show hours opperated for individual units included in CER
+    Hours_CER_Res(BC)
+    
+    # Show capacity factor based on when CER applies by group
+    CF_CER_groups(BC)
+    
     # Wind duration curve with output as is
     Wind_Dur(BC)
     
@@ -994,6 +1006,7 @@ NameShort<-'Jan8_BAU_NoCurt'
     
     # Max curtailment that occured
     MaxCurtail(BC)
+    SaveRun_Loc(CaseName,"Max Curtailment")
     
     # One year of weeks for storage output and pool price
     year_stor(2035,BC)
@@ -1004,6 +1017,12 @@ NameShort<-'Jan8_BAU_NoCurt'
     
     # Number of startups by plant type
     Num_Startups(case)
+    
+    # Hours run and emissions for CER resources
+    CER_EM_hour_Res(case)
+    
+    # Capacity factor and emissions for CER resources grouped by year applied
+    CER_EM_hour_group(case)
     
 ################################################################################    
 ## Price Functions (Price_Functions)
@@ -1104,6 +1123,9 @@ NameShort<-'Jan8_BAU_NoCurt'
     
     # Annual emissions in individual lines
     AnnualEmLine(case)
+    
+    # CER resource emissions functions
+    Emissions_CER_Res(BC)
     
 ################################################################################
 ## Intertie Functions (Intertie_Functions)

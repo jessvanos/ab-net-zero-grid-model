@@ -226,3 +226,173 @@ AnnualEmLine <- function(case,Ptype) {
   
   
 }
+
+################################################################################
+## FUNCTION: Emissions_CER_Res
+## Show hours of opperation for each resource in each year.  
+##
+## INPUTS: 
+##
+##    case - case to see 
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Hourly resource group tables
+################################################################################
+  Emissions_CER_Res <- function(case) {
+    
+    # Plots the capacity factor by technology for AESO and Sim
+    # Like AESO Market Report 2021 Figure 15
+    
+    CER_Names <- ResYr%>%
+      sim_filt3(.) %>% #Filter to rename fuels
+      subset(., select=c(YEAR,Time_Period,End_Date,Beg_Date,Name,Condition,Capacity,Run_ID,Primary_Fuel,Capacity_Factor,Total_Hours_Run)) %>%
+      filter(Run_ID == case,
+             Condition == "Average",
+             Primary_Fuel %in% c("Coal-to-Gas","Natural Gas Simple Cycle","Natural Gas Combined Cycle"),
+             Capacity >= 25)
+    
+    # Get names of CER plants
+    CER_Names_list<-as.list(unique(CER_Names$Name))
+    
+    # Get types for each plant
+    CER_Types<-CER_Names %>%
+      filter(YEAR==2024) %>%
+      rename(Resource_Name=Name)%>%
+      select(Resource_Name, Primary_Fuel)
+    
+    # Emissions date for plants
+    Emdata <- ResEmYr %>%
+      filter(Run_ID == case,
+             Condition == "Average",
+             Type== "CO2",
+             Resource_Name %in% CER_Names_list) %>%
+      select(Resource_Name, Time_Period,Report_Year, Amount, Cost) %>%
+      mutate(Amount=Amount*0.90718474/1000,
+             Time_Period=as.numeric(Time_Period)) # Convert Ton to Tonne
+
+    # Add types back in 
+    Emdata<-merge(Emdata,CER_Types,by=c("Resource_Name"), all.x = TRUE)
+    
+    # Plot max
+    Em_max<-max(Emdata$Amount)+10
+    
+    # Generate plot
+    ggplot(Emdata)+
+      geom_line(aes(x = Time_Period, y = Amount, colour = Primary_Fuel,group=Resource_Name), 
+                size = 1.5) +
+      
+      theme_bw() +
+      
+      # Changes the font type
+      theme(text=element_text(family=Plot_Text)) +             
+      
+      geom_hline(yintercept=150, color = "darkred",size=0.25,linetype=2) +
+      geom_text(data = data.frame(x=1,y=1),aes(2023.5,150,label = "Maximum Emissions Constraint = 150"), vjust = -1,hjust=0, colour="darkred",size=5)  +
+      
+      theme(
+        # General Plot Settings
+        panel.grid = element_blank(),
+        # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+        plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+        panel.background = element_rect(fill = "transparent"), # Transparent background
+        text = element_text(size = GenText_Sz),                # Text size
+        plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
+        plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+        #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'), # Adds horizontal lines
+        plot.caption = element_text(size = GenText_Sz-10),
+        # X-axis
+        axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
+        axis.title.x = element_blank(),                         # y-axis title text size
+        #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        # Y-axis
+        axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
+        axis.text.y=element_text(color="black"),
+        # Legend
+        legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+        legend.position = "bottom",                             # Move legend to the bottom
+        legend.justification = c(0.5,0.5),                     # Center the legend
+        legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
+        legend.title=element_blank()) +                        # Remove legend title
+      
+      # Set axis scales
+      scale_x_continuous(expand=c(0,0),limits=c(2023,MaxYrStudy)) +
+      scale_y_continuous(expand=c(0,0),limits=c(0,Em_max),breaks=pretty_breaks(5)) +
+      
+      # Plot labels
+      labs(x = "Year", y = "Emissions (kt CO2e)", 
+           colour="Plant_Type",caption = SourceDB) +
+      
+      # Legend color scheme
+      scale_colour_manual(values = c("Coal-to-Gas"='grey25',"Natural Gas Simple Cycle"='grey50',"Natural Gas Combined Cycle"='grey80'),drop = TRUE) 
+  }  
+  
+################################################################################
+## FUNCTION: Emissions_CER_group
+## Show emissions for CER groups each year
+##
+## INPUTS: 
+##
+##    case - case to see 
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Hourly resource group tables
+################################################################################
+  Emissions_CER_group <- function(case) {
+    
+    # Emissions date for plants
+    Emdata <- ResGroupEmYr %>%
+      filter(Run_ID == case,
+             Condition == "Average",
+             Type== "CO2",
+             ID %in% c("CER_2035","CER_2036","CER_2044","CER_2045")) %>%
+      select(ID,Report_Year, Amount, Cost) %>%
+      mutate(Amount=Amount*0.90718474/1000000,
+             Report_Year=as.numeric(Report_Year)) # Convert Ton to Tonne
+
+    # Plot max
+    Em_max<-max(Emdata$Amount)+1
+    
+    # Generate plot
+    ggplot(Emdata)+
+      geom_line(aes(x = Report_Year, y = Amount, colour = ID), 
+                size = 1.5) +
+      
+      theme_bw() +
+      
+      # Changes the font type
+      theme(text=element_text(family=Plot_Text)) +             
+      
+      theme(
+        # General Plot Settings
+        panel.grid = element_blank(),
+        # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+        plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+        panel.background = element_rect(fill = "transparent"), # Transparent background
+        text = element_text(size = GenText_Sz),                # Text size
+        plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
+        plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+        #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'), # Adds horizontal lines
+        plot.caption = element_text(size = GenText_Sz-10),
+        # X-axis
+        axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
+        axis.title.x = element_blank(),                         # y-axis title text size
+        #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        # Y-axis
+        axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
+        axis.text.y=element_text(color="black"),
+        # Legend
+        legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+        legend.position = "bottom",                             # Move legend to the bottom
+        legend.justification = c(0.5,0.5),                     # Center the legend
+        legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
+        legend.title=element_blank()) +                        # Remove legend title
+      
+      # Set axis scales
+      scale_x_continuous(expand=c(0,0),limits=c(2023,MaxYrStudy)) +
+      scale_y_continuous(expand=c(0,0),limits=c(0,Em_max),breaks=pretty_breaks(5)) +
+      
+      # Plot labels
+      labs(x = "Year", y = "Emissions (Mt CO2e)", 
+           colour="Plant_Type",caption = SourceDB) +
+      
+      # Legend color scheme
+      scale_colour_manual(values = c("CER_2035"='grey20',"CER_2036"='grey40',"CER_2044"='grey70',CER_2045='grey90'),drop = FALSE) 
+  }  

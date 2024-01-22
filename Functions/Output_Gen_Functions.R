@@ -1080,6 +1080,261 @@
       scale_colour_manual(values = colours8,drop = FALSE) 
   } 
   
+################################################################################
+## FUNCTION: CF_CER_Res
+## Compares capacity factor for two chosen years. 
+## Similar to plot seen on page 10 of AESOs net zero report dashboard. 
+##
+## INPUTS: 
+##
+##    case - case to see 
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Hourly resource group tables
+################################################################################
+  CF_CER_Res <- function(case) {
+    
+    # Plots the capacity factor by technology for AESO and Sim
+    # Like AESO Market Report 2021 Figure 15
+    
+    data <- ResYr%>%
+      sim_filt3(.) %>% #Filter to rename fuels
+      subset(., select=c(YEAR,Time_Period,End_Date,Beg_Date,Name,Condition,Capacity,Run_ID,Primary_Fuel,Capacity_Factor,Total_Hours_Run)) %>%
+      filter(Run_ID == case,
+             Condition == "Average",
+             Primary_Fuel %in% c("Coal-to-Gas","Natural Gas Simple Cycle","Natural Gas Combined Cycle"),
+             Capacity >= 25,
+             YEAR <= MaxYrStudy) %>%
+      mutate(Time_Period=as.numeric(Time_Period),
+             YEAR=as.numeric(YEAR))
+      
+    
+    
+    # Set levels to each category in order specified
+    data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Cogeneration","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                            #"Blended  Simple Cycle","Blended  Combined Cycle",
+                                                            "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS",
+                                                            "Natural Gas Combined Cycle CCS Retrofit","Natural Gas Combined Cycle", 
+                                                            "Hydro", "Other",
+                                                            "Wind", "Solar", 
+                                                            "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro",
+                                                            "Nuclear"
+    ) )
+
+    
+    ggplot(data)+
+      geom_line(aes(x = YEAR, y = Capacity_Factor, colour = Primary_Fuel,group=Name), 
+                size = 1.5) +
+
+      theme_bw() +
+      
+      # Changes the font type
+      theme(text=element_text(family=Plot_Text)) +             
+      
+      geom_hline(yintercept=0.05, color = "darkred",size=0.25,linetype=2) +
+      geom_text(data = data.frame(x=1,y=1),aes(2023.5,0.05,label = "Capacity Factor Constraint = 5%"), vjust = -1,hjust=0, colour="darkred",size=5)  +
+      
+      theme(
+        # General Plot Settings
+        panel.grid = element_blank(),
+        # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+        plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+        panel.background = element_rect(fill = "transparent"), # Transparent background
+        text = element_text(size = GenText_Sz),                # Text size
+        plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
+        plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+        #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'), # Adds horizontal lines
+        plot.caption = element_text(size = GenText_Sz-10),
+        # X-axis
+        axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
+        axis.title.x = element_blank(),                         # y-axis title text size
+        #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        # Y-axis
+        axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
+        axis.text.y=element_text(color="black"),
+        # Legend
+        legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+        legend.position = "bottom",                             # Move legend to the bottom
+        legend.justification = c(0.5,0.5),                     # Center the legend
+        legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
+        legend.title=element_blank()) +                        # Remove legend title
+      
+      # Set axis scales
+      scale_x_continuous(expand=c(0,0),limits=c(2023,MaxYrStudy)) +
+      scale_y_continuous(expand=c(0,0),limits = c(0,1),breaks=pretty_breaks(5),labels=percent) +
+      
+      # Plot labels
+      labs(x = "Year", y = "Average Capacity Factor", 
+           colour="Plant_Type",caption = SourceDB) +
+      
+      # Legend color scheme
+      scale_colour_manual(values = c("Coal-to-Gas"='grey25',"Natural Gas Simple Cycle"='grey50',"Natural Gas Combined Cycle"='grey80'),drop = TRUE) 
+  } 
+  
+################################################################################
+## FUNCTION: Hours_CER_Res
+## Show hours of opperation for each resource in each year.  
+##
+## INPUTS: 
+##
+##    case - case to see 
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Hourly resource group tables
+################################################################################
+  Hours_CER_Res <- function(case) {
+    
+    # Plots the capacity factor by technology for AESO and Sim
+    # Like AESO Market Report 2021 Figure 15
+    
+    data <- ResYr%>%
+      sim_filt3(.) %>% #Filter to rename fuels
+      subset(., select=c(YEAR,Time_Period,End_Date,Beg_Date,Name,Condition,Capacity,Run_ID,Primary_Fuel,Capacity_Factor,Total_Hours_Run)) %>%
+      filter(Run_ID == case,
+             Condition == "Average",
+             Primary_Fuel %in% c("Coal-to-Gas","Natural Gas Simple Cycle","Natural Gas Combined Cycle"),
+             Capacity >= 25,
+             YEAR <= MaxYrStudy) %>%
+      mutate(Time_Period=as.numeric(Time_Period),
+             YEAR=as.numeric(YEAR))
+    
+    
+    
+    # Set levels to each category in order specified
+    data$Primary_Fuel <- factor(data$Primary_Fuel, levels=c("Cogeneration","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                            #"Blended  Simple Cycle","Blended  Combined Cycle",
+                                                            "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS",
+                                                            "Natural Gas Combined Cycle CCS Retrofit","Natural Gas Combined Cycle", 
+                                                            "Hydro", "Other",
+                                                            "Wind", "Solar", 
+                                                            "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro",
+                                                            "Nuclear"
+    ) )
+    
+    hrs_max<-max(data$Total_Hours_Run)+100
+    
+    ggplot(data)+
+      geom_line(aes(x = YEAR, y = Total_Hours_Run, colour = Primary_Fuel,group=Name), 
+                size = 1.5) +
+      
+      theme_bw() +
+      
+      # Changes the font type
+      theme(text=element_text(family=Plot_Text)) +             
+      
+      geom_hline(yintercept=450, color = "darkred",size=0.25,linetype=2) +
+      geom_text(data = data.frame(x=1,y=1),aes(2023.5,450,label = "Maximum Hours Constraint = 450"), vjust = -1,hjust=0, colour="darkred",size=5)  +
+      
+      theme(
+        # General Plot Settings
+        panel.grid = element_blank(),
+        # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+        plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+        panel.background = element_rect(fill = "transparent"), # Transparent background
+        text = element_text(size = GenText_Sz),                # Text size
+        plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
+        plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+        #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'), # Adds horizontal lines
+        plot.caption = element_text(size = GenText_Sz-10),
+        # X-axis
+        axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
+        axis.title.x = element_blank(),                         # y-axis title text size
+        #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        # Y-axis
+        axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
+        axis.text.y=element_text(color="black"),
+        # Legend
+        legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+        legend.position = "right",                             # Move legend to the bottom
+        legend.justification = c(0.5,0.5),                     # Center the legend
+        legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
+        legend.title=element_blank()) +                        # Remove legend title
+      
+      # Set axis scales
+      scale_x_continuous(expand=c(0,0),limits=c(2023,MaxYrStudy)) +
+      scale_y_continuous(expand=c(0,0),limits=c(0,hrs_max),breaks=pretty_breaks(5)) +
+      
+      # Plot labels
+      labs(x = "Year", y = "Total Hours Run", 
+           colour="Plant_Type",caption = SourceDB) +
+      
+      # Legend color scheme
+      scale_colour_manual(values = c("Coal-to-Gas"='grey25',"Natural Gas Simple Cycle"='grey50',"Natural Gas Combined Cycle"='grey80'),drop = TRUE) 
+  }
+  
+################################################################################
+## FUNCTION: CF_CER_groups
+## Compares capacity factor for two chosen years. 
+## Similar to plot seen on page 10 of AESOs net zero report dashboard. 
+##
+## INPUTS: 
+##
+##    case - case to see 
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Hourly resource group tables
+################################################################################
+  CF_CER_groups <- function(case) {
+    
+    # Plots the capacity factor by technology for AESO and Sim
+    # Like AESO Market Report 2021 Figure 15
+    
+    data <- ResGroupYr%>%
+      filter(Run_ID == case,
+             Condition == "Average",
+             ID %in% c("CER_2035","CER_2036","CER_2044","CER_2045"),
+             Report_Year <= MaxYrStudy) %>%
+      mutate(Time_Period=as.numeric(Time_Period)) %>%
+      subset(., select=c(Report_Year,ID,Name,Capacity,Output_MWH,Capacity_Factor,Total_Hours_Run))
+    
+    
+    ggplot(data)+
+      geom_line(aes(x = Report_Year, y = Capacity_Factor, colour = ID), 
+                size = 1.5) +
+      
+      theme_bw() +
+      
+      # Changes the font type
+      theme(text=element_text(family=Plot_Text)) +             
+      
+      geom_hline(yintercept=0.05, color = "darkred",size=0.25,linetype=2) +
+      geom_text(data = data.frame(x=1,y=1),aes(2023.5,0.05,label = "Capacity Factor Constraint = 5%"), vjust = -1,hjust=0, colour="darkred",size=5)  +
+      
+      theme(
+        # General Plot Settings
+        panel.grid = element_blank(),
+        # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+        plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+        panel.background = element_rect(fill = "transparent"), # Transparent background
+        text = element_text(size = GenText_Sz),                # Text size
+        plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
+        plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
+        #panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray90'), # Adds horizontal lines
+        plot.caption = element_text(size = GenText_Sz-10),
+        # X-axis
+        axis.text.x = element_text(vjust = 1,color="black"),                 # Horizontal text
+        axis.title.x = element_blank(),                         # y-axis title text size
+        #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+        # Y-axis
+        axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
+        axis.text.y=element_text(color="black"),
+        # Legend
+        legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+        legend.position = "right",                             # Move legend to the bottom
+        legend.justification = c(0.5,0.5),                     # Center the legend
+        legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
+        legend.title=element_blank()) +                        # Remove legend title
+      
+      # Set axis scales
+      scale_x_continuous(expand=c(0,0),limits=c(2023,MaxYrStudy),breaks=seq(2023, MaxYrStudy, 2)) +
+      scale_y_continuous(expand=c(0.01,0),limits = c(0,1),breaks=pretty_breaks(5),labels=percent) +
+      
+      # Plot labels
+      labs(x = "Year", y = "Average Capacity Factor", 
+           colour="Plant_Type",caption = SourceDB) +
+      
+      # Legend color scheme
+      scale_colour_manual(values = c("CER_2035"='grey20',"CER_2036"='grey40',"CER_2044"='grey70',CER_2045='grey90'),drop = FALSE) 
+    
+  }   
+  
 ################################################################################  
 ## FUNCTION: Wind_Dur
 ## Plot wind duration curve in chosen years as % Hours vs Fleet Output (MW)
@@ -2207,3 +2462,96 @@ year_weeks <- function(year,case) {
                  heights=c(1, 0.05,0.05,0.05))
     
   }  
+  
+################################################################################
+## FUNCTION: CER_EM_hour_Res
+## Plots output for a single week given the case study
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+  
+CER_EM_hour_Res<-function(case){
+  
+  GenText_Sz<-16
+  
+  p1 <- Hours_CER_Res(BC) +
+    theme(legend.position ="none", 
+           plot.caption = element_blank(),
+           text = element_text(size = GenText_Sz),       
+           plot.title = element_text(size = GenText_Sz),
+           axis.title.y = element_text(size = GenText_Sz+6),
+           legend.text = element_text(size =GenText_Sz-6))          
+  
+  p2 <- Emissions_CER_Res(BC)+
+    theme(plot.caption = element_blank(), 
+          text = element_text(size = GenText_Sz),       
+          plot.title = element_text(size = GenText_Sz),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          legend.text = element_text(size =GenText_Sz-6)) 
+  
+  # Get a common legend
+  legend <- get_legend(p2)
+  p2 <- p2 + theme(legend.position ="none")
+  
+  
+  #Arrange all the plots
+  grid.arrange(plot_grid(p1,p2, ncol=2, align="v", axis = "l", rel_widths = c(1,1)),
+               plot_grid(legend),
+               ncol=1,nrow=2,
+               heights=c(1, 0.05))
+  
+  
+}
+  
+################################################################################
+## FUNCTION: CER_EM_hour_group
+## Plot CER resource emissions and capacity factors
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+
+CER_EM_hour_group<-function(case){
+  
+  GenText_Sz<-16
+  
+  p1 <- CF_CER_groups(BC) +
+    theme(legend.position ="none", 
+          plot.caption = element_blank(), 
+          text = element_text(size = GenText_Sz),       
+          plot.title = element_text(size = GenText_Sz),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          legend.text = element_text(size =GenText_Sz-6)) 
+  
+  p2 <-  Emissions_CER_group(BC)+
+    theme(plot.caption = element_blank(), 
+          text = element_text(size = GenText_Sz),       
+          plot.title = element_text(size = GenText_Sz),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          legend.text = element_text(size =GenText_Sz-6)) 
+  
+  # Get a common legend
+  legend <- get_legend(p2)
+  p2 <- p2 + theme(legend.position ="none")
+  
+  
+  #Arrange all the plots
+  grid.arrange(plot_grid(p1,p2, ncol=2, align="v", axis = "l", rel_widths = c(1,1)),
+               plot_grid(legend),
+               ncol=1,nrow=2,
+               heights=c(1, 0.05))
+  
+  
+} 
+  
