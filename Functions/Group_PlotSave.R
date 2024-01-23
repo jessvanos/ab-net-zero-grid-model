@@ -24,7 +24,13 @@
 GGSave_Loc <- function(CaseName,FileName,plotinput,pDPI) {
   
   # Set up folder if it does not exist
-  fold_name<-paste(CaseName,SourceDB)
+  # Create file name
+  if (exists('SourceDB')) {
+    fold_name<-paste(CaseName,SourceDB)
+  }else{
+    fold_name<-paste(CaseName)
+  }
+  
   
   # Check if folder exists, if not, make one
   if (file.exists(here("Figures (Local)",paste(fold_name)))) {
@@ -36,7 +42,9 @@ GGSave_Loc <- function(CaseName,FileName,plotinput,pDPI) {
   }
   
   # Create file name
-  FileName <-paste(FileName,SourceDB)
+  if (exists('SourceDB')) {
+    FileName <-paste(FileName,SourceDB)
+  }
   
   # Save to a local file 
   ggsave(

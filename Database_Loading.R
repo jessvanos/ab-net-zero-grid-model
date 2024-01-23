@@ -84,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CER_19_Jan_2024_LimitCurtail"
+  SourceDB<-"CP_14_Jan_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -706,6 +706,12 @@ BC <- "Base Case"
   # Get max year to display
   MaxYrStudy<-2043
   #MaxYrStudy <-max(as.numeric(ResYr$Time_Period))-5
+  
+  # Adjust capacity manually for 2025 (Manual add vs Aurora)
+  AESO_SUN_2025=242.5
+  AESO_WND_2025=400
+  AESO_PS_2025=29
+  AESO_COGEN_2025=25
 
   #For fun, make the code beep when its all done
   beep(3)
@@ -725,7 +731,7 @@ Legend_PlotGray(1)
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
 CaseName <- "CER No Curt"
-NameShort<-'Jan19_CER_NoCurt'
+NameShort<-'Jan14_BAU'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -1124,8 +1130,11 @@ NameShort<-'Jan19_CER_NoCurt'
     # Annual emissions in individual lines
     AnnualEmLine(case)
     
-    # CER resource emissions functions
+    # CER resource emissions ind plants
     Emissions_CER_Res(BC)
+    
+    # CER resource emissions grouped
+    Emissions_CER_group(BC)
     
 ################################################################################
 ## Intertie Functions (Intertie_Functions)

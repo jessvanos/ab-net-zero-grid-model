@@ -245,10 +245,17 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
     # FIND TOTAL CAPACITY CHANGES OVERALL
     # Added in Manually:
     # Define 2023 additions automatically
-    AESO_2024<-Tot_Change %>%
+    AESO_2025<-Tot_Change %>%
       filter(Year<2025)%>%
       group_by(Primary_Fuel)%>%
       summarize(AESO_Add=sum(Capacity_Added))
+    
+    # Add 2025 projects manually
+    AESO_2025 <- AESO_2025 %>%
+      mutate(AESO_Add=if_else(Primary_Fuel=="Solar",AESO_Add+AESO_SUN_2025,
+                              if_else(Primary_Fuel=="Wind",AESO_Add+AESO_WND_2025,
+                                      ifelse(Primary_Fuel=="Storage - Battery",AESO_Add+AESO_PS_2025,
+                                             ifelse(Primary_Fuel=="Cogeneration",AESO_Add+AESO_COGEN_2025,AESO_Add)))))
     
     # Get Canyon
     print("Account for Canyon pumped hydro - added manually post 2025")
@@ -258,7 +265,7 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
       group_by(Primary_Fuel)%>%
       summarize(AESO_Add=sum(Capacity_Added))
     
-    AESO_Add <-rbind(AESO_2024,Canyon_PS3)
+    AESO_Add <-rbind(AESO_2025,Canyon_PS3)
     
     # Aurora 
     # Get additions from 2025-MaxYr
@@ -266,7 +273,11 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
       filter(Year>2024)%>%
       group_by(Primary_Fuel)%>%
       summarize(Capacity_Added=sum(Capacity_Added))%>%
-      ungroup()
+      ungroup()%>%
+      mutate(Capacity_Added=if_else(Primary_Fuel=="Solar",Capacity_Added-AESO_SUN_2025,
+                              if_else(Primary_Fuel=="Wind",Capacity_Added-AESO_WND_2025,
+                                      ifelse(Primary_Fuel=="Storage - Battery",Capacity_Added-AESO_PS_2025,
+                                             ifelse(Primary_Fuel=="Cogeneration",Capacity_Added-AESO_COGEN_2025,Capacity_Added)))))
     
     # Get retirements 2022-MaxYr
     AllCap_Changes1b <- Tot_Change %>%
@@ -826,10 +837,17 @@ AnnualDataR<- function(ScenarioName,case){
   # FIND TOTAL CAPACITY CHANGES OVERALL
   # Added in Manually:
   # Define 2023 additions automatically
-  AESO_2024<-Tot_Change %>%
+  AESO_2025<-Tot_Change %>%
     filter(Year<2025)%>%
     group_by(Primary_Fuel)%>%
     summarize(AESO_Add=sum(Capacity_Added))
+  
+  # Add 2025 projects manually
+  AESO_2025 <- AESO_2025 %>%
+    mutate(AESO_Add=if_else(Primary_Fuel=="Solar",AESO_Add+AESO_SUN_2025,
+                            if_else(Primary_Fuel=="Wind",AESO_Add+AESO_WND_2025,
+                                    ifelse(Primary_Fuel=="Storage - Battery",AESO_Add+AESO_PS_2025,
+                                           ifelse(Primary_Fuel=="Cogeneration",AESO_Add+AESO_COGEN_2025,AESO_Add)))))
   
   # Get pumped storage (separate since added post 2025)
   print("Adjust for Canyon pumped hydro storage")
@@ -839,7 +857,7 @@ AnnualDataR<- function(ScenarioName,case){
     group_by(Primary_Fuel)%>%
     summarize(AESO_Add=sum(Capacity_Added))
   
-  AESO_Add <-rbind(AESO_2024,Canyon_PS3)
+  AESO_Add <-rbind(AESO_2025,Canyon_PS3)
   
   # Aurora 
   # Get additions from 2025-MaxYr
@@ -847,15 +865,11 @@ AnnualDataR<- function(ScenarioName,case){
     filter(Year>2024)%>%
     group_by(Primary_Fuel)%>%
     summarize(Capacity_Added=sum(Capacity_Added))%>%
-    ungroup()
-  
-  New_PS3<- Tot_Change %>%
-    filter(Year>2026,
-           Primary_Fuel=="Storage - Pumped Hydro")%>%
-    group_by(Primary_Fuel)%>%
-    summarize(AESO_Add=sum(Capacity_Added))
-  
-  AllCap_Changes1a<-rbind(AllCap_Changes1a,New_PS3)
+    ungroup()%>%
+    mutate(Capacity_Added=if_else(Primary_Fuel=="Solar",Capacity_Added-AESO_SUN_2025,
+                                  if_else(Primary_Fuel=="Wind",Capacity_Added-AESO_WND_2025,
+                                          ifelse(Primary_Fuel=="Storage - Battery",Capacity_Added-AESO_PS_2025,
+                                                 ifelse(Primary_Fuel=="Cogeneration",Capacity_Added-AESO_COGEN_2025,Capacity_Added)))))
   
   # Get retirements 2022-MaxYr
   AllCap_Changes1b <- Tot_Change %>%
@@ -1042,10 +1056,16 @@ AnnualDataR<- function(ScenarioName,case){
 
 # Load files from each scenario and combine into one R file with new name
 CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
-  
+
   # Annual Resource Group Capacity
   Ann_Cap1<-readRDS(here("Data Files","Result Files",ScenarioName1,paste("Ann_Cap_",ScenarioName1, sep = "")))
+      list1<-as.list(unique(Ann_Cap1$Sim_Name))
   Ann_Cap2<-readRDS(here("Data Files","Result Files",ScenarioName2,paste("Ann_Cap_",ScenarioName2, sep = "")))
+      list2<-as.list(unique(Ann_Cap2$Sim_Name))
+    # Quick check for duplicates - this will mess up grouping totals
+    if ((sum(Ann_Cap1$Sim_Name %in% list2)+sum(Ann_Cap2$Sim_Name %in% list1))>0){
+      print('Warning! Duplicates, exiting now')
+      exit()    }
   # Combine into new R file and save combined file in new folder
   Ann_Cap<-rbind(Ann_Cap1,Ann_Cap2)
   Ann_Cap[is.na(Ann_Cap)]<-0
@@ -1112,20 +1132,26 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
 ## REFORMAT FILES AS DESIRED FOR EXCEL SHEET ONLY
 ################################################################################
   {
+    ################################################################################
+    # FIRST PAGE SET-UP
+    ################################################################################
+    
     # General info Tab - work this into the original filter eventually
     Sim_Info<-ResGrYr %>%
       group_by(Sim_Name)%>%
       summarize(MinYr=min(Year),
-                MaxYr=max(Year))%>%
-      rotate_df()
+                MaxYr=max(Year))
+    # Seperate first col data
+    Sim_col1<-Sim_Info %>%
+      select(Sim_Name)
     
     # Sheet info
     ContentsDF=data.frame(
-      V1=c("",
+      Sim_Name=c("",
            'FORMATED RESULTS',
            '1 Capacity by Tech',
            '2 Percent Capacity',
-           '3 AURORA Capaity Added',
+           '3 AURORA Capacity Added',
            '4 Total Capacity Changes',
            '5 Annual Cap Additions',
            '6 Annual Cap Ret',
@@ -1152,10 +1178,24 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
            'D EPC Values',
            'E Annual Fuel Data',
            'F Average Heat Rates'))
-    ContentsDF$V2=""
     
-    Sim_Info<-rbind(Sim_Info,ContentsDF)
-    Sim_Info<-janitor::row_to_names(Sim_Info,1)
+    Sims_Contents<-rbind(Sim_col1,ContentsDF)
+    
+    # Get blank rows to add to dataframe
+    rows_add<-as.numeric(nrow(ContentsDF))
+    blank_rows <- data.frame(Sim_Name = character(rows_add),
+                             MinYr = rep(NA, rows_add),
+                             MaxYr = rep(NA, rows_add))
+    
+    # Add blank rows
+    Complete_Info<-rbind(Sim_Info,blank_rows)
+    
+    # Replace with blank rows
+    Complete_Info$Sim_Name<-Sims_Contents$Sim_Name
+    
+    ################################################################################
+    # DATA COMPARE PAGES START
+    ################################################################################
     
     # Available model capacity for each year by resource group
     Cap1<-ResGrYr %>%
@@ -1271,7 +1311,7 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
     # Cogen Emissions
     Em_Cogen<-ResGrYr %>%
       filter(Emissions_Tonne>0,
-             Plant_Type %in% c("LTO_Cogen","NAICS221112_Cogen"))%>%
+             Plant_Type %in% c("Cogeneration"))%>%
       group_by(Sim_Name,Year)%>%
       summarize(TotalEmC=sum(Emissions_Tonne)/1000000)%>%
       mutate(Sim_Name=paste(Sim_Name," Cogen Emissions (Mt)", sep="\n"))%>%
@@ -1412,7 +1452,7 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
 ## SEND ALL TO ONE EXCEL FILE
 ################################################################################
   
-  dataset_names <-list('Info'=Sim_Info,
+  dataset_names <-list('Info'=Complete_Info,
                        '1 Capacity by Tech'=Cap_ByGroup,
                        '2 Percent Capacity'=Perc_Cap,
                        '3 AURORA Capaity Added'=Auroraadd,

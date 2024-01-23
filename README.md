@@ -27,6 +27,7 @@ Also includes functions and code segments to visualize historical data from Albe
     -   [Table_Functions](#table_functions)
     -   [aeso_eval_1](#aeso_eval_1)
     -   [aeso_sim_comp_1](#aeso_sim_comp_1)
+    -   [Scenario_Compare_Functions](#scenario_compare_functions)
 
 ## CODE FILES
 
@@ -176,6 +177,11 @@ Functions to evaluate and show emissions.
 
 -   *AnnualEmLine* : Plot annual emissions by resource group as as line chart.
 
+-   *Emissions_CER_Res* : Plot annual emissions for CER resources.
+
+-   *Emissions_CER_group* : Plot annual emissions grouped by year CER is in effect.
+
+
 ### <ins>Group_PlotSave
 
 Save groups of plots to folders.
@@ -289,6 +295,12 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 
 -   *MaxCurtail* : Shows the maximum customer curtailment used in a  single hour for each year.
 
+-   *CF_CER_Res* : Show capacity factor for individual resources included in CER.
+
+-   *Hours_CER_Res* : Show hours opperated for individual units included in CER.
+
+-   *CF_CER_groups* : Show capacity factor based on year CER applies.
+    
 -   *Wind_Dur* : Plot wind duration curve in chosen years as % Hours vs Fleet Output (MW).
 
 -   *Wind_DurNorm* : Plot wind duration curve in chosen years as % hours vs output as percent of max.
@@ -308,6 +320,10 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 -   *EachResWeek* : Show one week of generation and split wach resource type to its own plot.
 
 -   *Num_Startups* : Show number of startups by tech and year.
+
+-   *CER_EM_hour_Res* : Show hours run and total emissions for CER resources.
+
+-   *CER_EM_hour_group* : Show capacity factor and emissions for CER resources based on year applied.
 
 
 ### <ins>Price_Functions
@@ -480,3 +496,9 @@ Functions used to compare simulation data with other/actual data. Some functions
 -   *AESO_Sim_WindDur* : Plot comparison between actual and simulated wind duration curves.
 
 -   *AESO_Sim_WindDurNorm* : Plot comparison between actual and simulated wind duration curves.
+
+### <ins>Scenario_Compare_Functions
+
+Functions used to compare between different scenarios/simulations. To be run after files are combined in "Scenario_Compare" function
+
+-   *AvgYr_price_COMPARE* : Plot average annual pool price.
