@@ -31,25 +31,6 @@ packs_check <- function(packs_to_load) {
 }
 
 ################################################################################
-## FUNCTION: imsave_git & imsave_loc
-## Save most recent plot to git folder or local folder with transparent background.
-##
-## INPUTS: 
-##    name - Date to plot, the week will start on the day chosen. Enter as "name"
-################################################################################
-# Save to a git folder
-imsave_git <- function(name) {
-  ggsave(plot=last_plot(),path = here("Figures"), 
-         filename = paste(name,".png", sep = ""),
-         width = 12, height=8, units=c("cm"),dpi=300, bg = "transparent")  }
-
-# Save to a loacl folder that is ignored by git
-imsave_loc <- function(name) {
-  ggsave(path = here("Figures (Local)"), 
-         filename = paste(name,".png", sep = ""),
-         width = 14, height=10, units=c("cm"),dpi=300, bg = "transparent")}
-
-################################################################################
 ## FUNCTION: SaveRun_Loc
 ## Saves all plots to a new folder names after case
 ##

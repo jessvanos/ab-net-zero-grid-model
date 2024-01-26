@@ -84,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CP_14_Jan_2024"
+  SourceDB<-"CER_24_Jan_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -730,8 +730,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CER No Curt"
-NameShort<-'Jan14_BAU'
+CaseName <- "CER Full"
+NameShort<-'CER_24Jan'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:

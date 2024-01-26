@@ -53,17 +53,18 @@ The sections referencing AESO data and filtering this data can be skipped if no 
 
 ### <ins>Scenario_Compare
 
-Contains packages and code to compare R files between scenarios.
+Contains packages and code to compare R files between scenarios. Requires same file set up as Database_Loading to save results. Includes options to combine files into single excel and .r format and compare files using plots.
 
 ##### *Scenario_Compare Special Notes:*
 
 -   *Make sure the R project file (ab-net-zero-grid-model) is open first or "here" commands will not function.*
+-   *The function "AnnualDataR" must be run before combining files. This function creates .r data that will be combined and referenced.*
 -   *Before running, create a folder called "Data Files"  in the project directory and add two sub-folders called "Result Files" and "Scenario Compare".*
     -   *This folder is referenced in the .gitignore file*
 
 ### <ins>AESO_TradeAnalysis
 
-Script imports data and analyses intertie behavior. Also looks at link capabilities over selected time periods.
+Script imports data and analyses intertie behavior. Also looks at link capabilities over selected time periods. One-off code.
 
 ##### *AESO_TradeAnalysis Special Notes:*
 
@@ -73,7 +74,7 @@ Script imports data and analyses intertie behavior. Also looks at link capabilit
 
 ### <ins>AESO-Analysis
 
-Script for general analysis and plots related to historical generation.
+Script for general analysis and plots related to historical generation using NRGstream data.
 
 -   *Make sure the project file is open first or "here" commands wont work right.*
 -   *Before running, create folder called "Data Files" within project directory and populate it with AESO data.*
@@ -90,7 +91,7 @@ Plots not directly related to simulation and modeling work. Inlcudes AESO planni
 
 ### <ins>Referenced_Code
 
-Helper codes adapted from Dr. Andrew Leach and Taylor Pawlenchuk
+Codes adapted from Dr. Andrew Leach and Taylor Pawlenchuk.Functions are used inside some other functions. 
 
 ## FUNCTION FILES
 
@@ -98,7 +99,7 @@ Helper codes adapted from Dr. Andrew Leach and Taylor Pawlenchuk
 
 ### <ins>Build_Retire_Functions<ins>
 
-Functions to evaluate the electricity grid as it approaches possible net zero states. These functions focus on resource additions and retirements.
+Functions to evaluate the electricity grid capacity changes in alternative scenarios. These functions focus on resource additions and retirements.
 
 #### Functions:
 
@@ -133,6 +134,8 @@ Functions to evaluate the electricity grid as it approaches possible net zero st
 
 ### <ins>Daily_Output_Functions
 
+Hourly outut for single days under alternative conditions. 
+
 -   *CompDay_Season* : Compare two typical days in winter and summer.
 
 -   *CompDay_Wind* : Plot max and min wind days for a given year.
@@ -146,7 +149,7 @@ Functions to evaluate the electricity grid as it approaches possible net zero st
 
 ### <ins>Data_Filt_To_File<ins>
 
-Filters and organizes annual and hourly data, sends to an excel file which can be easily interpreted and exported to other programs.Also includes functions to filter and reformat key data for comparison between scenarios.
+Filters and organizes annual and hourly data, sends to an excel file which can be easily interpreted and exported to other programs. Also includes functions to filter and reformat key data for comparison between scenarios.
 
 #### Functions:
 
@@ -184,7 +187,7 @@ Functions to evaluate and show emissions.
 
 ### <ins>Group_PlotSave
 
-Save groups of plots to folders.
+Quickly save groups of plots to folders without creating each figure individually.
 
 #### Functions:
 
@@ -192,9 +195,20 @@ Save groups of plots to folders.
 
 -   *GGSave_Loc_Ex* : Saves all plots to a new folder called "Additional Analysis" inside image folder named after case using ggplot.
 
+-   *GGSave_Loc_narrow* : Saves all plots to a new folder named after case using ggplot, narrow image.
+
+-   *GGSave_Loc_wide* : Saves all plots to a new folder named after case using ggplot, wide image.
+
 -   *Value_saveall* : Save all value plots including NPV, annual value, annual value per MWh generated.
 
 -   *Slack_saveall* : Save plots to compare available units and built units in capacity expansion.
+
+-   *Analysis_saveall* : Save general analysis plots including capacity, generation, emissions, and cost information.
+
+-   *Detail_Gen_save* : Save detailed generation plots, shows hourly generation in different months and years.
+
+-   *CER_saveall* : Save plot related to CER constraint implimentation.
+
 
 ### <ins>Intertie_Functions<ins>
 
@@ -235,15 +249,11 @@ Historical Fit Functions. Included for looking at historical trade patterns only
 
 ### <ins>other_functions
 
-Additional functions to use, not related the data itself.
+Additional functions to use, not related the data itself. Used within main functions.
 
 #### Functions:
 
 -   *packs_check :* Checks if packages are installed, installs them if not, and loads required functions.
-
--   *imsave_git :* Save most recent plot to git folder with transparent background.
-
--   *imsave_loc :* Save most recent plot to local folder with transparent background.
 
 -   *SaveRun_Loc* : Saves all plots to a new folder names after case.
 

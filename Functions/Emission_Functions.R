@@ -244,11 +244,16 @@ AnnualEmLine <- function(case,Ptype) {
     
     CER_Names <- ResYr%>%
       sim_filt3(.) %>% #Filter to rename fuels
-      subset(., select=c(YEAR,Time_Period,End_Date,Beg_Date,Name,Condition,Capacity,Run_ID,Primary_Fuel,Capacity_Factor,Total_Hours_Run)) %>%
+      subset(., select=c(YEAR,Time_Period,End_Date,Beg_Date,Name,Condition,Capacity,Run_ID,Primary_Fuel,Capacity_Factor,Total_Hours_Run,Active_Constraints)) %>%
       filter(Run_ID == case,
              Condition == "Average",
-             Primary_Fuel %in% c("Coal-to-Gas","Natural Gas Simple Cycle","Natural Gas Combined Cycle"),
-             Capacity >= 25)
+             Primary_Fuel %in% c("Coal-to-Gas","Natural Gas Simple Cycle","Natural Gas Combined Cycle")) %>%
+      mutate(CER_year=if_else(grepl('2035',Active_Constraints)==TRUE,"CER 2035",
+                              if_else(grepl('2036',Active_Constraints)==TRUE,"CER 2036",
+                                      if_else(grepl('2040',Active_Constraints)==TRUE,"CER 2040",
+                                              if_else(grepl('2044',Active_Constraints)==TRUE,"CER 2044",
+                                                      if_else(grepl('2045',Active_Constraints)==TRUE,"CER 2045","CER NA")))))) %>%
+      filter(!CER_year == "CER NA")
     
     # Get names of CER plants
     CER_Names_list<-as.list(unique(CER_Names$Name))
@@ -257,7 +262,7 @@ AnnualEmLine <- function(case,Ptype) {
     CER_Types<-CER_Names %>%
       filter(YEAR==2024) %>%
       rename(Resource_Name=Name)%>%
-      select(Resource_Name, Primary_Fuel)
+      select(Resource_Name, Primary_Fuel,CER_year)
     
     # Emissions date for plants
     Emdata <- ResEmYr %>%
@@ -277,7 +282,7 @@ AnnualEmLine <- function(case,Ptype) {
     
     # Generate plot
     ggplot(Emdata)+
-      geom_line(aes(x = Time_Period, y = Amount, colour = Primary_Fuel,group=Resource_Name), 
+      geom_line(aes(x = Time_Period, y = Amount, colour = CER_year,group=Resource_Name), 
                 size = 1.5) +
       
       theme_bw() +
@@ -322,7 +327,7 @@ AnnualEmLine <- function(case,Ptype) {
            colour="Plant_Type",caption = SourceDB) +
       
       # Legend color scheme
-      scale_colour_manual(values = c("Coal-to-Gas"='grey25',"Natural Gas Simple Cycle"='grey50',"Natural Gas Combined Cycle"='grey80'),drop = TRUE) 
+      scale_colour_manual(values = c("CER 2035"='black',"CER 2036"='grey30',"CER 2040"='gray60',"CER 2044"='grey75','CER 2045'='grey90'),drop = FALSE)  
   }  
   
 ################################################################################

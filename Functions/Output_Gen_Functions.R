@@ -1093,20 +1093,23 @@
 ################################################################################
   CF_CER_Res <- function(case) {
     
-    # Plots the capacity factor by technology for AESO and Sim
-    # Like AESO Market Report 2021 Figure 15
+    # Fitler resources impacted by CER. Add year of CER based on active constraints and remove others
     
     data <- ResYr%>%
       sim_filt3(.) %>% #Filter to rename fuels
-      subset(., select=c(YEAR,Time_Period,End_Date,Beg_Date,Name,Condition,Capacity,Run_ID,Primary_Fuel,Capacity_Factor,Total_Hours_Run)) %>%
+      subset(., select=c(YEAR,Time_Period,End_Date,Beg_Date,Name,Condition,Capacity,Run_ID,Primary_Fuel,Capacity_Factor,Total_Hours_Run,Active_Constraints)) %>%
       filter(Run_ID == case,
              Condition == "Average",
              Primary_Fuel %in% c("Coal-to-Gas","Natural Gas Simple Cycle","Natural Gas Combined Cycle"),
-             Capacity >= 25,
              YEAR <= MaxYrStudy) %>%
       mutate(Time_Period=as.numeric(Time_Period),
-             YEAR=as.numeric(YEAR))
-      
+             YEAR=as.numeric(YEAR),
+             CER_year=if_else(grepl('2035',Active_Constraints)==TRUE,"CER 2035",
+                              if_else(grepl('2036',Active_Constraints)==TRUE,"CER 2036",
+                                      if_else(grepl('2040',Active_Constraints)==TRUE,"CER 2040",
+                                              if_else(grepl('2044',Active_Constraints)==TRUE,"CER 2044",
+                                                      if_else(grepl('2045',Active_Constraints)==TRUE,"CER 2045","CER NA")))))) %>%
+      filter(!CER_year == "CER NA")
     
     
     # Set levels to each category in order specified
@@ -1122,7 +1125,7 @@
 
     
     ggplot(data)+
-      geom_line(aes(x = YEAR, y = Capacity_Factor, colour = Primary_Fuel,group=Name), 
+      geom_line(aes(x = YEAR, y = Capacity_Factor, colour = CER_year,group=Name), 
                 size = 1.5) +
 
       theme_bw() +
@@ -1158,6 +1161,8 @@
         legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
         legend.title=element_blank()) +                        # Remove legend title
       
+      guides(color = guide_legend(nrow = 1)) +
+
       # Set axis scales
       scale_x_continuous(expand=c(0,0),limits=c(2023,MaxYrStudy)) +
       scale_y_continuous(expand=c(0,0),limits = c(0,1),breaks=pretty_breaks(5),labels=percent) +
@@ -1167,7 +1172,7 @@
            colour="Plant_Type",caption = SourceDB) +
       
       # Legend color scheme
-      scale_colour_manual(values = c("Coal-to-Gas"='grey25',"Natural Gas Simple Cycle"='grey50',"Natural Gas Combined Cycle"='grey80'),drop = TRUE) 
+      scale_colour_manual(values = c("CER 2035"='black',"CER 2036"='grey30',"CER 2040"='gray60',"CER 2044"='grey75','CER 2045'='grey90'),drop = FALSE)  
   } 
   
 ################################################################################
@@ -1187,14 +1192,20 @@
     
     data <- ResYr%>%
       sim_filt3(.) %>% #Filter to rename fuels
-      subset(., select=c(YEAR,Time_Period,End_Date,Beg_Date,Name,Condition,Capacity,Run_ID,Primary_Fuel,Capacity_Factor,Total_Hours_Run)) %>%
+      subset(., select=c(YEAR,Time_Period,End_Date,Beg_Date,Name,Condition,Capacity,Run_ID,Primary_Fuel,Capacity_Factor,Total_Hours_Run,Active_Constraints)) %>%
       filter(Run_ID == case,
              Condition == "Average",
              Primary_Fuel %in% c("Coal-to-Gas","Natural Gas Simple Cycle","Natural Gas Combined Cycle"),
              Capacity >= 25,
-             YEAR <= MaxYrStudy) %>%
+             YEAR <= MaxYrStudy)  %>%
       mutate(Time_Period=as.numeric(Time_Period),
-             YEAR=as.numeric(YEAR))
+             YEAR=as.numeric(YEAR),
+             CER_year=if_else(grepl('2035',Active_Constraints)==TRUE,"CER 2035",
+                              if_else(grepl('2036',Active_Constraints)==TRUE,"CER 2036",
+                                      if_else(grepl('2040',Active_Constraints)==TRUE,"CER 2040",
+                                              if_else(grepl('2044',Active_Constraints)==TRUE,"CER 2044",
+                                                      if_else(grepl('2045',Active_Constraints)==TRUE,"CER 2045","CER NA")))))) %>%
+      filter(!CER_year == "CER NA")
     
     
     
@@ -1212,7 +1223,7 @@
     hrs_max<-max(data$Total_Hours_Run)+100
     
     ggplot(data)+
-      geom_line(aes(x = YEAR, y = Total_Hours_Run, colour = Primary_Fuel,group=Name), 
+      geom_line(aes(x = YEAR, y = Total_Hours_Run, colour = CER_year,group=Name), 
                 size = 1.5) +
       
       theme_bw() +
@@ -1257,7 +1268,7 @@
            colour="Plant_Type",caption = SourceDB) +
       
       # Legend color scheme
-      scale_colour_manual(values = c("Coal-to-Gas"='grey25',"Natural Gas Simple Cycle"='grey50',"Natural Gas Combined Cycle"='grey80'),drop = TRUE) 
+      scale_colour_manual(values = c("CER 2035"='black',"CER 2036"='grey30',"CER 2040"='gray60',"CER 2044"='grey75','CER 2045'='grey90'),drop = FALSE)  
   }
   
 ################################################################################

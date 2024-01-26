@@ -47,18 +47,20 @@
   #   'Jan14_BAU'                 BAU curtail allowed (1200 MW)
   #   'Jan17_BAU_NoCurt'          BAU or CP scenario, no curtailment
   #   'Jan19_CER_NoCurt'          CER scenario applied by year effective, no curtail
+  #   'CER_24Jan'                 CER scenario applied to each resource, no curtail
 
   # COMBINED SCENARIOS
   #   'BAU_Curtail_Compare'     Jan17_BAU_NoCurt, Jan19_CER_NoCurt
-  #   'CER_BAU_Jan22'     Jan17_BAU_NoCurt, Jan19_CER_NoCurt, Jan19_CER_NoCurt
+  #   'CER_BAU_Jan22'           Jan17_BAU_NoCurt, Jan19_CER_NoCurt, Jan19_CER_NoCurt
+  #   'CER_BAU_Jan26_all'       Jan17_BAU_NoCurt, Jan19_CER_NoCurt, Jan19_CER_NoCurt,CER_24Jan
 
 {
   # Define cases here
-  ScenarioName1<-"BAU_Curtail_Compare"
-  ScenarioName2<-"Jan19_CER_NoCurt"
+  ScenarioName1<-"CER_BAU_Jan22"
+  ScenarioName2<-"CER_24Jan"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"CER_BAU_Jan22"
+  CScenarioName <-"CER_BAU_Jan26_all"
 }
 
 ################################################################################
@@ -94,7 +96,7 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "BAU and CER Compare Jan 22"
+CaseName <- "BAU and CER Compare Jan 26"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
@@ -314,7 +316,7 @@ CaseName <- "BAU and CER Compare Jan 22"
   
 # Compare pool prices
 AvgYr_price_COMPARE(22)
-GGSave_Loc(CaseName,"Combined Cycle Gas Annual Cap",AvgYr_price_COMPARE(GenText_Sz),300)
+GGSave_Loc(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE(GenText_Sz),300)
 
 
 
