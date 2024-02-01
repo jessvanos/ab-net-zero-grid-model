@@ -47,7 +47,8 @@
   #   'Jan14_BAU'                 BAU curtail allowed (1200 MW)
   #   'Jan17_BAU_NoCurt'          BAU or CP scenario, no curtailment
   #   'Jan19_CER_NoCurt'          CER scenario applied by year effective, no curtail
-  #   'CER_24Jan'                 CER scenario applied to each resource, no curtail
+  #   'CER_24Jan'                 CER scenario applied to each resource, no curtail (issue with CCS bid and CF constraint)
+  #   'CER_26Jan'                 CER scenario applied to each resource, no curtail, modify CCS bid (issue CF constraint) 
 
   # COMBINED SCENARIOS
   #   'BAU_Curtail_Compare'     Jan17_BAU_NoCurt, Jan19_CER_NoCurt

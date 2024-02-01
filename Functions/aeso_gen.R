@@ -2418,16 +2418,28 @@ ggplot(data = Gen_Demand_Filt, aes(x = Gap)) +
 ##    Import - Import table derived of zone average table
 ################################################################################
 
-Evalyr_AESO <- function() {
+Evalyr_AESO <- function(YrMin,Sep_cogen) {
 
-  # Select only a single week
-  YRall <- df1a %>%
-    filter(Plant_Type != "EXPORT" & Plant_Type != "IMPORT") %>%
-    mutate(across(Plant_Type,str_replace,'NGCONV|NGCC|SCGT',"GAS"))%>%
-    mutate(YEAR=as.numeric(year(Day)))%>%
-    group_by(Plant_Type,Year,YEAR)%>%
-    summarise(Gen=sum(total_gen),
-              Gen_TWh=Gen/1000000)
+  # Combine cogen 
+  if (Sep_cogen == "n") {
+    # Select only a single week
+    YRall <- df1a %>%
+      filter(Plant_Type != "EXPORT" & Plant_Type != "IMPORT") %>%
+      mutate(across(Plant_Type,str_replace,'NGCONV|NGCC|SCGT|COGEN',"GAS"))%>%
+      mutate(YEAR=as.numeric(year(Day)))%>%
+      group_by(Plant_Type,Year,YEAR)%>%
+      summarise(Gen=sum(total_gen),
+                Gen_TWh=Gen/1000000)
+  } else{
+    # Select only a single week
+    YRall <- df1a %>%
+      filter(Plant_Type != "EXPORT" & Plant_Type != "IMPORT") %>%
+      mutate(across(Plant_Type,str_replace,'NGCONV|NGCC|SCGT',"GAS"))%>%
+      mutate(YEAR=as.numeric(year(Day)))%>%
+      group_by(Plant_Type,Year,YEAR)%>%
+      summarise(Gen=sum(total_gen),
+                Gen_TWh=Gen/1000000)
+  }
   
   YRtrade <- df1a %>%
     filter(Plant_Type %in% c("EXPORT","IMPORT")) %>%
@@ -2465,11 +2477,12 @@ Evalyr_AESO <- function() {
   levels(YR$Plant_Type) <- c("Solar","Wind","Hydro",
                              "Other","Natural Gas","Cogeneration", 
                              "Coal", "Storage","Net Imports")
-
-  # Filter to remove the final 5 years (as per AURORA, want to run 5 years past year of interest)
+  
+  YrMax
+  # Filter years
   YR <- YR%>%
-    filter(YEAR >=2005,
-           YEAR<=2022,
+    filter(YEAR >=YrMin,
+           YEAR<=YrMax,
            !Plant_Type =="Storage")
   
   GenText_Sz<-56
@@ -2512,7 +2525,7 @@ Evalyr_AESO <- function() {
       legend.title=element_blank()) +                        # Remove legend title
     
     # Set axis scales
-    scale_x_continuous(expand=c(0,0),limits = c(2005,2022),breaks=seq(2005, 2022, 2)) +
+    scale_x_continuous(expand=c(0,0),limits = c(YrMax,2022),breaks=seq(YrMin, 2022, 2)) +
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,100),
                        breaks=pretty_breaks(6)) +
@@ -2523,9 +2536,9 @@ Evalyr_AESO <- function() {
     
     
     # Legend color scheme
-    scale_fill_manual(values = c("Solar"="darkgoldenrod2","Wind"="#238b45","Hydro"="#4472C4",
-                                 "Other"='#C9C9C9',"Natural Gas"='#A6A6A6', 
-                                 "Cogeneration"='#767171',"Coal"='#525252',"Net Imports"='#252323'),
+    scale_fill_manual(values = c("Storage"='#cc79a7',"Solar"="darkgoldenrod2","Wind"="#238b45","Hydro"="#4472C4",
+                                 "Other"='#e6e6e6',"Natural Gas"='#A6A6A6', 
+                                 "Cogeneration"='#767171',"Coal"='#515151',"Net Imports"='#252323'),
                       drop = TRUE) 
   
   # ggsave(
@@ -2538,3 +2551,260 @@ Evalyr_AESO <- function() {
                         
 }
 
+################################################################################  
+## FUNCTION: Evalcap_AESO 
+## Plotting year profiles of resource output
+##
+## INPUTS: 
+##    input - ResgroupMnor ResGroupYr
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Import - Import table derived of zone average table
+################################################################################
+
+Evalcap_AESO <- function(YrMin,Sep_cogen) {
+  
+  # Read AESO capacity data
+  AESO_Cap <- readRDS(here("Data Files","Alberta Data","AESO_Annual_Capacity.RData")) 
+  
+  # Combine cogen 
+  if (Sep_cogen == "n") {
+    # Select only a single week
+    YR <- AESO_Cap  %>%
+      replace(is.na(.), 0) %>%
+      filter(Year >=YrMin) %>%
+      mutate(across(Plant_Type,str_replace,'Gas Fired Steam|Combined Cycle|Simple Cycle|Cogeneration|Dual Fuel',"GAS"))%>%
+      group_by(Plant_Type,Year)%>%
+      summarise(Cap=sum(Capacity))
+  } else{
+    # Select only a single week
+    YR <- AESO_Cap %>%
+      replace(is.na(.), 0) %>%
+      filter(Year >=YrMin) %>%
+      mutate(across(Plant_Type,str_replace,'Gas Fired Steam|Combined Cycle|Simple Cycle|Dual Fuel',"GAS"))%>%
+      group_by(Plant_Type,Year)%>%
+      summarise(Cap=sum(Capacity))
+  }
+  
+  {
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Storage", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Solar", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Wind", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Hydro", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Other", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "GAS", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Cogeneration", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Coal", after = Inf)
+  }
+  
+  
+  YR$Plant_Type <- factor(YR$Plant_Type, levels=c("Storage","Solar","Wind", "Hydro",  
+                                                  "Other","GAS","Cogeneration",
+                                                  "Coal"))
+  
+  levels(YR$Plant_Type) <- c("Storage","Solar","Wind","Hydro",
+                             "Other","Natural Gas","Cogeneration", 
+                             "Coal")
+  
+  GenText_Sz<-56
+  # Plot
+  YR %>%
+    ggplot() +
+    geom_area(aes(Year, Cap, fill = Plant_Type),alpha=1, size=.25, colour="black") +
+    
+    theme_bw() +
+    
+    # Changes the font type
+    #theme(text=element_text(family=Plot_Text)) +             
+    
+    theme(
+      # General Plot Settings
+      panel.grid = element_blank(),
+      # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+      plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+      panel.background = element_blank(), # Transparent background
+      panel.border = element_blank(),
+      text = element_text(size = GenText_Sz),                # Text size
+      plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
+      axis.line.y = element_line(),
+      axis.line.x = element_line(),
+      plot.caption = element_text(hjust = 1,size = GenText_Sz-10,face = "italic"),             # Plot subtitle size (if present)
+      
+      # X-axis
+      axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
+      #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+      axis.title.x = element_blank(),
+      # Y-axis
+      axis.title.y = element_text(size = GenText_Sz+8),           # y-axis title text size
+      axis.text.y = element_text(colour = "black"),                 # Horizontal text
+      
+      # Legend
+      legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+      legend.position = "bottom",                            # Move legend to the bottom
+      legend.justification = c(0.5,0.5),                     # Center the legend
+      legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
+      legend.title=element_blank()) +                        # Remove legend title
+    
+    # Set axis scales
+    scale_x_continuous(expand=c(0,0),limits = c(2015,2023),breaks=seq(2015, 2023, 1)) +
+    scale_y_continuous(expand=c(0,0),
+                       limits = c(0,20000),
+                       breaks=pretty_breaks(6),
+                       label=comma) +
+    
+    guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    # Plot labels
+    labs(x = "Year", y = "Capacity (MW)", fill = "Resource",colour="Resource",caption = "Data from AESO Annual Market Statistics Report") +
+    
+    
+    # Legend color scheme
+    scale_fill_manual(values = c("Storage"='#cc79a7',"Solar"="darkgoldenrod2","Wind"="#238b45","Hydro"="#4472C4",
+                                 "Other"='#e6e6e6',"Natural Gas"='#A6A6A6', 
+                                 "Cogeneration"='#767171',"Coal"='#515151',"Net Imports"='#252323'),
+                      drop = TRUE) 
+  
+  # ggsave(
+  #   filename = here(paste("Figures (Local)/","Historical Gen",".png", sep = "")),
+  #   device = "png",
+  #   plot = plotyr,
+  #   width=6,
+  #   height=3,
+  #   dpi=300)
+  
+}
+
+################################################################################  
+## FUNCTION: Evalcap_AESO2 
+## Plotting year profiles of resource output
+##
+## INPUTS: 
+##    input - ResgroupMnor ResGroupYr
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    Import - Import table derived of zone average table
+################################################################################
+
+Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
+  
+  # Read AESO capacity data
+  AESO_Cap <- readRDS(here("Data Files","Alberta Data","AESO_Annual_Capacity.RData")) 
+  
+  # Combine cogen 
+  if (Sep_cogen == "n") {
+    # Select only a single week
+    YR <- AESO_Cap  %>%
+      filter(Year >2016) %>%
+      replace(is.na(.), 0) %>%
+      mutate(across(Plant_Type,str_replace,'Gas Fired Steam|Combined Cycle|Simple Cycle|Cogeneration|Dual Fuel',"Natural Gas"),
+             across(Plant_Type,str_replace,'Hydro|Other',"Hydro & Other"),
+             Year_fact = as.factor(Year))%>%
+      group_by(Plant_Type,Year,Year_fact)%>%
+      summarise(Cap=sum(Capacity)) %>%
+      mutate(Year_fact=if_else(Year == 2025,"2025 Expected",paste(Year_fact)))
+  } else{
+    # Select only a single week
+    YR <- AESO_Cap %>%
+      replace(is.na(.), 0) %>%
+      filter(Year >2016) %>%
+      mutate(across(Plant_Type,str_replace,'Gas Fired Steam|Combined Cycle|Simple Cycle|Dual Fuel',"Natural Gas"),
+             Year_fact = as.factor(Year))%>%
+      group_by(Plant_Type,Year)%>%
+      summarise(Cap=sum(Capacity))%>%
+      mutate(Year_fact=if_else(Year == 2025,"2025 Expected",paste(Year_fact)))
+  }
+  
+  {
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Natural Gas", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Coal", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Cogeneration", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Hydro", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Other", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Hydro & Other", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Wind", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Solar", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Storage", after = Inf)
+    
+    
+  }
+
+  # Add expected capacity
+
+  GenText_Sz<-56
+  # Plot
+  YR %>%
+    ggplot() +
+    aes(Plant_Type, Cap, fill = Year_fact,pattern=Year_fact) +
+    geom_col_pattern(position="dodge",size=.5, colour="black",
+                     pattern_density = 0.3,
+                     pattern_fill = "black",
+                     pattern_colour  = NA,
+                     pattern_spacing=0.01) +
+
+    theme_bw() +
+    
+    # Changes the font type
+    #theme(text=element_text(family=Plot_Text)) +             
+    
+    theme(
+      # General Plot Settings
+      panel.grid = element_blank(),
+      # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+      plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+      panel.background = element_blank(), # Transparent background
+      panel.border = element_blank(),
+      text = element_text(size = GenText_Sz),                # Text size
+      plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
+      axis.line.y = element_line(),
+      axis.line.x = element_line(),
+      plot.caption = element_text(hjust = 1,size = GenText_Sz-16,face = "italic"),             # Plot subtitle size (if present)
+      
+      # X-axis
+      axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
+      #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+      axis.title.x = element_blank(),
+      # Y-axis
+      axis.title.y = element_text(size = GenText_Sz+8),           # y-axis title text size
+      axis.text.y = element_text(colour = "black"),                 # Horizontal text
+      
+      # Legend
+      legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+      legend.position = "bottom",                            # Move legend to the bottom
+      legend.justification = c(1.4,0.5),                     # Center the legend
+      legend.text = element_text(size =GenText_Sz-16),              # Size of legend text
+      legend.title=element_blank()) +                        # Remove legend title
+    
+    # Set axis scales
+    scale_y_continuous(expand=c(0,0),
+                       limits = c(0,16000),
+                       breaks=pretty_breaks(6),
+                       label=comma) +
+    
+    #guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+    # Plot labels
+    labs(x = "Year", y = "Capacity (MW)", fill = "Year",pattern= "Year",caption = "Data from AESO Annual Market Statistics Report and Long-Term Adequacy Report (Feb 2024)") +
+    
+    guides(fill = guide_legend(nrow = 1)) +
+    guides(pattern = guide_legend(nrow = 1)) +
+  
+    scale_pattern_manual(values = c("2017"='none',"2018"="none","2019"="none","2020"="none",
+                                    "2021"='none',"2022"='none', 
+                                    "2023"='none',"2024"='none',"2025 Expected"='stripe'),drop = FALSE) +
+  
+    # Legend color scheme
+    scale_fill_manual(values = c("2017"='#252323',"2018"="#515151","2019"="#767171","2020"="#A6A6A6",
+                                 "2021"='#e6e6e6',"2022"='#4472C4',
+                                 "2023"='#238b45',"2024"='darkgoldenrod2',"2025 Expected"='#cc79a7'),
+                      drop = FALSE) 
+    
+    
+  
+
+  # ggsave(
+  #   filename = here(paste("Figures (Local)/Hist Figs NRG/","Historical Gen",".png", sep = "")),
+  #   device = "png",
+  #   plot = plotyr,
+  #   width=6,
+  #   height=3,
+  #   dpi=300)
+  
+}

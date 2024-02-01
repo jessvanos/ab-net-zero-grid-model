@@ -432,6 +432,7 @@ BC <- "Base Case"
       filter(! NRG_Stream %in% trade_excl)%>% 
       group_by(Plant_Type,time) %>% 
       summarise(meancap = mean(Cap_Fac),
+                capacity =sum(Capacity),
                 total_gen=sum(gen,na.rm = T),
                 total_rev=sum(Revenue,na.rm = T),
                 price_mean=mean(Price),
@@ -462,8 +463,8 @@ BC <- "Base Case"
          df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "EXPORT",after=Inf)
          gc()   
    }
+        
 }
-
 ################################################################################
 ## PLOT SETTINGS
 ################################################################################
@@ -1285,10 +1286,14 @@ NameShort<-'CER_29Jan'
     # Wind duration curve with Output normalized
     Wind_DurNorm_AESO(BC)
   
-    # Historical Gen
-    Evalyr_AESO()
+    # Historical Gen (year min plot, seperate)
+    Evalyr_AESO(2010,"y")
+    
+    # Capacity AESO
+    Evalcap_AESO(2010,"n")
+    
     SourceDB<-"NRG"
-    GGSave_Loc("Hist Figs","hist_gen_AB",Evalyr_AESO(),300)
+    GGSave_Loc("Hist Figs","hist_cap_AB_byplant",Evalcap_AESO2(2010,"n"),300)
 ################################################################################
 ## Developing Functions (Developing_Functions)
 ################################################################################
