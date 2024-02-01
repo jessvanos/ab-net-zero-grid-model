@@ -507,10 +507,10 @@ CER_saveall <- function(CaseName) {
   GGSave_Loc(CaseName,"CER Capacity Factors by Year Applied",CF_CER_groups(BC),300)
   
   # Hours run and emissions for CER resources
-  GGSave_Loc_wide(CaseName,"CER Plant Hours and Emissions",CER_EM_hour_Res(case),300)
+  GGSave_Loc_wide(CaseName,"CER Plant Capacity Factors and Emissions",CER_EM_CF_Res(case),300)
   
   # Capacity factor and emissions for CER resources grouped by year applied
-  GGSave_Loc_wide(CaseName,"CER Hours and Emissions by Year Applied",CER_EM_hour_group(case),300)
+  GGSave_Loc_wide(CaseName,"CER Capacity Factors and Emissions by Year Applied",CER_EM_hour_group(case),300)
   
   
 }

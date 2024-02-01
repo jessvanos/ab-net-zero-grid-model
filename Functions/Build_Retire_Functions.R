@@ -462,7 +462,7 @@ BuildMW <- function(case)
           plot.title = element_blank(),
           legend.justification = c(0.5,0.5),
           legend.position = ("right"),
-          legend.text = element_text(size=GenText_Sz-6),
+          legend.text = element_text(size = GenText_Sz-6),
           legend.title=element_blank(), 
           legend.key.size = unit(1,"lines"),
           plot.caption=element_text(size=30),
@@ -628,8 +628,8 @@ TotalCapChange <- function(case) {
       # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
       plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
       panel.background = element_rect(fill = "transparent"), # Transparent background
-      text = element_text(size = 20),                # Text size
-      plot.title = element_text(size = 20,hjust = 0.5),  # Plot title size (if present)
+      text = element_text(size = GenText_Sz),                # Text size
+      plot.title = element_text(size = GenText_Sz,hjust = 0.5),  # Plot title size (if present)
       plot.subtitle = element_text(hjust = 0.5),             # Plot subtitle size (if present)
       #panel.grid.major.y = element_line(size=0.25,
       #linetype=1,color = 'gray90'),                         # Adds horizontal lines
@@ -639,13 +639,13 @@ TotalCapChange <- function(case) {
      # axis.title.x = element_text(size = GenText_Sz+6),           # x-axis title text size
       axis.title.x =element_blank(), 
       # Y-axis
-      axis.title.y = element_text(size = 26),           # y-axis title text size
+      axis.title.y = element_text(size = GenText_Sz + 6),           # y-axis title text size
       axis.text.y = element_text(color="black"),
       # Legend
       legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
       legend.position = "right",                             # Move legend to the bottom
       legend.justification = c(0.5,0.5),                     # Center the legend
-      legend.text = element_text(size =14),              # Size of legend text
+      legend.text = element_text(size = GenText_Sz -6),              # Size of legend text
       legend.title=element_blank()) +                         # Legend title
     
     scale_x_discrete(expand=c(0.01,0.01),

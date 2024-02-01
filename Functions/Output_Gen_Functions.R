@@ -2476,7 +2476,7 @@ year_weeks <- function(year,case) {
   
 ################################################################################
 ## FUNCTION: CER_EM_hour_Res
-## Plots output for a single week given the case study
+## Plots annual avg hours run and capacity factor for CER plants
 ##
 ## INPUTS: 
 ##    year, month, day - Date to plot, the week will start on the day chosen
@@ -2520,6 +2520,52 @@ CER_EM_hour_Res<-function(case){
   
 }
   
+################################################################################
+## FUNCTION: CER_EM_CF_Res
+## Plots annual avg emissions and capacity factor for CER plants
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+
+CER_EM_CF_Res<-function(case){
+  
+  GenText_Sz<-16
+  
+  p1 <- CF_CER_Res(BC) +
+    theme(legend.position ="none", 
+          plot.caption = element_blank(),
+          text = element_text(size = GenText_Sz),       
+          plot.title = element_text(size = GenText_Sz),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          legend.text = element_text(size =GenText_Sz-6))          
+  
+  p2 <- Emissions_CER_Res(BC)+
+    theme(plot.caption = element_blank(), 
+          text = element_text(size = GenText_Sz),       
+          plot.title = element_text(size = GenText_Sz),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          legend.text = element_text(size =GenText_Sz-6)) 
+  
+  # Get a common legend
+  legend <- get_legend(p2)
+  p2 <- p2 + theme(legend.position ="none")
+  
+  
+  #Arrange all the plots
+  grid.arrange(plot_grid(p1,p2, ncol=2, align="v", axis = "l", rel_widths = c(1,1)),
+               plot_grid(legend),
+               ncol=1,nrow=2,
+               heights=c(1, 0.05))
+  
+  
+}
+
 ################################################################################
 ## FUNCTION: CER_EM_hour_group
 ## Plot CER resource emissions and capacity factors

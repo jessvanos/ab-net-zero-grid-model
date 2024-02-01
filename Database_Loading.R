@@ -84,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CER_24_Jan_2024"
+  SourceDB<-"CER_29_Jan_2024_CCSBid"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -730,8 +730,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CER Full"
-NameShort<-'CER_24Jan'
+CaseName <- "CER wtih CCS bid"
+NameShort<-'CER_29Jan'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -770,6 +770,8 @@ NameShort<-'CER_24Jan'
 ## COMMON INDIVIDUAL PLOT SAVING OPTIONS
 ################################################################################
   
+    GenText_Sz = 20 # Better for viewing individual plots :)
+    
   # HOURLY GENERATION
       # Grid of weekly output - need to edit for more than one week of data
       year_weeks(2043,BC)
