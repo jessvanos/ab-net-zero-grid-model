@@ -2808,3 +2808,61 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
   #   dpi=300)
   
 }
+
+################################################################################
+## FUNCTIONS: Resource_Ridge_AESO
+## Plot ridgeline for capacity factor of selected resource
+##
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################
+Resource_Ridge_AESO <- function(RType) {
+  
+  # Bring in hitorical data
+  Res_data <- df1a%>%
+    filter(Plant_Type==RType,
+           Day<"2023-01-01",
+           Day>="2017-01-01") %>%
+    rename(YearA=Year,
+           CF=meancap)%>%
+    group_by(YearA) %>%
+    mutate(Output=total_gen,
+           YearA=paste(YearA))%>%
+    rename(date=time)%>%
+    subset(select=c(Output,CF,date,YearA))
+  Res_data[is.na(Res_data)] <- 0
+  
+  
+  # Plot max
+  #PMax <- round_any(max(Res_data$CF),0.1,f=ceiling)
+  PMax=1
+  
+  # Plot
+  ggplot() +
+    geom_density_ridges_gradient(data = Res_data, 
+                                 aes(x = CF, y = YearA, fill = 1-stat(ecdf)),calc_ecdf = TRUE,vline_color="black",vline_linetype = 2,
+                                 quantile_lines=TRUE, quantile_fun=function(CF,...)mean(CF),
+                                 alpha = 0.8,scale=1.2) +
+    scale_fill_viridis_c(option = "viridis",name = "ECDF") +
+    scale_color_manual(values = c( mean = "black")) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = GenText_Sz+6),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          plot.title = element_text(size = GenText_Sz+6),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          legend.position = "right",
+          legend.justification = c(0.5,0.5),
+          text = element_text(size = GenText_Sz)) +
+    
+    labs(x = "Fleet Capacity Factor (Output/Capacity)", y = "Frequency",caption = paste('Source: NRGStream',", Type: ",RType)) +
+    
+    scale_x_continuous(expand=c(0,0),limits = c(0,PMax),breaks=seq(0, PMax, by=0.2),labels = percent) 
+}

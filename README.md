@@ -335,6 +335,8 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 
 -   *CER_EM_hour_group* : Show capacity factor and emissions for CER resources based on year applied.
 
+-   *Resource_Ridge* : Show capacity factor frequency for selected resources between two dates. Probability (ECDF) shown in color. Can create for weighted data or hourly dispatch data.
+
 
 ### <ins>Price_Functions
 
@@ -466,6 +468,8 @@ Functions used to used to plot and analyze other (AESO) data. Some functions bas
 -   *Wind_DurNorm_AESO* : Plot wind duration curve in chosen years as % Hours vs output as Percent of max
 
 -   *T_month_all* : All trade for each month over one year.
+
+-   *Resource_Ridge_AESO* : Show capacity factor frequency for selected resources between two dates. Probability (ECDF) shown in color.
 
 ### <ins>aeso_sim_comp_1
 

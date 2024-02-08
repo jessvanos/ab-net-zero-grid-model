@@ -84,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CER_05_Feb_2024"
+  SourceDB<-"CP_02_Feb_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -731,7 +731,7 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CER G1"
+CaseName <- "CP Renewable Analysis"
 NameShort<-'CER_05Feb'
 
 ################################################################################
@@ -767,6 +767,10 @@ NameShort<-'CER_05Feb'
   # GENERATE R FILES TO COMPARE LATER ('short name',case) -  skip if this is not needed
     AnnualDataR(NameShort,BC)
       
+# OPTIONAL 
+    # Estimate hourly wind and solar weighted data -> this takes a LONG TIME to run
+    ResGrouphr_R8760 <- ResGrouphr_Renew8760()
+    
 ################################################################################
 ## COMMON INDIVIDUAL PLOT SAVING OPTIONS
 ################################################################################
@@ -1033,6 +1037,10 @@ NameShort<-'CER_05Feb'
     # Capacity factor and emissions for CER resources grouped by year applied
     CER_EM_hour_group(case)
     
+    # Ridgeline capacity factor pot
+    Resource_Ridge("LTO_Wind",2023,2045,2,BC)
+    Resource_Ridge("LTO_Solar",2023,2045,5,BC)
+    
 ################################################################################    
 ## Price Functions (Price_Functions)
 ################################################################################
@@ -1291,6 +1299,10 @@ NameShort<-'CER_05Feb'
     
     # Capacity AESO
     Evalcap_AESO(2010,"n")
+    
+    # AESO solar nad wind ridgelines
+    Resource_Ridge_AESO("WIND")
+    Resource_Ridge_AESO("SOLAR")
     
     SourceDB<-"NRG"
     GGSave_Loc("Hist Figs","hist_cap_AB_byplant",Evalcap_AESO2(2010,"n"),300)

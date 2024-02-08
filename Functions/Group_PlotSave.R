@@ -389,6 +389,10 @@ Analysis_saveall <- function(CaseName) {
   GGSave_Loc(CaseName,"Wind Load Duration Curve",Wind_Dur(BC),300)
   GGSave_Loc(CaseName,"Wind Capacity Factor Duration Curve",Wind_DurNorm(BC),300)
 
+  # Ridgreline plots
+  GGSave_Loc(CaseName,"Wind Ridgelines",Resource_Ridge("LTO_Wind",2023,2045,2,BC),300)
+  GGSave_Loc(CaseName,"Solar Ridgelines",Resource_Ridge("LTO_Solar",2023,2045,5,BC),300)
+  
   # Difference in capacity
   GGSave_Loc(CaseName,"Capacity Changes",TotalCapChange(BC),300)
   
