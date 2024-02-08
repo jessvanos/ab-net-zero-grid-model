@@ -84,7 +84,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CER_29_Jan_2024_CCSBid"
+  SourceDB<-"CER_05_Feb_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -705,7 +705,7 @@ BC <- "Base Case"
   Years2Pivot <- c(2023,2025,2030,2035)  # Years to display in tables
   
   # Get max year to display
-  MaxYrStudy<-2043
+  MaxYrStudy<-2045
   #MaxYrStudy <-max(as.numeric(ResYr$Time_Period))-5
   
   # Adjust capacity manually for 2025 (Manual add vs Aurora)
@@ -731,8 +731,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CER wtih CCS bid"
-NameShort<-'CER_29Jan'
+CaseName <- "CER G1"
+NameShort<-'CER_05Feb'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -940,7 +940,7 @@ NameShort<-'CER_29Jan'
       SaveRun_Loc(CaseName,"Wind Load Duration Curve Compared to AESO")
       
       # Compare wind duration curves between AESO from 2025 to max year of sim, normalize by capacity
-      AESO_Sim_WindDurNorm(2026,BC)
+      AESO_Sim_WindDurNorm(2023,2045,3,BC)
       SaveRun_Loc(CaseName,"Wind Capacity Factor Duration Curve Compared to AESO")
                   
       # Tell R the files are done and close window

@@ -1244,14 +1244,17 @@ AESO_Sim_WindDur <- function(MaxYr,case) {
 ##    year, month, day - Date to plot, the week will start on the day chosen
 ##    case - Run_ID which you want to plot
 ################################################################################
-AESO_Sim_WindDurNorm <- function(MaxYr,case) {
+AESO_Sim_WindDurNorm <- function(MinYr,MaxYr,yrgap,case) {
+  
+  # Create list to filter years
+  years_in <-as.list(seq(MinYr, MaxYr ,by= yrgap))
   
   # Bring in sim data
   WindDataS <- ResGroupHr%>%
     filter(ID=="LTO_Wind",
            Condition=="Average",
            Run_ID == case,
-           Report_Year<=MaxYr) %>%
+           Report_Year %in% years_in) %>%
     rename(YearS=Report_Year,
            CF=Capacity_Factor)%>%
     group_by(YearS) %>%
@@ -1278,13 +1281,13 @@ AESO_Sim_WindDurNorm <- function(MaxYr,case) {
   # Plot
   ggplot() +
     geom_line(data = WindDataA, 
-              aes(x = perc, y = CF, colour = YearA), size = 1) +
-    scale_color_viridis_d() +
+              aes(x = perc, y = CF, colour = YearA), size = 1.25) +
+    scale_color_viridis_d(option = "mako") +
     
     new_scale_colour() +
     geom_line(data = WindDataS, 
-              aes(x = perc, y = CF, colour = YearS), size = 1,linetype = "dashed") +
-    scale_color_viridis_d(option = "rocket") +
+              aes(x = perc, y = CF, colour = YearS), size = 1.25,linetype = "dashed") +
+    scale_color_viridis_d(option = "inferno") +
     
     theme_bw() +
     
@@ -1292,9 +1295,9 @@ AESO_Sim_WindDurNorm <- function(MaxYr,case) {
     
     theme(panel.grid = element_blank(),
           axis.text.x = element_text(vjust = 1),
-          axis.title.x = element_text(size = XTit_Sz),
-          axis.title.y = element_text(size = YTit_Sz),
-          plot.title = element_text(size = Tit_Sz),
+          axis.title.x = element_text(size = GenText_Sz+6),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          plot.title = element_text(size = GenText_Sz+6),
           plot.subtitle = element_text(hjust = 0.5), 
           panel.background = element_rect(fill = NA),
           # panel.grid.major.y = element_line(size=0.25,linetype=1,color = 'gray70'),
@@ -1302,11 +1305,11 @@ AESO_Sim_WindDurNorm <- function(MaxYr,case) {
           legend.position = "right",
           legend.justification = c(0.5,0.5),
           legend.title=element_blank(),
-          text = element_text(size = 15)) +
+          text = element_text(size = GenText_Sz)) +
     
-    labs(x = "Percent of Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+    labs(x = "Percent of Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)",colour="ID",linetype="ID",caption = paste('Source: ',SourceDB,', NRGStream')) +
     
     scale_y_continuous(expand = c(0, 0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) +
     
-    scale_x_continuous(expand=c(0.01,0),breaks=seq(0, 1, by=0.2),labels = percent) 
+    scale_x_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
 }

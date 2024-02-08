@@ -48,7 +48,8 @@
   #   'Jan17_BAU_NoCurt'          BAU or CP scenario, no curtailment
   #   'Jan19_CER_NoCurt'          CER scenario applied by year effective, no curtail
   #   'CER_24Jan'                 CER scenario applied to each resource, no curtail (issue with CCS bid and CF constraint)
-  #   'CER_26Jan'                 CER scenario applied to each resource, no curtail, modify CCS bid (issue CF constraint) 
+  #   'CER_26Jan'                 CER scenario applied to each resource, no curtail, modify CCS bid (issue CF constraint)
+  #   'CP_02Feb'                  CP with updates
 
   # COMBINED SCENARIOS
   #   'BAU_Curtail_Compare'     Jan17_BAU_NoCurt, Jan19_CER_NoCurt
@@ -57,11 +58,11 @@
 
 {
   # Define cases here
-  ScenarioName1<-"CER_BAU_Jan22"
-  ScenarioName2<-"CER_24Jan"
+  ScenarioName1<-"Jan17_BAU_NoCurt"
+  ScenarioName2<-"CP_02Feb"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"CER_BAU_Jan26_all"
+  CScenarioName <-"CP_updates_check"
 }
 
 ################################################################################
