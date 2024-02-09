@@ -946,6 +946,10 @@ NameShort<-'CER_05Feb'
       # Compare wind duration curves between AESO from 2025 to max year of sim, normalize by capacity
       AESO_Sim_WindDurNorm(2023,2045,3,BC)
       SaveRun_Loc(CaseName,"Wind Capacity Factor Duration Curve Compared to AESO")
+      
+      # Capacity factor ridgeline
+      Resource_Ridge("LTO_Wind",2023,2045,5,BC)
+      Resource_Ridge("LTO_Solar",2023,2045,5,BC)
                   
       # Tell R the files are done and close window
       dev.off()
@@ -1265,6 +1269,10 @@ NameShort<-'CER_05Feb'
     
     # Compare wind duration curves between AESO from 2025 to max year of sim
     AESO_Sim_WindDur(2025,BC)
+    
+    # Compare ridgelines
+    AESO_Sim_RidgeCF("SOLAR",2022,2023,1,BC)
+    SaveRun_Loc(CaseName,"Solar 2022 and 2023 Ridgelines")
     
 ################################################################################
 ## Data summarize and put in table  (Data_Filt_To_Table)

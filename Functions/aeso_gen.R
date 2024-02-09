@@ -2817,13 +2817,13 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
 ##    year, month, day - Date to plot, the week will start on the day chosen
 ##    case - Run_ID which you want to plot
 ################################################################################
-Resource_Ridge_AESO <- function(RType) {
+Resource_Ridge_AESO <- function(RType,MinYr) {
   
   # Bring in hitorical data
   Res_data <- df1a%>%
     filter(Plant_Type==RType,
            Day<"2023-01-01",
-           Day>="2017-01-01") %>%
+           Day>=paste(MinYr,"-01-01",sep="")) %>%
     rename(YearA=Year,
            CF=meancap)%>%
     group_by(YearA) %>%
@@ -2862,7 +2862,7 @@ Resource_Ridge_AESO <- function(RType) {
           legend.justification = c(0.5,0.5),
           text = element_text(size = GenText_Sz)) +
     
-    labs(x = "Fleet Capacity Factor (Output/Capacity)", y = "Frequency",caption = paste('Source: NRGStream',", Type: ",RType)) +
+    labs(x = "Hourly Capacity Factor (Output/Capacity)", y = "Frequency",caption = paste('Source: NRGStream',", Type: ",RType)) +
     
     scale_x_continuous(expand=c(0,0),limits = c(0,PMax),breaks=seq(0, PMax, by=0.2),labels = percent) 
 }

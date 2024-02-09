@@ -1313,3 +1313,82 @@ AESO_Sim_WindDurNorm <- function(MinYr,MaxYr,yrgap,case) {
     
     scale_x_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
 }
+
+################################################################################
+## FUNCTIONS: AESO_Sim_RidgeCF
+## Plot comparison between actual and simulated wind duration curves
+##
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################
+AESO_Sim_RidgeCF <- function(ResType,MinYr,MaxYr,yrgap,case) {
+  
+  if (ResType == "SOLAR"){
+    AuroraR <- "LTO_Solar"
+  }else if (ResType == "WIND"){
+    AuroraR <- "LTO_Wind"
+  }else{
+    print('error')
+  }
+  
+  GenText_Sz <-16
+  
+  p1 <- Resource_Ridge(AuroraR,MinYr,MaxYr,yrgap,BC) +
+    theme(legend.position ="none", 
+          plot.caption = element_blank(), 
+          text = element_text(size = GenText_Sz),       
+          plot.title = element_text(size = GenText_Sz),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          axis.title.x = element_text(size =GenText_Sz+6),
+          legend.text = element_text(size =GenText_Sz-6)) +
+    labs(x = "Hourly Capacity Factor (Model)")
+  
+  p2 <-Resource_Ridge_AESO(ResType,MinYr)+
+    theme(plot.caption = element_blank(), 
+          text = element_text(size = GenText_Sz),       
+          plot.title = element_text(size = GenText_Sz),
+          axis.title.y = element_blank(), 
+          axis.title.x = element_text(size =GenText_Sz+6),
+          legend.text = element_text(size =GenText_Sz-6))+
+    labs(x = "Hourly Capacity Factor (NRG)")
+  
+  
+  # Get a common legend
+  legend <- get_legend(p2)
+  p2 <- p2 + theme(legend.position ="none")
+  
+  
+  #Arrange all the plots
+  grid.arrange(plot_grid(p1,p2, ncol=2, align="v", axis = "l", rel_widths = c(1,0.95)),
+               plot_grid(legend),
+               ncol=2,nrow=1,
+               widths=c(1, 0.05))
+  
+  
+ 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

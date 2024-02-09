@@ -2002,6 +2002,40 @@ Resource_Ridge <- function(RType,MinYr,MaxYr,yrgap,case) {
 }
 
 ################################################################################
+## FUNCTIONS: Renew_Curtail
+## Estimated curtailment for renewables
+##
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################
+Renew_Curtail <- function(case) {
+  
+  # Bring in sim data
+      Renew_Data <- ResGroupYr%>%
+        filter(ID %in% c("LTO_Wind","LTO_Solar"),
+               Condition=="Average",
+               Run_ID == case) %>%
+        group_by(ID,Report_Year) %>%
+        summarise(Capability,Capacity,
+                  CF_Max=Capability/Capacity,
+                  Capacity_Factor,
+                  Curtail_perc=CF_Max-Capacity_Factor,
+                  Curtail_MW=Capacity*Curtail_perc)
+      
+      # Plot
+      Renew_Data %>%
+        ggplot() +
+        aes(Report_Year, (Curtail_MW), fill = ID) +
+        geom_area(linewidth=.5, colour="black") +
+        
+        theme_bw() +
+        
+        # Changes the font type
+        theme(text=element_text(family=Plot_Text))
+
+}
+################################################################################
 #
 # COMBINED PLOTS SECTION
 # Combined plots and supporting functions
