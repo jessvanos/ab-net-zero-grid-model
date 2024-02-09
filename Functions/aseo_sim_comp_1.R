@@ -1269,7 +1269,7 @@ AESO_Sim_WindDurNorm <- function(MinYr,MaxYr,yrgap,case) {
            Day<"2023-01-01",
            Day>="2017-01-01") %>%
     rename(YearA=Year,
-           CF=meancap)%>%
+           CF=group_CF)%>%
     group_by(YearA) %>%
     mutate(Output=total_gen,
            YearA=paste(YearA,"AESO"))%>%
@@ -1334,7 +1334,7 @@ AESO_Sim_RidgeCF <- function(ResType,MinYr,MaxYr,yrgap,case) {
   
   GenText_Sz <-16
   
-  p1 <- Resource_Ridge(AuroraR,MinYr,MaxYr,yrgap,BC) +
+  p1 <- Resource_Ridge_w(AuroraR,MinYr,MaxYr,yrgap,BC) +
     theme(legend.position ="none", 
           plot.caption = element_blank(), 
           text = element_text(size = GenText_Sz),       

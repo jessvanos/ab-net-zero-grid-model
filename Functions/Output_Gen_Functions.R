@@ -1941,18 +1941,7 @@ Resource_Ridge <- function(RType,MinYr,MaxYr,yrgap,case) {
   # Years to get 
   years_in <-as.list(seq(MinYr, MaxYr ,by= yrgap))
   
-  if (exists('ResGrouphr_R8760') == TRUE){
-    
-    # Prep data for ridge plot
-    Res_Data_all <- ResGrouphr_R8760 %>%
-      mutate(Year_char = as.character(Year_f))%>%
-      filter(Year_f %in% years_in,
-             ID==RType)
-    
-    sub_type <-"weighted"
-    
-   } else{
-      # Bring in sim data
+  # Bring in sim data
       Res_Data_all <- ResGroupHr%>%
         filter(ID==RType,
                Condition=="Average",
@@ -1961,25 +1950,94 @@ Resource_Ridge <- function(RType,MinYr,MaxYr,yrgap,case) {
         rename(YearS=Report_Year,
                CF=Capacity_Factor)%>%
         mutate(Year_char=as.character(YearS))%>%
-        subset(.,select=c(Output,CF,date,YearS))
+        subset(.,select=c(Output,CF,date,YearS,Year_char))%>%
       Res_Data_all[is.na(Res_Data_all)] <- 0
       
       sub_type <-"un-weighted"
-    }
- 
-  # Plot max
+
   # PMax <- round_any(max(Res_Data$CF),0.1,f=ceiling)
   PMax=1
 
   # Plot
   ggplot() +
     geom_density_ridges_gradient(data = Res_Data_all, 
-                                 aes(x = CF, y = Year_char, fill = 1-stat(ecdf)),calc_ecdf = TRUE,vline_color="black",vline_linetype = 2,
+                                 aes(x = CF, y = Year_char, fill = 1-stat(ecdf)),
+                                 calc_ecdf = TRUE,vline_color="black",vline_linetype = 2,
                                  quantile_lines=TRUE, quantile_fun=function(CF,...)mean(CF),
                                  alpha = 0.8,scale=1.2) +
     scale_fill_viridis_c(option = "viridis",name = "ECDF") +
     scale_color_manual(values = c( mean = "black")) +
   
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1),
+          axis.title.x = element_text(size = GenText_Sz+6),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          plot.title = element_text(size = GenText_Sz+6),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          legend.position = "right",
+          legend.justification = c(0.5,0.5),
+          text = element_text(size = GenText_Sz)) +
+    
+    labs(x = "Hourly Capacity Factor (Actual Output/Max Output)", y = "Frequency",caption = paste('Sim Name: ',SourceDB,", Type: ",RType,", ",sub_type)) +
+    
+    scale_x_continuous(expand=c(0,0),limits = c(0,PMax),breaks=seq(0, PMax, by=0.2),labels = percent) 
+}
+
+################################################################################
+## FUNCTIONS: Resource_Ridge_w
+## Plot ridgeline for capacity factor of selected resource
+##
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################
+Resource_Ridge_w <- function(RType,MinYr,MaxYr,yrgap,case) {
+  
+  # Years to get 
+  years_in <-as.list(seq(MinYr, MaxYr ,by= yrgap))
+  
+  # Bring in sim data
+  Res_Data_all <- ResGroupHr%>%
+    filter(ID==RType,
+           Condition=="Average",
+           Run_ID == case,
+           Report_Year %in% years_in) %>%
+    rename(YearS=Report_Year,
+           CF=Capacity_Factor)%>%
+    mutate(Year_char=as.character(YearS),)%>%
+    subset(.,select=c(Output,CF,date,YearS,Year_char))%>%
+    mutate(mn_days=as.numeric(days_in_month(date)),
+           rep_days=(1/7)*mn_days)
+  
+  Res_Data_all[is.na(Res_Data_all)] <- 0
+  
+  sub_type <-"un-weighted"
+  
+  # PMax <- round_any(max(Res_Data$CF),0.1,f=ceiling)
+  PMax=1
+  
+  # Plot
+  ggplot() +
+    geom_density_ridges_gradient(data = Res_Data_all, 
+                                 aes(x = CF, y = Year_char,
+                                     height=..density..,
+                                     weight=rep_days,
+                                     fill=stat(x)),scale=1.2,
+                                 stat="density")+
+    scale_fill_viridis_c(option = "viridis",name = "Capacity Factor") +
+    scale_color_manual(values = c( mean = "black")) +
+
+    geom_density_ridges(data = Res_Data_all, 
+                                 aes(x = CF, y = Year_char),fill=NA,color=NA,
+                                 calc_ecdf = TRUE,vline_color="black",vline_linetype = 2,
+                                 quantile_lines=TRUE, quantile_fun=function(CF,...)mean(CF),
+                                 alpha = 0.8,scale=1.2) +
+    
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +

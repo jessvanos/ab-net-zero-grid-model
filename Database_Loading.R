@@ -46,6 +46,7 @@
     # viridis: A color pallete for plots
     # ggnewscale: Allow multiple color scales in one plot
     # extrafont: Add windows font options to R environment.
+    # ggridges: Allow ridgeline plots
   }
 
 { # Must load the here package in order to make sure internal project directories work
@@ -72,7 +73,7 @@
   packs_to_load = c("tidyverse","ggplot2","scales","grid","gtable","gridExtra","odbc","ggpubr","extrafont",
                    "DBI","lubridate","cowplot","scales","dplyr","reshape2","zoo",
                    "ggpattern","here","beepr","showtext","DescTools","pivottabler",
-                   "openxlsx","sqldf","timeDate","writexl","viridis","ggnewscale")
+                   "openxlsx","sqldf","timeDate","writexl","viridis","ggnewscale","ggridges")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
  
@@ -434,6 +435,7 @@ BC <- "Base Case"
       summarise(meancap = mean(Cap_Fac),
                 capacity =sum(Capacity),
                 total_gen=sum(gen,na.rm = T),
+                group_CF=total_gen/capacity,
                 total_rev=sum(Revenue,na.rm = T),
                 price_mean=mean(Price),
                 heatrt_mean=mean(Heat.Rate)) %>% 
@@ -731,7 +733,7 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CP Renewable Analysis"
+CaseName <- "CP Renewable Analysis Revised"
 NameShort<-'CER_05Feb'
 
 ################################################################################
@@ -944,8 +946,8 @@ NameShort<-'CER_05Feb'
       SaveRun_Loc(CaseName,"Wind Load Duration Curve Compared to AESO")
       
       # Compare wind duration curves between AESO from 2025 to max year of sim, normalize by capacity
-      AESO_Sim_WindDurNorm(2023,2045,3,BC)
-      SaveRun_Loc(CaseName,"Wind Capacity Factor Duration Curve Compared to AESO")
+      AESO_Sim_WindDurNorm(2023,2026,1,BC)
+      SaveRun_Loc(CaseName,"Wind Capacity Factor Duration Curve Compared to AESO early")
       
       # Capacity factor ridgeline
       Resource_Ridge("LTO_Wind",2023,2045,5,BC)
@@ -1276,8 +1278,8 @@ NameShort<-'CER_05Feb'
     AESO_Sim_WindDur(2025,BC)
     
     # Compare ridgelines
-    AESO_Sim_RidgeCF("SOLAR",2022,2023,1,BC)
-    SaveRun_Loc(CaseName,"Solar 2022 and 2023 Ridgelines")
+    AESO_Sim_RidgeCF("WIND",2017,2045,3,BC)
+    SaveRun_Loc(CaseName,"Wind variety Ridgelines")
     
 ################################################################################
 ## Data summarize and put in table  (Data_Filt_To_Table)
@@ -1305,7 +1307,7 @@ NameShort<-'CER_05Feb'
     Wind_Dur_AESO(BC)
     
     # Wind duration curve with Output normalized
-    Wind_DurNorm_AESO(BC)
+    Wind_DurNorm_AESO()
   
     # Historical Gen (year min plot, seperate)
     Evalyr_AESO(2010,"y")
@@ -1313,9 +1315,9 @@ NameShort<-'CER_05Feb'
     # Capacity AESO
     Evalcap_AESO(2010,"n")
     
-    # AESO solar nad wind ridgelines
-    Resource_Ridge_AESO("WIND")
-    Resource_Ridge_AESO("SOLAR")
+    # AESO solar and wind ridgelines
+    Resource_Ridge_AESO("WIND",2017)
+    Resource_Ridge_AESO("SOLAR",2017)
     
     SourceDB<-"NRG"
     GGSave_Loc("Hist Figs","hist_cap_AB_byplant",Evalcap_AESO2(2010,"n"),300)

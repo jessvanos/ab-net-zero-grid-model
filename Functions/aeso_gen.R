@@ -2075,7 +2075,7 @@ Wind_DurNorm_AESO <- function() {
     mutate(Norm_Output=total_gen/max(total_gen),
            Output=total_gen)%>%
     rename(date=time,
-           CF=meancap)%>%
+           CF=group_CF)%>%
     # Get an empirical distribution for grouped data, 
     mutate(perc = 1-ecdf(CF)(CF))%>%
     subset(select=c(Output,CF,perc,date,Year))
@@ -2110,7 +2110,7 @@ Wind_DurNorm_AESO <- function() {
           legend.title=element_blank(),
           text = element_text(size = 15)) +
     
-    labs(x = "Percent of Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)",colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+    labs(x = "Percent of Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)",colour="ID",linetype="ID",caption = paste("Source: NRGStream")) +
     
     scale_x_continuous(expand = c(0.01, 0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) +
     
@@ -2825,7 +2825,7 @@ Resource_Ridge_AESO <- function(RType,MinYr) {
            Day<"2023-01-01",
            Day>=paste(MinYr,"-01-01",sep="")) %>%
     rename(YearA=Year,
-           CF=meancap)%>%
+           CF=group_CF)%>%
     group_by(YearA) %>%
     mutate(Output=total_gen,
            YearA=paste(YearA))%>%
@@ -2841,10 +2841,10 @@ Resource_Ridge_AESO <- function(RType,MinYr) {
   # Plot
   ggplot() +
     geom_density_ridges_gradient(data = Res_data, 
-                                 aes(x = CF, y = YearA, fill = 1-stat(ecdf)),calc_ecdf = TRUE,vline_color="black",vline_linetype = 2,
+                                 aes(x = CF, y = YearA, fill = stat(x)),calc_ecdf = TRUE,vline_color="black",vline_linetype = 2,
                                  quantile_lines=TRUE, quantile_fun=function(CF,...)mean(CF),
                                  alpha = 0.8,scale=1.2) +
-    scale_fill_viridis_c(option = "viridis",name = "ECDF") +
+    scale_fill_viridis_c(option = "viridis",name = "Capacity Factor") +
     scale_color_manual(values = c( mean = "black")) +
     
     theme_bw() +
