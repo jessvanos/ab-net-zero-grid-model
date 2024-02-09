@@ -451,6 +451,9 @@ Analysis_saveall <- function(CaseName) {
   
   # Curtailment
   #GGSave_Loc(CaseName,"Max Curtail",MaxCurtail(BC),300)
+  GGSave_Loc(CaseName,"Renewable Curtailment MWa",Renew_Curtail_MWa(BC),300)
+  GGSave_Loc(CaseName,"Renewable Curtailment CF",Renew_Curtail_perc(BC),300)
+
   
   # Daily gen
   GGSave_Loc(CaseName,"Daily Output - Season 2040",CompDay_Season(2040,14,BC),300)

@@ -701,8 +701,8 @@ BC <- "Base Case"
     }
 
   # Gives years to summarize info from 
-  Years2Disp <- c(2023,2025,2030,2035,2040,2043) # Years to show in figures
-  Years2Pivot <- c(2023,2025,2030,2035)  # Years to display in tables
+  Years2Disp <- c(2023,2025,2030,2035,2040,2045) # Years to show in figures
+  Years2Pivot <- c(2023,2025,2030,2035,2040,2045)  # Years to display in tables
   
   # Get max year to display
   MaxYrStudy<-2045
@@ -1044,6 +1044,11 @@ NameShort<-'CER_05Feb'
     # Ridgeline capacity factor pot
     Resource_Ridge("LTO_Wind",2023,2045,2,BC)
     Resource_Ridge("LTO_Solar",2023,2045,5,BC)
+    
+    
+    # Renewable curtailment 
+    Renew_Curtail_MWa(BC)
+    Renew_Curtail_perc(BC)
     
 ################################################################################    
 ## Price Functions (Price_Functions)

@@ -337,6 +337,9 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 
 -   *Resource_Ridge* : Show capacity factor frequency for selected resources between two dates. Probability (ECDF) shown in color. Can create for weighted data or hourly dispatch data.
 
+-   *Renew_Curtail_MWa* : Show average output by wind and solar with and without curtailment
+
+-   *Renew_Curtail_perc* : Show average capacity factor by wind and solar with and without curtailment
 
 ### <ins>Price_Functions
 

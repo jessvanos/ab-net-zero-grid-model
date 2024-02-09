@@ -1951,7 +1951,7 @@ Resource_Ridge <- function(RType,MinYr,MaxYr,yrgap,case) {
     
     sub_type <-"weighted"
     
-    else{
+   } else{
       # Bring in sim data
       Res_Data_all <- ResGroupHr%>%
         filter(ID==RType,
@@ -1966,7 +1966,6 @@ Resource_Ridge <- function(RType,MinYr,MaxYr,yrgap,case) {
       
       sub_type <-"un-weighted"
     }
-  }
  
   # Plot max
   # PMax <- round_any(max(Res_Data$CF),0.1,f=ceiling)
@@ -2002,39 +2001,176 @@ Resource_Ridge <- function(RType,MinYr,MaxYr,yrgap,case) {
 }
 
 ################################################################################
-## FUNCTIONS: Renew_Curtail
-## Estimated curtailment for renewables
+## FUNCTIONS: Renew_Curtail_MWa
+## Estimated curtailment for renewables in MWa
 ##
 ## INPUTS:
 ##    year, month, day - Date to plot, the week will start on the day chosen
 ##    case - Run_ID which you want to plot
 ################################################################################
-Renew_Curtail <- function(case) {
+Renew_Curtail_MWa <- function(case) {
   
   # Bring in sim data
       Renew_Data <- ResGroupYr%>%
-        filter(ID %in% c("LTO_Wind","LTO_Solar"),
+        sim_filt(.)%>%
+        filter(ID %in% c("Wind","Solar"),
                Condition=="Average",
-               Run_ID == case) %>%
+               Run_ID == case,
+               Report_Year %in% Years2Disp) %>%
         group_by(ID,Report_Year) %>%
-        summarise(Capability,Capacity,
-                  CF_Max=Capability/Capacity,
-                  Capacity_Factor,
-                  Curtail_perc=CF_Max-Capacity_Factor,
-                  Curtail_MW=Capacity*Curtail_perc)
+        summarise(Hours_tot=Output_MWH/Output,
+                  Capability,
+                  Capacity,
+                  Output_MWa=Output,
+                  Factor = Capacity_Factor,
+                  Output_MWH,
+                  Type = "Actual")
+      
+      # Calc values
+      Curtail_Data <- ResGroupYr%>%
+        sim_filt(.)%>%
+        filter(ID %in% c("Wind","Solar"),
+               Condition=="Average",
+               Run_ID == case,
+               Report_Year %in% Years2Disp) %>%
+        group_by(ID,Report_Year) %>%
+        summarise(Hours_tot=Output_MWH/Output,
+                  Capability,
+                  Capacity,
+                  Output_MWa=Capability-Output,
+                  Factor=Output_MWa/Capacity,
+                  Output_MWH=Output_MWa*Hours_tot,
+                  Type = "Curtailed")
+      # Combine
+      df_combined <- rbind(Curtail_Data, Renew_Data) %>%
+        arrange(Type)
+      
+      plt_max <- round_any(max(Curtail_Data$Output_MWa+Renew_Data$Output_MWa),1000, f = ceiling)
       
       # Plot
-      Renew_Data %>%
+      df_combined %>%
         ggplot() +
-        aes(Report_Year, (Curtail_MW), fill = ID) +
-        geom_area(linewidth=.5, colour="black") +
+        aes(x =ID, Output_MWa, fill = Type, group=ID) +
+        geom_bar(position="stack",stat="identity",alpha=Plot_Trans,'color'="black") +
+        facet_grid(. ~ Report_Year) +
         
         theme_bw() +
         
-        # Changes the font type
-        theme(text=element_text(family=Plot_Text))
+        theme(text=element_text(family=Plot_Text)) +
+        
+        theme(panel.grid = element_blank(),
+              axis.text.x = element_text(vjust = 1,color="black"),
+              axis.title.x = element_blank(),
+              axis.ticks.x = element_blank(),
+              axis.title.y = element_text(size = GenText_Sz+6),
+              axis.text.y=element_text(color="black"),
+              plot.title = element_text(size = GenText_Sz),
+              plot.subtitle = element_text(hjust = 0.5), 
+              panel.background = element_rect(fill = NA),
+              legend.position = "bottom",
+              legend.justification = c(0.5,0.5),
+              legend.title = element_blank(),
+              legend.text = element_text(size = GenText_Sz-6),
+              text = element_text(size = GenText_Sz),
+              # Facet grids
+              strip.background = element_rect(colour=NA, fill=NA),
+              panel.border = element_rect(fill = NA, color = "black")) +
+        
+        scale_y_continuous(expand=c(0,0),limits=c(0,plt_max),breaks=pretty_breaks(6),labels = comma) +
+        scale_x_discrete(drop=TRUE) +
+        
+        
+        labs(x = "Year", y = "Annual Output (MWa)", fill = "Generation Type") +
+        
+        scale_fill_manual(values = c("Actual" = "#238b45", "Curtailed"= '#e6e6e6')) 
 
 }
+
+################################################################################
+## FUNCTIONS: Renew_Curtail_perc
+## Estimated curtailment for renewables in MWa
+##
+## INPUTS:
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+################################################################################
+Renew_Curtail_perc <- function(case) {
+  
+  # Bring in sim data
+  Renew_Data <- ResGroupYr%>%
+    sim_filt(.)%>%
+    filter(ID %in% c("Wind","Solar"),
+           Condition=="Average",
+           Run_ID == case,
+           Report_Year %in% Years2Disp) %>%
+    group_by(ID,Report_Year) %>%
+    summarise(Hours_tot=Output_MWH/Output,
+              Capability,
+              Capacity,
+              Output_MWa=Output,
+              Factor = Capacity_Factor,
+              Output_MWH,
+              Type = "Capacity Factor")
+  
+  # Calc values
+  Curtail_Data <- ResGroupYr%>%
+    sim_filt(.)%>%
+    filter(ID %in% c("Wind","Solar"),
+           Condition=="Average",
+           Run_ID == case,
+           Report_Year %in% Years2Disp) %>%
+    group_by(ID,Report_Year) %>%
+    summarise(Hours_tot=Output_MWH/Output,
+              Capability,
+              Capacity,
+              Output_MWa=Capability-Output,
+              Factor=Output_MWa/Capacity,
+              Output_MWH=Output_MWa*Hours_tot,
+              Type = "Curtailment")
+  # Combine
+  df_combined <- rbind(Curtail_Data, Renew_Data) %>%
+    arrange(Type)
+  
+  # Plot
+  df_combined %>%
+    ggplot() +
+    aes(x =ID, Factor, fill = Type, group=ID) +
+    geom_bar(position="stack",stat="identity",alpha=Plot_Trans,'color'="black") +
+    facet_grid(. ~ Report_Year) +
+    
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),
+          axis.text.x = element_text(vjust = 1,color="black"),
+          axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.title.y = element_text(size = GenText_Sz+6),
+          axis.text.y=element_text(color="black"),
+          plot.title = element_text(size = GenText_Sz),
+          plot.subtitle = element_text(hjust = 0.5), 
+          panel.background = element_rect(fill = NA),
+          legend.position = "bottom",
+          legend.justification = c(0.5,0.5),
+          legend.title = element_blank(),
+          legend.text = element_text(size = GenText_Sz-6),
+          text = element_text(size = GenText_Sz),
+          
+          # Facet grids
+          strip.background = element_rect(colour=NA, fill=NA),
+          panel.border = element_rect(fill = NA, color = "black")) +
+    
+    scale_y_continuous(expand=c(0,0),limits=c(0,0.6),breaks=pretty_breaks(4),labels = comma) +
+    scale_x_discrete(drop=TRUE) +
+    
+    
+    labs(x = "Year", y = "Annual Capacity Factor", fill = "Generation Type") +
+    
+    scale_fill_manual(values = c("Capacity Factor" = "#238b45", "Curtailment"= '#e6e6e6')) 
+  
+}
+
 ################################################################################
 #
 # COMBINED PLOTS SECTION
