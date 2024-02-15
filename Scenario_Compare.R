@@ -44,25 +44,19 @@
   # combined file and merge it with a new scenario)
 
   # EXISTING SCENARIOS
-  #   'Jan14_BAU'                 BAU curtail allowed (1200 MW)
-  #   'Jan17_BAU_NoCurt'          BAU or CP scenario, no curtailment
-  #   'Jan19_CER_NoCurt'          CER scenario applied by year effective, no curtail
-  #   'CER_24Jan'                 CER scenario applied to each resource, no curtail (issue with CCS bid and CF constraint)
-  #   'CER_26Jan'                 CER scenario applied to each resource, no curtail, modify CCS bid (issue CF constraint)
-  #   'CP_02Feb'                  CP with updates
+  #   'CP_11_Feb'                 CP with solar outate update
+  #   'CER_12_Feb'                CER with solar outage update
 
   # COMBINED SCENARIOS
-  #   'BAU_Curtail_Compare'     Jan17_BAU_NoCurt, Jan19_CER_NoCurt
-  #   'CER_BAU_Jan22'           Jan17_BAU_NoCurt, Jan19_CER_NoCurt, Jan19_CER_NoCurt
-  #   'CER_BAU_Jan26_all'       Jan17_BAU_NoCurt, Jan19_CER_NoCurt, Jan19_CER_NoCurt,CER_24Jan
+  #   'CP_CER_Feb'                CP_11_Feb, CER_12_Feb
 
 {
   # Define cases here
-  ScenarioName1<-"Jan17_BAU_NoCurt"
-  ScenarioName2<-"CP_02Feb"
+  ScenarioName1<-"CP_11Feb"
+  ScenarioName2<-"CER_12Feb"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"CP_updates_check"
+  CScenarioName <-"CP_CER_Feb"
 }
 
 ################################################################################
