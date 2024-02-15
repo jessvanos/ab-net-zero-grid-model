@@ -58,6 +58,50 @@ GGSave_Loc <- function(CaseName,FileName,plotinput,pDPI) {
 }
 
 ################################################################################
+## FUNCTION: GGSave_Loc_custom
+## Saves all plots to a new folder names after case, custom image size
+##
+## INPUTS: 
+##    CaseName - name for folder. Enter as "folder"
+##    FileName - Name for image. Enter as "name"
+################################################################################
+GGSave_Loc_custom <- function(CaseName,FileName,plotinput,w,l) {
+  
+  # Set up folder if it does not exist
+  # Create file name
+  if (exists('SourceDB')) {
+    fold_name<-paste(CaseName,SourceDB)
+  }else{
+    fold_name<-paste(CaseName)
+  }
+  
+  
+  # Check if folder exists, if not, make one
+  if (file.exists(here("Figures (Local)",paste(fold_name)))) {
+    cat("The folder exists\n")
+  } else {
+    # Create the folder
+    FoldLocation <-
+      dir.create(here("Figures (Local)",paste(fold_name)))
+  }
+  
+  # Create file name
+  if (exists('SourceDB')) {
+    FileName <-paste(FileName,SourceDB)
+  }
+  
+  # Save to a local file 
+  ggsave(
+    filename = here(paste("Figures (Local)/",paste(fold_name),"/",FileName,".png", sep = "")),
+    device = "png",
+    plot = plotinput,
+    width=w,
+    height=l,
+    dpi=300)
+  
+}
+
+################################################################################
 ## FUNCTION: GGSave_Loc_narrow
 ## Saves all plots to a new folder names after case
 ##

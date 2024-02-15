@@ -92,7 +92,7 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "BAU and CER Compare Jan 26"
+CaseName <- "BAU and CER Compare Feb 15"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
@@ -102,9 +102,8 @@ CaseName <- "BAU and CER Compare Jan 26"
   showtext_auto()
   
   # Gives years to summarize info from 
-  Years2Disp <- c(2023,2025,2030,2035,2040,2043) # Years to show in figures
-  Years2Pivot <- c(2023,2025,2030,2035)  # Years to display in tables
-  
+  Years2Disp <- c(2023,2025,2030,2035,2040,2045) # Years to show in figures
+
   # Set default size for plot features to be constant. All based on general text size
   { GenText_Sz =46 # GGsave
     #GenText_Sz = 20 # Windows save 
@@ -304,20 +303,71 @@ CaseName <- "BAU and CER Compare Jan 26"
     
     AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                       "#001933")
+    
+  # Scenario colors with historic
+   sn_colors_l <-c("Draft CER"='#A6A6A6',
+                   "Current Policy"='#515151',
+                   #"Emissions Limit"='#e6e6e6',
+                   'Historic'='black')
+   sn_line_l <-c("Draft CER"=1,
+                 "Current Policy"=1,
+                 #"Emissions Limit"=1,
+                 'Historic'=1)
+   sn_colors_s <-c("CER"='#A6A6A6',
+                   "CP"='#515151',
+                   #"EL"='#e6e6e6',
+                   'Historic'='black')
+   sn_line_s <-c("CER"=1,
+                 "CP"=1,
+                 #"EL"=1,
+                 'Historic'=1)
+   
+   # Scenario colors no historic
+   sn_colors2_l <-c("Draft CER"='#A6A6A6',
+                   "Current Policy"='#515151'
+                   #"Emissions Limit"='#e6e6e6'
+                   )
+   sn_line2_l <-c("Draft CER"=1,
+                 "Current Policy"=1
+                 #"Emissions Limit"=1
+                 )
+   sn_colors2_s <-c("CER"='#A6A6A6',
+                   "CP"='#515151'
+                  # "EL"='#e6e6e6'
+                  )
+   sn_line2_s <-c("CER"=1,
+                 "CP"=1
+                 #"EL"=1
+                 )
+   
   }
   
 ################################################################################
 ## CREATE COMPARE PLOTS
 ################################################################################
-  
+
 # Compare pool prices
-AvgYr_price_COMPARE(22)
-GGSave_Loc(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE(GenText_Sz),300)
+GGSave_Loc_custom(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE("l","Y"),12,8)
+# Compare Emissions
+GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y"),12,8)
+GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen",AnnualEm_COMPARE("l", "n"),12,8)
 
 
+################################################################################
+## GENERATE PLOTS TO LOOK - NOT SAVE :)
+################################################################################
+GenText_Sz <-20
 
+# Average price, use "Y" to include AESO historic prices
+AvgYr_price_COMPARE(name_type="l", AESO_include="Y")
 
+# Annual Emissions
+AnnualEm_COMPARE(name_type="l", cogen_include="Y")
 
-
+################################################################################
+## OTHER USEFUL STUFF
+################################################################################
+# Clear all
+dev.off(dev.list()["RStudioGD"])
 
 
