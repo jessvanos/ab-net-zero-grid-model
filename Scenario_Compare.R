@@ -30,7 +30,7 @@
   packs_to_load = c("tidyverse","scales","grid","gtable","gridExtra","ggpubr","extrafont",
                     "lubridate","cowplot","scales","dplyr","reshape2","zoo",
                     "ggpattern","here","showtext","DescTools",
-                    "openxlsx","timeDate","writexl","viridis","ggnewscale","janitor","sjmisc")
+                    "openxlsx","timeDate","writexl","viridis","ggnewscale","janitor","sjmisc","treemap")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
   
@@ -44,19 +44,19 @@
   # combined file and merge it with a new scenario)
 
   # EXISTING SCENARIOS
-  #   'CP_11_Feb'                 CP with solar outate update
-  #   'CER_12_Feb'                CER with solar outage update
-
+  #   'CP_11Feb'                 CP with solar outate update
+  #   'CER_12Feb'                CER with solar outage update
+  #   'EL_14Feb"
   # COMBINED SCENARIOS
   #   'CP_CER_Feb'                CP_11_Feb, CER_12_Feb
 
 {
   # Define cases here
-  ScenarioName1<-"CP_11Feb"
-  ScenarioName2<-"CER_12Feb"
+  ScenarioName1<-"CP_CER_Feb"
+  ScenarioName2<-"EL_14Feb"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"CP_CER_Feb"
+  CScenarioName <-"CP_CER_EL_Feb"
 }
 
 ################################################################################
@@ -92,7 +92,7 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "BAU and CER Compare Feb 15"
+CaseName <- "BAU, CER, EL Compare Feb 16"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
@@ -221,6 +221,14 @@ CaseName <- "BAU and CER Compare Feb 15"
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
     
+    colours3b = c("Net Imports"=cOL_IMPORT,"Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+                 "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                 #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                 "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                 "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
+                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                 "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
+    
     Patterns3 = c("Coal"="none", "Cogeneration"="none", 
                   "Coal-to-Gas"="stripe","Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
                   #"Blended  Simple Cycle"="stripe","Blended  Combined Cycle"="stripe",
@@ -300,6 +308,8 @@ CaseName <- "BAU and CER Compare Feb 15"
                   "Solar"="none",  "Storage - Battery"="none", 
                   "Storage - Compressed Air"="none", "Storage - Pumped Hydro"="none","Cogeneration"="none")
     
+    colorsgroup_1 = c("Abated Natural Gas"="#001933",Hydrogen="#4472C4","Natural Gas"='#515151',"Coal & Other"='#767171',             
+                     "Renewables"="#238b45","Storage"='#cc79a7')
     
     AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                       "#001933")
@@ -307,37 +317,37 @@ CaseName <- "BAU and CER Compare Feb 15"
   # Scenario colors with historic
    sn_colors_l <-c("Draft CER"='#A6A6A6',
                    "Current Policy"='#515151',
-                   #"Emissions Limit"='#e6e6e6',
+                   "Emissions Limit"='gray90',
                    'Historic'='black')
    sn_line_l <-c("Draft CER"=1,
                  "Current Policy"=1,
-                 #"Emissions Limit"=1,
+                 "Emissions Limit"=1,
                  'Historic'=1)
    sn_colors_s <-c("CER"='#A6A6A6',
                    "CP"='#515151',
-                   #"EL"='#e6e6e6',
+                   "EL"='gray90',
                    'Historic'='black')
    sn_line_s <-c("CER"=1,
                  "CP"=1,
-                 #"EL"=1,
+                 "EL"=1,
                  'Historic'=1)
    
    # Scenario colors no historic
    sn_colors2_l <-c("Draft CER"='#A6A6A6',
-                   "Current Policy"='#515151'
-                   #"Emissions Limit"='#e6e6e6'
+                   "Current Policy"='#515151',
+                   "Emissions Limit"='gray90'
                    )
    sn_line2_l <-c("Draft CER"=1,
-                 "Current Policy"=1
-                 #"Emissions Limit"=1
+                 "Current Policy"=1,
+                 "Emissions Limit"=1
                  )
    sn_colors2_s <-c("CER"='#A6A6A6',
-                   "CP"='#515151'
-                  # "EL"='#e6e6e6'
+                   "CP"='#515151',
+                   "EL"='gray90'
                   )
    sn_line2_s <-c("CER"=1,
-                 "CP"=1
-                 #"EL"=1
+                 "CP"=1,
+                 "EL"=1
                  )
    
   }
@@ -351,12 +361,21 @@ GGSave_Loc_custom(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE("l","
 # Compare Emissions
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y"),12,8)
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen",AnnualEm_COMPARE("l", "n"),12,8)
+GGSave_Loc_custom(CaseName,"Cummulative Emissions Compare noncogen",AnnualEm_Cum_COMPARE("l", "n"),12,8)
 
+# Capacity Added Total
+GGSave_Loc_custom(CaseName,"Total Capacity Added",Total_Cap_Add_COMPARE("l"),12,8)
 
+# 
+GGSave_Loc_custom(CaseName,"Total Gen Study",Total_Gen_COMPARE("l"),12,8)
+GGSave_Loc_custom(CaseName,"Year Gen Study 2023",Year_Gen_COMPARE("l",2023),12,8)
+GGSave_Loc_custom(CaseName,"Year Gen Study 2045",Year_Gen_COMPARE("l",2045),12,8)
+
+Total_Gen_COMPARE
 ################################################################################
 ## GENERATE PLOTS TO LOOK - NOT SAVE :)
 ################################################################################
-GenText_Sz <-20
+GenText_Sz <-40
 
 # Average price, use "Y" to include AESO historic prices
 AvgYr_price_COMPARE(name_type="l", AESO_include="Y")
@@ -364,10 +383,15 @@ AvgYr_price_COMPARE(name_type="l", AESO_include="Y")
 # Annual Emissions
 AnnualEm_COMPARE(name_type="l", cogen_include="Y")
 
+# Total Additions
+Total_Cap_Add_COMPARE(name_type="l")
+
+# Annual gen
+Year_Gen_COMPARE("l",year_look=2045,show_neg="N")
 ################################################################################
 ## OTHER USEFUL STUFF
 ################################################################################
 # Clear all
 dev.off(dev.list()["RStudioGD"])
 
-
+Total_Gen_COMPARE("l")
