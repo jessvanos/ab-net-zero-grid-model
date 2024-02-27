@@ -428,8 +428,10 @@ Total_Gen_Treemap_COMPARE <- function(name_type,cogen_include) {
   if (!cogen_include=="Y"){
     DataGen <- ResGrYr %>%
       filter(!Plant_Type == "Cogeneration")
+    name_add = "- Cogen Removed"
   }else{
     DataGen <- ResGrYr
+    name_add=""
   }
   
   DataGen <- DataGen %>%
@@ -439,15 +441,18 @@ Total_Gen_Treemap_COMPARE <- function(name_type,cogen_include) {
     mutate(P_group=if_else(Plant_Type %in% c("Wind","Solar","Hydro"),"Renewables",
                            if_else(Plant_Type %in% c("Coal-to-Gas","Natural Gas Combined Cycle","Natural Gas Simple Cycle","Cogeneration"),"Natural Gas",
                                    if_else(Plant_Type %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",
-                                           if_else(Plant_Type %in% c("Coal",'Other'),"Coal & Other", 
+                                           if_else(Plant_Type %in% c('Other'),"Other", 
+                                              if_else(Plant_Type %in% c("Coal"),"Coal",
                                                 if_else(Plant_Type %in% c("Hydrogen Combined Cycle","Hydrogen Simple Cycle"),"Hydrogen",
-                                                    if_else(Plant_Type %in% c("Natural Gas Combined Cycle + CCS"),"Abated Natural Gas","UNKNOWN")))))))%>%
+                                                    if_else(Plant_Type %in% c("Natural Gas Combined Cycle + CCS"),"Abated Natural Gas","UNKNOWN"))))))))%>%
     group_by(Scenario,P_group)%>%
+    # THIS FILTERS OUT STORAGE
+    filter(Output_MWH>0)%>%
     summarise(Totalgen = sum(Output_MWH)/10^6)%>%
     ungroup()%>%
     group_by(Scenario)%>%
     mutate(perc_gen=round(100*Totalgen/sum(Totalgen),0),
-           label_gr = paste(P_group,perc_gen,'%'))%>%
+           label_gr = if_else(perc_gen>1,paste(P_group,perc_gen,'%'),paste(P_group,"<1%")))%>%
     ungroup()
     
   #Plot data
@@ -465,7 +470,10 @@ Total_Gen_Treemap_COMPARE <- function(name_type,cogen_include) {
     theme(panel.grid = element_blank(),  
           panel.background = element_rect(fill = "transparent"),
           text = element_text(size = GenText_Sz),
-          legend.position = "none",
+          legend.text = element_text(size = GenText_Sz-25),
+          legend.title = element_blank(), 
+          legend.position = "bottom",
+          legend.key.size = unit(0.3, "cm"),
           plot.title = element_text(size = GenText_Sz-16, hjust = 0.5),
           
     # Facet grids
@@ -473,9 +481,10 @@ Total_Gen_Treemap_COMPARE <- function(name_type,cogen_include) {
     strip.background = element_rect(colour=NA, fill=NA),
     panel.border = element_rect(fill = NA, color = "black")) +
 
-    scale_fill_manual(values=colorsgroup_1) +
+    guides(fill = guide_legend(nrow=1)) +
+    scale_fill_manual(values=colorsgroup_1,drop=TRUE,limits = force) +
     # Title
-    labs(title = "Cummulative Study Generation") 
+    labs(title = paste("Cummulative Study Generation",name_add)) 
       
   
 }
@@ -555,7 +564,7 @@ Year_Gen_COMPARE <- function(name_type,year_look,show_neg) {
     
     scale_x_continuous(expand = c(0, 0),limits = c(mnc, mxc),breaks=seq(mnc, mxc,by=10),labels=comma) +
     
-    labs(x = "Total Generation (TWh)") +
+    labs(x = paste(year_look,"Total Generation (TWh)")) +
     geom_vline(xintercept =0)
   
 }

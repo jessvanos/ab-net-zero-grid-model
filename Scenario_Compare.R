@@ -310,8 +310,8 @@ CaseName <- "BAU, CER, EL, TIER 2050 Compare Feb 25"
                   "Solar"="none",  "Storage - Battery"="none", 
                   "Storage - Compressed Air"="none", "Storage - Pumped Hydro"="none","Cogeneration"="none")
     
-    colorsgroup_1 = c("Abated Natural Gas"="#001933",Hydrogen="#4472C4","Natural Gas"='#515151',"Coal & Other"='#767171',             
-                     "Renewables"="#238b45","Storage"='#cc79a7')
+    colorsgroup_1 = c("Abated Natural Gas"="#001933",Hydrogen="#4472C4","Natural Gas"='#515151',"Other"='#767171',             
+                     "Renewables"="#238b45","Storage"='#cc79a7','Coal'="black")
     
     AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                       "#001933")
