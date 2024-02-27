@@ -85,7 +85,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CER_12_Feb_2024"
+  SourceDB<-"EL_25_Feb_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -733,8 +733,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CER Update Solar Outage"
-NameShort<-'CER_12Feb'
+CaseName <- "EL V2"
+NameShort<-'EL_25Feb'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -771,7 +771,7 @@ NameShort<-'CER_12Feb'
       
 # OPTIONAL 
     # Estimate hourly wind and solar weighted data -> this takes a LONG TIME to run
-    ResGrouphr_R8760 <- ResGrouphr_Renew8760()
+    # ResGrouphr_R8760 <- ResGrouphr_Renew8760()
     
 ################################################################################
 ## COMMON INDIVIDUAL PLOT SAVING OPTIONS
