@@ -15,15 +15,16 @@
 compare_rename <-function(data,type){
   
   if (type == "l"){
-    input_name <-c("Draft CER","Current Policy","Emissions Limit")
+    input_name <-c("Draft CER","Current Policy","Emissions Limit","TIER 2050")
   }else{
-    input_name<-c("CER","CP","EL")
+    input_name<-c("CER","CP","EL","TIER2050")
   }
   
   data <- data %>%
     mutate(Scenario = if_else(grepl("CER_",Scenario)==TRUE,input_name[1],
                               if_else(grepl("CP_",Scenario)==TRUE,input_name[2],
-                                      if_else(grepl("EL_",Scenario)==TRUE,input_name[3],"unknown"))))
+                                      if_else(grepl("EL_",Scenario)==TRUE,input_name[3],
+                                        if_else(grepl("TIER2050_",Scenario)==TRUE,input_name[4],"unknown")))))
   
   if (any(data$Scenario == "unknown")==TRUE) {
     print("Unknown scenario detected")
@@ -260,6 +261,7 @@ AnnualEm_Cum_COMPARE <- function(name_type,cogen_include) {
     geom_bar(aes(x = Year, y = Emissions, fill = Scenario), 
               size = 1.25,stat="identity",position = "dodge") +
     theme_bw() +
+    #facet_wrap(~Scenario)
     theme(text=element_text(family=Plot_Text)) +
     theme(axis.text = element_text(color="black"),
           axis.title = element_text(size = GenText_Sz+6),
@@ -420,10 +422,17 @@ Total_Gen_COMPARE <- function(name_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Total_Gen_Treemap_COMPARE <- function(name_type) {
+Total_Gen_Treemap_COMPARE <- function(name_type,cogen_include) {
   
   # Filter emissions data
-  DataGen <- ResGrYr %>%
+  if (!cogen_include=="Y"){
+    DataGen <- ResGrYr %>%
+      filter(!Plant_Type == "Cogeneration")
+  }else{
+    DataGen <- ResGrYr
+  }
+  
+  DataGen <- DataGen %>%
     rename(Scenario=Sim_Name)%>%
     compare_rename(.,name_type)%>%
     mutate(Scenario=as.factor(Scenario))%>%
@@ -446,7 +455,9 @@ Total_Gen_Treemap_COMPARE <- function(name_type) {
     geom_treemap(color="black")+
     geom_treemap_text(colour = "white",
                       place = "centre",grow = FALSE) +
-    facet_wrap(.~Scenario, ncol = 1) +
+    facet_wrap(.~Scenario, 
+               #ncol = 1
+               ) +
     theme_bw() +
     
     theme(text=element_text(family=Plot_Text)) +
@@ -455,13 +466,16 @@ Total_Gen_Treemap_COMPARE <- function(name_type) {
           panel.background = element_rect(fill = "transparent"),
           text = element_text(size = GenText_Sz),
           legend.position = "none",
-    
+          plot.title = element_text(size = GenText_Sz-16, hjust = 0.5),
+          
     # Facet grids
-    strip.text = element_text(size = GenText_Sz-10, color = "black"),
+    strip.text = element_text(size = GenText_Sz-16, color = "black"),
     strip.background = element_rect(colour=NA, fill=NA),
     panel.border = element_rect(fill = NA, color = "black")) +
 
-    scale_fill_manual(values=colorsgroup_1)
+    scale_fill_manual(values=colorsgroup_1) +
+    # Title
+    labs(title = "Cummulative Study Generation") 
       
   
 }

@@ -30,7 +30,7 @@
   packs_to_load = c("tidyverse","scales","grid","gtable","gridExtra","ggpubr","extrafont",
                     "lubridate","cowplot","scales","dplyr","reshape2","zoo",
                     "ggpattern","here","showtext","DescTools",
-                    "openxlsx","timeDate","writexl","viridis","ggnewscale","janitor","sjmisc","treemap")
+                    "openxlsx","timeDate","writexl","viridis","ggnewscale","janitor","sjmisc","treemapify")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
   
@@ -46,17 +46,19 @@
   # EXISTING SCENARIOS
   #   'CP_11Feb'                 CP with solar outate update
   #   'CER_12Feb'                CER with solar outage update
-  #   'EL_14Feb"
+  #   'EL_25Feb"
   # COMBINED SCENARIOS
-  #   'CP_CER_Feb'                CP_11_Feb, CER_12_Feb
+  #   'CP_CER_Feb'                CP_11Feb, CER_12Feb
+  #   'CP_CER_EL_Feb'             CP_11Feb, CER_12Feb, EL_14Feb   
+  #   'CP_CER_EL_Feb_final'       CP_11Feb, CER_12Feb, EL_25Feb
 
 {
   # Define cases here
-  ScenarioName1<-"CP_CER_Feb"
-  ScenarioName2<-"EL_14Feb"
+  ScenarioName1<-"CP_CER_EL_Feb_final"
+  ScenarioName2<-"TIER2050_23Feb"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"CP_CER_EL_Feb"
+  CScenarioName <-"CP_CER_EL_TIER2050_Feb"
 }
 
 ################################################################################
@@ -92,7 +94,7 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "BAU, CER, EL Compare Feb 16"
+CaseName <- "BAU, CER, EL, TIER 2050 Compare Feb 25"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
@@ -314,40 +316,53 @@ CaseName <- "BAU, CER, EL Compare Feb 16"
     AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                       "#001933")
     
+    
+  COL_CP ="#4472C4"
+  COL_CER =  '#A6A6A6'
+  COL_EL ='gray90'
+  COL_TIER2050 = '#515151'
+  
   # Scenario colors with historic
-   sn_colors_l <-c("Draft CER"='#A6A6A6',
-                   "Current Policy"='#515151',
-                   "Emissions Limit"='gray90',
+   sn_colors_l <-c("Draft CER"=COL_CER,
+                   "Current Policy"=COL_CP,
+                   "Emissions Limit"=COL_EL,
+                   "TIER 2050" = COL_TIER2050,
                    'Historic'='black')
    sn_line_l <-c("Draft CER"=1,
                  "Current Policy"=1,
                  "Emissions Limit"=1,
+                 "TIER 2050" = 1,
                  'Historic'=1)
-   sn_colors_s <-c("CER"='#A6A6A6',
-                   "CP"='#515151',
-                   "EL"='gray90',
+   sn_colors_s <-c("CER"=COL_CER,
+                   "CP"=COL_CP,
+                   "EL"=COL_EL,
                    'Historic'='black')
    sn_line_s <-c("CER"=1,
                  "CP"=1,
                  "EL"=1,
+                 "TIER2050"=1,
                  'Historic'=1)
    
    # Scenario colors no historic
-   sn_colors2_l <-c("Draft CER"='#A6A6A6',
-                   "Current Policy"='#515151',
-                   "Emissions Limit"='gray90'
+   sn_colors2_l <-c("Draft CER"=COL_CER,
+                   "Current Policy"=COL_CP,
+                   "Emissions Limit"=COL_EL,
+                   "TIER 2050" = COL_TIER2050
                    )
    sn_line2_l <-c("Draft CER"=1,
                  "Current Policy"=1,
-                 "Emissions Limit"=1
+                 "Emissions Limit"=1,
+                 "TIER 2050" = 1
                  )
-   sn_colors2_s <-c("CER"='#A6A6A6',
-                   "CP"='#515151',
-                   "EL"='gray90'
+   sn_colors2_s <-c("CER"=COL_CER,
+                   "CP"=COL_CP,
+                   "EL"=COL_EL,
+                   "TIER2050"= COL_TIER2050
                   )
    sn_line2_s <-c("CER"=1,
                  "CP"=1,
-                 "EL"=1
+                 "EL"=1,
+                 "TIER2050"=1
                  )
    
   }
@@ -366,12 +381,15 @@ GGSave_Loc_custom(CaseName,"Cummulative Emissions Compare noncogen",AnnualEm_Cum
 # Capacity Added Total
 GGSave_Loc_custom(CaseName,"Total Capacity Added",Total_Cap_Add_COMPARE("l"),12,8)
 
-# 
+# Total Gen
 GGSave_Loc_custom(CaseName,"Total Gen Study",Total_Gen_COMPARE("l"),12,8)
-GGSave_Loc_custom(CaseName,"Year Gen Study 2023",Year_Gen_COMPARE("l",2023),12,8)
-GGSave_Loc_custom(CaseName,"Year Gen Study 2045",Year_Gen_COMPARE("l",2045),12,8)
+GGSave_Loc_custom(CaseName,"Year Gen Study 2023",Year_Gen_COMPARE("l",2023,show_neg="N"),12,8)
+GGSave_Loc_custom(CaseName,"Year Gen Study 2045",Year_Gen_COMPARE("l",2045,show_neg="N"),12,8)
+GGSave_Loc_custom(CaseName,"Year Gen Study 2045 with neg",Year_Gen_COMPARE("l",2045,show_neg="Y"),12,8)
+GGSave_Loc_custom(CaseName,"Study Gen perc with Cogen",Total_Gen_Treemap_COMPARE("l",cogen_include="Y"),12,8)
+GGSave_Loc_custom(CaseName,"Study Gen perc no Cogen",Total_Gen_Treemap_COMPARE("l",cogen_include="n"),12,8)
 
-Total_Gen_COMPARE
+
 ################################################################################
 ## GENERATE PLOTS TO LOOK - NOT SAVE :)
 ################################################################################
@@ -388,6 +406,9 @@ Total_Cap_Add_COMPARE(name_type="l")
 
 # Annual gen
 Year_Gen_COMPARE("l",year_look=2045,show_neg="N")
+
+# Total Gen
+Total_Gen_Treemap_COMPARE(name_type="l",cogen_include="Y")
 ################################################################################
 ## OTHER USEFUL STUFF
 ################################################################################

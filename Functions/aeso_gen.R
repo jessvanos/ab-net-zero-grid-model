@@ -2080,10 +2080,6 @@ Wind_DurNorm_AESO <- function() {
     mutate(perc = 1-ecdf(CF)(CF))%>%
     subset(select=c(Output,CF,perc,date,Year))
   
-  # filter out years of interest
-  # WindData <- WindData %>%
-  #   filter(Year < 2036)
-  
   # Get the report year as a factor to plot
   WindData$Year <- as.factor(WindData$Year)
   
@@ -2823,7 +2819,8 @@ Resource_Ridge_AESO <- function(RType,MinYr) {
   Res_data <- df1a%>%
     filter(Plant_Type==RType,
            Day<"2023-01-01",
-           Day>=paste(MinYr,"-01-01",sep="")) %>%
+           Day>=paste(MinYr,"-01-01",sep=""),
+           Year %in% c(2009,2011,2013,2015,2017,2019,2021,2022)) %>%
     rename(YearA=Year,
            CF=group_CF)%>%
     group_by(YearA) %>%
