@@ -103,7 +103,7 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
       subset(., select=c(Plant_Type,Year,Output_MWH,Capacity_MW,
                          Avg_Dispatch_Cost,Fuel_Usage_GJ,
                          Total_Fuel_Cost,Fixed_OM_Cost,Variable_OM_Cost,CAPEX,
-                         Emissions_Mt,Emissions_Cost,
+                         Emissions_Mt,Emissions_Cost,Storage_Charging_Cost,
                          Revenue,Value,Total_Cost,
                          Total_Hours_Run,Percent_Marginal,
                          Capacity_Factor,Sim_Name)) %>%
@@ -121,6 +121,7 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
              "Variable O&M Cost"=Variable_OM_Cost,
              "Emissions (M-tonnes)"=Emissions_Mt,
              "Emissions Cost"=Emissions_Cost,
+             "Storage_Charging_Cost"=Storage_Charging_Cost,
              "Total Hours Run"=Total_Hours_Run,
              "Total Cost"=Total_Cost,
              "Capital Costs"=CAPEX,
@@ -555,7 +556,7 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
    # Choose what to keep
    subset(., select=c(Date,Time,ID,Output_MWH,Capacity,
                       Dispatch_Cost,
-                      Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,
+                      Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,Storage_Charging_Cost,
                       Revenue,Value,Capacity_Factor,
                       Year,Month,Day,Scenario)) %>%
      rename(Plant_Type=ID)%>%
@@ -563,6 +564,7 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
           "Output (MWh)"=Output_MWH,
           "Capacity (MW)"=Capacity,
           "Average Dispatch Cost ($MWh)"=Dispatch_Cost,
+          "Storage Charging Cost"=Storage_Charging_Cost,
           "Fuel Cost"=Total_Fuel_Cost,
           "Fixed Cost"=Fixed_Cost,
           "Variable O&M Cost"=Variable_OM_Cost,
@@ -664,7 +666,7 @@ AnnualDataR<- function(ScenarioName,case){
       # Choose what to keep
       subset(., select=c(ID,Year,Output_MWH,Capacity,
                          Dispatch_Cost,Fuel_Usage,
-                         Total_Fuel_Cost,Variable_OM_Cost,Fixed_OM_Cost,CAPEX,
+                         Total_Fuel_Cost,Variable_OM_Cost,Fixed_OM_Cost,CAPEX,Storage_Charging_Cost,
                          Total_Cost,Revenue,Value,
                          Total_Hours_Run,Percent_Marginal,
                          Capacity_Factor,Sim_Name)) %>%
@@ -678,11 +680,11 @@ AnnualDataR<- function(ScenarioName,case){
     
     # Re-sort the columns
     AllDataGrYr <- AllDataGrYr1 %>%
-      mutate(Misc_Costs=as.numeric(Total_Cost-(Total_Fuel_Cost+Variable_OM_Cost+Fixed_OM_Cost+CAPEX+Emissions_Cost)),
-             OPEX=Emissions_Cost+Total_Fuel_Cost+Misc_Costs+Variable_OM_Cost+Fixed_OM_Cost)%>%
+      mutate(Misc_Costs=as.numeric(Total_Cost-(Total_Fuel_Cost+Variable_OM_Cost+Fixed_OM_Cost+CAPEX+Emissions_Cost+Storage_Charging_Cost)),
+             OPEX=Emissions_Cost+Total_Fuel_Cost+Misc_Costs+Variable_OM_Cost+Fixed_OM_Cost+Storage_Charging_Cost)%>%
       subset(., select=c(Plant_Type,Year,Output_MWH,Capacity_MW,
                          Avg_Dispatch_Cost,Fuel_Usage_GJ,Emissions_Tonne,
-                         Emissions_Cost,Total_Fuel_Cost,Misc_Costs,Variable_OM_Cost,Fixed_OM_Cost,
+                         Emissions_Cost,Total_Fuel_Cost,Misc_Costs,Variable_OM_Cost,Fixed_OM_Cost,Storage_Charging_Cost,
                          CAPEX,OPEX,
                          Total_Cost,Revenue,Value,
                          Total_Hours_Run,Percent_Marginal,

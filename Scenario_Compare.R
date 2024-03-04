@@ -53,17 +53,17 @@
   #
   #   'TIER2035_29_Feb_2024'
   # COMBINED SCENARIOS
-  #   'CP_CER_Feb'                CP_11Feb, CER_12Feb
-  #   'CP_CER_EL_Feb'             CP_11Feb, CER_12Feb, EL_14Feb   
-  #   'CP_CER_EL_Feb_final'       CP_11Feb, CER_12Feb, EL_25Feb
-
+  #   'CP_CER'                   CP_11Feb, CER_12Feb
+  #   'Main_3'                   CP_11Feb, CER_12Feb, EL_25Feb   
+  #   'TIER_3'                   CP_11Feb, TIER2050_23Feb, TIER2035L_29Feb 
+  #   'All_5'                    CP_11Feb, CER_12Feb, EL_25Feb, TIER2050_23Feb, TIER2035L_29Feb 
 {
   # Define cases here
-  ScenarioName1<-"CP_CER_EL_Feb_final"
-  ScenarioName2<-"TIER2050_23Feb"
+  ScenarioName1<-"All_4"
+  ScenarioName2<-"TIER2035L_29Feb"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"CP_CER_EL_TIER2050_Feb"
+  CScenarioName <-"TIER_3"
 }
 
 ################################################################################
@@ -99,7 +99,8 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "BAU, CER, EL, TIER 2050 Compare Feb 25"
+#CaseName <- "Main 3"
+CaseName <- "TIER_3"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
@@ -324,50 +325,72 @@ CaseName <- "BAU, CER, EL, TIER 2050 Compare Feb 25"
     
   COL_CP ="#4472C4"
   COL_CER =  '#A6A6A6'
-  COL_EL ='gray90'
-  COL_TIER2050 = '#515151'
+  COL_EL ='gray85'
+  COL_TIER2050 = "#238b45"
+  COL_TIER2035 = "yellowgreen"
+  COL_noITC = '#515151'
   
   # Scenario colors with historic
    sn_colors_l <-c("Draft CER"=COL_CER,
                    "Current Policy"=COL_CP,
                    "Emissions Limit"=COL_EL,
                    "TIER 2050" = COL_TIER2050,
+                   "TIER 2035" = COL_TIER2035,
+                   "No ITCs"= COL_noITC,
                    'Historic'='black')
+   
    sn_line_l <-c("Draft CER"=1,
                  "Current Policy"=1,
                  "Emissions Limit"=1,
                  "TIER 2050" = 1,
+                 "TIER 2035" = 1,
+                 "No ITCs"= 1,
                  'Historic'=1)
+   
    sn_colors_s <-c("CER"=COL_CER,
                    "CP"=COL_CP,
                    "EL"=COL_EL,
+                   "TIER2050"=COL_TIER2050,
+                   "TIER2035"=COL_TIER2035,
+                   "noITCs"=COL_noITC,
                    'Historic'='black')
+   
    sn_line_s <-c("CER"=1,
                  "CP"=1,
                  "EL"=1,
                  "TIER2050"=1,
+                 "TIER2035"=1,
+                 "noITCs"=1,
                  'Historic'=1)
    
    # Scenario colors no historic
    sn_colors2_l <-c("Draft CER"=COL_CER,
                    "Current Policy"=COL_CP,
                    "Emissions Limit"=COL_EL,
-                   "TIER 2050" = COL_TIER2050
+                   "TIER 2050" = COL_TIER2050,
+                   "TIER 2035" = COL_TIER2035,
+                   "No ITCs"=COL_noITC
                    )
    sn_line2_l <-c("Draft CER"=1,
                  "Current Policy"=1,
                  "Emissions Limit"=1,
-                 "TIER 2050" = 1
+                 "TIER 2050" = 1,
+                 "TIER 2035" = 1,
+                 "No ITCs"=1
                  )
    sn_colors2_s <-c("CER"=COL_CER,
                    "CP"=COL_CP,
                    "EL"=COL_EL,
-                   "TIER2050"= COL_TIER2050
+                   "TIER2050"= COL_TIER2050,
+                   "TIER2035" = COL_TIER2035,
+                   "noITCs"=COL_noITC
                   )
    sn_line2_s <-c("CER"=1,
                  "CP"=1,
                  "EL"=1,
-                 "TIER2050"=1
+                 "TIER2050"=1,
+                 "TIER2035"=1,
+                 "noITCs"=1
                  )
    
   }
@@ -378,19 +401,27 @@ CaseName <- "BAU, CER, EL, TIER 2050 Compare Feb 25"
 
 # Compare pool prices
 GGSave_Loc_custom(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE("l","Y"),12,8)
+
 # Compare Emissions
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y"),12,8)
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen",AnnualEm_COMPARE("l", "n"),12,8)
 GGSave_Loc_custom(CaseName,"Cummulative Emissions Compare noncogen",AnnualEm_Cum_COMPARE("l", "n"),12,8)
 
-# Capacity Added Total
+# Capacity changes
 GGSave_Loc_custom(CaseName,"Total Capacity Added",Total_Cap_Add_COMPARE("l"),12,8)
+GGSave_Loc_custom(CaseName,"Total Capacity Retired",Total_Cap_Ret_COMPARE("l"),12,8)
+GGSave_Loc_custom(CaseName,"Capacity Relative to CP",Cap_Relative_COMPARE("l"),12,8)
+GGSave_Loc_custom(CaseName,"2045 Capacity Relative to CP",Cap_Year_Relative_COMPARE("l",2045),12,8)
+GGSave_Loc_custom(CaseName,"Annual Capacity Aggregated",Annual_Cap_COMPARE("s"),14,6)
 
-# Total Gen
-GGSave_Loc_custom(CaseName,"Total Gen Study",Total_Gen_COMPARE("l"),12,8)
+# Total Gen annual
+GGSave_Loc_custom(CaseName,"Annual Generation Aggregated",Annual_Gen_COMPARE("s"),14,6)
 GGSave_Loc_custom(CaseName,"Year Gen Study 2023",Year_Gen_COMPARE("l",2023,show_neg="N"),12,8)
 GGSave_Loc_custom(CaseName,"Year Gen Study 2045",Year_Gen_COMPARE("l",2045,show_neg="N"),12,8)
 GGSave_Loc_custom(CaseName,"Year Gen Study 2045 with neg",Year_Gen_COMPARE("l",2045,show_neg="Y"),12,8)
+
+# Total Gen Cummulative
+GGSave_Loc_custom(CaseName,"Total Gen Study",Total_Gen_COMPARE("l"),12,8)
 GGSave_Loc_custom(CaseName,"Study Gen perc with Cogen",Total_Gen_Treemap_COMPARE("l",cogen_include="Y"),12,8)
 GGSave_Loc_custom(CaseName,"Study Gen perc no Cogen",Total_Gen_Treemap_COMPARE("l",cogen_include="n"),12,8)
 
