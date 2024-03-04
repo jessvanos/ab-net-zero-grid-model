@@ -47,6 +47,11 @@
   #   'CP_11Feb'                 CP with solar outate update
   #   'CER_12Feb'                CER with solar outage update
   #   'EL_25Feb"
+  #   'TIER2050_23Feb'
+  #   'TIER2035L_29Feb'
+  #   'CP_noITC_03Mar'
+  #
+  #   'TIER2035_29_Feb_2024'
   # COMBINED SCENARIOS
   #   'CP_CER_Feb'                CP_11Feb, CER_12Feb
   #   'CP_CER_EL_Feb'             CP_11Feb, CER_12Feb, EL_14Feb   

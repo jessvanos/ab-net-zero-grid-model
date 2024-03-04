@@ -212,6 +212,12 @@ Aurora_WindMap <-    ggplot()+
           legend.key=element_rect(fill = "transparent"),
           rect = element_rect(fill="transparent")) 
 
+################################################################################
+# AURORA BUILDS
+################################################################################
+
+# List of farms built
+
 
 
 
