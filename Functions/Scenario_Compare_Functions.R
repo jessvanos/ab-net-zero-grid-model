@@ -571,8 +571,8 @@ Cap_Year_Relative_COMPARE <- function(name_type,year_in) {
   max_groups <-AllData %>%group_by(Scenario)%>%
     summarise(max = sum(Cap_Diff[Cap_Diff>0]),
               min = sum(Cap_Diff[Cap_Diff<0]))
-  mxc <- round_any(max(max_groups$max)+51,100,f=ceiling)
-  mnc <-round_any(min(max_groups$min)-51,100,f=floor)
+  mxc <- round_any(max(max_groups$max)+151,200,f=ceiling)
+  mnc <-round_any(min(max_groups$min)-151,200,f=floor)
   
   
   #Plot data
@@ -1024,28 +1024,200 @@ Year_Gen_COMPARE <- function(name_type,year_look,show_neg) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Cost_Cum_COMPARE <- function(name_type,year_look,show_neg) {
+Cost_Cum_COMPARE <- function(name_type) {
   
   # ASSUMPTIONS
   #   Capital - Based on annualized capital cost
   #   Fuel - Fuel cost for standard resources, charging cost for storage
   #   Emissions - Net emissions cost (Based on pay and credits)
-  Costs <- ResGrYr %>%
+  Costs_all <- ResGrYr %>%
     compare_rename(.,name_type)%>%
-    group_by(Scenario,Year)%>%
-    summarise(Capital_M=sum(CAPEX)/1000000,
-              OPEX_M=sum(OPEX_M)/1000000,
-              Fuel_M = sum(Total_Fuel_Cost)/1000000,
-              Storage_Charging_Cost_M =sum(Storage_Charging_Cost)/1000000,                                  
-              Emissions_M = sum(Emissions_Cost)/1000000,
-              VOM_M = (sum(Variable_OM_Cost)+sum(Misc_Costs))/1000000,
-              FOM_M = sum(Fixed_OM_Cost)/1000000,
-              Total_M = sum(Total_Cost)/1000000,
-              Value_M = sum(Value)/1000000,
-              Revenue_M = sum(Revenue)/1000000,
-              sum_check=Fuel_M+Emissions_M+Capital_M+VOM_M+FOM_M)
+    group_by(Scenario)%>%
+    summarise("CAPEX"=sum(CAPEX)/1000000,
+              "VOM" = (sum(Variable_OM_Cost)+sum(Misc_Costs))/1000000,
+              "FOM" = sum(Fixed_OM_Cost)/1000000,
+              "Emissions Net" = sum(Emissions_Cost)/1000000,
+              #OPEX_B=sum(OPEX)/1000000,
+              "Fuel" = sum(Total_Fuel_Cost)/1000000,
+              "Storage Charging" =sum(Storage_Charging_Cost)/1000000,                                  
+              #Total_B = sum(Total_Cost)/1000000,
+              #Value_B = sum(Value)/1000000,
+              #Revenue_B = sum(Revenue)/1000000,
+              #sum_check=Fuel_B+Emissions_B+Capital_B+VOM_M+FOM_B
+    )
   
+  #Plot max
+  mxc <- 125
+  GenText_Sz <-GenText_Sz-4
   
+  # Get scenarios input
+  num_scn <- nrow(Costs_all)
+  df_list <- list()
+  counter <- 1
+  
+  # Create each plot
+  for (scn in Costs_all$Scenario) {
+
+    # Fitler data
+    Costs_temp = melt(Costs_all,id='Scenario')%>%
+      filter(Scenario==scn)%>%
+      select(.,c(variable,value))%>%
+      mutate(value=round(value,2))
+    
+    # Generate plot
+    plot_temp<- waterfall(Costs_temp,aes(values=value,labels =variable),
+                            fill_by_sign = FALSE, 
+                            fill_colours = c("#003399","#4472C4",'#515151','#767171','#cc79a7','gray80'),
+                            total_rect_color ="black",
+                            calc_total = TRUE) +
+      theme_bw() + 
+      theme(text=element_text(family=Plot_Text)) +
+      theme(panel.grid = element_blank(),  
+            
+            axis.title.x = element_text(size = GenText_Sz-26, vjust=0),
+            panel.background = element_rect(fill = "transparent"),
+            axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black",size = GenText_Sz-30),
+            plot.title = element_blank(),
+            text = element_text(size = GenText_Sz),
+            panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray70'),
+            strip.background = element_rect(colour=NA, fill=NA)) +
+      
+      scale_y_continuous(expand = c(0, 0),limits=c(0,mxc),breaks=pretty_breaks(6),labels=comma)
+      
+      if (counter==1){
+        plot_temp <- plot_temp +
+        theme(axis.title.y = element_text(size = GenText_Sz-26, vjust=0),
+              axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black",size = GenText_Sz-30),
+              axis.text.y=element_text(color="black",size = GenText_Sz-30)) +
+        labs(y="Total Cost ($B)", x=paste(scn)) 
+          
+      }else{
+        plot_temp <- plot_temp +
+          theme(axis.title.y = element_blank(),
+                axis.text.y = element_blank(),
+                axis.ticks.y = element_blank() ) +
+          labs(x=paste(scn)) 
+          
+      }
+      
+      
+    # Save plot
+    df_list[[counter]]<-plot_temp
+    counter = counter+1
+  }
+  
+  grid.arrange(grobs = df_list, ncol = num_scn,align="v", axis = "l")
   
 }
   
+################################################################################
+## FUNCTION: AnnualCost_Cum_COMPARE
+## Plots annual average emissions in cummulative bar chart.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+AnnualCost_Cum_COMPARE <- function(name_type,emissions_include) {
+  
+  # Plot color
+  if (name_type == "l"){
+    scenario_colors<-sn_colors2_l
+  }else{
+    scenario_colors<-sn_colors2_s
+  }
+  
+  # Filter emissions data
+  if (emissions_include=="N"){
+    # Values in billions
+    Sim <- ResGrYr %>%
+      compare_rename(.,name_type)%>%
+      group_by(Scenario,Year)%>%
+      summarise(Capital_Costs=sum(CAPEX)/1000000,
+                Operational_Costs=(sum(OPEX)-sum(Emissions_Cost))/1000000,
+      ) %>%
+      ungroup() %>%
+      group_by(Scenario)%>%
+      summarise(Year,
+                OPEX = cumsum(Operational_Costs),
+                CAPEX = cumsum(Capital_Costs))
+    add_note<-"Emission costs / profits removed"
+  }else{
+    Sim <- ResGrYr %>%
+      compare_rename(.,name_type)%>%
+      group_by(Scenario,Year)%>%
+      summarise(Capital_Costs=sum(CAPEX)/1000000,
+                Operational_Costs=sum(OPEX)/1000000,
+                #"Emissions Net" = sum(Emissions_Cost)/1000000,
+                #"Fuel" = sum(Total_Fuel_Cost)/1000000,
+                # Total_Costs = sum(Total_Cost)/1000000,
+                #Value_B = sum(Value)/1000000,
+                #Revenue_B = sum(Revenue)/1000000,
+      ) %>%
+      ungroup() %>%
+      group_by(Scenario)%>%
+      summarise(Year,
+                OPEX = cumsum(Operational_Costs),
+                CAPEX = cumsum(Capital_Costs))
+    add_note<-""
+  }
+  
+  # Make one column
+  Cost_T <- melt(Sim,id=c("Scenario","Year"))
+  
+  # Get plot max/mins
+  YearMX<-max(Sim$Year)
+  YearMN<-min(Sim$Year)
+  
+  upplim_df <- Cost_T %>%
+    group_by(Year,Scenario)%>%
+    summarise(Total_C=sum(value))
+  
+  Upplim <- round_any(max(upplim_df$Total_C)+11,25)
+  
+  # Filter by breaks
+  nbreaks=1
+  plot_breaks = seq(YearMN,YearMX,by=nbreaks)
+  Sim <- Sim %>%
+    filter(Year %in% plot_breaks)
+  
+  # Plot
+  ggplot(Cost_T) +
+    geom_bar(aes(x = Year, y = value, fill=variable), 
+             size = 1.25,stat="identity",position = "stack") +
+    facet_grid(~Scenario) +
+    theme_bw() +
+    theme(text=element_text(family=Plot_Text)) +
+    theme(axis.text = element_text(color="black"),
+          axis.title = element_text(size = GenText_Sz+6),
+          axis.text.x = element_text(angle = 90, hjust=0,vjust=0.5,color="black"),
+          plot.title = element_blank(),
+          text = element_text(size=GenText_Sz),
+          axis.title.x=element_blank(),
+          legend.text = element_text(size = GenText_Sz-6),
+          panel.grid = element_blank(),
+          legend.title = element_blank(),
+          legend.position = "right",
+          panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray70'),
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          
+          strip.placement = "outside",
+          strip.text = element_text(size = GenText_Sz, color = "black"),
+          strip.background = element_rect(colour=NA, fill=NA),
+          panel.spacing = unit(1.5,'lines')
+    ) +
+    labs(y = "Cummulative Cost ($B)", x="Year",caption=add_note) +
+    
+    scale_fill_manual(values = c("CAPEX"="#4472C4","OPEX"='gray80')) +
+
+    scale_x_continuous(breaks=seq(YearMN, YearMX, nbreaks), expand = c(0,0)) +
+    
+    scale_y_continuous(expand=c(0,0),limits=c(0,Upplim),n.breaks = 6)
+  
+}

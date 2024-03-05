@@ -425,6 +425,10 @@ GGSave_Loc_custom(CaseName,"Total Gen Study",Total_Gen_COMPARE("l"),12,8)
 GGSave_Loc_custom(CaseName,"Study Gen perc with Cogen",Total_Gen_Treemap_COMPARE("l",cogen_include="Y"),12,8)
 GGSave_Loc_custom(CaseName,"Study Gen perc no Cogen",Total_Gen_Treemap_COMPARE("l",cogen_include="n"),12,8)
 
+# Costs
+GGSave_Loc_custom(CaseName,"Total Cost Breakdown",Cost_Cum_COMPARE("l"),12,8)
+
+
 
 ################################################################################
 ## GENERATE PLOTS TO LOOK - NOT SAVE :)
