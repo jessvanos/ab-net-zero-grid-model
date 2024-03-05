@@ -30,7 +30,7 @@
   packs_to_load = c("tidyverse","scales","grid","gtable","gridExtra","ggpubr","extrafont",
                     "lubridate","cowplot","scales","dplyr","reshape2","zoo",
                     "ggpattern","here","showtext","DescTools",
-                    "openxlsx","timeDate","writexl","viridis","ggnewscale","janitor","sjmisc","treemapify")
+                    "openxlsx","timeDate","writexl","viridis","ggnewscale","janitor","sjmisc","treemapify","waterfalls")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
   
@@ -48,8 +48,8 @@
   #   'CER_12Feb'                CER with solar outage update
   #   'EL_25Feb"
   #   'TIER2050_23Feb'
-  #   'TIER2035L_29Feb'
-  #   'CP_noITC_03Mar'
+  #   'TIER2035_29Feb'
+  #   'CP_noITC5_26Feb'
   #
   #   'TIER2035_29_Feb_2024'
   # COMBINED SCENARIOS
@@ -59,8 +59,8 @@
   #   'All_5'                    CP_11Feb, CER_12Feb, EL_25Feb, TIER2050_23Feb, TIER2035L_29Feb 
 {
   # Define cases here
-  ScenarioName1<-"All_4"
-  ScenarioName2<-"TIER2035L_29Feb"
+  ScenarioName1<-"CP_CER"
+  ScenarioName2<-"EL_25Feb"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
   CScenarioName <-"TIER_3"
@@ -99,8 +99,8 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-#CaseName <- "Main 3"
 CaseName <- "TIER_3"
+#CaseName <- "TIER_3"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
@@ -398,7 +398,7 @@ CaseName <- "TIER_3"
 ################################################################################
 ## CREATE COMPARE PLOTS
 ################################################################################
-
+{
 # Compare pool prices
 GGSave_Loc_custom(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE("l","Y"),12,8)
 
@@ -427,7 +427,8 @@ GGSave_Loc_custom(CaseName,"Study Gen perc no Cogen",Total_Gen_Treemap_COMPARE("
 
 # Costs
 GGSave_Loc_custom(CaseName,"Total Cost Breakdown",Cost_Cum_COMPARE("l"),12,8)
-
+GGSave_Loc_custom(CaseName,"Cummulative Annual Cost",AnnualCost_Cum_COMPARE("l",emissions_include="Y"),12,8)
+}
 
 
 ################################################################################
