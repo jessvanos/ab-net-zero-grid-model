@@ -85,7 +85,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CP_noITC_26_Feb_2024"
+  SourceDB<-"CP_11_Feb_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -542,8 +542,10 @@ BC <- "Base Case"
           # Renewables and Other
           cOL_OTHER <- "steelblue1"
           cOL_HYDRO <- "royalblue3"
-          cOL_SOLAR <- "#FDE725FF"
-          cOL_WIND <- "#73D055FF"
+          cOL_SOLAR <- "#FDE725FF"#'darkgoldenrod1'#
+          cOL_WIND <- "#73D055FF" #"#238b45"#
+          col_WIND_CURT <-"#1d632d"
+          col_SOLAR_CURT <-'goldenrod1'
 
           # Storage Groups
           cOL_STORAGE <- "rosybrown1" 
@@ -602,6 +604,23 @@ BC <- "Base Case"
                  "SCCT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
+      
+      # Used for curtail graph 
+      colours1_rcurt = c("Trade"= cOL_EXPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+                         "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                         #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                         "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                         "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
+                         "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                         "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE,"Curtailed Solar"=cOL_SOLAR,"Curtailed Wind"=cOL_WIND)
+      
+      pattern1_rcurt = c("Trade"= "none", "Coal"="none", "Cogeneration"="none", 
+                         "Coal-to-Gas"="none","Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
+                         #"Blended  Simple Cycle"="none","Blended  Combined Cycle"="none",
+                         "Natural Gas Combined Cycle + CCS"="none",
+                         "Natural Gas Simple Cycle"="none", "Natural Gas Combined Cycle"="none", 
+                         "Hydro"="none", "Other"="none", "Wind"="none", 
+                         "Solar"="none", "Storage"="none","Curtailed Solar"="stripe","Curtailed Wind"="stripe")
       
       
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN,
@@ -733,8 +752,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CP_noITC"
-NameShort<-'CP_noITC_26Feb'
+CaseName <- "CP_Wind_Potential"
+NameShort<-'CP_Wind_Potential'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -770,8 +789,8 @@ NameShort<-'CP_noITC_26Feb'
     AnnualDataR(NameShort,BC)
       
 # OPTIONAL 
-    # Estimate hourly wind and solar weighted data -> this takes a LONG TIME to run
-    # ResGrouphr_R8760 <- ResGrouphr_Renew8760()
+    # Estimate curtailed energy
+    #Ren_Curtail_Gen_save(CaseName)
     
 ################################################################################
 ## COMMON INDIVIDUAL PLOT SAVING OPTIONS

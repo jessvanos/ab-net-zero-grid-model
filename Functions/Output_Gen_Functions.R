@@ -2230,6 +2230,175 @@ Renew_Curtail_perc <- function(case) {
 }
 
 ################################################################################
+## FUNCTION: Week12_wCURTAIL_simple
+## Plots output for a single week given the case study. Inlclude estimated curtailment, simplify other gen.
+## Supporting function To be used in year of weeks function. 
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+Week12_wCURTAIL_simple <- function(year,month,day,case) {
+  
+
+# Title formating & filter between dates
+wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
+wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
+
+# Get exports
+TRADE <- Export %>%
+  filter(Run_ID == case)%>%
+  mutate(Output_MWH=Output_MWH*-1+Import$Output_MWH,
+         ID="Net Exports")
+
+# Estimate Curtilment
+CURTAIL_RENEW <- ResGroupHr%>%
+  sim_filt(.)%>%
+  filter(ID %in% c("Wind","Solar"),
+         Condition=="Average",
+         Run_ID == case) %>%
+  group_by(ID,date,Run_ID) %>%
+  summarise(Capability,
+            Capacity,
+            Output_MWa=Capability-Output,
+            Factor=Output_MWa/Capacity,
+            Output_MWH=Output_MWa,
+            Type = "Curtailed") %>%
+  mutate(ID = paste(Type,ID),
+         Output_MWH = if_else(is.na(Output_MWH),0,Output_MWH))%>%
+  select(.,c(date,Output_MWH,Run_ID,ID))
+
+# Filters for the desired case study from the resource groups
+data_all <- ResGroupHr_sub%>%
+  sim_filt1(.) %>%
+  subset(., select=-c(Report_Year,Capacity_Factor)) %>%
+  rbind(.,TRADE) %>%
+  rbind(.,CURTAIL_RENEW) %>%
+  filter(Run_ID == case,
+         year(date)==year) %>%
+  mutate(Type = as.character(ID),
+         Type = if_else(!Type %in% c("Wind","Solar","Curtailed Solar","Curtailed Wind","Net Exports"),"Other Generation",Type),
+         Type = as.factor(Type))%>%
+  group_by(Type,date,Run_ID)%>%
+  summarise(Output_MWH=sum(Output_MWH))
+
+data<- data_all %>%
+  filter(date >= wk_st) %>%
+  filter(date <= wk_end)
+
+# Set levels to each category in order specified
+data$Type <- factor(data$Type, levels=c(
+  "Curtailed Solar","Curtailed Wind",
+  "Solar","Wind","Other Generation","Net Exports"))
+
+# Removes negatives - storage charge
+# data$Output_MWH[data$Output_MWH<0.001] <-0
+
+## SELECT A SINGLE WEEK
+
+# Select only a single week from the zone Hourly, and Export data
+WK <- WkTime(data,year,month,day)
+ZPrice <- WkTime(ZoneHr_Avg,year,month,day) %>%
+  filter(Run_ID == case)%>%
+  group_by(date)%>%
+  summarise(Price,
+            Net_Demand=Demand,
+            Imports,
+            Exports,
+            Demand_Expo=Demand+Exports,
+            Net_Load,
+            Marginal_Resource,
+            Demand_Side_Output)
+
+# # Set the max and min for the plot
+ZPrice2 <- ZoneHr_Avg %>%
+  filter(Run_ID == case) 
+ZPrice2$YEAR  <- as.POSIXct(as.character(ZPrice2$date), format = "%Y")
+ZPrice2$YEAR <-(format(ZPrice2$YEAR,format="%Y")) # Reformat for year only
+ZPrice2 <- ZPrice2 %>%
+  filter(YEAR == year)
+
+# Get y-max, demand to meet + exports
+max_out <- data_all %>%
+  group_by(date)%>%
+  summarise(max_OUTPUT = sum(Output_MWH))
+
+MX <- round_any(max(max_out$max_OUTPUT)+1100,1000,f=ceiling) 
+
+# Get y-min, based on exports
+MN <- round_any(max(ZPrice2$Exports)+1100,1000,f=floor)*-1 
+
+Mtitle=month.abb[month]
+
+# Adjust textsize
+GenText_Sz=14
+
+## PLOT WITH AREA PLOT
+
+ggplot() +
+  geom_area_pattern(data = na.omit(WK), aes(x = date, y = Output_MWH, fill = Type,pattern=Type),alpha=Plot_Trans, size=.25,color='black',
+                    pattern_density = 0.3,
+                    pattern_fill = "black",
+                    pattern_colour  = NA,
+                    pattern_spacing=0.015) +
+  
+  # Add hourly load line (black line on the top)
+  geom_line(data = ZPrice, 
+            aes(x = date, y = Net_Demand,linetype="Demand"), size=1.25,color='black') +
+  
+  # geom_line(data = ZPrice,
+  #           aes(x = date, y = Demand_Expo,linetype="Demand + Exports"), size=1.25,color='black') +
+  
+  geom_hline(yintercept = 0)+
+  scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day") +
+  
+  # Set the theme for the plot
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  
+  #theme(text=element_text(family=Plot_Text)) +
+  
+  theme(plot.title = element_text(size= GenText_Sz)) +
+  
+  theme(axis.text.x = element_text(vjust = 1,color="black"),
+        axis.title.x = element_text(size= GenText_Sz),
+        axis.text.y = element_text(color="black"),
+        axis.title.y = element_text(size= GenText_Sz),
+        panel.background = element_rect(fill = "transparent"),
+        plot.background = element_rect(fill = "transparent", color = NA),
+        legend.title=element_blank(),
+        legend.key = element_rect(colour = "transparent", fill = "transparent"),
+        legend.background = element_rect(fill='transparent',colour ='transparent'),
+        legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+        #legend.key.size = unit(1,"lines"), #Shrink legend
+        legend.position = "bottom",
+        legend.text = element_text(size= GenText_Sz-2),
+        text = element_text(size= GenText_Sz)
+  ) +
+  scale_y_continuous(expand=c(0,0), limits = c(MN,MX),breaks=seq(MN,MX,by=2000),
+                     labels=comma) +
+  
+  labs(x = "Date", y = "Output (MWh)", fill = "Resource", pattern = "Resource",colour = "Resource",title=Mtitle) +
+  
+  guides(fill = guide_legend(nrow = 1)) +
+  guides(color = guide_legend(nrow = 1)) +
+  guides(linetype = guide_legend(nrow = 1)) +
+  
+  #Add colour
+  scale_fill_manual(values = c("Curtailed Solar"='darkgoldenrod1',"Curtailed Wind"="#238b45",
+                               "Solar"='darkgoldenrod3',"Wind"="#1d632d","Other Generation"="#A6A6A6","Net Exports"='#e6e6e6')) +
+  scale_pattern_manual(values = c("Curtailed Solar"="stripe","Curtailed Wind"="stripe",
+                                  "Solar"="none","Wind"="none","Other Generation"="none","Net Exports"="none")) +
+  scale_linetype_manual(values=c("Demand"=1,"Demand + Exports"=3))  
+
+}
+
+
+################################################################################
 #
 # COMBINED PLOTS SECTION
 # Combined plots and supporting functions
@@ -2237,7 +2406,7 @@ Renew_Curtail_perc <- function(case) {
 ################################################################################ 
   
 ################################################################################
-## FUNCTION: week12
+## FUNCTION: Week12_rCURTAIL
 ## Plots output for a single week given the case study. 
 ## Supporting function To be used in year of weeks function. 
 ##
@@ -2250,17 +2419,11 @@ Renew_Curtail_perc <- function(case) {
 ##    Export - Exports selected from Zone Hourly Table
 ################################################################################
   
-  Week12 <- function(year, month, day, case) {
+Week12_rCURTAIL <- function(year, month, day, case) {
     
     # Title Formating & filter between dates
     wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
     wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
-    
-    # Get any demand curtailment
-    DSM <- ZoneHr_Avg%>%
-      mutate(ID="Demand Curtailment")%>%
-      subset(., select=c(ID,date,Demand_Side_Output,Run_ID))%>%
-        rename(Output_MWH=Demand_Side_Output)
 
     # Get exports
     TRADE <- Export %>%
@@ -2268,19 +2431,38 @@ Renew_Curtail_perc <- function(case) {
       mutate(Output_MWH=Output_MWH*-1+Import$Output_MWH,
              ID="Trade")
     
+    # Estimate Curtilment
+    CURTAIL_RENEW <- ResGroupHr%>%
+      sim_filt(.)%>%
+      filter(ID %in% c("Wind","Solar"),
+             Condition=="Average",
+             Run_ID == case) %>%
+      group_by(ID,date,Run_ID) %>%
+      summarise(Capability,
+                Capacity,
+                Output_MWa=Capability-Output,
+                Factor=Output_MWa/Capacity,
+                Output_MWH=Output_MWa,
+                Type = "Curtailed") %>%
+      mutate(ID = paste(Type,ID),
+             Output_MWH = if_else(is.na(Output_MWH),0,Output_MWH))%>%
+      select(.,c(date,Output_MWH,Run_ID,ID))
+    
     # Filters for the desired case study from the resource groups
-    data <- ResGroupHr_sub%>%
+    data_all <- ResGroupHr_sub%>%
       sim_filt1(.) %>%
       subset(., select=-c(Report_Year,Capacity_Factor)) %>%
-      rbind(DSM) %>%
+      rbind(CURTAIL_RENEW) %>%
       rbind(.,TRADE) %>%
-      filter(Run_ID == case) %>%
+      filter(Run_ID == case,
+             year(date)==year) 
+    
+    data<- data_all %>%
       filter(date >= wk_st) %>%
       filter(date <= wk_end)
     
     # Set levels to each category in order specified
-    data$ID <- factor(data$ID, levels=c(
-      #"Demand Curtailment",
+    data$ID <- factor(data$ID, levels=c("Curtailed Solar","Curtailed Wind",
       "Solar","Wind","Hydro","Other", 
                  "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                  "Blended  Simple Cycle","Blended  Combined Cycle",
@@ -2315,8 +2497,162 @@ Renew_Curtail_perc <- function(case) {
       filter(YEAR == year)
     
     # Get y-max, demand to meet + exports
-    MX <- round_any(max(ZPrice2$Baseline_Demand) + max(ZPrice2$Exports)+1100,1000,f=ceiling) 
+    # Get y-max, demand to meet + exports
+    max_out <- data_all %>%
+      group_by(date)%>%
+      summarise(max_OUTPUT = sum(Output_MWH))
+    MX <- round_any(max(max_out$max_OUTPUT)+1100,1000,f=ceiling) 
 
+    # Get y-min, based on exports
+    MN <- round_any(max(ZPrice2$Exports)+1100,1000,f=floor)*-1 
+    
+    Mtitle=month.abb[month]
+    
+    # Adjust textsize
+    GenText_Sz=14
+    
+    ## PLOT WITH AREA PLOT
+    
+    ggplot() +
+      geom_area_pattern(data = na.omit(WK), aes(x = date, y = Output_MWH, fill = ID,pattern=ID),
+                        size=.25,color='black',
+                        pattern_density = 0.3,
+                        pattern_fill = "black",
+                        pattern_colour  = NA,
+                        pattern_spacing=0.015) +
+      
+      # Add hourly load line (black line on the top)
+      geom_line(data = ZPrice, 
+                aes(x = date, y = Net_Demand,linetype="Demand"), size=1.25,color='black') +
+      
+      # geom_line(data = ZPrice,
+      #           aes(x = date, y = Demand_Expo,linetype="Demand + Exports"), size=1.25,color='black') +
+      
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day") +
+      
+      # Set the theme for the plot
+      theme_bw() +
+      theme(panel.grid = element_blank()) +
+      
+      #theme(text=element_text(family=Plot_Text)) +
+      
+      theme(plot.title = element_text(size= GenText_Sz)) +
+      
+      theme(axis.text.x = element_text(vjust = 1,color="black"),
+            axis.title.x = element_text(size= GenText_Sz),
+            axis.text.y = element_text(color="black"),
+            axis.title.y = element_text(size= GenText_Sz),
+            panel.background = element_rect(fill = "transparent"),
+            plot.background = element_rect(fill = "transparent", color = NA),
+            legend.title=element_blank(),
+            legend.key = element_rect(colour = "transparent", fill = "transparent"),
+            legend.background = element_rect(fill='transparent',colour ='transparent'),
+            legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+            #legend.key.size = unit(1,"lines"), #Shrink legend
+            legend.position = "bottom",
+            legend.spacing.y = unit(0.1, 'cm'),
+            legend.key.size = unit(0.5, 'cm'),
+            legend.text = element_text(size= GenText_Sz-2),
+            text = element_text(size= GenText_Sz)
+      ) +
+      scale_y_continuous(expand=c(0,0), 
+                         limits = c(MN,MX),
+                         breaks=seq(MN,MX,by=2000),
+                         labels=comma) +
+      
+      labs(x = "Date", y = "Output (MWh)", fill = "Resource", pattern ="Resource",colour = "Resource",title=Mtitle) +
+      
+      guides(fill = guide_legend(nrow = 2)) +
+      guides(color = guide_legend(nrow = 2)) +
+      guides(linetype = guide_legend(nrow = 2)) +
+      
+      #Add colour
+      scale_fill_manual(values = colours1_rcurt) +
+      scale_linetype_manual(values=c("Demand"=1,"Demand + Exports"=3)) + 
+      scale_pattern_manual(values=pattern1_rcurt)
+  }
+  
+################################################################################
+## FUNCTION: week12
+## Plots output for a single week given the case study. 
+## Supporting function To be used in year of weeks function. 
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+  
+  Week12 <- function(year, month, day, case) {
+    
+    # Title Formating & filter between dates
+    wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
+    wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
+    
+    # Get any demand curtailment
+    DSM <- ZoneHr_Avg%>%
+      mutate(ID="Demand Curtailment")%>%
+      subset(., select=c(ID,date,Demand_Side_Output,Run_ID))%>%
+      rename(Output_MWH=Demand_Side_Output)
+    
+    # Get exports
+    TRADE <- Export %>%
+      filter(Run_ID == case)%>%
+      mutate(Output_MWH=Output_MWH*-1+Import$Output_MWH,
+             ID="Trade")
+    
+    # Filters for the desired case study from the resource groups
+    data <- ResGroupHr_sub%>%
+      sim_filt1(.) %>%
+      subset(., select=-c(Report_Year,Capacity_Factor)) %>%
+      rbind(DSM) %>%
+      rbind(.,TRADE) %>%
+      filter(Run_ID == case) %>%
+      filter(date >= wk_st) %>%
+      filter(date <= wk_end)
+    
+    # Set levels to each category in order specified
+    data$ID <- factor(data$ID, levels=c(
+      #"Demand Curtailment",
+      "Solar","Wind","Hydro","Other", 
+      "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+      "Blended  Simple Cycle","Blended  Combined Cycle",
+      "Natural Gas Combined Cycle + CCS","Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Coal-to-Gas", 
+      "Coal", "Cogeneration","Trade","Storage"))
+    
+    # Removes negatives - storage charge
+    # data$Output_MWH[data$Output_MWH<0.001] <-0
+    
+    ## SELECT A SINGLE WEEK
+    
+    # Select only a single week from the zone Hourly, and Export data
+    WK <- WkTime(data,year,month,day)
+    ZPrice <- WkTime(ZoneHr_Avg,year,month,day) %>%
+      filter(Run_ID == case)%>%
+      group_by(date)%>%
+      summarise(Price,
+                Net_Demand=Demand,
+                Imports,
+                Exports,
+                Demand_Expo=Demand+Exports,
+                Net_Load,
+                Marginal_Resource,
+                Demand_Side_Output)
+    
+    # # Set the max and min for the plot
+    ZPrice2 <- ZoneHr_Avg %>%
+      filter(Run_ID == case) 
+    ZPrice2$YEAR  <- as.POSIXct(as.character(ZPrice2$date), format = "%Y")
+    ZPrice2$YEAR <-(format(ZPrice2$YEAR,format="%Y")) # Reformat for year only
+    ZPrice2 <- ZPrice2 %>%
+      filter(YEAR == year)
+    
+    # Get y-max, demand to meet + exports
+    MX <- round_any(max(ZPrice2$Baseline_Demand) + max(ZPrice2$Exports)+1100,1000,f=ceiling) 
+    
     # Get y-min, based on exports
     MN <- round_any(max(ZPrice2$Exports)+1100,1000,f=floor)*-1 
     
@@ -2390,68 +2726,67 @@ Renew_Curtail_perc <- function(case) {
 ################################################################################
 year_weeks <- function(year,case) {
   
+    # Create a graph for each month of the year
+    p1 <- Week12(year,01,08,case) +
+      theme(axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+            
   
-  # Create a graph for each month of the year
-  p1 <- Week12(year,01,08,case) +
-    theme(axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-          
+    p2 <- Week12(year,02,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p3 <- Week12(year,03,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p4 <- Week12(year,04,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p5 <- Week12(year,05,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p6 <- Week12(year,06,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p7 <- Week12(year,07,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p8 <- Week12(year,08,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p9 <- Week12(year,09,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p10 <- Week12(year,10,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p11 <- Week12(year,11,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p12 <- Week12(year,12,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
 
-  p2 <- Week12(year,02,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
-  p3 <- Week12(year,03,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
-  p4 <- Week12(year,04,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
-  p5 <- Week12(year,05,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
-  p6 <- Week12(year,06,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
-  p7 <- Week12(year,07,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
-  p8 <- Week12(year,08,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
-  p9 <- Week12(year,09,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
-  p10 <- Week12(year,10,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
-  p11 <- Week12(year,11,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
-  p12 <- Week12(year,12,08,case) +
-    theme(legend.position ="none",
-          axis.title.y=element_blank(),
-          axis.title.x=element_blank())
-  
   # Get a common legend
   legend <- get_legend(p1)
   p1 <- p1 + theme(legend.position ="none")
@@ -2489,6 +2824,183 @@ year_weeks <- function(year,case) {
   
 
   }
+
+################################################################################
+## FUNCTION: year_weeks_rCURTAIL
+## Plots output for a single week given the case study
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+year_weeks_rCURTAIL <- function(year,case,type) {
+  
+  if (type == "simple"){
+    # Create a graph for each month of the year
+        p1 <- Week12_wCURTAIL_simple(year,01,08,case) +
+          theme(axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        
+        p2 <- Week12_wCURTAIL_simple(year,02,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        p3 <- Week12_wCURTAIL_simple(year,03,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        p4 <- Week12_wCURTAIL_simple(year,04,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        p5 <- Week12_wCURTAIL_simple(year,05,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        p6 <- Week12_wCURTAIL_simple(year,06,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        p7 <- Week12_wCURTAIL_simple(year,07,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        p8 <- Week12_wCURTAIL_simple(year,08,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        p9 <- Week12_wCURTAIL_simple(year,09,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        p10 <- Week12_wCURTAIL_simple(year,10,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        p11 <- Week12_wCURTAIL_simple(year,11,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+        
+        p12 <- Week12_wCURTAIL_simple(year,12,08,case) +
+          theme(legend.position ="none",
+                axis.title.y=element_blank(),
+                axis.title.x=element_blank())
+  }else{
+      # Create a graph for each month of the year
+      p1 <- Week12_rCURTAIL(year,01,08,case) +
+        theme(axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      
+      p2 <- Week12_rCURTAIL(year,02,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      p3 <- Week12_rCURTAIL(year,03,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      p4 <- Week12_rCURTAIL(year,04,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      p5 <- Week12_rCURTAIL(year,05,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      p6 <- Week12_rCURTAIL(year,06,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      p7 <- Week12_rCURTAIL(year,07,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      p8 <- Week12_rCURTAIL(year,08,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      p9 <- Week12_rCURTAIL(year,09,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      p10 <- Week12_rCURTAIL(year,10,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      p11 <- Week12_rCURTAIL(year,11,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+      
+      p12 <- Week12_rCURTAIL(year,12,08,case) +
+        theme(legend.position ="none",
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+  }
+  # Get a common legend
+  legend <- get_legend(p1)
+  p1 <- p1 + theme(legend.position ="none")
+  
+  # Plot Labels
+  yleft <- textGrob("Output (MWh)", rot = 90, gp = gpar(fontsize = 20,fontface ='bold'))
+  
+  # Cheat way to put an x title in
+  xtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 6, fontface ='bold',
+             label = "Day of Month") + 
+    theme_void()
+  
+  # Label the source and year
+  xsubtitle <- ggplot() +
+    annotate("text", x = 10,  y = 10,
+             size = 4,
+             label = paste("year:",year
+                          # ", Database:",SourceDB
+                           )) + 
+    theme_void()
+  
+  #Create a big window
+  #windows(18,12)
+  
+  # Arrange all the plots
+  grid.arrange(plot_grid(p1, p2, p3, p4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p5,p6, p7, p8, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(p9, p10, p11, p12, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+               plot_grid(xtitle),
+               plot_grid(legend),
+               plot_grid(xsubtitle),
+               ncol=1,nrow=6, 
+               heights=c(1, 1,1,0.1,0.2,0.1),
+               left=yleft)
+  
+  
+}
 
 ################################################################################
 ## FUNCTION: PrOt
@@ -2775,6 +3287,142 @@ year_weeks <- function(year,case) {
     
   }  
   
+################################################################################
+## FUNCTION: FourMonthSummary_rCurtail
+## Plots output for a single week given the case study
+##
+## INPUTS: 
+##    year, month, day - Date to plot, the week will start on the day chosen
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ResGroupHr_sub - Filtered version of Resource Group Hour Table
+##    ZoneHr_Avg - Average hourly info in zone
+##    Export - Exports selected from Zone Hourly Table
+################################################################################
+  FourMonthSummary_rCurtail <- function(year,m1,m2,m3,m4,case) {
+    
+    
+    # Gather weekly output data (Feb,May,Aug,Nov)
+    p1 <- Week12_rCURTAIL(year,m1,08,case) +
+      theme(plot.title=element_text(face='bold',size=12),
+            axis.title.y=element_text(size=18),
+            axis.title.x=element_blank(),
+            legend.position = "bottom",) +
+      guides(fill = guide_legend(nrow = 2)) +
+      guides(linetype = guide_legend(nrow = 2))
+    
+    p2 <- Week12_rCURTAIL(year,m2,08,case) +
+      theme(plot.title=element_text(face='bold',size=12),
+            legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p3 <- Week12_rCURTAIL(year,m3,08,case) +
+      theme(plot.title=element_text(face='bold',size=12),
+            legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    p4 <- Week12_rCURTAIL(year,m4,08,case) +
+      theme(plot.title=element_text(face='bold',size=12),
+            legend.position ="none",
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())
+    
+    # Gather intertie info (Feb,May,Aug,Nov)
+    # p5 <- Imp_ExpWk(year,m1,08,case) +
+    #   theme(legend.position ="none",
+    #         axis.title.y=element_text(size=10),
+    #         plot.title = element_blank(),
+    #         text = element_text(size= 8),
+    #         axis.title.x=element_blank())+
+    #   scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    # 
+    # p6 <- Imp_ExpWk(year,m2,08,case) +
+    #   theme(legend.position ="none",
+    #         plot.title = element_blank(),
+    #         text = element_text(size= 8),
+    #         axis.title.y.left=element_blank(),
+    #         axis.title.x=element_blank())+
+    #   scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    # 
+    # p7 <- Imp_ExpWk(year,m3,08,case) +
+    #   theme(legend.position ="none",
+    #         plot.title = element_blank(),
+    #         text = element_text(size= 8),
+    #         axis.title.y.left=element_blank(),
+    #         axis.title.x=element_blank())+
+    #   scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    # 
+    # p8 <- Imp_ExpWk(year,m4,08,case) +
+    #   theme(legend.position ="none",
+    #         plot.title = element_blank(),
+    #         text = element_text(size= 8),
+    #         axis.title.y.left=element_blank(),
+    #         axis.title.x=element_blank())+
+    #   scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    # Price info  (Feb,May,Aug,Nov)
+    p9 <- week_price(year,m1,08,case) +
+      theme(legend.position ="none",
+            plot.caption=element_blank(),
+            axis.title.y=element_text(size=18),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    p10 <- week_price(year,m2,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            plot.caption=element_blank(),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    p11 <- week_price(year,m3,08,case) +
+      theme(legend.position ="none",
+            axis.title.y=element_blank(),
+            plot.caption=element_blank(),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    p12 <- week_price(year,m4,08,case) +
+      theme(legend.position ="none",
+            plot.caption=element_blank(),
+            axis.title.y=element_blank(),
+            axis.title.x=element_blank())+
+      scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
+    
+    # Get a common legend
+    legend <- get_legend(p1)
+    p1 <- p1 + theme(legend.position ="none")
+    
+    # Plot Labels
+    bottom <- textGrob("Day of Month", gp = gpar(fontsize = 18))
+    
+    # Label the source and year
+    xsubtitle <- ggplot() +
+      annotate("text", x = 10,  y = 10,
+               size = 4,
+               label = paste("year:",year,", Database:",SourceDB)) + 
+      theme_void()
+    
+    #Create a big window
+    #windows(18,12)
+    
+    # Set up plots
+    p_m1=plot_grid(p1,p9,ncol=1, align="v", axis = "l", rel_heights = c(1,0.4))
+    p_m2=plot_grid(p2,p10,ncol=1, align="v", axis = "l", rel_heights = c(1,0.4))
+    p_m3=plot_grid(p3,p11,ncol=1, align="v", axis = "l", rel_heights = c(1,0.4))
+    p_m4=plot_grid(p4,p12,ncol=1, align="v", axis = "l", rel_heights = c(1,0.4))
+    
+    #Arrange all the plots
+    grid.arrange(plot_grid(p_m1, p_m2, p_m3, p_m4, ncol=4, align="v", axis = "l", rel_widths = c(1,1,1,1)),
+                 plot_grid(bottom),
+                 plot_grid(legend),
+                 plot_grid(xsubtitle),
+                 ncol=1,nrow=4,
+                 heights=c(1, 0.05,0.05,0.05))
+    
+  }  
 ################################################################################
 ## FUNCTION: CER_EM_hour_Res
 ## Plots annual avg hours run and capacity factor for CER plants
