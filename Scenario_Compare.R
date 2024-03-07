@@ -49,7 +49,7 @@
   #   'EL_25Feb"
   #   'TIER2050_23Feb'
   #   'TIER2035_29Feb'
-  #   'CP_noITC5_26Feb'
+  #   'CP_noITC_04Mar'
   #
   #   'TIER2035_29_Feb_2024'
   # COMBINED SCENARIOS
@@ -59,11 +59,11 @@
   #   'All_5'                    CP_11Feb, CER_12Feb, EL_25Feb, TIER2050_23Feb, TIER2035L_29Feb 
 {
   # Define cases here
-  ScenarioName1<-"CP_CER"
-  ScenarioName2<-"EL_25Feb"
+  ScenarioName1<-"CP_11Feb"
+  ScenarioName2<-"CP_noITC_04Mar"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"TIER_3"
+  CScenarioName <-"ITC_2"
 }
 
 ################################################################################
@@ -99,7 +99,7 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "TIER_3"
+CaseName <- "ITC_2"
 #CaseName <- "TIER_3"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed

@@ -2219,7 +2219,7 @@ Renew_Curtail_perc <- function(case) {
           strip.background = element_rect(colour=NA, fill=NA),
           panel.border = element_rect(fill = NA, color = "black")) +
     
-    scale_y_continuous(expand=c(0,0),limits=c(0,0.6),breaks=pretty_breaks(4),labels = comma) +
+    scale_y_continuous(expand=c(0,0),limits=c(0,0.6),breaks=pretty_breaks(6),labels = comma) +
     scale_x_discrete(drop=TRUE) +
     
     

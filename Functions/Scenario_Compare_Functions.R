@@ -28,7 +28,7 @@ compare_rename <-function(data,type){
   
   data <- data %>%
     mutate(Scenario = if_else(grepl("CER_",Scenario)==TRUE,input_name[1],
-                              if_else(grepl("CP_",Scenario)==TRUE,input_name[2],
+                              if_else(grepl("CP_11",Scenario)==TRUE,input_name[2],
                                       if_else(grepl("EL_",Scenario)==TRUE,input_name[3],
                                         if_else(grepl("TIER2050_",Scenario)==TRUE,input_name[4],
                                                 if_else(grepl("TIER2035",Scenario)==TRUE,input_name[5],
