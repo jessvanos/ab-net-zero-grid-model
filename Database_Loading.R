@@ -465,7 +465,19 @@ BC <- "Base Case"
          df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "EXPORT",after=Inf)
          gc()   
    }
+      
+  # AESO Market stats wind data
+    AESO_MS_Wind <- readRDS(here("Data Files","Alberta Data","AESO_market_stats_wind.RData"))  
+    
+    AESO_MS_Wind <- AESO_MS_Wind %>%
+      mutate(time = as.POSIXct(Date, format = "%m/%d/%Y %I:%M:%S %p"),
+             Day = date(time),
+             Year = year(time),
+             Hour = hour(time))%>%
+      rename(CF=`Capacity Factor`,
+             Output=`Total Generation`)
         
+          
 }
 ################################################################################
 ## PLOT SETTINGS
@@ -965,7 +977,7 @@ NameShort<-'CP_Wind_Potential'
       SaveRun_Loc(CaseName,"Wind Load Duration Curve Compared to AESO")
       
       # Compare wind duration curves between AESO from 2025 to max year of sim, normalize by capacity
-      AESO_Sim_WindDurNorm(2023,2026,1,BC)
+      AESO_Sim_WindDurNorm(2023,2029,1,BC)
       SaveRun_Loc(CaseName,"Wind Capacity Factor Duration Curve Compared to AESO early")
       
       # Capacity factor ridgeline

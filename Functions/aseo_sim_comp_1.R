@@ -1264,15 +1264,13 @@ AESO_Sim_WindDurNorm <- function(MinYr,MaxYr,yrgap,case) {
     subset(select=c(Output,CF,perc,date,YearS))
   
   # Bring in hitorical data
-  WindDataA <- df1a%>%
-    filter(Plant_Type=="WIND",
-           Day<"2023-01-01",
+  WindDataA <- AESO_MS_Wind%>%
+    filter(Plant_Type=="Wind",
+           Day<"2024-01-01",
            Day>="2017-01-01") %>%
-    rename(YearA=Year,
-           CF=group_CF)%>%
+    rename(YearA=Year)%>%
     group_by(YearA) %>%
-    mutate(Output=total_gen,
-           YearA=paste(YearA,"AESO"))%>%
+    mutate(YearA=paste(YearA,"AESO"))%>%
     rename(date=time)%>%
     # Get an empirical distribution for grouped data, 
     mutate(perc = 1-ecdf(CF)(CF))%>%
@@ -1282,12 +1280,12 @@ AESO_Sim_WindDurNorm <- function(MinYr,MaxYr,yrgap,case) {
   ggplot() +
     geom_line(data = WindDataA, 
               aes(x = perc, y = CF, colour = YearA), size = 1.25) +
-    scale_color_viridis_d(option = "mako") +
+    scale_color_brewer(palette = "Blues") +
     
     new_scale_colour() +
     geom_line(data = WindDataS, 
               aes(x = perc, y = CF, colour = YearS), size = 1.25,linetype = "dashed") +
-    scale_color_viridis_d(option = "inferno") +
+    scale_color_brewer(palette ="Oranges") +
     
     theme_bw() +
     
@@ -1307,11 +1305,11 @@ AESO_Sim_WindDurNorm <- function(MinYr,MaxYr,yrgap,case) {
           legend.title=element_blank(),
           text = element_text(size = GenText_Sz)) +
     
-    labs(x = "Percent of Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)",colour="ID",linetype="ID",caption = paste('Source: ',SourceDB,', NRGStream')) +
+    labs(x = "Percent of Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)",colour="ID",linetype="ID",caption = paste('Source: ',SourceDB,', AESO Market Statistics')) +
     
     scale_y_continuous(expand = c(0, 0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) +
     
-    scale_x_continuous(expand=c(0,0),breaks=seq(0, 1, by=0.2),labels = percent) 
+    scale_x_continuous(expand=c(0,0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) 
 }
 
 ################################################################################

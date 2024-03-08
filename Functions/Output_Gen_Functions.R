@@ -1461,11 +1461,11 @@
          # plot.margin=unit(c(5,1,5,1), 'cm')) +
     
     labs(x = "Hours per Year", y = "Fleet Capacity Factor (Output/Capacity)", 
-         colour="ID",linetype="ID",caption = paste(SourceDB,',')) +
+         colour="ID",linetype="ID",caption = paste(SourceDB)) +
     
     scale_x_continuous(expand = c(0, 0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) +
     
-    scale_y_continuous(expand=c(0,0.05),breaks=seq(0, 1, by=0.2),labels = percent) 
+    scale_y_continuous(expand=c(0,0),limits = c(0,1),breaks=seq(0, 1, by=0.2),labels = percent) 
   
   }
   
