@@ -50,6 +50,7 @@
   #   'TIER2050_23Feb'
   #   'TIER2035_29Feb'
   #   'CP_noITC_04Mar'
+  #   'CER_noITCs_Mar'
   #
   #   'TIER2035_29_Feb_2024'
   # COMBINED SCENARIOS
@@ -59,11 +60,11 @@
   #   'All_5'                    CP_11Feb, CER_12Feb, EL_25Feb, TIER2050_23Feb, TIER2035L_29Feb 
 {
   # Define cases here
-  ScenarioName1<-"CP_11Feb"
-  ScenarioName2<-"CP_noITC_04Mar"
+  ScenarioName1<-"CER_12Feb"
+  ScenarioName2<-"CER_noITCs_Mar"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"ITC_2"
+  CScenarioName <-"ITC_CER_2"
 }
 
 ################################################################################
@@ -99,7 +100,7 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "ITC_2"
+CaseName <- "ITC_CER_2"
 #CaseName <- "TIER_3"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
@@ -329,6 +330,7 @@ CaseName <- "ITC_2"
   COL_TIER2050 = "#238b45"
   COL_TIER2035 = "yellowgreen"
   COL_noITC = '#515151'
+  COL_noITC_CER = '#cc79a7'
   
   # Scenario colors with historic
    sn_colors_l <-c("Draft CER"=COL_CER,
@@ -337,6 +339,7 @@ CaseName <- "ITC_2"
                    "TIER 2050" = COL_TIER2050,
                    "TIER 2035" = COL_TIER2035,
                    "No ITCs"= COL_noITC,
+                   "No ITCs with CER"=COL_noITC_CER,
                    'Historic'='black')
    
    sn_line_l <-c("Draft CER"=1,
@@ -345,6 +348,7 @@ CaseName <- "ITC_2"
                  "TIER 2050" = 1,
                  "TIER 2035" = 1,
                  "No ITCs"= 1,
+                 "No ITCs with CER"=1,
                  'Historic'=1)
    
    sn_colors_s <-c("CER"=COL_CER,
@@ -353,6 +357,7 @@ CaseName <- "ITC_2"
                    "TIER2050"=COL_TIER2050,
                    "TIER2035"=COL_TIER2035,
                    "noITCs"=COL_noITC,
+                   "CERnoITCs"=COL_noITC_CER,
                    'Historic'='black')
    
    sn_line_s <-c("CER"=1,
@@ -361,6 +366,7 @@ CaseName <- "ITC_2"
                  "TIER2050"=1,
                  "TIER2035"=1,
                  "noITCs"=1,
+                 "CERnoITCs"=1,
                  'Historic'=1)
    
    # Scenario colors no historic
@@ -369,28 +375,32 @@ CaseName <- "ITC_2"
                    "Emissions Limit"=COL_EL,
                    "TIER 2050" = COL_TIER2050,
                    "TIER 2035" = COL_TIER2035,
-                   "No ITCs"=COL_noITC
+                   "No ITCs"=COL_noITC,
+                   "No ITCs with CER"=COL_noITC_CER
                    )
    sn_line2_l <-c("Draft CER"=1,
                  "Current Policy"=1,
                  "Emissions Limit"=1,
                  "TIER 2050" = 1,
                  "TIER 2035" = 1,
-                 "No ITCs"=1
+                 "No ITCs"=1,
+                 "No ITCs with CER"=1
                  )
    sn_colors2_s <-c("CER"=COL_CER,
                    "CP"=COL_CP,
                    "EL"=COL_EL,
                    "TIER2050"= COL_TIER2050,
                    "TIER2035" = COL_TIER2035,
-                   "noITCs"=COL_noITC
+                   "noITCs"=COL_noITC,
+                   "CERnoITCs"=COL_noITC_CER
                   )
    sn_line2_s <-c("CER"=1,
                  "CP"=1,
                  "EL"=1,
                  "TIER2050"=1,
                  "TIER2035"=1,
-                 "noITCs"=1
+                 "noITCs"=1,
+                 "CERnoITCs"=1
                  )
    
   }

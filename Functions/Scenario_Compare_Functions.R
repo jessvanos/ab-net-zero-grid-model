@@ -15,9 +15,9 @@
 compare_rename <-function(data,type){
   
   if (type == "l"){
-    input_name <-c("Draft CER","Current Policy","Emissions Limit","TIER 2050","TIER 2035","No ITCs")
+    input_name <-c("Draft CER","Current Policy","Emissions Limit","TIER 2050","TIER 2035","No ITCs","No ITCs with CER")
   }else{
-    input_name<-c("CER","CP","EL","TIER2050","TIER2035","noITCs")
+    input_name<-c("CER","CP","EL","TIER2050","TIER2035","noITCs","CERnoITCs")
   }
   
   # Rename if needed to make up for poor initial coding
@@ -27,12 +27,13 @@ compare_rename <-function(data,type){
   }
   
   data <- data %>%
-    mutate(Scenario = if_else(grepl("CER_",Scenario)==TRUE,input_name[1],
+    mutate(Scenario = if_else(grepl("CER_12",Scenario)==TRUE,input_name[1],
                               if_else(grepl("CP_11",Scenario)==TRUE,input_name[2],
                                       if_else(grepl("EL_",Scenario)==TRUE,input_name[3],
                                         if_else(grepl("TIER2050_",Scenario)==TRUE,input_name[4],
                                                 if_else(grepl("TIER2035",Scenario)==TRUE,input_name[5],
-                                                        if_else(grepl("noITC",Scenario)==TRUE,input_name[6],"unknown")))))))
+                                                        if_else(grepl("CP_noITC",Scenario)==TRUE,input_name[6],
+                                                                if_else(grepl("CER_noITC",Scenario)==TRUE,input_name[7],"unknown"))))))))
   
   if (any(data$Scenario == "unknown")==TRUE) {
     print("Unknown scenario detected")
