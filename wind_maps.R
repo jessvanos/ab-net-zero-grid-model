@@ -25,7 +25,7 @@
   # Packages required
   packs_to_load = c("terra","sf","ggplot2","ggpubr","cowplot","tidyverse","dplyr",
                     "lubridate","readxl","colorRamps","scales",
-                    "ggmap","sp","geodata",'ggspatial','dplyr','nasapower')
+                    "ggmap","sp","geodata",'ggspatial','dplyr','nasapower','grid','gridExtra')
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
   
@@ -51,6 +51,13 @@
   existing_prj = wind_Aurora %>%
     filter(Status %in% c("Active","Queue"))
 
+  # Add major cities to map
+  city_data <- data.frame(
+    city = c("Edmonton","Calgary","Red Deer","Lethbridge",
+             "Grand Prairie","Fort McMurray","Pincher Creek","Medicine Hat"),
+    lon = c(-113.295776,-113.827866,-113.8115,-112.8451,-118.7885,-111.3790,-113.9440,-110.7032),
+    lat = c(53.541252,	51.046898,52.2690,49.6956,55.1707,56.7266,49.4849,50.0290)
+  )
 ################################################################################
 # GET MAP
 ################################################################################
@@ -73,24 +80,29 @@
   
   # Coordinated from object
   alberta_coordinates1 = data.frame(st_coordinates(AB_sf1)[,1:2])
+  alberta_coordinates2 = data.frame(st_coordinates(AB_sf2)[,1:2])
 
 ################################################################################
 # WIND SPEED MAP
 ################################################################################
 
-  ggplot() + 
+  wind_map <- ggplot() + 
     geom_raster(data = wind_profile, 
                 aes(x = Longitude, y = Latitude, fill = Wind)) +
     geom_sf(data = AB_sf1, 
                  aes(group = NAME_1), 
                  fill = "transparent", colour = "black") +
     # https://colorspace.r-forge.r-project.org/reference/rainbow_hcl.html
-    scale_fill_gradientn(colours = colorspace::rainbow_hcl(100),
-                         #colours = colorspace::diverging_hcl(100,"Blue-Yellow 2"),
-                         #colours = matlab.like(100),
-                         limits=c(2,10),oob=squish, 
-                         breaks=seq(2,10,by=2),
-                         name = "Mean annual\nwind speed\nat 80m height \n(m/s)") +
+    scale_fill_gradientn(#colours = colorspace::rainbow_hcl(100),
+                         #colours = colorspace::diverging_hcl(100,"Cork"),
+                         #colours = colorspace::sequential_hcl(100,"Mako"),
+                         colours = matlab.like(100),
+                         limits=c(3,11),oob=squish, 
+                         breaks=c(3,5,7,9,11),
+                         labels=c("<3"," 5"," 7"," 9","<11"),
+                         name = "Wind speed\nat 80m height \n(m/s)") +
+    geom_point(data = city_data, aes(x = lon, y = lat), color = "black", size = 0.5) +
+    geom_text(data = city_data, aes(x = lon, y = lat, label = city), vjust = -0.5,size=2) +
     
     theme(panel.background = element_rect(fill = "transparent"),
           panel.grid.major = element_blank(),
@@ -103,7 +115,9 @@
           #legend.key.height = unit(2,'cm'),
           legend.box.background = element_rect(fill = "transparent", color = "transparent"),
           legend.text = element_text(),
-          legend.title = element_text()) 
+          plot.title = element_text(hjust=0.5),
+          legend.title = element_text(hjust=0.5)) +
+    labs(title="Mean Wind Speed")
 
 ################################################################################
 # ACTIVE FARMS
@@ -218,54 +232,80 @@ Aurora_WindMap <-    ggplot()+
 
 # List of farms built
 
+################################################################################
+# SOLAR DATA (not done)
+#   SOURCE: https://open.alberta.ca/opendata/gda-dde6ad60-dd08-4f21-bbda-7934c8cbdf1f
+#   1971-2000 solar solar radiation, in megajoules per square metre (MJ/m2)
+#
+#   Original Coordinate System: raster::projection(solar_raster)
+################################################################################
 
+  # Read the downloaded TIF file
+  solar_raster <- lapply(here("Data Files","Alberta Data","TIF","Annual Solar Radiation 1971-2000.tif"), raster)[[1]]
+  
+  # Apply new coordinate system
+  solar_raster2 = projectRaster(solar_raster,crs=WGS84)
+  
+  # Convert to data frame
+  solar_df <- as.data.frame(solar_raster2, xy = TRUE) %>%
+    rename(Ann_Rad = "Annual.Solar.Radiation.1971.2000") %>%
+    filter(!is.na(Ann_Rad))
 
-
+  # Plot with ggplot2
+  solar_map <-ggplot() + 
+    geom_raster(data = solar_df, 
+                aes(x = x, y = y, fill = Ann_Rad)) +
+    geom_sf(data = AB_sf1, 
+            aes(group = NAME_1), 
+            fill = "transparent", colour = "black") +
+    # https://colorspace.r-forge.r-project.org/reference/rainbow_hcl.html
+    scale_fill_gradientn(#colours = matlab.like(100),
+                         #colours = colorspace::diverging_hcl(100,"Vik"),
+                         colours = colorspace::sequential_hcl(100,"Lajolla"),
+                         limits=c(3500,5500),oob=squish, 
+                         breaks=c(3500,4000,4500,5000,5500),
+                         name = expression(atop("Solar Radiation",paste("(MJ/m"^2,")"))),
+                         labels=c("<3500"," 4000"," 4500"," 5000","<5500")) +
+    
+    geom_point(data = city_data, aes(x = lon, y = lat), color = "black", size = 0.5) +
+    geom_text(data = city_data, aes(x = lon, y = lat, label = city), vjust = -0.5,size=2) +
+  
+    
+    theme(panel.background = element_rect(fill = "transparent"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          axis.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.background = element_rect(fill = "transparent"),
+          #legend.key.height = unit(2,'cm'),
+          legend.box.background = element_rect(fill = "transparent", color = "transparent"),
+          legend.text = element_text(),
+          plot.title = element_text(hjust=0.5),
+          legend.title.align = 0,
+          legend.title = element_text()) +
+    labs(title="Annual Solar Radiation")
+  
 ################################################################################
 # SAVE EM!
 ################################################################################
-GGSave_Loc_custom("Wind Maps","New Wind Options",Aurora_WindMap,8,12)
-GGSave_Loc_custom("Wind Maps","Existing Wind",Exist_WindMap,8,12)
 
-################################################################################
-# SOLAR DATA (not done)
-################################################################################
-
-  # Solar_data = data.frame(matrix(ncol = 3, nrow = nrow(alberta_coordinates1)))%>%
-  #   rename(Lat=X1,Long=X1,SR=X3)
-  # 
-  #  for(i in nrow(Solar_data)){
-  #   Solar_data[i,1]=alberta_coordinates1[i,1]
-  #   Solar_data[i,2]=alberta_coordinates1[i,2]
-  #   Solar_data[i,3]=nasapower::get_power(community = "re", pars = "ALLSKY_SFC_SW_DWN",lonlat = c(alberta_coordinates1[1,1], alberta_coordinates1[1,2]), temporal_api  = "climatology")[16]
-  # }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  combine_map <- plot_grid(wind_map,solar_map, ncol=2, align="hv", axis = "t", rel_heights = c(1,1))
+  
+  plot(combine_map)
+  
+  GGSave_Loc_custom("Wind Maps","Wind and Solar Resource3",combine_map,12,14)
+  
+  GGSave_Loc_custom("Wind Maps","New Wind Options",Aurora_WindMap,8,12)
+  GGSave_Loc_custom("Wind Maps","Existing Wind",Exist_WindMap,8,12)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
