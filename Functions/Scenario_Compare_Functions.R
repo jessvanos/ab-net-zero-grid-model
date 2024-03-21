@@ -15,9 +15,9 @@
 compare_rename <-function(data,type){
   
   if (type == "l"){
-    input_name <-c("Draft CER","Current Policy","Emissions Limit","TIER 2050","TIER 2035","No ITCs","No ITCs with CER")
+    input_name <-c("Draft CER","Current Policy","Emissions Limit","TIER 2050","TIER 2035","No ITCs","No ITCs with CER","Absolute Zero","No H2 Absolute Zero")
   }else{
-    input_name<-c("CER","CP","EL","TIER2050","TIER2035","noITCs","CERnoITCs")
+    input_name<-c("CER","CP","EL","TIER2050","TIER2035","noITCs","CERnoITCs","AZ","AZstrict")
   }
   
   # Rename if needed to make up for poor initial coding
@@ -33,7 +33,9 @@ compare_rename <-function(data,type){
                                         if_else(grepl("TIER2050_",Scenario)==TRUE,input_name[4],
                                                 if_else(grepl("TIER2035",Scenario)==TRUE,input_name[5],
                                                         if_else(grepl("CP_noITC",Scenario)==TRUE,input_name[6],
-                                                                if_else(grepl("CER_noITC",Scenario)==TRUE,input_name[7],"unknown"))))))))
+                                                                if_else(grepl("CER_noITC",Scenario)==TRUE,input_name[7],
+                                                                        if_else(grepl("AZ_",Scenario)==TRUE,input_name[8],
+                                                                                if_else(grepl("AZstrict_",Scenario)==TRUE,input_name[9],"unknown"))))))))))
   
   if (any(data$Scenario == "unknown")==TRUE) {
     print("Unknown scenario detected")
@@ -1048,7 +1050,11 @@ Cost_Cum_COMPARE <- function(name_type) {
     )
   
   #Plot max
-  mxc <- 125
+  Costs_sum <- Costs_all %>%
+    group_by(Scenario)%>%
+    summarise(Total=CAPEX+VOM+FOM+`Emissions Net`+Fuel+`Storage Charging`)
+  
+  mxc <- round_any(max(Costs_sum$Total)+3,5,f=ceiling)
   GenText_Sz <-GenText_Sz-4
   
   # Get scenarios input
