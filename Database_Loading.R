@@ -85,7 +85,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CER_noITCs_07_March2024"
+  SourceDB<-"CER_02_Apr_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -565,28 +565,43 @@ BC <- "Base Case"
           COL_CompAir <-"coral3"
           COL_Pumped <-"firebrick4"
           
-      # Gray-scale colors
-          cOL_IMPORTg<- "gray95"
+      # Gray-scale safe colors
+          # Renewables and Other
+          cOL_SOLARg <- "#FAEB45"#"#DDDDDD"
+          cOL_WINDg <-  "#76F365" #"#BDBDBD"
+          col_WIND_CURTg <-cOL_WINDg
+          col_SOLAR_CURTg <-cOL_SOLARg
+          cOL_HYDROg <- "#50AFFF"#"#9B9B9B"
+          cOL_OTHERg <- "#7b7b7b"
+          
+          # H2 groups (blues)
+          cOL_SCGT_H2g <- "#565656"
+          cOL_NGCC_H2g <- "#7e7e7e"
+          COL_H2g <- cOL_SCGT_H2g 
           
           # Gas Groups (Purples)
-          cOL_COal2Gasg<-"gray60"
+          cOL_NGCC_CCSg <-"#181818"
+          cOL_SCGTg <- "#8c8c8c"
+          cOL_NGCCg <- "#383838"
+          cOL_COal2Gasg <-  "#717171"
           cOL_NGConvg <- cOL_COal2Gasg
-          cOL_SCGTg <- "gray45"
-          cOL_NGCCg <- "gray80"
-          COL_NatGasg <-"gray45"
-          cOL_NGCC_CCSg<-"gray20"
+          COL_NatGasg <-cOL_NGCCg
           
-          cOL_OTHERg<-"gray70"
-          cOL_HYDROg<-"steelblue3"
-          cOL_STORAGEg<-"steelblue1"
-          cOL_SOLARg<-"lightsteelblue"
-          cOL_WINDg<-"steelblue4"
+          # Coal/Cogen
+          cOL_COALg <- "black"
+          cOL_COGENg <- "#474747"
+          cOL_NUCLEARg <- "midnightblue"
           
-          cOL_COALg<-"black"
-          cOL_COGENg<-"gray35"
+          # Import/Export
+          cOL_IMPORTg <- "white" 
+          cOL_EXPORTg <- "white"
           
-          cOL_NUCLEARg<-"midnightblue"
-          COL_H2g<-"gray89"
+          # Storage Groups
+          COL_Batteryg <-"#e7e7e7" 
+          COL_CompAirg <-"#EFEFEF"
+          COL_Pumpedg <-"#F5F5F5"
+          cOL_STORAGEg <- COL_Batteryg
+          
 
           # Set plot color transparacny 
           Plot_Trans<-1
@@ -634,6 +649,22 @@ BC <- "Base Case"
                          "Hydro"="none", "Other"="none", "Wind"="none", 
                          "Solar"="none", "Storage"="none","Curtailed Solar"="stripe","Curtailed Wind"="stripe")
       
+      # GRAY_SCALE SAFE COLOR PALLETE
+      colours1g=c("Trade"= cOL_EXPORTg, "Coal"=cOL_COALg, "Cogeneration"=cOL_COGENg, 
+                 "Coal-to-Gas"=cOL_NGConvg,"Hydrogen Simple Cycle"=cOL_SCGT_H2g,"Hydrogen Combined Cycle"=cOL_NGCC_H2g,
+                 #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                 "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCSg,
+                 "Natural Gas Simple Cycle"=cOL_SCGTg, "Natural Gas Combined Cycle"=cOL_NGCCg, 
+                 "Hydro"=cOL_HYDROg, "Other"=cOL_OTHERg, "Wind"=cOL_WINDg, 
+                 "Solar"=cOL_SOLARg, "Storage"=cOL_STORAGEg)
+      
+      colours1_rcurtg = c("Trade"= cOL_EXPORTg, "Coal"=cOL_COALg, "Cogeneration"=cOL_COGENg, 
+                         "Coal-to-Gas"=cOL_NGConvg,"Hydrogen Simple Cycle"=cOL_SCGT_H2g,"Hydrogen Combined Cycle"=cOL_NGCC_H2g,
+                         #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                         "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCSg,
+                         "Natural Gas Simple Cycle"=cOL_SCGTg, "Natural Gas Combined Cycle"=cOL_NGCCg, 
+                         "Hydro"=cOL_HYDROg, "Other"=cOL_OTHERg, "Wind"=cOL_WINDg, 
+                         "Solar"=cOL_SOLARg, "Storage"=cOL_STORAGEg,"Curtailed Solar"=cOL_SOLARg,"Curtailed Wind"=cOL_WINDg)
       
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN,
                    "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,"Hydrogen"=COL_H2,
@@ -738,7 +769,7 @@ BC <- "Base Case"
   Years2Pivot <- c(2023,2025,2030,2035,2040,2045)  # Years to display in tables
   
   # Get max year to display
-  MaxYrStudy<-2045
+  MaxYrStudy<-2050
   #MaxYrStudy <-max(as.numeric(ResYr$Time_Period))-5
   
   # Adjust capacity manually for 2025 (Manual add vs Aurora)
@@ -764,8 +795,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CER_noITCs"
-NameShort<-'CER_noITCs_Mar'
+CaseName <- "CER TEST"
+NameShort<-'CER_02Apr TEST'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -778,7 +809,7 @@ NameShort<-'CER_noITCs_Mar'
     # Normal analysis
     Analysis_saveall(CaseName)
     # Detailed generation plots
-    Detail_Gen_save(CaseName)
+    Detail_Gen_save(CaseName,"n")
 
   # ADDITIONAL ANALYSIS
     # Value plots
@@ -802,7 +833,7 @@ NameShort<-'CER_noITCs_Mar'
       
 # OPTIONAL 
     # Estimate curtailed energy
-    #Ren_Curtail_Gen_save(CaseName)
+    Ren_Curtail_Gen_save(CaseName,"n")
     
 ################################################################################
 ## COMMON INDIVIDUAL PLOT SAVING OPTIONS
@@ -812,9 +843,11 @@ NameShort<-'CER_noITCs_Mar'
     
   # HOURLY GENERATION
       # Grid of weekly output - need to edit for more than one week of data
-      year_weeks(2043,BC)
+      year_weeks(2043,BC,'g')
       SaveRun_Loc(CaseName,"2023 Hourly Generation for One Week (Stacked Area)")
-
+      
+      Week12(2030,01,08,BC,'n')
+      
       # Four months of generation and pool price
       FourMonthSummary(2040,01,04,07,10,BC) ### Redo without trade included
       SaveRun_Loc(CaseName,"2040 Output, Trade, Price") 
@@ -837,7 +870,7 @@ NameShort<-'CER_noITCs_Mar'
           SaveRun_Loc(CaseName,"Capacity Factors 2022 and 2045")
           
       # Yearly Output
-      Evalyr(BC,"n")
+      Evalyr(BC,"g")
       SaveRun_Loc(CaseName,"Annual Generation (Stacked Area)")
       
       # Yearly Capacity
@@ -939,7 +972,7 @@ NameShort<-'CER_noITCs_Mar'
       
   # EMISSIONS
       # Annual emissions in stacked area chart
-      AnnualEmStackCol(BC,"NAICS")
+      AnnualEmStackCol(BC,"None")
       SaveRun_Loc(CaseName,"Annual Emissions (Bar)")
       
       # Annual emissions in individual lines

@@ -2419,8 +2419,14 @@ ggplot() +
 ##    Export - Exports selected from Zone Hourly Table
 ################################################################################
   
-Week12_rCURTAIL <- function(year, month, day, case) {
+Week12_rCURTAIL <- function(year, month, day, case,P_type) {
     
+  if (P_type == "g"){
+    col_plot = colours1_rcurtg
+  }else{
+    col_plot = colours1_rcurt
+  }
+  
     # Title Formating & filter between dates
     wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
     wk_end <- as.Date(paste(year,month,day+7, sep = "-"),tz="MST")
@@ -2567,7 +2573,7 @@ Week12_rCURTAIL <- function(year, month, day, case) {
       guides(linetype = guide_legend(nrow = 2)) +
       
       #Add colour
-      scale_fill_manual(values = colours1_rcurt) +
+      scale_fill_manual(values = col_plot) +
       scale_linetype_manual(values=c("Demand"=1,"Demand + Exports"=3)) + 
       scale_pattern_manual(values=pattern1_rcurt)
   }
@@ -2586,7 +2592,13 @@ Week12_rCURTAIL <- function(year, month, day, case) {
 ##    Export - Exports selected from Zone Hourly Table
 ################################################################################
   
-  Week12 <- function(year, month, day, case) {
+  Week12 <- function(year, month, day, case,p_type) {
+    
+    if (p_type == "g"){
+      col_scale = colours1g
+    }else{
+      col_scale = colours1
+    }
     
     # Title Formating & filter between dates
     wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
@@ -2708,7 +2720,7 @@ Week12_rCURTAIL <- function(year, month, day, case) {
       guides(linetype = guide_legend(nrow = 1)) +
       
       #Add colour
-      scale_fill_manual(values = colours1) +
+      scale_fill_manual(values = col_scale) +
       scale_linetype_manual(values=c("Demand"=1,"Demand + Exports"=3))            
   }
   
@@ -2724,65 +2736,65 @@ Week12_rCURTAIL <- function(year, month, day, case) {
 ##    ZoneHr_Avg - Average hourly info in zone
 ##    Export - Exports selected from Zone Hourly Table
 ################################################################################
-year_weeks <- function(year,case) {
+year_weeks <- function(year,case,p_type) {
   
     # Create a graph for each month of the year
-    p1 <- Week12(year,01,08,case) +
+    p1 <- Week12(year,01,08,case,p_type) +
       theme(axis.title.y=element_blank(),
             axis.title.x=element_blank())
             
   
-    p2 <- Week12(year,02,08,case) +
+    p2 <- Week12(year,02,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p3 <- Week12(year,03,08,case) +
+    p3 <- Week12(year,03,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p4 <- Week12(year,04,08,case) +
+    p4 <- Week12(year,04,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p5 <- Week12(year,05,08,case) +
+    p5 <- Week12(year,05,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p6 <- Week12(year,06,08,case) +
+    p6 <- Week12(year,06,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p7 <- Week12(year,07,08,case) +
+    p7 <- Week12(year,07,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p8 <- Week12(year,08,08,case) +
+    p8 <- Week12(year,08,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p9 <- Week12(year,09,08,case) +
+    p9 <- Week12(year,09,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p10 <- Week12(year,10,08,case) +
+    p10 <- Week12(year,10,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p11 <- Week12(year,11,08,case) +
+    p11 <- Week12(year,11,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p12 <- Week12(year,12,08,case) +
+    p12 <- Week12(year,12,08,case,p_type) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
@@ -2837,7 +2849,7 @@ year_weeks <- function(year,case) {
 ##    ZoneHr_Avg - Average hourly info in zone
 ##    Export - Exports selected from Zone Hourly Table
 ################################################################################
-year_weeks_rCURTAIL <- function(year,case,type) {
+year_weeks_rCURTAIL <- function(year,case,type,P_type) {
   
   if (type == "simple"){
     # Create a graph for each month of the year
@@ -2902,62 +2914,62 @@ year_weeks_rCURTAIL <- function(year,case,type) {
                 axis.title.x=element_blank())
   }else{
       # Create a graph for each month of the year
-      p1 <- Week12_rCURTAIL(year,01,08,case) +
+      p1 <- Week12_rCURTAIL(year,01,08,case,P_type) +
         theme(axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
       
-      p2 <- Week12_rCURTAIL(year,02,08,case) +
+      p2 <- Week12_rCURTAIL(year,02,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
-      p3 <- Week12_rCURTAIL(year,03,08,case) +
+      p3 <- Week12_rCURTAIL(year,03,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
-      p4 <- Week12_rCURTAIL(year,04,08,case) +
+      p4 <- Week12_rCURTAIL(year,04,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
-      p5 <- Week12_rCURTAIL(year,05,08,case) +
+      p5 <- Week12_rCURTAIL(year,05,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
-      p6 <- Week12_rCURTAIL(year,06,08,case) +
+      p6 <- Week12_rCURTAIL(year,06,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
-      p7 <- Week12_rCURTAIL(year,07,08,case) +
+      p7 <- Week12_rCURTAIL(year,07,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
-      p8 <- Week12_rCURTAIL(year,08,08,case) +
+      p8 <- Week12_rCURTAIL(year,08,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
-      p9 <- Week12_rCURTAIL(year,09,08,case) +
+      p9 <- Week12_rCURTAIL(year,09,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
-      p10 <- Week12_rCURTAIL(year,10,08,case) +
+      p10 <- Week12_rCURTAIL(year,10,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
-      p11 <- Week12_rCURTAIL(year,11,08,case) +
+      p11 <- Week12_rCURTAIL(year,11,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
       
-      p12 <- Week12_rCURTAIL(year,12,08,case) +
+      p12 <- Week12_rCURTAIL(year,12,08,case,P_type) +
         theme(legend.position ="none",
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
@@ -3162,11 +3174,12 @@ year_weeks_rCURTAIL <- function(year,case,type) {
 ##    ZoneHr_Avg - Average hourly info in zone
 ##    Export - Exports selected from Zone Hourly Table
 ################################################################################
-  FourMonthSummary <- function(year,m1,m2,m3,m4,case) {
+  FourMonthSummary <- function(year,m1,m2,m3,m4,case,P_type) {
     
+    col_plot = P_type
     
     # Gather weekly output data (Feb,May,Aug,Nov)
-    p1 <- Week12(year,m1,08,case) +
+    p1 <- Week12(year,m1,08,case,col_plot) +
       theme(plot.title=element_text(face='bold',size=12),
             axis.title.y=element_text(size=18),
             axis.title.x=element_blank(),
@@ -3174,19 +3187,19 @@ year_weeks_rCURTAIL <- function(year,case,type) {
       guides(fill = guide_legend(nrow = 1)) +
       guides(linetype = guide_legend(nrow = 1))
     
-    p2 <- Week12(year,m2,08,case) +
+    p2 <- Week12(year,m2,08,case,col_plot) +
       theme(plot.title=element_text(face='bold',size=12),
             legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p3 <- Week12(year,m3,08,case) +
+    p3 <- Week12(year,m3,08,case,col_plot) +
       theme(plot.title=element_text(face='bold',size=12),
             legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p4 <- Week12(year,m4,08,case) +
+    p4 <- Week12(year,m4,08,case,col_plot) +
       theme(plot.title=element_text(face='bold',size=12),
             legend.position ="none",
             axis.title.y=element_blank(),
@@ -3299,11 +3312,11 @@ year_weeks_rCURTAIL <- function(year,case,type) {
 ##    ZoneHr_Avg - Average hourly info in zone
 ##    Export - Exports selected from Zone Hourly Table
 ################################################################################
-  FourMonthSummary_rCurtail <- function(year,m1,m2,m3,m4,case) {
+  FourMonthSummary_rCurtail <- function(year,m1,m2,m3,m4,case,P_type) {
     
     
     # Gather weekly output data (Feb,May,Aug,Nov)
-    p1 <- Week12_rCURTAIL(year,m1,08,case) +
+    p1 <- Week12_rCURTAIL(year,m1,08,case,P_type) +
       theme(plot.title=element_text(face='bold',size=12),
             axis.title.y=element_text(size=18),
             axis.title.x=element_blank(),
@@ -3311,19 +3324,19 @@ year_weeks_rCURTAIL <- function(year,case,type) {
       guides(fill = guide_legend(nrow = 2)) +
       guides(linetype = guide_legend(nrow = 2))
     
-    p2 <- Week12_rCURTAIL(year,m2,08,case) +
+    p2 <- Week12_rCURTAIL(year,m2,08,case,P_type) +
       theme(plot.title=element_text(face='bold',size=12),
             legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p3 <- Week12_rCURTAIL(year,m3,08,case) +
+    p3 <- Week12_rCURTAIL(year,m3,08,case,P_type) +
       theme(plot.title=element_text(face='bold',size=12),
             legend.position ="none",
             axis.title.y=element_blank(),
             axis.title.x=element_blank())
     
-    p4 <- Week12_rCURTAIL(year,m4,08,case) +
+    p4 <- Week12_rCURTAIL(year,m4,08,case,P_type) +
       theme(plot.title=element_text(face='bold',size=12),
             legend.position ="none",
             axis.title.y=element_blank(),

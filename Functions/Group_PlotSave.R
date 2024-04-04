@@ -511,31 +511,35 @@ Analysis_saveall <- function(CaseName) {
 # Detail_Gen_save
 # Save detailed year of weeks and daily generation plots.
 ################################################################################
-Detail_Gen_save <- function(CaseName) {
+Detail_Gen_save <- function(CaseName,P_type) {
   
   print('Starting plot generation, this may take a few minutes')
   
   # Year of weeks plots
-  GGSave_Loc_hourly(CaseName,"2023 Hourly Generation for One Week (Stacked Area)",year_weeks(2023,BC),100)
+  GGSave_Loc_hourly(CaseName,"2023 Hourly Generation for One Week (Stacked Area)",year_weeks(2023,BC,P_type),100)
   print('Done weekly 2023')
-  GGSave_Loc_hourly(CaseName,"2025 Hourly Generation for One Week (Stacked Area)",year_weeks(2025,BC),100)
+  GGSave_Loc_hourly(CaseName,"2025 Hourly Generation for One Week (Stacked Area)",year_weeks(2025,BC,P_type),100)
   print('Done weekly 2025')
-  GGSave_Loc_hourly(CaseName,"2030 Hourly Generation for One Week (Stacked Area)",year_weeks(2030,BC),100)
+  GGSave_Loc_hourly(CaseName,"2030 Hourly Generation for One Week (Stacked Area)",year_weeks(2030,BC,P_type),100)
   print('Done weekly 2030')
-  GGSave_Loc_hourly(CaseName,"2035 Hourly Generation for One Week (Stacked Area)",year_weeks(2035,BC),100)
+  GGSave_Loc_hourly(CaseName,"2035 Hourly Generation for One Week (Stacked Area)",year_weeks(2035,BC,P_type),100)
   print('Done weekly 2035')
-  GGSave_Loc_hourly(CaseName,"2040 Hourly Generation for One Week (Stacked Area)",year_weeks(2040,BC),100)
+  GGSave_Loc_hourly(CaseName,"2040 Hourly Generation for One Week (Stacked Area)",year_weeks(2040,BC,P_type),100)
   print('Done weekly 2040')
-  GGSave_Loc_hourly(CaseName,"2045 Hourly Generation for One Week (Stacked Area)",year_weeks(2045,BC),100)
+  GGSave_Loc_hourly(CaseName,"2045 Hourly Generation for One Week (Stacked Area)",year_weeks(2045,BC,P_type),100)
   print('Done weekly 2045')
+  #GGSave_Loc_hourly(CaseName,"2050 Hourly Generation for One Week (Stacked Area)",year_weeks(2045,BC,P_type),100)
+  #print('Done weekly 2050')
       
   # Four month generation and pool price plots
-  GGSave_Loc_hourly(CaseName,"2023 4 month sum (Stacked Area + price)",FourMonthSummary(2023,01,04,07,10,BC),100)
+  GGSave_Loc_hourly(CaseName,"2023 4 month sum (Stacked Area + price)",FourMonthSummary(2023,01,04,07,10,BC,P_type),100)
   print('Done 4 month 2023')
-  GGSave_Loc_hourly(CaseName,"2030 4 month sum (Stacked Area + price)",FourMonthSummary(2030,01,04,07,10,BC),100)
+  GGSave_Loc_hourly(CaseName,"2030 4 month sum (Stacked Area + price)",FourMonthSummary(2030,01,04,07,10,BC,P_type),100)
   print('Done 4 month 2030')
-  GGSave_Loc_hourly(CaseName,"2040 4 month sum (Stacked Area + price)",FourMonthSummary(2040,01,04,07,10,BC),100)
+  GGSave_Loc_hourly(CaseName,"2040 4 month sum (Stacked Area + price)",FourMonthSummary(2040,01,04,07,10,BC,P_type),100)
   print('Done 4 month 2040')
+  GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price)",FourMonthSummary(2040,01,04,07,10,BC,P_type),100)
+  print('Done 4 month 2045')
   
   # imports
   GGSave_Loc_hourly(CaseName,"Hourly import export 2023",Imp_Exp2(2023,BC),100)
@@ -548,14 +552,14 @@ Detail_Gen_save <- function(CaseName) {
 # Ren_Curtail_Gen_save
 # Save detailed year of weeks and daily generation plots.
 ################################################################################
-Ren_Curtail_Gen_save <- function(CaseName) {
+Ren_Curtail_Gen_save <- function(CaseName,P_type) {
   
   # Year of weeks plots with renew curtail detailed
-  GGSave_Loc_hourly(CaseName,"2023 Hourly Gen for One Week - renewable curtail",year_weeks_rCURTAIL(2023,BC,"na"),100)
+  GGSave_Loc_hourly(CaseName,"2023 Hourly Gen for One Week - renewable curtail",year_weeks_rCURTAIL(2023,BC,"na",P_type),100)
   print('Done weekly 2023')
-  GGSave_Loc_hourly(CaseName,"2035 Hourly Gen for One Week - renewable curtail",year_weeks_rCURTAIL(2035,BC,"na"),100)
+  GGSave_Loc_hourly(CaseName,"2035 Hourly Gen for One Week - renewable curtail",year_weeks_rCURTAIL(2035,BC,"na",P_type),100)
   print('Done weekly 2035')
-  GGSave_Loc_hourly(CaseName,"2045 Hourly Gen for One Week - renewable curtail",year_weeks_rCURTAIL(2045,BC,"na"),100)
+  GGSave_Loc_hourly(CaseName,"2045 Hourly Gen for One Week - renewable curtail",year_weeks_rCURTAIL(2045,BC,"na",P_type),100)
   print('Done weekly 2045')
   
   # Year of weeks plots with renew curtail simple
@@ -567,13 +571,13 @@ Ren_Curtail_Gen_save <- function(CaseName) {
   print('Done weekly 2045')
   
   # 4 Months with curtail
-  GGSave_Loc_hourly(CaseName,"2023 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2023,01,04,07,10,BC),100)
-  GGSave_Loc_hourly(CaseName,"2035 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2035,01,04,07,10,BC),100)
-  GGSave_Loc_hourly(CaseName,"2045 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2045,01,04,07,10,BC),100)
+  GGSave_Loc_hourly(CaseName,"2023 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2023,01,04,07,10,BC,P_type),100)
+  GGSave_Loc_hourly(CaseName,"2035 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2035,01,04,07,10,BC,P_type),100)
+  GGSave_Loc_hourly(CaseName,"2045 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2045,01,04,07,10,BC,P_type),100)
   
   # One week example
-  GGSave_Loc_hourly(CaseName,"2035 week renewable curtail simple",Week12_wCURTAIL_simple(2035,06,08,BC),100)
-  GGSave_Loc_hourly(CaseName,"2035 week renewable curtail",Week12_rCURTAIL(2035,06,08,BC),100)
+  GGSave_Loc_hourly(CaseName,"2035 week renewable curtail simple",Week12_wCURTAIL_simple(2035,06,08,BC,P_type),100)
+  GGSave_Loc_hourly(CaseName,"2035 week renewable curtail",Week12_rCURTAIL(2035,06,08,BC,P_type),100)
 }
 ################################################################################
 # CER_saveall
