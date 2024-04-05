@@ -64,7 +64,7 @@
   ScenarioName2<-"CER_02Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"CER_3"
+  CScenarioName <-"Main_3"
 }
 
 ################################################################################
@@ -100,7 +100,7 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "AZ_2"
+CaseName <- "Main_3"
 #CaseName <- "TIER_3"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
@@ -456,6 +456,10 @@ GGSave_Loc_custom(CaseName,"Study Gen perc no Cogen",Total_Gen_Treemap_COMPARE("
 # Costs
 GGSave_Loc_custom(CaseName,"Total Cost Breakdown",Cost_Cum_COMPARE("l"),12,8)
 GGSave_Loc_custom(CaseName,"Cummulative Annual Cost",AnnualCost_Cum_COMPARE("l",emissions_include="Y"),12,8)
+GGSave_Loc_custom(CaseName,"Cummulative Annual Cost rel",AnnualCost_Cum_rel_COMPARE("l",emissions_include="Y"),12,8)
+GGSave_Loc_custom(CaseName,"Total Cost Breakdown rel",Cost_Cum_rel_COMPARE("l"),12,8)
+GGSave_Loc_custom(CaseName,"Total Cost Breakdown norm",AnnualCost_Cum_COMPARE_norm("l"),12,8)
+
 }
 
 
