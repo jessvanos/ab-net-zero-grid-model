@@ -2686,6 +2686,7 @@ Week12_rCURTAIL <- function(year, month, day, case,P_type) {
       #           aes(x = date, y = Demand_Expo,linetype="Demand + Exports"), size=1.25,color='black') +
       
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day") +
+      geom_hline(yintercept =0,size=0.25)+
       
       # Set the theme for the plot
       theme_bw() +

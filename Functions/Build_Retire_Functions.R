@@ -496,7 +496,13 @@ BuildMW <- function(case)
 ## TABLES REQUIRED: 
 ##    ResGroupYear -Yearly resoruce group emissions
 ################################################################################
-TotalCapChange <- function(case) {
+TotalCapChange <- function(case,p_type) {
+  
+  if (p_type == "g"){
+    col_scale = colours8g
+  }else{
+    col_scale = colours8
+  }
   
   # Bring in Resource Year Table and filter for relevant data. Format date columns
   Add_Ret_data <- ResYr%>%
@@ -514,7 +520,8 @@ TotalCapChange <- function(case) {
   
   # Set levels to each category in order specified
   Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
-                                      levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                      levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle",
+                                               #"Hydrogen Combined Cycle",
                                                #"Blended  Simple Cycle","Blended  Combined Cycle",
                                                "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle CCS Retrofit",
                                                "Natural Gas Combined Cycle", 
@@ -653,7 +660,7 @@ TotalCapChange <- function(case) {
     scale_y_continuous(expand=c(0,0),
                        limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),
                        label=comma) +
-    scale_fill_manual(values=colours8,drop = FALSE) +
+    scale_fill_manual(values=col_scale,drop = FALSE) +
     scale_pattern_manual(values=Patterns8,drop = FALSE) +
     
     labs(x = "Year", y = "Change in Capacity (MW)", fill = "Resource Options",pattern="Resource Options",caption = paste(SourceDB))
@@ -668,7 +675,13 @@ TotalCapChange <- function(case) {
 ## TABLES REQUIRED: 
 ##    ResGroupYear -Yearly resoruce group emissions
 ################################################################################
-Eval_CapChange <- function(case) {
+Eval_CapChange <- function(case,p_type) {
+  
+  if (p_type == "g"){
+    col_scale = colours8g
+  }else{
+    col_scale = colours8
+  }
   
   # Bring in Resource Year Table and filter for relevant data. Format date columns
   Add_Ret_data <- ResYr%>%
@@ -686,7 +699,8 @@ Eval_CapChange <- function(case) {
 
 # Set levels to each category in order specified
 Add_Ret_data$Primary_Fuel <- factor(Add_Ret_data$Primary_Fuel, 
-                                    levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                    levels=c("Coal","Coal-to-Gas", "Hydrogen Simple Cycle",
+                                             #"Hydrogen Combined Cycle",
                                              #"Blended  Simple Cycle","Blended  Combined Cycle",
                                              "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle CCS Retrofit",
                                              "Natural Gas Combined Cycle", 
@@ -816,7 +830,7 @@ Tot_Change %>%
                    limits = as.character(mnx:mxx)) +
   scale_y_continuous(expand=c(0,0),
                      limits = c((mny),(mxy)),breaks=seq(mny,mxy,by=1000),labels=comma) +
-  scale_fill_manual(values=colours8,drop = FALSE) +
+  scale_fill_manual(values=col_scale,drop = FALSE) +
   scale_pattern_manual(values=Patterns8,drop = FALSE) +
   labs(x = "Year", y = "Net Change in Capacity (MW)", fill = "Resource Options",pattern="Resource Options",caption = paste(SourceDB))
 }

@@ -413,12 +413,15 @@ Analysis_saveall <- function(CaseName) {
   
   # Annual Generation
   GGSave_Loc(CaseName,"Annual Generation (Stacked Area)",Evalyr(BC,"n"),300)
+  GGSave_Loc(CaseName,"Annual Generation (Stacked Area) g",Evalyr(BC,"g"),300)
   
   # Annual Capacity
   GGSave_Loc(CaseName,"Annual Capacity (Stacked Area)",Evalcap(BC,"n"),300)
+  GGSave_Loc(CaseName,"Annual Capacity (Stacked Area) g",Evalcap(BC,"g"),300)
   
   # Percent gen
   GGSave_Loc(CaseName,"Annual Generation (Perc)",EvalPerc(BC,"n"),300)
+  GGSave_Loc(CaseName,"Annual Generation (Perc) g",EvalPerc(BC,"g"),300)
   
   # Output bar
   GGSave_Loc(CaseName,"Annual Generation (Bar Chart)",Output_Comp(BC),300)
@@ -438,10 +441,12 @@ Analysis_saveall <- function(CaseName) {
   GGSave_Loc(CaseName,"Solar Ridgelines",Resource_Ridge_w("LTO_Solar",2023,2045,5,BC),300)
   
   # Difference in capacity
-  GGSave_Loc(CaseName,"Capacity Changes",TotalCapChange(BC),300)
+  GGSave_Loc(CaseName,"Capacity Changes",TotalCapChange(BC,"n"),300)
+  GGSave_Loc(CaseName,"Capacity Changes g",TotalCapChange(BC,"f"),300)
   
   # Net difference in capacity
-  GGSave_Loc(CaseName,"Net Capacity Changes",Eval_CapChange(BC),300)
+  GGSave_Loc(CaseName,"Net Capacity Changes",Eval_CapChange(BC,"n"),300)
+  GGSave_Loc(CaseName,"Net Capacity Changes g",Eval_CapChange(BC,"g"),300)
   
   # Combined cycle study fate by resource
   GGSave_Loc(CaseName,"Combined Cycle Gas Fate",CC_Fate_study(BC),300)

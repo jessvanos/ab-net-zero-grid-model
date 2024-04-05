@@ -567,29 +567,29 @@ BC <- "Base Case"
           
       # Gray-scale safe colors
           # Renewables and Other
-          cOL_SOLARg <- "#FAEB45"#"#DDDDDD"
-          cOL_WINDg <-  "#76F365" #"#BDBDBD"
+          cOL_SOLARg <- "#D9D012"#"#BDBDBD"
+          cOL_WINDg <-  "#237636" #"#565656"
           col_WIND_CURTg <-cOL_WINDg
           col_SOLAR_CURTg <-cOL_SOLARg
-          cOL_HYDROg <- "#50AFFF"#"#9B9B9B"
-          cOL_OTHERg <- "#7b7b7b"
+          cOL_HYDROg <- "#5965F8"#"#717171"
+          cOL_OTHERg <- "#3EA836"##7b7b7b"
           
           # H2 groups (blues)
-          cOL_SCGT_H2g <- "#565656"
+          cOL_SCGT_H2g <- "#0E3239"#272727"
           cOL_NGCC_H2g <- "#7e7e7e"
           COL_H2g <- cOL_SCGT_H2g 
           
           # Gas Groups (Purples)
-          cOL_NGCC_CCSg <-"#181818"
-          cOL_SCGTg <- "#8c8c8c"
-          cOL_NGCCg <- "#383838"
-          cOL_COal2Gasg <-  "#717171"
+          cOL_NGCC_CCSg <-"#464646"
+          cOL_SCGTg <-"#9B9B9B"
+          cOL_NGCCg <- "#DDDDDD"
+          cOL_COal2Gasg <- "#C4AEFC"#"#BDBDBD"
           cOL_NGConvg <- cOL_COal2Gasg
           COL_NatGasg <-cOL_NGCCg
           
           # Coal/Cogen
-          cOL_COALg <- "black"
-          cOL_COGENg <- "#474747"
+          cOL_COALg <- "#460E65"#"#282828"
+          cOL_COGENg <-"#0A0A0A"
           cOL_NUCLEARg <- "midnightblue"
           
           # Import/Export
@@ -597,7 +597,7 @@ BC <- "Base Case"
           cOL_EXPORTg <- "white"
           
           # Storage Groups
-          COL_Batteryg <-"#e7e7e7" 
+          COL_Batteryg <-"#F4EEA0" #"#E7E7E7"
           COL_CompAirg <-"#EFEFEF"
           COL_Pumpedg <-"#F5F5F5"
           cOL_STORAGEg <- COL_Batteryg
@@ -744,7 +744,8 @@ BC <- "Base Case"
       colours8 = c("Coal"=cOL_COAL,"Coal-to-Gas"=cOL_NGConv,
                    "Natural Gas Combined Cycle"=cOL_NGCC,"Natural Gas Simple Cycle"=cOL_SCGT, 
                    "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,"Natural Gas Combined Cycle CCS Retrofit"=cOL_NGCC_CCS,
-                   "Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                   "Hydrogen Simple Cycle"=cOL_SCGT_H2,
+                   #"Hydrogen Combined Cycle"=cOL_NGCC_H2,
                    #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                    "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                    "Solar"=cOL_SOLAR,  "Storage - Battery"=COL_Battery, 
@@ -753,12 +754,24 @@ BC <- "Base Case"
        Patterns8 = c("Coal"="none","Coal-to-Gas"="stripe",
                    "Natural Gas Combined Cycle"="none","Natural Gas Simple Cycle"="none", 
                    "Natural Gas Combined Cycle + CCS"="none","Natural Gas Combined Cycle CCS Retrofit"="stripe",
-                   "Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
+                   "Hydrogen Simple Cycle"="none",
+                   #"Hydrogen Combined Cycle"="none",
                    #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
                    "Hydro"="none", "Other"="none", "Wind"="none", 
                    "Solar"="none",  "Storage - Battery"="none", 
                    "Storage - Compressed Air"="none", "Storage - Pumped Hydro"="none","Cogeneration"="none")
       
+       # Gray scale safe
+       colours8g = c("Coal"=cOL_COALg,"Coal-to-Gas"=cOL_NGConvg,
+                    "Natural Gas Combined Cycle"=cOL_NGCCg,"Natural Gas Simple Cycle"=cOL_SCGTg, 
+                    "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCSg,"Natural Gas Combined Cycle CCS Retrofit"=cOL_NGCC_CCSg,
+                    "Hydrogen Simple Cycle"=cOL_SCGT_H2g,
+                    #"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                    #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
+                    "Hydro"=cOL_HYDROg, "Other"=cOL_OTHERg, "Wind"=cOL_WINDg, 
+                    "Solar"=cOL_SOLARg,  "Storage - Battery"=COL_Batteryg, 
+                    "Storage - Compressed Air"=COL_CompAirg, "Storage - Pumped Hydro"=COL_Pumpedg,"Cogeneration"=cOL_COGENg)
+       
        
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
@@ -769,7 +782,7 @@ BC <- "Base Case"
   Years2Pivot <- c(2023,2025,2030,2035,2040,2045)  # Years to display in tables
   
   # Get max year to display
-  MaxYrStudy<-2050
+  MaxYrStudy<-2045
   #MaxYrStudy <-max(as.numeric(ResYr$Time_Period))-5
   
   # Adjust capacity manually for 2025 (Manual add vs Aurora)
@@ -846,7 +859,7 @@ NameShort<-'CER_02Apr TEST'
       year_weeks(2043,BC,'g')
       SaveRun_Loc(CaseName,"2023 Hourly Generation for One Week (Stacked Area)")
       
-      Week12(2030,01,08,BC,'n')
+      Week12(2045,01,08,BC,'g')
       
       # Four months of generation and pool price
       FourMonthSummary(2040,01,04,07,10,BC) ### Redo without trade included
@@ -874,7 +887,7 @@ NameShort<-'CER_02Apr TEST'
       SaveRun_Loc(CaseName,"Annual Generation (Stacked Area)")
       
       # Yearly Capacity
-      Evalcap(BC,"n")
+      Evalcap(BC,"g")
       SaveRun_Loc(CaseName,"Annual Capacity")
       
       # Yearly percentage of generation
@@ -924,11 +937,11 @@ NameShort<-'CER_02Apr TEST'
       windows(14,10,buffered=FALSE)
       
       # Difference in capacity
-      TotalCapChange(BC)
+      TotalCapChange(BC,'g')
       SaveRun_Loc(CaseName,"Capacity Changes")
       
       # Net difference in capacity
-      Eval_CapChange(BC)
+      Eval_CapChange(BC,'g')
       SaveRun_Loc(CaseName,"Net Capacity Changes")
   
 
