@@ -54,7 +54,7 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
              Sim_Name=paste(SourceDB),
              Revenue=Revenue*1000,
              Total_Fuel_Cost=Total_Fuel_Cost*1000,
-             Fixed_OM_Cost=Fixed_Cost_Base*1000, # Fixed_Cost_Base - Fixed O&M
+             Fixed_OM_Cost=(Fixed_Cost-Fixed_Cost_Aux1)*1000, # Fixed O&M
              CAPEX=Fixed_Cost_Aux1*1000, # Fixed_Cost_Aux1 - Fixed Cost Mod1  (capital cost)
              Variable_OM_Cost=Variable_OM_Cost*1000,
              Value=Value*1000,
@@ -76,7 +76,10 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
              Fuel_Usage_GJ=Fuel_Usage)
     
     # Combine the Emissions information with the annual resource information 
-    AllDataGrYr<-merge(DataGrYr,DataGrEmYr,by=c("Plant_Type","Year"), all.x = TRUE)
+    AllDataGrYr<-merge(DataGrYr,DataGrEmYr,by=c("Plant_Type","Year"), all.x = TRUE) %>%
+      # Catch all
+      mutate(Misc_Costs = Total_Cost - (Total_Fuel_Cost+Fixed_OM_Cost+CAPEX+Variable_OM_Cost+Emissions_Cost+Storage_Charging_Cost),
+             Variable_OM_Cost=Variable_OM_Cost+Misc_Costs)
     
     # CARBON CREDIT DATA
     print("Calculating carbon credit data.")
@@ -655,7 +658,7 @@ AnnualDataR<- function(ScenarioName,case){
              Revenue=Revenue,
              Total_Fuel_Cost=Total_Fuel_Cost,
              Variable_OM_Cost=Variable_OM_Cost,
-             Fixed_OM_Cost=Fixed_Cost_Base,
+             Fixed_OM_Cost=Fixed_Cost-Fixed_Cost_Aux1,
              CAPEX=Fixed_Cost_Aux1,
              Value=Value,
              Total_Cost=Revenue-Value, 
@@ -676,12 +679,14 @@ AnnualDataR<- function(ScenarioName,case){
              Fuel_Usage_GJ=Fuel_Usage)
     
     # Combine the Emissions information with the annual resource information 
-    AllDataGrYr1<-merge(DataGrYr,DataGrEmYr,by=c("Plant_Type","Year"), all.x = TRUE)
+    AllDataGrYr1<-merge(DataGrYr,DataGrEmYr,by=c("Plant_Type","Year"), all.x = TRUE)%>%
+      # Catch all
+      mutate(Misc_Costs = Total_Cost - (Total_Fuel_Cost+Fixed_OM_Cost+CAPEX+Variable_OM_Cost+Emissions_Cost+Storage_Charging_Cost),
+             Variable_OM_Cost=Variable_OM_Cost+Misc_Costs)
     
     # Re-sort the columns
     AllDataGrYr <- AllDataGrYr1 %>%
-      mutate(Misc_Costs=as.numeric(Total_Cost-(Total_Fuel_Cost+Variable_OM_Cost+Fixed_OM_Cost+CAPEX+Emissions_Cost+Storage_Charging_Cost)),
-             OPEX=Emissions_Cost+Total_Fuel_Cost+Misc_Costs+Variable_OM_Cost+Fixed_OM_Cost+Storage_Charging_Cost)%>%
+      mutate(OPEX=Emissions_Cost+Total_Fuel_Cost+Variable_OM_Cost+Fixed_OM_Cost+Storage_Charging_Cost)%>%
       subset(., select=c(Plant_Type,Year,Output_MWH,Capacity_MW,
                          Avg_Dispatch_Cost,Fuel_Usage_GJ,Emissions_Tonne,
                          Emissions_Cost,Total_Fuel_Cost,Misc_Costs,Variable_OM_Cost,Fixed_OM_Cost,Storage_Charging_Cost,
@@ -1165,7 +1170,7 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
            '12 Emissions Total',
            '13 Cogen Emissions',
            '14 Cost by Tech',
-           '15 Total Costs',
+           '15 Total Resource Costs',
            '16 Zone Costs',
            '17  Average Pool Price',
            '18 Imports_Exports',
@@ -1345,7 +1350,7 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
       pivot_wider(names_from=Sim_Name,values_from =Cost_Tot)%>%
       arrange(.,Cost_Type,Year)
     
-    # Zone Costs
+    # All Resource Costs
     OPEX_T<-ResGrYr %>%
       group_by(Sim_Name,Year)%>%
       summarize(Cost_Tot=sum(OPEX)/1000000)%>%
@@ -1358,12 +1363,12 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
 
     All_C_T<-ResGrYr %>%
       group_by(Sim_Name,Year)%>%
-      summarize(Cost_Tot=sum(CAPEX+OPEX)/1000000)%>%
+      summarize(Cost_Tot=sum(Total_Cost)/1000000)%>%
       mutate(Cost_Type="Total Cost ($B)")
     
     All_C_T_NoE<-ResGrYr %>%
       group_by(Sim_Name,Year)%>%
-      summarize(Cost_Tot=sum(CAPEX+OPEX-Emissions_Cost)/1000000)%>%
+      summarize(Cost_Tot=(sum(Total_Cost)-sum(Emissions_Cost))/1000000)%>%
       mutate(Cost_Type="Total Cost Excluding Emissions Cost($B)")
     
     Rev_T<-ResGrYr %>%

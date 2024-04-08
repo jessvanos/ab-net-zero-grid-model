@@ -60,11 +60,11 @@
   #   'All_5'                    CP_11Feb, CER_12Feb, EL_25Feb, TIER2050_23Feb, TIER2035L_29Feb 
 {
   # Define cases here
-  ScenarioName1<-"CER_2"
-  ScenarioName2<-"CER_02Apr"
+  ScenarioName1<-"CP_04Apr"
+  ScenarioName2<-"EL_06Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"Main_3"
+  CScenarioName <-"Test"
 }
 
 ################################################################################
