@@ -808,8 +808,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CER TEST"
-NameShort<-'CER_02Apr TEST'
+CaseName <- "CER"
+NameShort<-'CER_02Apr'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:

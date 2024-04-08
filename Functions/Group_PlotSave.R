@@ -442,7 +442,7 @@ Analysis_saveall <- function(CaseName) {
   
   # Difference in capacity
   GGSave_Loc(CaseName,"Capacity Changes",TotalCapChange(BC,"n"),300)
-  GGSave_Loc(CaseName,"Capacity Changes g",TotalCapChange(BC,"f"),300)
+  GGSave_Loc(CaseName,"Capacity Changes g",TotalCapChange(BC,"g"),300)
   
   # Net difference in capacity
   GGSave_Loc(CaseName,"Net Capacity Changes",Eval_CapChange(BC,"n"),300)
@@ -543,7 +543,9 @@ Detail_Gen_save <- function(CaseName,P_type) {
   print('Done 4 month 2030')
   GGSave_Loc_hourly(CaseName,"2040 4 month sum (Stacked Area + price)",FourMonthSummary(2040,01,04,07,10,BC,P_type),100)
   print('Done 4 month 2040')
-  GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price)",FourMonthSummary(2040,01,04,07,10,BC,P_type),100)
+  GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price)",FourMonthSummary(2045,01,04,07,10,BC,P_type),100)
+  print('Done 4 month 2045')
+  GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price) g",FourMonthSummary(2045,01,04,07,10,BC,'g'),100)
   print('Done 4 month 2045')
   
   # imports
@@ -578,10 +580,10 @@ Ren_Curtail_Gen_save <- function(CaseName,P_type) {
   # 4 Months with curtail
   GGSave_Loc_hourly(CaseName,"2023 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2023,01,04,07,10,BC,P_type),100)
   GGSave_Loc_hourly(CaseName,"2035 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2035,01,04,07,10,BC,P_type),100)
-  GGSave_Loc_hourly(CaseName,"2045 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2045,01,04,07,10,BC,P_type),100)
+  GGSave_Loc_hourly(CaseName,"2045 4 month sum renewable curtail (Stacked Area + price) g",FourMonthSummary_rCurtail(2045,01,04,07,10,BC,'g'),100)
   
   # One week example
-  GGSave_Loc_hourly(CaseName,"2035 week renewable curtail simple",Week12_wCURTAIL_simple(2035,06,08,BC,P_type),100)
+  GGSave_Loc_hourly(CaseName,"2035 week renewable curtail simple",Week12_wCURTAIL_simple(2035,06,08,BC),100)
   GGSave_Loc_hourly(CaseName,"2035 week renewable curtail",Week12_rCURTAIL(2035,06,08,BC,P_type),100)
 }
 ################################################################################
