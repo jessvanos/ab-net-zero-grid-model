@@ -15,9 +15,10 @@
 compare_rename <-function(data,type){
   
   if (type == "l"){
-    input_name <-c("Draft CER","Current Policy","Emissions Limit","TIER 2050","TIER 2035","No ITCs","No ITCs with CER","Absolute Zero","No H2 Absolute Zero")
+    input_name <-c("Draft CER","Current Policy","Emissions Limit","TIER 2050","TIER 2035","No ITCs",
+                   "No ITCs with CER","Absolute Zero","No H2 Absolute Zero","No Emission Credits")
   }else{
-    input_name<-c("CER","CP","EL","TIER2050","TIER2035","noITCs","CERnoITCs","AZ","AZstrict")
+    input_name<-c("CER","CP","EL","TIER2050","TIER2035","noITCs","CERnoITCs","AZ","AZstrict","noEPCs")
   }
   
   # Rename if needed to make up for poor initial coding
@@ -35,7 +36,8 @@ compare_rename <-function(data,type){
                                                         if_else(grepl("CP_noITC",Scenario)==TRUE,input_name[6],
                                                                 if_else(grepl("CER_noITC",Scenario)==TRUE,input_name[7],
                                                                         if_else(grepl("AZ_",Scenario)==TRUE,input_name[8],
-                                                                                if_else(grepl("AZstrict_",Scenario)==TRUE,input_name[9],"unknown"))))))))))
+                                                                                if_else(grepl("AZstrict_",Scenario)==TRUE,input_name[9],
+                                                                                        if_else(grepl("CP_noEPC_",Scenario)==TRUE,input_name[10],"unknown")))))))))))
   
   if (any(data$Scenario == "unknown")==TRUE) {
     print("Unknown scenario detected")
@@ -311,6 +313,97 @@ AnnualEm_Cum_COMPARE <- function(name_type,cogen_include) {
 }
 
 ################################################################################
+## FUNCTION: Annual_Em_group
+## Plots annual capacity for selected resource group
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+Annual_Em_group <- function(name_type,p_type,list_groups) {
+  
+  years_cap = seq.int(2023, 2045) 
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours3bg
+  }else{
+    col_scale = colours3b
+  }
+  
+  # Filter data & aggregate years
+  Emdata <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
+           Ptype=as.factor(Ptype)) %>%
+    filter(Year %in% years_cap,
+           Ptype %in% list_groups) %>%
+    group_by(Year,Scenario,Ptype) %>%
+    summarise(Em_Mt = sum(Emissions_Tonne)/10^6) %>%
+    ungroup()
+  
+  # Order resources
+  # Set levels to each category in order specified
+  Emdata$Ptype <- factor(Emdata$Ptype, levels=c("Storage","Net Imports","Solar","Wind", "Other", "Hydro", 
+                                                  "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                  "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                  "Coal-to-Gas", 
+                                                  "Coal", "Cogeneration"))
+  
+  #Max Units Built
+  max_groups <-Emdata %>%group_by(Scenario,Year)%>%
+    summarise(max = sum(Em_Mt))
+  mxc <- round_any(max(max_groups$max)+3,5,f=ceiling)
+  
+  #Plot data
+  ggplot(Emdata,aes(x=Year, y=Em_Mt)) +
+    geom_bar(aes(fill = Ptype),
+             position="stack", stat="identity",width=1,
+             na.rm=TRUE, alpha=Plot_Trans,color='black') +
+    facet_wrap(~Scenario, strip.position = "bottom",nrow = 1) +
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(
+      panel.grid = element_blank(),  
+      axis.title.x = element_blank(),
+      axis.title.y = element_text(size = GenText_Sz+6, vjust=0),
+      panel.background = element_rect(fill = "transparent"),
+      axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black",size = GenText_Sz-12),
+      axis.text.y=element_text(color="black"),
+      plot.title = element_blank(),
+      
+      legend.justification = c(0.5,0.5),
+      legend.key.size = unit(0.3, "cm"),
+      legend.position = ("right"),
+      legend.text = element_text(size = GenText_Sz-12),
+      legend.title=element_blank(), 
+      legend.spacing.y = unit(0.1, 'cm'),
+      
+      strip.placement = "outside",
+      strip.text = element_text(size = GenText_Sz, color = "black"),
+      strip.background = element_rect(colour=NA, fill=NA),
+      #panel.spacing = unit(0,'lines'),
+      
+      text = element_text(size = GenText_Sz)) +
+    
+    guides(fill = guide_legend(ncol=1,byrow = TRUE)) +
+    
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
+    
+    scale_y_continuous(expand = c(0, 0),limits=c(0,mxc),breaks = pretty_breaks(8),labels=comma) +
+    scale_x_continuous(expand = c(0,0), breaks=seq(2023,2045,1))+
+    
+    labs(y = "Emissions (Mtonne CO2)") 
+  
+}
+
+################################################################################
 ## FUNCTION: Total_Cap_COMPARE
 ## Plots total capacity added.
 ##
@@ -319,8 +412,14 @@ AnnualEm_Cum_COMPARE <- function(name_type,cogen_include) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Total_Cap_Add_COMPARE <- function(name_type) {
+Total_Cap_Add_COMPARE <- function(name_type,p_type) {
 
+  if (p_type == "g"){
+    col_scale = colours5g
+  }else{
+    col_scale = colours5
+  }
+  
   # Filter emissions data
   Builddata <- Tot_Cap %>%
       compare_rename(.,name_type)%>%
@@ -363,7 +462,7 @@ Total_Cap_Add_COMPARE <- function(name_type) {
     
     guides(fill = guide_legend(ncol=1)) +
     
-    scale_fill_manual(name="Plant Type",values=colours5,drop = TRUE,limits = force) +
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
     scale_pattern_manual(name="Plant Type",values=Patterns5,drop = TRUE,limits = force) +
     
     scale_x_continuous(expand = c(0, 0),limits = c(0, mxc),breaks=seq(0, mxc,by=5),labels=comma) +
@@ -382,7 +481,14 @@ Total_Cap_Add_COMPARE <- function(name_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Total_Cap_Ret_COMPARE <- function(name_type) {
+Total_Cap_Ret_COMPARE <- function(name_type,p_type) {
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours8g
+  }else{
+    col_scale = colours8
+  }
   
   # Filter emissions data
   Builddata <- Tot_Cap %>%
@@ -426,7 +532,7 @@ Total_Cap_Ret_COMPARE <- function(name_type) {
     
     guides(fill = guide_legend(ncol=1)) +
     
-    scale_fill_manual(name="Plant Type",values=colours8,drop = TRUE,limits = force) +
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
     scale_pattern_manual(name="Plant Type",values=Patterns8,drop = TRUE,limits = force) +
     
     scale_x_continuous(expand = c(0, 0),limits = c(mnc, 0),breaks=pretty_breaks(5),labels=comma) +
@@ -445,7 +551,14 @@ Total_Cap_Ret_COMPARE <- function(name_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Cap_Relative_COMPARE <- function(name_type) {
+Cap_Relative_COMPARE <- function(name_type,p_type) {
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours5g
+  }else{
+    col_scale = colours5
+  }
   
   # Gather all data first
   Builddata <- Tot_Cap %>%
@@ -509,10 +622,10 @@ Cap_Relative_COMPARE <- function(name_type) {
     
     guides(fill = guide_legend(ncol=1)) +
     
-    scale_fill_manual(name="Plant Type",values=colours5,drop = TRUE,limits = force) +
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
     scale_pattern_manual(name="Plant Type",values=Patterns5,drop = TRUE,limits = force) +
     
-    scale_x_continuous(expand = c(0, 0),limits = c(mnc, mxc),breaks=pretty_breaks(5),labels=comma) +
+    scale_x_continuous(expand = c(0, 0),limits = c(mnc, mxc),breaks=pretty_breaks(8),labels=comma) +
     
     labs(x = "Capacity Additions Relative to Current Policy (MW)") 
   
@@ -528,7 +641,14 @@ Cap_Relative_COMPARE <- function(name_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Cap_Year_Relative_COMPARE <- function(name_type,year_in) {
+Cap_Year_Relative_COMPARE <- function(name_type,year_in,p_type) {
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours3bg
+  }else{
+    col_scale = colours3b
+  }
   
   # Gather all data first
   Filt_data <- ResGrYr %>%
@@ -604,7 +724,7 @@ Cap_Year_Relative_COMPARE <- function(name_type,year_in) {
     
     guides(fill = guide_legend(ncol=1)) +
     
-    scale_fill_manual(name="Plant Type",values=colours3b,drop = TRUE,limits = force) +
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
 
     scale_x_continuous(expand = c(0, 0),limits = c(mnc, mxc),breaks=pretty_breaks(5),labels=comma) +
     
@@ -622,7 +742,14 @@ Cap_Year_Relative_COMPARE <- function(name_type,year_in) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Cap_COMPARE <- function(name_type) {
+Annual_Cap_Add_COMPARE <- function(name_type,p_type) {
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours8g
+  }else{
+    col_scale = colours8
+  }
   
   # Filter data & aggregate years
   Builddata <- Ann_Cap %>%
@@ -688,7 +815,7 @@ Annual_Cap_COMPARE <- function(name_type) {
     
     guides(fill = guide_legend(ncol=1,byrow = TRUE)) +
     
-    scale_fill_manual(name="Plant Type",values=colours8,drop = TRUE,limits = force) +
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
     scale_pattern_manual(name="Plant Type",values=Patterns8,drop = TRUE,limits = force) +
     
     scale_y_continuous(expand = c(0, 0),limits=c(0,mxc),labels=comma) +
@@ -696,6 +823,189 @@ Annual_Cap_COMPARE <- function(name_type) {
     
     labs(y = "Capacity Added (MW)") 
   
+  
+}
+
+################################################################################
+## FUNCTION: Annual_Cap_COMPARE
+## Plots annual capacity.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+Annual_Cap_COMPARE <- function(name_type,p_type) {
+  
+  years_cap = c(2025,2030,2035,2040,2045)
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours3bg
+  }else{
+    col_scale = colours3b
+  }
+  
+  # Filter data & aggregate years
+  Capdata <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
+           Ptype=as.factor(Ptype)) %>%
+    filter(Year %in% years_cap) %>%
+    group_by(Year,Scenario,Ptype) %>%
+    summarise(Cap_MW = sum(Capacity_MW)) %>%
+    ungroup()
+  
+  # Order resources
+  # Set levels to each category in order specified
+  Capdata$Ptype <- factor(Capdata$Ptype, levels=c("Storage","Net Imports","Solar","Wind", "Other", "Hydro", 
+                                                  "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                  "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                  "Coal-to-Gas", 
+                                                  "Coal", "Cogeneration"))
+  
+  #Max Units Built
+  max_groups <-Capdata %>%group_by(Scenario,Year)%>%
+    summarise(max = sum(Cap_MW))
+  mxc <- round_any(max(max_groups$max)+51,100,f=ceiling)
+
+  #Plot data
+  ggplot(Capdata,aes(x=Scenario, y=Cap_MW)) +
+    geom_bar(aes(fill = Ptype),
+                     position="stack", stat="identity",width=1,
+                     na.rm=TRUE, alpha=Plot_Trans,color='black') +
+    facet_wrap(~Year, strip.position = "bottom",nrow = 1) +
+    theme_classic() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(
+      #panel.grid = element_blank(),  
+      axis.title.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      axis.title.y = element_text(size = GenText_Sz+6, vjust=0),
+      panel.background = element_rect(fill = "transparent"),
+      axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black",size = GenText_Sz-10),
+      axis.text.y=element_text(color="black"),
+      plot.title = element_blank(),
+      
+      legend.justification = c(0.5,0.5),
+      legend.key.size = unit(0.3, "cm"),
+      legend.position = ("right"),
+      legend.text = element_text(size = GenText_Sz-12),
+      legend.title=element_blank(), 
+      legend.spacing.y = unit(0.1, 'cm'),
+      
+      strip.placement = "outside",
+      strip.text = element_text(size = GenText_Sz, color = "black"),
+      strip.background = element_rect(colour=NA, fill=NA),
+      panel.spacing = unit(0,'lines'),
+      
+      text = element_text(size = GenText_Sz)) +
+    
+    guides(fill = guide_legend(ncol=1,byrow = TRUE)) +
+    
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
+
+    scale_y_continuous(expand = c(0, 0),limits=c(0,mxc),labels=comma) +
+    scale_x_discrete(expand = c(0.3, 0.3))+
+    
+    labs(y = "Capacity (MW)") 
+  
+  
+}
+
+################################################################################
+## FUNCTION: Annual_Cap_group
+## Plots annual capacity for selected resource group
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+Annual_Cap_group <- function(name_type,p_type,list_groups) {
+  
+  years_cap = seq.int(2023, 2045) 
+
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours3bg
+  }else{
+    col_scale = colours3b
+  }
+  
+  # Filter data & aggregate years
+  Capdata <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
+           Ptype=as.factor(Ptype)) %>%
+    filter(Year %in% years_cap,
+           Ptype %in% list_groups) %>%
+    group_by(Year,Scenario,Ptype) %>%
+    summarise(Cap_MW = sum(Capacity_MW)) %>%
+    ungroup()
+  
+  # Order resources
+  # Set levels to each category in order specified
+  Capdata$Ptype <- factor(Capdata$Ptype, levels=c("Storage","Net Imports","Solar","Wind", "Other", "Hydro", 
+                                                  "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                  "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                  "Coal-to-Gas", 
+                                                  "Coal", "Cogeneration"))
+  
+  #Max Units Built
+  max_groups <-Capdata %>%group_by(Scenario,Year)%>%
+    summarise(max = sum(Cap_MW))
+  mxc <- round_any(max(max_groups$max)+501,1000,f=ceiling)
+  
+  #Plot data
+  ggplot(Capdata,aes(x=Year, y=Cap_MW)) +
+    geom_bar(aes(fill = Ptype),
+             position="stack", stat="identity",width=1,
+             na.rm=TRUE, alpha=Plot_Trans,color='black') +
+    facet_wrap(~Scenario, strip.position = "bottom",nrow = 1) +
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(
+      panel.grid = element_blank(),  
+      axis.title.x = element_blank(),
+      axis.title.y = element_text(size = GenText_Sz+6, vjust=0),
+      panel.background = element_rect(fill = "transparent"),
+      axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black",size = GenText_Sz-12),
+      axis.text.y=element_text(color="black"),
+      plot.title = element_blank(),
+
+      legend.justification = c(0.5,0.5),
+      legend.key.size = unit(0.3, "cm"),
+      legend.position = ("right"),
+      legend.text = element_text(size = GenText_Sz-12),
+      legend.title=element_blank(), 
+      legend.spacing.y = unit(0.1, 'cm'),
+      
+      strip.placement = "outside",
+      strip.text = element_text(size = GenText_Sz, color = "black"),
+      strip.background = element_rect(colour=NA, fill=NA),
+      #panel.spacing = unit(0,'lines'),
+      
+      text = element_text(size = GenText_Sz)) +
+    
+    guides(fill = guide_legend(ncol=1,byrow = TRUE)) +
+    
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
+    
+    scale_y_continuous(expand = c(0, 0),limits=c(0,mxc),breaks = pretty_breaks(8),labels=comma) +
+    scale_x_continuous(expand = c(0,0), breaks=seq(2023,2045,1))+
+    
+    labs(y = "Capacity (MW)") 
   
 }
 
@@ -708,7 +1018,14 @@ Annual_Cap_COMPARE <- function(name_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Total_Gen_COMPARE <- function(name_type) {
+Total_Gen_COMPARE <- function(name_type,p_type) {
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours3bg
+  }else{
+    col_scale = colours3b
+  }
   
   # Filter emissions data
   DataGen <- ResGrYr %>%
@@ -747,11 +1064,189 @@ Total_Gen_COMPARE <- function(name_type) {
     
     guides(fill = guide_legend(ncol=1)) +
     
-    scale_fill_manual(name="Plant Type",values=colours3b,drop = TRUE,limits = force) +
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
     
     scale_x_continuous(expand = c(0, 0),limits = c(0, mxc),breaks=seq(0, mxc,by=250),labels=comma) +
     
     labs(x = "Total Generation (TWh)") 
+  
+  
+}
+
+################################################################################
+## FUNCTION: Annual_Gen_group
+## Plots annual capacity for selected resource group
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+Annual_Gen_group <- function(name_type,p_type,list_groups) {
+  
+  years_cap = seq.int(2023, 2045) 
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours3bg
+  }else{
+    col_scale = colours3b
+  }
+  
+  # Filter data & aggregate years
+  Gendata <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
+           Ptype=as.factor(Ptype)) %>%
+    filter(Year %in% years_cap,
+           Ptype %in% list_groups) %>%
+    group_by(Year,Scenario,Ptype) %>%
+    summarise(Gen_MW = sum(Output_MWH)/10^6) %>%
+    ungroup()
+  
+  # Order resources
+  # Set levels to each category in order specified
+  Gendata$Ptype <- factor(Gendata$Ptype, levels=c("Storage","Net Imports","Solar","Wind", "Other", "Hydro", 
+                                                  "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                  "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                  "Coal-to-Gas", 
+                                                  "Coal", "Cogeneration"))
+  
+  #Max Units Built
+  max_groups <-Gendata %>%group_by(Scenario,Year)%>%
+    summarise(max = sum(Gen_MW))
+  mxc <- round_any(max(max_groups$max)+5,10,f=ceiling)
+  
+  #Plot data
+  ggplot(Gendata,aes(x=Year, y=Gen_MW)) +
+    geom_bar(aes(fill = Ptype),
+             position="stack", stat="identity",width=1,
+             na.rm=TRUE, alpha=Plot_Trans,color='black') +
+    facet_wrap(~Scenario, strip.position = "bottom",nrow = 1) +
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(
+      panel.grid = element_blank(),  
+      axis.title.x = element_blank(),
+      axis.title.y = element_text(size = GenText_Sz+6, vjust=0),
+      panel.background = element_rect(fill = "transparent"),
+      axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black",size = GenText_Sz-12),
+      axis.text.y=element_text(color="black"),
+      plot.title = element_blank(),
+      
+      legend.justification = c(0.5,0.5),
+      legend.key.size = unit(0.3, "cm"),
+      legend.position = ("right"),
+      legend.text = element_text(size = GenText_Sz-12),
+      legend.title=element_blank(), 
+      legend.spacing.y = unit(0.1, 'cm'),
+      
+      strip.placement = "outside",
+      strip.text = element_text(size = GenText_Sz, color = "black"),
+      strip.background = element_rect(colour=NA, fill=NA),
+      #panel.spacing = unit(0,'lines'),
+      
+      text = element_text(size = GenText_Sz)) +
+    
+    guides(fill = guide_legend(ncol=1,byrow = TRUE)) +
+    
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
+    
+    scale_y_continuous(expand = c(0, 0),limits=c(0,mxc),breaks = pretty_breaks(8),labels=comma) +
+    scale_x_continuous(expand = c(0,0), breaks=seq(2023,2045,1))+
+    
+    labs(y = "Annual Generation (MW)") 
+  
+}
+
+################################################################################
+## FUNCTION: Total_Gen_Relative_COMPARE
+## Plots generation relative to CP.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+Total_Gen_Relative_COMPARE <- function(name_type,p_type) {
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours3bg
+  }else{
+    col_scale = colours3b
+  }
+  
+  # Filter emissions data
+  DataGen <- ResGrYr %>%
+    rename(Scenario=Sim_Name)%>%
+    compare_rename(.,name_type)%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
+           Ptype = as.factor(Ptype))%>%
+    group_by(Scenario,Ptype)%>%
+    summarise(Scn_Gen = sum(Output_MWH)/10^6)
+
+  # Format to compare against CP
+  CP_Gen <- DataGen %>%
+    filter(Scenario %in% c("CP","Current Policy"))%>%
+    group_by(Ptype)%>%
+    summarise(CP_gen = sum(Scn_Gen))
+  
+  # Join them
+  AllData <- merge(DataGen,CP_Gen,by=c("Ptype"), all.x = TRUE) %>%
+    replace(is.na(.), 0) %>%
+    mutate(gen_Diff = Scn_Gen-CP_gen) %>%
+    # Replace this to keep in figure
+    mutate(gen_Diff=replace(gen_Diff,(Scenario %in% c("CP","Current Policy") & Ptype == "Wind"),0.0000001)) %>%
+    filter(!(gen_Diff == 0)) 
+  
+  AllData$Ptype <- factor(AllData$Ptype,levels=c("Net Imports","Coal","Cogeneration", 
+                 "Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                 "Natural Gas Combined Cycle + CCS",
+                 "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                 "Hydro", "Other", "Wind", 
+                 "Solar", "Storage"))
+
+  #Max Units Built
+  mxc <- round_any(max(AllData$gen_Diff[AllData$gen_Diff>0])+5,10,f=ceiling)
+  mnc <-round_any(min(AllData$gen_Diff[AllData$gen_Diff<0])-5,10,f=floor)
+  
+  #Plot data
+  ggplot(AllData,aes(x=gen_Diff, y=Scenario)) +
+    geom_bar(aes(fill = Ptype),
+                     position="stack", stat="identity",
+                     na.rm=TRUE, alpha=Plot_Trans,color='black') +
+    theme_bw() +
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),  
+          axis.title.y = element_blank(),
+          axis.title.x = element_text(size = GenText_Sz+6, vjust=0),
+          panel.background = element_rect(fill = "transparent"),
+          axis.text.x=element_text(angle=0,vjust = 0.5, hjust = 0.5,color="black"),
+          axis.text.y=element_text(color="black"),
+          plot.title = element_blank(),
+          legend.justification = c(0.5,0.5),
+          legend.position = ("right"),
+          legend.text = element_text(size = GenText_Sz-6),
+          legend.title=element_blank(), 
+          #legend.key.size = unit(1,"lines"),
+          text = element_text(size = GenText_Sz)) +
+    
+    guides(fill = guide_legend(ncol=1,reverse = TRUE)) +
+    
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
+
+    scale_x_continuous(expand = c(0, 0),limits = c(mnc, mxc),breaks=pretty_breaks(8),labels=comma) +
+    
+    labs(x = "Total Generation Relative to Current Policy (TWh)") 
   
   
 }
@@ -765,7 +1260,14 @@ Total_Gen_COMPARE <- function(name_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Gen_COMPARE <- function(name_type) {
+Annual_Gen_COMPARE <- function(name_type,p_type) {
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours3bg
+  }else{
+    col_scale = colours3b
+  }
   
   # Filter data
   Gendata <- ResGrYr %>%
@@ -852,7 +1354,7 @@ Annual_Gen_COMPARE <- function(name_type) {
     
     guides(fill = guide_legend(ncol=1,byrow = TRUE)) +
     
-    scale_fill_manual(name="Plant Type",values=colours3b,drop = TRUE,limits = force) +
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
 
     scale_y_continuous(expand = c(0, 0),limits=c(mnc,mxc),labels=comma) +
     scale_x_discrete(expand = c(0.3, 0.3))+
@@ -947,7 +1449,14 @@ Total_Gen_Treemap_COMPARE <- function(name_type,cogen_include) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Year_Gen_COMPARE <- function(name_type,year_look,show_neg) {
+Year_Gen_COMPARE <- function(name_type,year_look,show_neg,p_type) {
+  
+  # Choose color scale
+  if (p_type == "g"){
+    col_scale = colours3bg
+  }else{
+    col_scale = colours3b
+  }
   
   # Filter emissions data
   DataGen <- ResGrYr %>%
@@ -1009,7 +1518,7 @@ Year_Gen_COMPARE <- function(name_type,year_look,show_neg) {
     
     guides(fill = guide_legend(ncol=1)) +
     
-    scale_fill_manual(name="Plant Type",values=colours3b,drop = TRUE,limits = force) +
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
     
     scale_x_continuous(expand = c(0, 0),limits = c(mnc, mxc),breaks=seq(mnc, mxc,by=10),labels=comma) +
     
@@ -1535,6 +2044,97 @@ Sim <- ResGrYr %>%
     geom_bar(aes(x = Scenario, y = value, fill=Scenario), 
              size = 0.5,stat="identity",position = "stack",color="black")+
     geom_text(aes(x = Scenario,y = value, label = sprintf("%.3f",value), vjust=-0.5),size =GenText_Sz/4)  +
+    facet_grid(~variable) +
+    theme_bw() +
+    theme(text=element_text(family=Plot_Text)) +
+    theme(axis.text = element_text(color="black"),
+          axis.title = element_text(size = GenText_Sz+6),
+          axis.text.x = element_text(angle = 0, hjust=0.5,vjust=0,color="black"),
+          plot.title = element_blank(),
+          text = element_text(size=GenText_Sz),
+          axis.title.x=element_blank(),
+          legend.text = element_text(size = GenText_Sz-6),
+          panel.grid = element_blank(),
+          legend.title = element_blank(),
+          legend.position = "bottom",
+          panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray70'),
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+          
+          strip.placement = "outside",
+          strip.text = element_text(size = GenText_Sz, color = "black"),
+          strip.background = element_rect(colour=NA, fill=NA),
+          panel.spacing = unit(1.5,'lines')
+    ) +
+    labs(y = "Cost Normalized to CP", x="Year") +
+    
+    scale_fill_manual(values = scenario_colors,drop=TRUE,limits = force) +
+    
+    scale_y_continuous(expand=c(0,0),limits=c(0,Upplim),n.breaks = 6)
+  
+}
+
+################################################################################
+## FUNCTION: AnnualValue_Cum_norm
+## Plots annual average emissions in cummulative bar chart.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+AnnualValue_Cum_norm <- function(name_type) {
+  
+  # Plot color
+  if (name_type == "l"){
+    scenario_colors<-sn_colors2_l
+    sn_base = "Current Policy"
+  }else{
+    scenario_colors<-sn_colors2_s
+    sn_base = "CP"
+  }
+  
+  Sim <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    group_by(Scenario,Year)%>%
+    summarise(Total = sum(Total_Cost)/1000000,
+              Value = sum(Value)/1000000,
+              Revenue = sum(Revenue)/1000000
+    ) %>%
+    ungroup() %>%
+    group_by(Scenario)%>%
+    summarise(Year,
+              Total = cumsum(Total),
+              Value = cumsum(Value),
+              Revenue = cumsum(Revenue)) %>%
+    filter(Year == 2045)
+  
+  # Get totals
+  base_total = as.numeric(Sim[Sim$Scenario == sn_base, "Total"])
+  base_value = as.numeric(Sim[Sim$Scenario == sn_base, "Value"])
+  base_rev = as.numeric(Sim[Sim$Scenario == sn_base, "Revenue"])
+
+  # Normalize
+  Sim <- Sim %>%
+    mutate("Total Cost" = Total/base_total,
+           "Total Value" = Value/base_value,
+           "Total Revenue" = Revenue/base_rev,)%>%
+    select(.,c(Scenario,`Total Cost`,`Total Revenue`,`Total Value`))
+  
+  # Make one column
+  Cost_T <- melt(Sim,id=c("Scenario"))
+  
+  Upplim <- round_any(max(Cost_T$value)+0.3,0.5)
+  
+  # Plot
+  ggplot(Cost_T) +
+    geom_bar(aes(x = Scenario, y = value, fill=Scenario), 
+             size = 0.5,stat="identity",position = "stack",color="black")+
+    geom_text(aes(x = Scenario,y = value, label = sprintf("%.2f",value), vjust=-0.5),size =GenText_Sz/4)  +
     facet_grid(~variable) +
     theme_bw() +
     theme(text=element_text(family=Plot_Text)) +
