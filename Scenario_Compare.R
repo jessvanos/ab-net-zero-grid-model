@@ -63,7 +63,7 @@
   ScenarioName2<-"CP_noEPC_10Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"ITC_4"
+  CScenarioName <-"Main_3"
 }
 
 ################################################################################
@@ -99,7 +99,7 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "ITC_4"
+CaseName <- "Main_3"
 #CaseName <- "TIER_3"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
