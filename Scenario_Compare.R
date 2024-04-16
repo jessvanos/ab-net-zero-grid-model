@@ -59,11 +59,11 @@
   #   'CP_ITC_2'
 {
   # Define cases here
-  ScenarioName1<-"CP_04Apr"
-  ScenarioName2<-"CP_noEPC_10Apr"
+  ScenarioName1<-"Main_update_3"
+  ScenarioName2<-"CP_12Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"Main_3"
+  CScenarioName <-"Main_update_4"
 }
 
 ################################################################################
@@ -99,7 +99,7 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "Main_3"
+CaseName <- "Main_update_4"
 #CaseName <- "TIER_3"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
@@ -408,6 +408,9 @@ CaseName <- "Main_3"
   COL_Az = "goldenrod1"
   COL_AZstrict = "goldenrod4"
   COL_noEPC = "#001933"
+  
+  COL_CP_update='blue'
+  COL_CER_update="gray10"
   
   # Scenario colors with historic
    sn_colors_l <-c("Draft CER"=COL_CER,

@@ -581,6 +581,9 @@ Ren_Curtail_Gen_save <- function(CaseName,P_type) {
   GGSave_Loc_hourly(CaseName,"2023 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2023,01,04,07,10,BC,P_type),100)
   GGSave_Loc_hourly(CaseName,"2035 4 month sum renewable curtail (Stacked Area + price)",FourMonthSummary_rCurtail(2035,01,04,07,10,BC,P_type),100)
   GGSave_Loc_hourly(CaseName,"2045 4 month sum renewable curtail (Stacked Area + price) g",FourMonthSummary_rCurtail(2045,01,04,07,10,BC,'g'),100)
+  GGSave_Loc_hourly(CaseName,"2045 4 month sum renewable curtail (Stacked Area + price) g",FourMonthSummary_rCurtail(2045,02,05,08,11,BC,'g'),100)
+  GGSave_Loc_hourly(CaseName,"2045 4 month sum renewable curtail (Stacked Area + price) g",FourMonthSummary_rCurtail(2045,03,06,09,12,BC,'g'),100)
+  
   
   # One week example
   GGSave_Loc_hourly(CaseName,"2035 week renewable curtail simple",Week12_wCURTAIL_simple(2035,06,08,BC),100)
