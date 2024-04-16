@@ -85,7 +85,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"EL_05_Apr_2024"
+  SourceDB<-"CP_12_Apr_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -808,8 +808,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "EL"
-NameShort<-'EL_06Apr'
+CaseName <- "CP"
+NameShort<-'CP_12Apr'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -822,7 +822,7 @@ NameShort<-'EL_06Apr'
     # Normal analysis
     Analysis_saveall(CaseName)
     # Detailed generation plots
-    Detail_Gen_save(CaseName,"n")
+    Detail_Gen_save(CaseName,"g")
 
   # ADDITIONAL ANALYSIS
     # Value plots
@@ -846,7 +846,7 @@ NameShort<-'EL_06Apr'
       
 # OPTIONAL 
     # Estimate curtailed energy
-    Ren_Curtail_Gen_save(CaseName,"n")
+    Ren_Curtail_Gen_save(CaseName,"g")
     
 ################################################################################
 ## COMMON INDIVIDUAL PLOT SAVING OPTIONS
@@ -1442,40 +1442,6 @@ NameShort<-'EL_06Apr'
     
 ################################################################################    
 
-    
-    Test_groups <- AllDataGrYr1 %>%
-      group_by(Year)%>%
-      summarise(Emissions_Cost=sum(Emissions_Cost),
-             Fix = sum(CAPEX+Fixed_OM_Cost),
-             Total_Fuel_Cost = sum(Total_Fuel_Cost),
-             Variable_OM_Cost = sum(Variable_OM_Cost),
-             Storage_Charging_Cost = sum(Storage_Charging_Cost),
-             Prod=(Emissions_Cost+Total_Fuel_Cost+Variable_OM_Cost+Storage_Charging_Cost),
-             Misc_Costs=sum(Total_Cost)-Fix-Prod,
-             Total = Prod+Fix+Misc_Costs) %>%
-      select(.,c(Year,Prod,Fix,Total))
-    
-    
-Zone_Costs <- ZoneYr %>%
-  filter(Name=="WECC_Alberta",
-         Condition=="Average")%>%
-  mutate(Year=as.numeric(year(Time_Period)),
-         Total = Production_Cost_Total+Fixed_Cost_Total)%>%
-  filter(Year<2046)%>%
-  select(.,c(Year,Production_Cost_Total,Fixed_Cost_Total,Total))
-
-Zone_Costs <- ZoneYr %>%
-  filter(Name=="WECC_Alberta",
-         Condition=="Average")%>%
-  mutate(Year=as.numeric(year(Time_Period)),
-         Total = Production_Cost_Total+Fixed_Cost_Total)%>%
-  filter(Year<2046)%>%
-  select(.,c(Year,Production_Cost_Total,Fixed_Cost_Total,Total))
-
-sum(Zone_Costs$Production_Cost_Total)
-sum(Test_groups$Prod)
-    
-    
     
     
     
