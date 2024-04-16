@@ -2697,16 +2697,19 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
       group_by(Plant_Type,Year,Year_fact)%>%
       summarise(Cap=sum(Capacity)) %>%
       mutate(Year_fact=if_else(Year == 2025,"2025 Expected",paste(Year_fact)))
+      ymax<-16000
   } else{
     # Select only a single week
     YR <- AESO_Cap %>%
-      replace(is.na(.), 0) %>%
       filter(Year >2016) %>%
+      replace(is.na(.), 0) %>%
       mutate(across(Plant_Type,str_replace,'Gas Fired Steam|Combined Cycle|Simple Cycle|Dual Fuel',"Natural Gas"),
              Year_fact = as.factor(Year))%>%
-      group_by(Plant_Type,Year)%>%
+      group_by(Plant_Type,Year,Year_fact)%>%
       summarise(Cap=sum(Capacity))%>%
       mutate(Year_fact=if_else(Year == 2025,"2025 Expected",paste(Year_fact)))
+    ymax<-10000
+    
   }
   
   {
@@ -2725,7 +2728,16 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
 
   # Add expected capacity
 
-  GenText_Sz<-56
+  GenText_Sz<-16
+
+  # cols_choice <- c("2017"='#252323',"2018"="#515151","2019"="#767171","2020"="#A6A6A6",
+  #                  "2021"='#e6e6e6',"2022"='#4472C4',
+  #                  "2023"='#238b45',"2024"='darkgoldenrod2',"2025 Expected"='#cc79a7')
+  
+  cols_choice <- c("2017"='#252323',"2018"="#515151","2019"="#767171","2020"="#A6A6A6",
+                   "2021"='#e6e6e6',"2022"='#203764',
+                   "2023"='#305496',"2024"='#4472C4',"2025 Expected"='#8EA9DB')
+  
   # Plot
   YR %>%
     ggplot() +
@@ -2747,49 +2759,47 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
       # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
       plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
       panel.background = element_blank(), # Transparent background
-      panel.border = element_blank(),
+     # panel.border = element_blank(),
       text = element_text(size = GenText_Sz),                # Text size
       plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
       axis.line.y = element_line(),
       axis.line.x = element_line(),
-      plot.caption = element_text(hjust = 1,size = GenText_Sz-16,face = "italic"),             # Plot subtitle size (if present)
+      plot.caption = element_text(hjust = 1,size = GenText_Sz-4,face = "italic"),             # Plot subtitle size (if present)
       
       # X-axis
       axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
       #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
       axis.title.x = element_blank(),
       # Y-axis
-      axis.title.y = element_text(size = GenText_Sz+8),           # y-axis title text size
+      axis.title.y = element_text(size = GenText_Sz+4),           # y-axis title text size
       axis.text.y = element_text(colour = "black"),                 # Horizontal text
       
       # Legend
       legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
-      legend.position = "bottom",                            # Move legend to the bottom
-      legend.justification = c(1.4,0.5),                     # Center the legend
-      legend.text = element_text(size =GenText_Sz-16),              # Size of legend text
+      legend.position = c(0.94,0.9),                            # Move legend to the bottom
+      legend.background = element_rect(fill = "transparent"),
+      legend.text = element_text(size =GenText_Sz-4),              # Size of legend text
       legend.title=element_blank()) +                        # Remove legend title
     
     # Set axis scales
     scale_y_continuous(expand=c(0,0),
-                       limits = c(0,16000),
+                       limits = c(0,ymax),
                        breaks=pretty_breaks(6),
                        label=comma) +
     
     #guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
     # Plot labels
-    labs(x = "Year", y = "Capacity (MW)", fill = "Year",pattern= "Year",caption = "Data from AESO Annual Market Statistics Report and Long-Term Adequacy Report (Feb 2024)") +
+    labs(x = "Year", y = "Year Start Capacity (MW)", fill = "Year",pattern= "Year",caption = "Data from AESO Annual Market Statistics Report and Long-Term Adequacy Report (Feb 2024)") +
     
-    guides(fill = guide_legend(nrow = 1)) +
-    guides(pattern = guide_legend(nrow = 1)) +
+    guides(fill = guide_legend(ncol = 1)) +
+    guides(pattern = guide_legend(ncol = 1)) +
   
     scale_pattern_manual(values = c("2017"='none',"2018"="none","2019"="none","2020"="none",
                                     "2021"='none',"2022"='none', 
                                     "2023"='none',"2024"='none',"2025 Expected"='stripe'),drop = FALSE) +
   
     # Legend color scheme
-    scale_fill_manual(values = c("2017"='#252323',"2018"="#515151","2019"="#767171","2020"="#A6A6A6",
-                                 "2021"='#e6e6e6',"2022"='#4472C4',
-                                 "2023"='#238b45',"2024"='darkgoldenrod2',"2025 Expected"='#cc79a7'),
+    scale_fill_manual(values = cols_choice,
                       drop = FALSE) 
     
     
