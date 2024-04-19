@@ -411,17 +411,13 @@ AnnualEm_Cum_COMPARE <- function(name_type,cogen_include) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Em_group <- function(name_type,p_type,list_groups) {
+Annual_Em_group <- function(name_type,list_groups) {
   
   years_cap = seq.int(2023, 2045) 
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
-  
+
   # Filter data & aggregate years
   Emdata <- ResGrYr %>%
     compare_rename(.,name_type)%>%
@@ -502,13 +498,11 @@ Annual_Em_group <- function(name_type,p_type,list_groups) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Total_Cap_Add_COMPARE <- function(name_type,p_type) {
+Total_Cap_Add_COMPARE <- function(name_type) {
 
-  if (p_type == "g"){
-    col_scale = colours5g
-  }else{
-    col_scale = colours5
-  }
+# Color
+  col_scale = colours5
+
   
   # Filter emissions data
   Builddata <- Tot_Cap %>%
@@ -571,15 +565,11 @@ Total_Cap_Add_COMPARE <- function(name_type,p_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Total_Cap_Ret_COMPARE <- function(name_type,p_type) {
+Total_Cap_Ret_COMPARE <- function(name_type) {
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours8g
-  }else{
     col_scale = colours8
-  }
-  
+
   # Filter emissions data
   Builddata <- Tot_Cap %>%
     compare_rename(.,name_type)%>%
@@ -641,15 +631,11 @@ Total_Cap_Ret_COMPARE <- function(name_type,p_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Cap_Relative_COMPARE <- function(name_type,p_type) {
+Cap_Relative_COMPARE <- function(name_type) {
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours5g
-  }else{
     col_scale = colours5
-  }
-  
+
   # Gather all data first
   Builddata <- Tot_Cap %>%
     compare_rename(.,name_type)%>%
@@ -731,15 +717,11 @@ Cap_Relative_COMPARE <- function(name_type,p_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Cap_Year_Relative_COMPARE <- function(name_type,year_in,p_type) {
+Cap_Year_Relative_COMPARE <- function(name_type,year_in) {
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
-  
+
   # Gather all data first
   Filt_data <- ResGrYr %>%
     compare_rename(.,name_type)%>%
@@ -832,14 +814,10 @@ Cap_Year_Relative_COMPARE <- function(name_type,year_in,p_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Cap_Add_COMPARE <- function(name_type,p_type) {
+Annual_Cap_Add_COMPARE <- function(name_type) {
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours8g
-  }else{
-    col_scale = colours8
-  }
+  col_scale = colours8
   
   # Filter data & aggregate years
   Builddata <- Ann_Cap %>%
@@ -925,16 +903,13 @@ Annual_Cap_Add_COMPARE <- function(name_type,p_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Cap_COMPARE <- function(name_type,p_type) {
+Annual_Cap_COMPARE <- function(name_type) {
   
   years_cap = c(2025,2030,2035,2040,2045)
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
+
   
   # Filter data & aggregate years
   Capdata <- ResGrYr %>%
@@ -1017,16 +992,12 @@ Annual_Cap_COMPARE <- function(name_type,p_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Cap_group <- function(name_type,p_type,list_groups) {
+Annual_Cap_group <- function(name_type,list_groups) {
   
   years_cap = seq.int(2023, 2045) 
 
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
   
   # Filter data & aggregate years
   Capdata <- ResGrYr %>%
@@ -1108,16 +1079,12 @@ Annual_Cap_group <- function(name_type,p_type,list_groups) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Cap_group_area <- function(name_type,p_type,list_groups,nrg_include) {
+Annual_Cap_group_area <- function(name_type,list_groups,nrg_include) {
   
   years_cap = seq.int(2023, 2045) 
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
   
   # Filter data & aggregate years
   Capdata <- ResGrYr %>%
@@ -1238,14 +1205,10 @@ Annual_Cap_group_area <- function(name_type,p_type,list_groups,nrg_include) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Total_Gen_COMPARE <- function(name_type,p_type) {
+Total_Gen_COMPARE <- function(name_type) {
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
   
   # Filter emissions data
   DataGen <- ResGrYr %>%
@@ -1302,16 +1265,12 @@ Total_Gen_COMPARE <- function(name_type,p_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Gen_group <- function(name_type,p_type,list_groups) {
+Annual_Gen_group <- function(name_type,list_groups) {
   
   years_cap = seq.int(2023, 2045) 
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
   
   # Filter data & aggregate years
   Gendata <- ResGrYr %>%
@@ -1393,16 +1352,12 @@ Annual_Gen_group <- function(name_type,p_type,list_groups) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Gen_group_area <- function(name_type,p_type,list_groups,nrg_include) {
+Annual_Gen_group_area <- function(name_type,list_groups,nrg_include) {
   
   years_cap = seq.int(2023, 2045) 
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
   
   # Filter data & aggregate years
   Gendata <- ResGrYr %>%
@@ -1522,16 +1477,12 @@ Annual_Gen_group_area <- function(name_type,p_type,list_groups,nrg_include) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Gen_group_perc <- function(name_type,p_type,list_groups,nrg_include) {
+Annual_Gen_group_perc <- function(name_type,list_groups,nrg_include) {
   
   years_cap = seq.int(2023, 2045) 
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
   
   # Filter data & aggregate years
   Gendata <- ResGrYr %>%
@@ -1649,15 +1600,11 @@ Annual_Gen_group_perc <- function(name_type,p_type,list_groups,nrg_include) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Total_Gen_Relative_COMPARE <- function(name_type,p_type) {
+Total_Gen_Relative_COMPARE <- function(name_type) {
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
-  
+
   # Filter emissions data
   DataGen <- ResGrYr %>%
     rename(Scenario=Sim_Name)%>%
@@ -1736,14 +1683,10 @@ Total_Gen_Relative_COMPARE <- function(name_type,p_type) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Annual_Gen_COMPARE <- function(name_type,p_type) {
+Annual_Gen_COMPARE <- function(name_type) {
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
   
   # Filter data
   Gendata <- ResGrYr %>%
@@ -1925,14 +1868,10 @@ Total_Gen_Treemap_COMPARE <- function(name_type,cogen_include) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Year_Gen_COMPARE <- function(name_type,year_look,show_neg,p_type) {
+Year_Gen_COMPARE <- function(name_type,year_look,show_neg) {
   
   # Choose color scale
-  if (p_type == "g"){
-    col_scale = colours3bg
-  }else{
     col_scale = colours3b
-  }
   
   # Filter emissions data
   DataGen <- ResGrYr %>%
