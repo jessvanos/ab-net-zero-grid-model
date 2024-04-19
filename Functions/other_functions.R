@@ -442,3 +442,103 @@ ResGrouphr_Renew8760 <- function() {
 return(Res_Data_all)
   
 }
+
+################################################################################
+## FUNCTION: Load_NRG_hourly
+## Load nrgstream hourly data, can only be used once R file is generated
+##
+## INPUTS: 
+##    date_filt - Date to filter "date"
+##    nrg_file_name - Name for file version "name"
+##    reformat_names = True/false to format names same as Aurora
+################################################################################
+
+Load_NRG_hourly <- function(date_filt,yr_max,nrg_file_name,reformat_names) {
+    
+  # Load nrgstream_gen - Load and demand info, plus a whole ton more
+  nrgstream_gen <- readRDS(here("Data Files","Alberta Data",nrg_file_name)) 
+  sub_samp<-filter(nrgstream_gen, time >= as.Date(date_filt))
+
+  # Create a list to describe Import/Exports
+  trade_excl<-c("AB - WECC Imp Hr Avg MW", 
+                "AB - WECC Exp Hr Avg MW",
+                "AB - WECC Imp/Exp Hr Avg MW")
+  
+  # Create Dataframe, only select rows where the Nat resource group is in the defined groups (ie trading)
+  # then grouped by plant type 
+  df1 <- sub_samp %>% 
+    filter(! NRG_Stream %in% trade_excl)%>% 
+    group_by(Plant_Type,time) %>% 
+    summarise(meancap = mean(Cap_Fac),
+              capacity =sum(Capacity),
+              total_gen=sum(gen,na.rm = T),
+              group_CF=total_gen/capacity,
+              total_rev=sum(Revenue,na.rm = T),
+              price_mean=mean(Price),
+              heatrt_mean=mean(Heat.Rate)) %>% 
+    ungroup()
+  
+  #Reformat the dates
+  df1$Day <- date(df1$time)
+  df1$Year <- as.factor(year(df1$time))
+  df1$Hour <-hour(df1$time)
+  
+  {  # ORGANIZE RESOURCES
+    #Make a resource type list
+    plant_types<-c("COAL","NGCONV","COGEN","HYDRO","NGCC", "OTHER", "SCGT","SOLAR","IMPORT","EXPORT","WIND","STORAGE")
+    
+    # Create a new dataframe with plant types specified only, 
+    # Then filter AESO data to exclude dates without information (till end of 2022)
+    df1a <- df1 %>%
+      filter(Plant_Type %in% plant_types,
+             year(time)<yr_max)
+    
+    # Put in desired order: Coal, Cogen, NGCC, SCGT, Other, Hydro, Wind, Solar, Import, Export
+    df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "OTHER",after=Inf)
+    df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "HYDRO",after=Inf)
+    df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "WIND",after=Inf)
+    df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "SOLAR",after=Inf)
+    df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "IMPORT",after=Inf)
+    df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "EXPORT",after=Inf)
+    
+    nrg_names <- c("COAL","COGEN","NGCC","NGCONV","SCGT","STORAGE","OTHER",
+                      "HYDRO","WIND","SOLAR","IMPORT","EXPORT")
+    gc()   
+  }
+  
+  if (reformat_names == TRUE){
+    
+    df1a$NRG_Plant_Type <- df1a$Plant_Type
+    
+    Aurora_names <- c("Coal","Cogeneration","Natural Gas Combined Cycle","Coal-to-Gas","Natural Gas Simple Cycle","Storage","Other",
+                      "Hydro","Wind","Solar","Import","Export")
+    
+    levels(df1a$Plant_Type) <- Aurora_names
+    
+  }
+  
+  return(df1a)
+
+}
+
+################################################################################
+## FUNCTION: Load_NRG_demand
+## Load nrgstream data, can only be used once R fiel is generated
+##
+## INPUTS: 
+##    CaseName - name for folder. Enter as "folder"
+##    FileName - Name for image. Enter as "name"
+################################################################################
+
+
+Load_NRG_demand <- function(date_filt,demand_file_name) {
+ 
+  #Reformat actual demand file
+  Actdemand <- readRDS(here("Data Files","Alberta Data",demand_file_name))
+  Actdemand$Day <- date(Actdemand$time)
+  Actdemand<-filter(Actdemand, time >= as.Date(date_filt))
+ 
+  return(Actdemand)
+  
+}
+

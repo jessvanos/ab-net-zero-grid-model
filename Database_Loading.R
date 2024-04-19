@@ -403,79 +403,30 @@ BC <- "Base Case"
 ################################################################################
 { 
   date_filt<-"2005-01-1"
+  yr_max <- 2023
+  merit_file_name <- "Leach_MeritData15Aug2023.RData"
+  nrg_file_name <- "nrgstream_gen_corrected03Mar2023.RData"
+  demand_file_name <-"nrgstream_demand03Mar2023.RData"
+  
+  # Load the data
+  df1a <- Load_NRG_hourly(date_filt,yr_max,nrg_file_name,reformat_names=FALSE)
+  Actdemand <- Load_NRG_demand(date_filt,demand_file_name)
   
   # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
-  merit <- readRDS(here("Data Files","Alberta Data","Leach_MeritData15Aug2023.RData"))
+  merit <- readRDS(here("Data Files","Alberta Data",merit_file_name))
+  merit_filt <- filter(merit,date >= as.Date(date_filt))
+  rm(merit)
   
-    #Filter Data to relevant dates & remove old data
-    merit_filt <- filter(merit,date >= as.Date(date_filt))
-    rm(merit)
-  
-  # Load nrgstream_gen - Load and demand info, plus a whole ton more
-    nrgstream_gen <- readRDS(here("Data Files","Alberta Data","nrgstream_gen_corrected03Mar2023.RData")) 
-    Actdemand <- readRDS(here("Data Files","Alberta Data","nrgstream_demand03Mar2023.RData"))
-  
-    #Reformat the dates
-    Actdemand$Day <- date(Actdemand$time)
-    
-    # Take out dates I don't care about and remove the old table
-    sub_samp<-filter(nrgstream_gen, time >= as.Date(date_filt))
-    Actdemand<-filter(Actdemand, time >= as.Date(date_filt))
-    
-    # Create a list to describe Import/Exports
-    trade_excl<-c("AB - WECC Imp Hr Avg MW", 
-                  "AB - WECC Exp Hr Avg MW",
-                  "AB - WECC Imp/Exp Hr Avg MW")
-    
-    # Create Dataframe, only select rows where the Nat resource group is in the defined groups (ie trading)
-    # then grouped by plant type 
-    df1 <- sub_samp %>% 
-      filter(! NRG_Stream %in% trade_excl)%>% 
-      group_by(Plant_Type,time) %>% 
-      summarise(meancap = mean(Cap_Fac),
-                capacity =sum(Capacity),
-                total_gen=sum(gen,na.rm = T),
-                group_CF=total_gen/capacity,
-                total_rev=sum(Revenue,na.rm = T),
-                price_mean=mean(Price),
-                heatrt_mean=mean(Heat.Rate)) %>% 
-      ungroup()
-    
-        #Reformat the dates
-        df1$Day <- date(df1$time)
-        df1$Year <- as.factor(year(df1$time))
-        df1$Hour <-hour(df1$time)
-    
-  {  # ORGANIZE RESOURCES
-     #Make a resource type list
-     plant_types<-c("COAL","NGCONV","COGEN","HYDRO","NGCC", "OTHER", "SCGT","SOLAR","IMPORT","EXPORT","WIND","STORAGE")
-    
-     # Create a new dataframe with plant types specified only, 
-     # Then filter AESO data to exclude dates without information (till end of 2022)
-     df1a <- df1 %>%
-     filter(Plant_Type %in% plant_types,
-            year(time)<2024)
-      
-         # Put in desired order: Coal, Cogen, NGCC, SCGT, Other, Hydro, Wind, Solar, Import, Export
-         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "OTHER",after=Inf)
-         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "HYDRO",after=Inf)
-         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "WIND",after=Inf)
-         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "SOLAR",after=Inf)
-         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "IMPORT",after=Inf)
-         df1a$Plant_Type<-fct_relevel(df1a$Plant_Type, "EXPORT",after=Inf)
-         gc()   
-   }
-      
   # AESO Market stats wind data
-    AESO_MS_Wind <- readRDS(here("Data Files","Alberta Data","AESO_market_stats_wind.RData"))  
+  AESO_MS_Wind <- readRDS(here("Data Files","Alberta Data","AESO_market_stats_wind.RData"))  
     
-    AESO_MS_Wind <- AESO_MS_Wind %>%
-      mutate(time = as.POSIXct(Date, format = "%m/%d/%Y %I:%M:%S %p"),
-             Day = date(time),
-             Year = year(time),
-             Hour = hour(time))%>%
-      rename(CF=`Capacity Factor`,
-             Output=`Total Generation`)
+  AESO_MS_Wind <- AESO_MS_Wind %>%
+    mutate(time = as.POSIXct(Date, format = "%m/%d/%Y %I:%M:%S %p"),
+            Day = date(time),
+           Year = year(time),
+           Hour = hour(time))%>%
+     rename(CF=`Capacity Factor`,
+            Output=`Total Generation`)
         
           
 }

@@ -44,9 +44,9 @@
   # combined file and merge it with a new scenario)
 
   # EXISTING SCENARIOS
-  #   'CP_04Apr'                 Current policy
-  #   'CER_02Apr'                Draft CER
-  #   'EL_06Apr"                 Emission limit
+  #   'CP_12Apr''CP_04Apr'       Current policy
+  #   'CER_14Apr''CER_02Apr'     Draft CER
+  #   'EL_16Apr''EL_06Apr'       Emission limit
   #   'CP_noITC_07Apr'           CP no investment tax credits
   #   'CER_noITC_08Apr'          CER no investment tax credits
   #   'CP_noEPC_10Apr'           CP no emission performance credits
@@ -59,11 +59,11 @@
   #   'CP_ITC_2'
 {
   # Define cases here
-  ScenarioName1<-"Main_update_3"
-  ScenarioName2<-"CP_12Apr"
+  ScenarioName1<-"ITC_3"
+  ScenarioName2<-"CP_noITC_07Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"Main_update_4"
+  CScenarioName <-"Main_3"
 }
 
 ################################################################################
@@ -99,7 +99,7 @@
 ## PLOT SETTINGS
 ################################################################################
 # Folder name
-CaseName <- "Main_update_4"
+CaseName <- "Main_3"
 #CaseName <- "TIER_3"
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
@@ -201,7 +201,7 @@ CaseName <- "Main_update_4"
       
       # Gas Groups (Purples)
       cOL_NGCC_CCSg <-"#464646"
-      cOL_SCGTg <-"#9B9B9B"
+      cOL_SCGTg <-"#8B8B8B"#"#9B9B9B"
       cOL_NGCCg <- "#DDDDDD"
       cOL_COal2Gasg <- "#C4AEFC"#"#BDBDBD"
       cOL_NGConvg <- cOL_COal2Gasg
@@ -423,6 +423,8 @@ CaseName <- "Main_update_4"
                    "Absolute Zero" = COL_Az,
                    "No H2 Absolute Zero" = COL_AZstrict,
                    "No Emission Credits" = COL_noEPC,
+                   "new_CP" = COL_CP_update,
+                   "new_CER" =COL_CER_update,
                    'Historic'='black')
    
    sn_line_l <-c("Draft CER"=1,
@@ -435,6 +437,8 @@ CaseName <- "Main_update_4"
                  "Absolute Zero" = 1,
                  "No H2 Absolute Zero"=1,
                  "No Emission Credits"=1,
+                 "new_CP" = 1,
+                 "new_CER" =1,
                  'Historic'=1)
    
    sn_colors_s <-c("CER"=COL_CER,
@@ -447,6 +451,8 @@ CaseName <- "Main_update_4"
                    "AZ" = COL_Az,
                    "AZstrict"= COL_AZstrict,
                    "noEPCs" = COL_noEPC,
+                   "new_CP" = COL_CP_update,
+                   "new_CER" =COL_CER_update,
                    'Historic'='black')
    
    sn_line_s <-c("CER"=1,
@@ -459,6 +465,8 @@ CaseName <- "Main_update_4"
                  "AZ"=1,
                  "AZstrict"=1,
                  "noEPCs" =1,
+                 "new_CP" = 1,
+                 "new_CER" =1,
                  'Historic'=1)
    
    # Scenario colors no historic
@@ -471,7 +479,9 @@ CaseName <- "Main_update_4"
                    "No ITCs with CER"=COL_noITC_CER,
                    "Absolute Zero" = COL_Az,
                    "No H2 Absolute Zero" = COL_AZstrict,
-                   "No Emission Credits"=COL_noEPC
+                   "No Emission Credits"=COL_noEPC,
+                   "new_CP" = COL_CP_update,
+                   "new_CER" =COL_CER_update
                    )
    sn_line2_l <-c("Draft CER"=1,
                  "Current Policy"=1,
@@ -482,7 +492,9 @@ CaseName <- "Main_update_4"
                  "No ITCs with CER"=1,
                  "Absolute Zero" = 1,
                  "No H2 Absolute Zero" = 1,
-                 "No Emission Credits" = 1
+                 "No Emission Credits" = 1,
+                 "new_CP" = 1,
+                 "new_CER" =1
                  )
    sn_colors2_s <-c("CER"=COL_CER,
                    "CP"=COL_CP,
@@ -493,7 +505,9 @@ CaseName <- "Main_update_4"
                    "CERnoITCs"=COL_noITC_CER,
                    "AZ" = COL_Az,
                    "AZstrict"=COL_AZstrict,
-                   "noEPCs" =COL_noEPC
+                   "noEPCs" =COL_noEPC,
+                   "new_CP" = COL_CP_update,
+                   "new_CER" =COL_CER_update
                   )
    sn_line2_s <-c("CER"=1,
                  "CP"=1,
@@ -504,7 +518,9 @@ CaseName <- "Main_update_4"
                  "CERnoITCs"=1,
                  "AZ"=1,
                  "AZstrict"=1,
-                 "noEPCs" =1
+                 "noEPCs" =1,
+                 "new_CP" = 1,
+                 "new_CER" =1
                  )
    
   }
@@ -515,10 +531,12 @@ CaseName <- "Main_update_4"
 {
 # Compare pool prices
 GGSave_Loc_custom(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE("l","Y"),12,8)
+GGSave_Loc_custom(CaseName,"Annual Pool Price Compare2",AvgYr_price_COMPARE2("l","Y"),6,8)
+  
 
 # Compare Emissions
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y"),12,8)
-GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen",AnnualEm_COMPARE("l", "n"),12,8)
+GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen2",AnnualEm_COMPARE("l", "n"),12,4)
 GGSave_Loc_custom(CaseName,"Cummulative Emissions Compare noncogen",AnnualEm_Cum_COMPARE("l", "n"),12,8)
 
 # Capacity changes
@@ -558,6 +576,9 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   all_groups <- c("Coal", "Cogeneration","Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                   "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
                   "Hydro", "Other", "Wind", "Solar", "Storage")
+  all_groups_noStor <- c("Coal", "Cogeneration","Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                  "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                  "Hydro", "Other", "Wind", "Solar")
   renew <- c("Hydro", "Other", "Wind", "Solar")
   all_fossil <- c("Coal", "Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                   "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle")
@@ -565,6 +586,8 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   h2_ccs <- c("Hydrogen Simple Cycle","Hydrogen Combined Cycle","Natural Gas Combined Cycle + CCS")
   em_groups <-  c("Coal", "Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
                  "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Other")
+  em_groups_noOT <-  c("Coal", "Coal-to-Gas",
+                  "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle")
   
   GGSave_Loc_custom(CaseName,"Annual Capacity All",Annual_Cap_group(name_type="l",p_type='g',list_groups=all_groups),14,6)
   GGSave_Loc_custom(CaseName,"Annual Capacity Renewable",Annual_Cap_group(name_type="l",p_type='g',list_groups=renew),14,6)
@@ -585,11 +608,31 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   GGSave_Loc_custom(CaseName,"Annual Generation Solar",Annual_Gen_group(name_type="l",p_type='g',list_groups=c("Solar")),14,6)
   
   GGSave_Loc_custom(CaseName,"Annual Emissions non-cogen",Annual_Em_group(name_type="l",p_type='g',list_groups=em_groups),14,6)
+  GGSave_Loc_custom(CaseName,"Annual Emissions non-cogen no other",Annual_Em_group(name_type="l",p_type='g',list_groups=em_groups_noOT),14,6)
   GGSave_Loc_custom(CaseName,"Annual Emissions Combined-Cycle",Annual_Em_group(name_type="l",p_type='g',list_groups=c("Natural Gas Combined Cycle + CCS", "Natural Gas Combined Cycle")),14,6)
   GGSave_Loc_custom(CaseName,"Annual Emissions Simple-Cycle and Coal-to-gas",Annual_Em_group(name_type="l",p_type='g',list_groups=c("Natural Gas Simple Cycle","Coal-to-Gas")),14,6)
   
   
+  # STACKED AREAS
+  GGSave_Loc_custom(CaseName,"Annual Generation All Area",Annual_Gen_group_area(name_type="l",p_type='g',list_groups=all_groups,nrg_include=FALSE),14,6)
+  GGSave_Loc_custom(CaseName,"Annual Generation All Area with old",Annual_Gen_group_area(name_type="l",p_type='g',list_groups=all_groups,nrg_include=TRUE),14,6)
+  GGSave_Loc_custom(CaseName,"Annual Generation All Perc with old",Annual_Gen_group_perc(name_type="l",p_type='g',list_groups=all_groups_noStor,nrg_include=TRUE),14,6)
+  GGSave_Loc_custom(CaseName,"Annual Generation All Perc",Annual_Gen_group_perc(name_type="l",p_type='g',list_groups=all_groups_noStor,nrg_include=FALSE),14,6)
+  GGSave_Loc_custom(CaseName,"Annual Capacity All Area",Annual_Cap_group_area(name_type="l",p_type='g',list_groups=all_groups,nrg_include=FALSE),14,6)
+  GGSave_Loc_custom(CaseName,"Annual Capacity All Area with old",Annual_Cap_group_area(name_type="l",p_type='g',list_groups=all_groups,nrg_include=TRUE),14,6)
+  
 }
+
+################################################################################
+## CREATE COMPARE PLOTS WITH NRG STREAM DATA
+################################################################################
+  date_filt<-"2005-01-1"
+  nrg_file_name <- "nrgstream_gen_corrected03Mar2023.RData"
+  demand_file_name <-"nrgstream_demand03Mar2023.RData"
+  
+  # Load the data
+  df1a <- Load_NRG_hourly(date_filt,2022,nrg_file_name,reformat_names=TRUE)
+  Actdemand <- Load_NRG_demand(date_filt,demand_file_name)
 
 ################################################################################
 ## GENERATE PLOTS TO LOOK - NOT SAVE :)
