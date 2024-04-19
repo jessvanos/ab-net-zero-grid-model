@@ -444,6 +444,118 @@ return(Res_Data_all)
 }
 
 ################################################################################
+## FUNCTION: NRG_student_generate_R
+## Format input data and save as R files.
+##
+## INPUTS: 
+##    student_data_name - raw student data name, in csv format
+##    nrg_raw_name - nrg extract, r data name
+##    merit_file_name - student data converted to R file name
+##    nrg_file_name - output filtered nrg data file name, r data
+##    demand_file_name - output demand file name, R data
+##    
+################################################################################
+
+NRG_student_generate_R <- function(student_data_name,nrg_raw_name,merit_file_name,nrg_file_name,demand_file_name) {
+  
+  # Load merit data
+  merit <- read_csv(here("Data Files","Alberta Data",student_data_name))
+  # Save as R file
+  saveRDS(merit, here("Data Files","Alberta Data",merit_file_name))
+  
+  # Load NRG data and rename time column
+  load(here("Data Files","Alberta Data",nrg_raw_name))
+  nrgstream_gen <- nrgstream_gen %>%
+    rename(time=Time)
+  
+  # Remove NA values
+  nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$gen),]
+  nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$time),]
+  
+  # Apply data corrections
+  corrected <- nrgstream_gen %>%
+    filter(is.na(Latitude)) %>%
+    mutate(Latitude=case_when(grepl("BRD1",ID) ~ 49.842735,
+                              grepl("BUR1",ID) ~ 49.814877,
+                              grepl("CLR",ID) ~ 50.032911,
+                              grepl("CLY",ID) ~ 49.840967,
+                              grepl("CHP1",ID) ~ 50.22189,
+                              grepl("COL1",ID) ~ 49.833218,
+                              grepl("CRD",ID) ~ 49.807,
+                              grepl("CRR2",ID) ~ 49.55891,
+                              grepl("FMG1",ID) ~ 49.66334,
+                              grepl("KKP",ID) ~ 53.469986,
+                              grepl("MON1",ID) ~ 49.833144,
+                              grepl("NMK1",ID) ~ 51.026118,
+                              grepl("RIV1",ID) ~ 49.53245,
+                              grepl("STR",ID) ~ 51.033273,
+                              grepl("TVS1",ID) ~ 50.27324,
+                              grepl("VCN1",ID) ~ 50.0975,
+                              grepl("VXH1",ID) ~ 50.095223,
+                              grepl("WEF1",ID) ~ 49.65405,
+                              grepl("WHT",ID) ~ 49.64029),
+           Longitude=case_when(grepl("BRD1",ID) ~ -111.537891,
+                               grepl("BUR1",ID) ~ -111.543323,
+                               grepl("CHP1",ID) ~ -110.437106,
+                               grepl("CLR",ID) ~ -113.484369,
+                               grepl("CLY",ID) ~ -110.356864,
+                               grepl("COL1",ID) ~ -112.97448,
+                               grepl("CRD",ID) ~ -112.578,
+                               grepl("CRR2",ID) ~ -113.983,
+                               grepl("FMG1",ID) ~ -111.122,
+                               grepl("KKP",ID) ~ -113.61337,
+                               grepl("MON1",ID) ~ -112.974231,
+                               grepl("NMK1",ID) ~ -113.163017,
+                               grepl("RIV1",ID) ~ -113.977,
+                               grepl("STR",ID) ~ -113.371296,
+                               grepl("TVS1",ID) ~ -112.73059,
+                               grepl("VCN1",ID) ~ -112.84841,
+                               grepl("VXH1",ID) ~ -112.149936,
+                               grepl("WEF1",ID) ~ -111.515812,
+                               grepl("WHT",ID) ~ -111.291),
+           Installation_Year=case_when(grepl("CRR2",ID)~2019,
+                                       grepl("CYP",ID)~2022,
+                                       #grepl("CYP2",ID)~"post2019",
+                                       grepl("FMG1",ID)~2022,
+                                       grepl("GDP1",ID)~2022,
+                                       grepl("GRZ1",ID)~2022,
+                                       grepl("HHW1",ID)~2022,
+                                       grepl("HLD1",ID)~2022,
+                                       grepl("JNR",ID)~2022,
+                                       grepl("RIV1",ID)~2019,
+                                       grepl("RTL1",ID)~2021,
+                                       grepl("WHE1",ID)~2022,
+                                       grepl("WHT1",ID)~2019,
+                                       grepl("WHT2",ID)~2021,
+                                       grepl("WRW1",ID)~2021),
+           Installation_Year=case_when(is.na(Installation_Year)~"pre2019",
+                                       TRUE~"post2019"))
+  
+  # Get non-corrected and remove Latitude
+  nocorrection <- nrgstream_gen %>%
+    filter(!is.na(Latitude))%>%
+    mutate(Installation_Year="")
+  
+  # put back together and remove old files
+  nrgstream_gen <- rbind(corrected,nocorrection)
+  rm(corrected,nocorrection)
+  
+  # Save new file
+  saveRDS(nrgstream_gen,here("Data Files","Alberta Data",nrg_file_name))
+  
+  # Make separate file for demand and save
+  Actdemand <- nrgstream_gen %>%
+    group_by(time) %>%
+    summarise(Demand = median(Demand),
+              Price = median(Price),
+              AIL = median(AIL))
+  
+  # Save the demand
+  saveRDS(Actdemand, here("Data Files","Alberta Data",demand_file_name))
+  
+}
+
+################################################################################
 ## FUNCTION: Load_NRG_hourly
 ## Load nrgstream hourly data, can only be used once R file is generated
 ##

@@ -576,8 +576,9 @@ Ren_Curtail_Gen_save <- function(CaseName) {
   
   # One week example
   GGSave_Loc_hourly(CaseName,"2035 week renewable curtail simple",Week12_wCURTAIL_simple(2035,06,08,BC),100)
-  GGSave_Loc_hourly(CaseName,"2034 Feb renewable curtail simple",Week12_wCURTAIL_simple(2045,02,08,BC),100)
+  GGSave_Loc_hourly(CaseName,"2045 Feb renewable curtail simple",Week12_wCURTAIL_simple(2045,02,08,BC),100)
   GGSave_Loc_hourly(CaseName,"2035 week renewable curtail",Week12_rCURTAIL(2035,06,08,BC),100)
+
 }
 ################################################################################
 # CER_saveall

@@ -85,7 +85,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"TIER2050_18_Apr_2024"
+  SourceDB<-"CER_14_Apr_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -295,144 +295,48 @@ COL_choice = 3
 }
 
 ################################################################################
-## SAVE OTHER DATA AS R FILE AND MODIFY (OPTIONAL)
-## Only need to run if new files are available
-################################################################################
-# 
-# # Load merit data
-# {
-# merit <- read_csv(here("Data Files","Alberta Data","student_data_2023_Aug_15_16_56.csv.gz"))
-#   # Save as R file
-#   saveRDS(merit, here("Data Files","Alberta Data","Leach_MeritData15Aug2023.RData"))
-#   # Remove from workspace
-#    rm(merit)
-#   }
-# 
-# # Load NRG data and rename time column
-# {
-#      load(here("Data Files","Alberta Data","nrgstream_gen03Mar2023.RData"))
-#      nrgstream_gen <- nrgstream_gen %>%
-#        rename(time=Time)
-# 
-#      # Remove NA values
-#      nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$gen),]
-#      nrgstream_gen<-nrgstream_gen[!is.na(nrgstream_gen$time),]
-# 
-#      # Apply data corrections
-#      corrected <- nrgstream_gen %>%
-#          filter(is.na(Latitude)) %>%
-#          mutate(Latitude=case_when(grepl("BRD1",ID) ~ 49.842735,
-#                                    grepl("BUR1",ID) ~ 49.814877,
-#                                    grepl("CLR",ID) ~ 50.032911,
-#                                    grepl("CLY",ID) ~ 49.840967,
-#                                    grepl("CHP1",ID) ~ 50.22189,
-#                                    grepl("COL1",ID) ~ 49.833218,
-#                                    grepl("CRD",ID) ~ 49.807,
-#                                    grepl("CRR2",ID) ~ 49.55891,
-#                                    grepl("FMG1",ID) ~ 49.66334,
-#                                    grepl("KKP",ID) ~ 53.469986,
-#                                    grepl("MON1",ID) ~ 49.833144,
-#                                    grepl("NMK1",ID) ~ 51.026118,
-#                                    grepl("RIV1",ID) ~ 49.53245,
-#                                    grepl("STR",ID) ~ 51.033273,
-#                                    grepl("TVS1",ID) ~ 50.27324,
-#                                    grepl("VCN1",ID) ~ 50.0975,
-#                                    grepl("VXH1",ID) ~ 50.095223,
-#                                    grepl("WEF1",ID) ~ 49.65405,
-#                                    grepl("WHT",ID) ~ 49.64029),
-#                 Longitude=case_when(grepl("BRD1",ID) ~ -111.537891,
-#                                     grepl("BUR1",ID) ~ -111.543323,
-#                                     grepl("CHP1",ID) ~ -110.437106,
-#                                     grepl("CLR",ID) ~ -113.484369,
-#                                     grepl("CLY",ID) ~ -110.356864,
-#                                     grepl("COL1",ID) ~ -112.97448,
-#                                     grepl("CRD",ID) ~ -112.578,
-#                                     grepl("CRR2",ID) ~ -113.983,
-#                                     grepl("FMG1",ID) ~ -111.122,
-#                                     grepl("KKP",ID) ~ -113.61337,
-#                                     grepl("MON1",ID) ~ -112.974231,
-#                                     grepl("NMK1",ID) ~ -113.163017,
-#                                     grepl("RIV1",ID) ~ -113.977,
-#                                     grepl("STR",ID) ~ -113.371296,
-#                                     grepl("TVS1",ID) ~ -112.73059,
-#                                     grepl("VCN1",ID) ~ -112.84841,
-#                                     grepl("VXH1",ID) ~ -112.149936,
-#                                     grepl("WEF1",ID) ~ -111.515812,
-#                                     grepl("WHT",ID) ~ -111.291),
-#                 Installation_Year=case_when(grepl("CRR2",ID)~2019,
-#                                             grepl("CYP",ID)~2022,
-#                                             #grepl("CYP2",ID)~"post2019",
-#                                             grepl("FMG1",ID)~2022,
-#                                             grepl("GDP1",ID)~2022,
-#                                             grepl("GRZ1",ID)~2022,
-#                                             grepl("HHW1",ID)~2022,
-#                                             grepl("HLD1",ID)~2022,
-#                                             grepl("JNR",ID)~2022,
-#                                             grepl("RIV1",ID)~2019,
-#                                             grepl("RTL1",ID)~2021,
-#                                             grepl("WHE1",ID)~2022,
-#                                             grepl("WHT1",ID)~2019,
-#                                             grepl("WHT2",ID)~2021,
-#                                             grepl("WRW1",ID)~2021),
-#                 Installation_Year=case_when(is.na(Installation_Year)~"pre2019",
-#                                               TRUE~"post2019"))
-# 
-#      # Get non-corrected and remove Latitude
-#      nocorrection <- nrgstream_gen %>%
-#          filter(!is.na(Latitude))%>%
-#        mutate(Installation_Year="")
-# 
-#      # put back together and remove old files
-#      nrgstream_gen <- rbind(corrected,nocorrection)
-#         rm(corrected,nocorrection)
-# 
-#      # Save new file
-#      saveRDS(nrgstream_gen,here("Data Files","Alberta Data","nrgstream_gen_corrected03Mar2023.RData"))
-# 
-#      # Make separate file for demand and save
-#      Actdemand <- nrgstream_gen %>%
-#          group_by(time) %>%
-#          summarise(Demand = median(Demand),
-#                    Price = median(Price),
-#                    AIL = median(AIL))
-# 
-#      # Save the demand
-#      saveRDS(Actdemand, here("Data Files","Alberta Data","nrgstream_demand03Mar2023.RData"))
-#         rm(Actdemand,nrgstream_gen)
-# }
-
-################################################################################
 ## BRING IN DATA FROM AESO FILES & FORMAT  (OPTIONAL)
+##  SAVE NEW FILES:
+##    Only need to run if new files are available
+##    Place new raw files in "Data Files">"Alberta Data"
+##    Replace file names as needed
+##
+##  LOAD R FILES
+##    Grab saves R files and load in workspace
 ################################################################################
-{ 
-  date_filt<-"2005-01-1"
-  yr_max <- 2023
+{
+# Input file names
+  student_data_name <- "student_data_2023_Aug_15_16_56.csv.gz"
+  nrg_raw_name <- "nrgstream_gen03Mar2023.RData"
+
+# Output file names
   merit_file_name <- "Leach_MeritData15Aug2023.RData"
   nrg_file_name <- "nrgstream_gen_corrected03Mar2023.RData"
   demand_file_name <-"nrgstream_demand03Mar2023.RData"
+  date_filt<-"2005-01-1"
+  yr_max <- 2023
   
-  # Load the data
+# # FILTER AND SAVE NEW DATA
+#   NRG_student_generate_R(student_data_name,nrg_raw_name,merit_file_name,nrg_file_name,demand_file_name)
+  
+# READ R DATA AND FILTER BY YEAR
   df1a <- Load_NRG_hourly(date_filt,yr_max,nrg_file_name,reformat_names=FALSE)
   Actdemand <- Load_NRG_demand(date_filt,demand_file_name)
-  
-  # Load Leach Merit Data - Hourly resource info for Alberta (similar to ResHr and StackHr)
-  merit <- readRDS(here("Data Files","Alberta Data",merit_file_name))
-  merit_filt <- filter(merit,date >= as.Date(date_filt))
-  rm(merit)
-  
-  # AESO Market stats wind data
-  AESO_MS_Wind <- readRDS(here("Data Files","Alberta Data","AESO_market_stats_wind.RData"))  
-    
-  AESO_MS_Wind <- AESO_MS_Wind %>%
-    mutate(time = as.POSIXct(Date, format = "%m/%d/%Y %I:%M:%S %p"),
-            Day = date(time),
-           Year = year(time),
-           Hour = hour(time))%>%
-     rename(CF=`Capacity Factor`,
-            Output=`Total Generation`)
-        
+  merit_filt <- readRDS(here("Data Files","Alberta Data",merit_file_name))
+  merit_filt <- filter(merit_filt,date >= as.Date(date_filt))
+
+  # # AESO Market stats wind data
+  # AESO_MS_Wind <- readRDS(here("Data Files","Alberta Data","AESO_market_stats_wind.RData"))  
+  #   
+  # AESO_MS_Wind <- AESO_MS_Wind %>%
+  #   mutate(time = as.POSIXct(Date, format = "%m/%d/%Y %I:%M:%S %p"),
+  #           Day = date(time),
+  #          Year = year(time),
+  #          Hour = hour(time))%>%
+  #    rename(CF=`Capacity Factor`,
+  #           Output=`Total Generation`)
+}        
           
-}
 ################################################################################
 ## PLOT SETTINGS
 ################################################################################
@@ -449,8 +353,6 @@ COL_choice = 3
         showtext_auto()
     # font_add(family="Cambrai",regular="CAMBRIA.ttc")
     # Plot_Text <- 'Cambrai'
-    
-    
     
   # Set default size for plot features to be constant. All based on general text size
   { GenText_Sz =46 # GGsave
@@ -763,8 +665,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "TIER2050"
-NameShort<-'TIER2050_18Apr'
+CaseName <- "CER"
+NameShort<-'CER_Faith'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
