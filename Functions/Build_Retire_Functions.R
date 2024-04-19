@@ -496,13 +496,11 @@ BuildMW <- function(case)
 ## TABLES REQUIRED: 
 ##    ResGroupYear -Yearly resoruce group emissions
 ################################################################################
-TotalCapChange <- function(case,p_type) {
+TotalCapChange <- function(case) {
   
-  if (p_type == "g"){
-    col_scale = colours8g
-  }else{
-    col_scale = colours8
-  }
+  # Color choice
+  col_scale = colours8
+
   
   # Bring in Resource Year Table and filter for relevant data. Format date columns
   Add_Ret_data <- ResYr%>%
@@ -675,13 +673,10 @@ TotalCapChange <- function(case,p_type) {
 ## TABLES REQUIRED: 
 ##    ResGroupYear -Yearly resoruce group emissions
 ################################################################################
-Eval_CapChange <- function(case,p_type) {
+Eval_CapChange <- function(case) {
   
-  if (p_type == "g"){
-    col_scale = colours8g
-  }else{
-    col_scale = colours8
-  }
+  # Col choice
+  col_scale = colours8
   
   # Bring in Resource Year Table and filter for relevant data. Format date columns
   Add_Ret_data <- ResYr%>%

@@ -85,7 +85,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CP_12_Apr_2024"
+  SourceDB<-"TIER2050_18_Apr_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -97,11 +97,14 @@
 }
 
 ################################################################################
-## DEFINE CASES TO STUDY (IE: RUN ID)
+## DEFINE CASES TO STUDY (IE: RUN ID) & COLOR SETTINGS
 ## Value can be found in the "Run_Id" column of any AURORA table
 ################################################################################
 
 BC <- "Base Case" 
+
+# 1 = original, #3 - grayscale, #3 - black/white safe color (default)
+COL_choice = 3
 
 ################################################################################
 ## READ TABLES FROM DATABASE INTO ENVIRONMENT
@@ -469,93 +472,129 @@ BC <- "Base Case"
   }  
 
   # Set legend color schemes for constancy
-    ## Can change here
-    # To see a bunch of options, use this: 
-        # library("colorspace")
-        # hcl_palettes(plot = TRUE)
-        #sequential_hcl(5,palette="oranges)
+    # Can define a new set if wanted here!
     { 
-            
+    if (COL_choice == 1){
       # Normal Color 
-          # Import/Export
-          cOL_IMPORT <- "#F8B660"  
-          cOL_EXPORT <- "burlywood4"
-          
-          # Coal/Cogen
-          cOL_NUCLEAR <- "midnightblue"
-          cOL_COAL <- "black"
-          cOL_COGEN <- "gray30"
-          
-          # H2 groups (blues)
-          cOL_SCGT_H2 <- "#7e4e90ff"
-          cOL_NGCC_H2 <- "darkorchid4"
-          COL_H2 <- cOL_NGCC_H2  
-              #cOL_SCGT_Blend <- "#7FABD3"
-              #cOL_NGCC_Blend <- "#3573B9"
-              #COL_Blend <- cOL_NGCC_Blend 
-
-          # Gas Groups (Purples)
-          cOL_COal2Gas <-  "gray65"
-          cOL_NGConv <- cOL_COal2Gas
-          cOL_SCGT <- "gray50"
-          cOL_NGCC <- "gray85"
-          COL_NatGas <-cOL_NGCC 
-          cOL_NGCC_CCS <-"#A79FE1"
-          
-          # Renewables and Other
-          cOL_OTHER <- "steelblue1"
-          cOL_HYDRO <- "royalblue3"
-          cOL_SOLAR <- "#FDE725FF"#'darkgoldenrod1'#
-          cOL_WIND <- "#73D055FF" #"#238b45"#
-          col_WIND_CURT <-"#1d632d"
-          col_SOLAR_CURT <-'goldenrod1'
-
-          # Storage Groups
-          cOL_STORAGE <- "rosybrown1" 
-          COL_Battery <-"rosybrown1" 
-          COL_CompAir <-"coral3"
-          COL_Pumped <-"firebrick4"
-          
+      # Import/Export
+      cOL_IMPORT <- "#F8B660"  
+      cOL_EXPORT <- "burlywood4"
+      
+      # Coal/Cogen
+      cOL_NUCLEAR <- "midnightblue"
+      cOL_COAL <- "black"
+      cOL_COGEN <- "gray30"
+      
+      # H2 groups (blues)
+      cOL_SCGT_H2 <- "#7e4e90ff"
+      cOL_NGCC_H2 <- "darkorchid4"
+      COL_H2 <- cOL_NGCC_H2  
+      #cOL_SCGT_Blend <- "#7FABD3"
+      #cOL_NGCC_Blend <- "#3573B9"
+      #COL_Blend <- cOL_NGCC_Blend 
+      
+      # Gas Groups (Purples)
+      cOL_COal2Gas <-  "gray65"
+      cOL_NGConv <- cOL_COal2Gas
+      cOL_SCGT <- "gray50"
+      cOL_NGCC <- "gray85"
+      COL_NatGas <-cOL_NGCC 
+      cOL_NGCC_CCS <-"#A79FE1"
+      
+      # Renewables and Other
+      cOL_OTHER <- "steelblue1"
+      cOL_HYDRO <- "royalblue3"
+      cOL_SOLAR <- "#FDE725FF"#'darkgoldenrod1'#
+      cOL_WIND <- "#73D055FF" #"#238b45"#
+      col_WIND_CURT <-"#1d632d"
+      col_SOLAR_CURT <-'goldenrod1'
+      
+      # Storage Groups
+      cOL_STORAGE <- "rosybrown1" 
+      COL_Battery <-"rosybrown1" 
+      COL_CompAir <-"coral3"
+      COL_Pumped <-"firebrick4"
+      
+    }else if (COL_choice == 2){
       # Gray-scale safe colors
-          # Renewables and Other
-          cOL_SOLARg <- "#D9D012"#"#BDBDBD"
-          cOL_WINDg <-  "#237636" #"#565656"
-          col_WIND_CURTg <-cOL_WINDg
-          col_SOLAR_CURTg <-cOL_SOLARg
-          cOL_HYDROg <- "#5965F8"#"#717171"
-          cOL_OTHERg <- "#3EA836"##7b7b7b"
-          
-          # H2 groups (blues)
-          cOL_SCGT_H2g <- "#0E3239"#272727"
-          cOL_NGCC_H2g <- "#7e7e7e"
-          COL_H2g <- cOL_SCGT_H2g 
-          
-          # Gas Groups (Purples)
-          cOL_NGCC_CCSg <-"#464646"
-          cOL_SCGTg <-"#9B9B9B"
-          cOL_NGCCg <- "#DDDDDD"
-          cOL_COal2Gasg <- "#C4AEFC"#"#BDBDBD"
-          cOL_NGConvg <- cOL_COal2Gasg
-          COL_NatGasg <-cOL_NGCCg
-          
-          # Coal/Cogen
-          cOL_COALg <- "#460E65"#"#282828"
-          cOL_COGENg <-"#0A0A0A"
-          cOL_NUCLEARg <- "midnightblue"
-          
-          # Import/Export
-          cOL_IMPORTg <- "white" 
-          cOL_EXPORTg <- "white"
-          
-          # Storage Groups
-          COL_Batteryg <-"#F4EEA0" #"#E7E7E7"
-          COL_CompAirg <-"#EFEFEF"
-          COL_Pumpedg <-"#F5F5F5"
-          cOL_STORAGEg <- COL_Batteryg
-          
+      # Renewables and Other
+      cOL_SOLAR <- "#BDBDBD"
+      cOL_WIND <-  "#565656"
+      col_WIND_CURT <-cOL_WIND
+      col_SOLAR_CURT <-cOL_SOLAR
+      cOL_HYDRO <- "#717171"
+      cOL_OTHER <- #7b7b7b"
+      
+      # H2 groups (blues)
+      cOL_SCGT_H2 <- "#272727"
+      cOL_NGCC_H2 <- "#7e7e7e"
+      COL_H2 <- cOL_SCGT_H2 
+      
+      # Gas Groups (Purples)
+      cOL_NGCC_CCS <-"#464646"
+      cOL_SCGT <-"#9B9B9B"
+      cOL_NGCC <- "#DDDDDD"
+      cOL_COal2Gas <- "#BDBDBD"
+      cOL_NGConv <- cOL_COal2Gas
+      COL_NatGas <-cOL_NGCC
+      
+      # Coal/Cogen
+      cOL_COAL <- "#282828"
+      cOL_COGEN <-"#0A0A0A"
+      cOL_NUCLEAR <- "midnightblue"
+      
+      # Import/Export
+      cOL_IMPORT <- "white" 
+      cOL_EXPORT <- "white"
+      
+      # Storage Groups
+      COL_Battery <-"#E7E7E7"
+      COL_CompAir <-"#EFEFEF"
+      COL_Pumped <-"#F5F5F5"
+      cOL_STORAGE <- COL_Battery
+      
+    }else{
+      
+      # Gray-scale safe colors
+      cOL_SOLAR <- "#D9D012"
+      cOL_WIND <-  "#237636"
+      col_WIND_CURT <-cOL_WIND
+      col_SOLAR_CURT <-cOL_SOLAR
+      cOL_HYDRO <- "#5965F8"
+      cOL_OTHER <- "#3EA836"
+      
+      # H2 groups (blues)
+      cOL_SCGT_H2 <- "#0E3239"
+      cOL_NGCC_H2 <- "#7e7e7e"
+      COL_H2 <- cOL_SCGT_H2 
+      
+      # Gas Groups (Purples)
+      cOL_NGCC_CCS <-"#464646"
+      cOL_SCGT <-"#9B9B9B"
+      cOL_NGCC <- "#DDDDDD"
+      cOL_COal2Gas <- "#C4AEFC"
+      cOL_NGConv <- cOL_COal2Gas
+      COL_NatGas <-cOL_NGCC
+      
+      # Coal/Cogen
+      cOL_COAL <- "#460E65"
+      cOL_COGEN <-"#0A0A0A"
+      cOL_NUCLEAR <- "midnightblue"
+      
+      # Import/Export
+      cOL_IMPORT <- "white" 
+      cOL_EXPORT <- "white"
+      
+      # Storage Groups
+      COL_Battery <-"#F4EEA0" 
+      COL_CompAir <-"#EFEFEF"
+      COL_Pumped <-"#F5F5F5"
+      cOL_STORAGE <- COL_Battery
+      
+    }
 
-          # Set plot color transparacny 
-          Plot_Trans<-1
+   # Set plot color transparacny 
+     Plot_Trans<-1
               
    ## Now Define Lists to assign legends and colors in plots
      colours1=c("Trade"= cOL_EXPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
@@ -599,24 +638,7 @@ BC <- "Base Case"
                          "Natural Gas Simple Cycle"="none", "Natural Gas Combined Cycle"="none", 
                          "Hydro"="none", "Other"="none", "Wind"="none", 
                          "Solar"="none", "Storage"="none","Curtailed Solar"="stripe","Curtailed Wind"="stripe")
-      
-      # GRAY_SCALE SAFE COLOR PALLETE
-      colours1g=c("Trade"= cOL_EXPORTg, "Coal"=cOL_COALg, "Cogeneration"=cOL_COGENg, 
-                 "Coal-to-Gas"=cOL_NGConvg,"Hydrogen Simple Cycle"=cOL_SCGT_H2g,"Hydrogen Combined Cycle"=cOL_NGCC_H2g,
-                 #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
-                 "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCSg,
-                 "Natural Gas Simple Cycle"=cOL_SCGTg, "Natural Gas Combined Cycle"=cOL_NGCCg, 
-                 "Hydro"=cOL_HYDROg, "Other"=cOL_OTHERg, "Wind"=cOL_WINDg, 
-                 "Solar"=cOL_SOLARg, "Storage"=cOL_STORAGEg)
-      
-      colours1_rcurtg = c("Trade"= cOL_EXPORTg, "Coal"=cOL_COALg, "Cogeneration"=cOL_COGENg, 
-                         "Coal-to-Gas"=cOL_NGConvg,"Hydrogen Simple Cycle"=cOL_SCGT_H2g,"Hydrogen Combined Cycle"=cOL_NGCC_H2g,
-                         #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
-                         "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCSg,
-                         "Natural Gas Simple Cycle"=cOL_SCGTg, "Natural Gas Combined Cycle"=cOL_NGCCg, 
-                         "Hydro"=cOL_HYDROg, "Other"=cOL_OTHERg, "Wind"=cOL_WINDg, 
-                         "Solar"=cOL_SOLARg, "Storage"=cOL_STORAGEg,"Curtailed Solar"=cOL_SOLARg,"Curtailed Wind"=cOL_WINDg)
-      
+
       colours2 = c("Coal"= cOL_COAL, "Coal-to-Gas"=cOL_COal2Gas, "Cogen"=cOL_COGEN,
                    "Natural Gas"=COL_NatGas,"Natural Gas + CCS"=cOL_NGCC_CCS,"Hydrogen"=COL_H2,
                    #"Natual Gas and Hydrogen Blend"=COL_Blend,
@@ -644,12 +666,6 @@ BC <- "Base Case"
                  #"Natual Gas and Hydrogen Blend"=COL_Blend,
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Nuclear"=cOL_NUCLEAR,
                  "Wind"=cOL_WIND, "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
-
-      colours4g=c("Import"= cOL_IMPORTg, "Coal-to-Gas"=cOL_COal2Gasg, "Coal"=cOL_COALg,"Cogen"=cOL_COGENg,"Nuclear"=cOL_NUCLEARg, 
-                 "Natural Gas"=COL_NatGasg,"Natural Gas + CCS"=cOL_NGCC_CCSg,"Hydrogen"=COL_H2g,
-                 #"Natual Gas and Hydrogen Blend"=COL_Blend,
-                 "Hydro"=cOL_HYDROg, "Other"=cOL_OTHERg, "Nuclear"=cOL_NUCLEARg,
-                 "Wind"=cOL_WINDg, "Solar"=cOL_SOLARg, "Storage"=cOL_STORAGEg)
       
       colours5 = c("Cogeneration"=cOL_COGEN, 
                    "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
@@ -711,18 +727,6 @@ BC <- "Base Case"
                    "Hydro"="none", "Other"="none", "Wind"="none", 
                    "Solar"="none",  "Storage - Battery"="none", 
                    "Storage - Compressed Air"="none", "Storage - Pumped Hydro"="none","Cogeneration"="none")
-      
-       # Gray scale safe
-       colours8g = c("Coal"=cOL_COALg,"Coal-to-Gas"=cOL_NGConvg,
-                    "Natural Gas Combined Cycle"=cOL_NGCCg,"Natural Gas Simple Cycle"=cOL_SCGTg, 
-                    "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCSg,"Natural Gas Combined Cycle CCS Retrofit"=cOL_NGCC_CCSg,
-                    "Hydrogen Simple Cycle"=cOL_SCGT_H2g,
-                    #"Hydrogen Combined Cycle"=cOL_NGCC_H2,
-                    #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
-                    "Hydro"=cOL_HYDROg, "Other"=cOL_OTHERg, "Wind"=cOL_WINDg, 
-                    "Solar"=cOL_SOLARg,  "Storage - Battery"=COL_Batteryg, 
-                    "Storage - Compressed Air"=COL_CompAirg, "Storage - Pumped Hydro"=COL_Pumpedg,"Cogeneration"=cOL_COGENg)
-       
        
       AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                         "#001933")
@@ -759,8 +763,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CP"
-NameShort<-'CP_12Apr'
+CaseName <- "TIER2050"
+NameShort<-'TIER2050_18Apr'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -769,35 +773,32 @@ NameShort<-'CP_12Apr'
 ################################################################################
 
 # SAVE PLOTS AND FIGURES  
+
   # ANALYSIS 
     # Normal analysis
     Analysis_saveall(CaseName)
     # Detailed generation plots
-    Detail_Gen_save(CaseName,"g")
+    Detail_Gen_save(CaseName)
 
   # ADDITIONAL ANALYSIS
     # Value plots
       Value_saveall(CaseName)
     # Slack plots
       Slack_saveall(CaseName)
-      
-  # CER ANALYSIS 
+    # CER ANALYSIS 
       CER_saveall(CaseName)
+    # Estimate curtailed energy
+      Ren_Curtail_Gen_save(CaseName)
       
 # SAVE DATA
   # WRITE TO EXCEL
     # Annual data ('long name','short name',case)
       AnnualDataExcel(CaseName,NameShort,BC)
-      
     # Hourly data ('long name','short name',case)
       HourlyDataExcel(CaseName,NameShort,BC)
       
   # GENERATE R FILES TO COMPARE LATER ('short name',case) -  skip if this is not needed
     AnnualDataR(NameShort,BC)
-      
-# OPTIONAL 
-    # Estimate curtailed energy
-    Ren_Curtail_Gen_save(CaseName,"g")
     
 ################################################################################
 ## COMMON INDIVIDUAL PLOT SAVING OPTIONS
