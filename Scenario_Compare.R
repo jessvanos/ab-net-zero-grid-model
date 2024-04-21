@@ -46,7 +46,7 @@
   # EXISTING SCENARIOS
   #   'CP_12Apr''CP_04Apr'       Current policy
   #   'CER_14Apr''CER_02Apr'     Draft CER
-  #   'EL_16Apr''EL_06Apr'       Emission limit
+  #   'EL_19Apr''EL_06Apr'       Emission limit
   #   'CP_noITC_07Apr'           CP no investment tax credits
   #   'CER_noITC_08Apr'          CER no investment tax credits
   #   'CP_noEPC_10Apr'           CP no emission performance credits
@@ -59,8 +59,8 @@
   #   'CP_ITC_2'
 {
   # Define cases here
-  ScenarioName1<-"ITC_3"
-  ScenarioName2<-"CP_noITC_07Apr"
+  ScenarioName1<-"Main_2_BCmod"
+  ScenarioName2<-"EL_19Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
   CScenarioName <-"Main_3"
@@ -514,6 +514,7 @@ GGSave_Loc_custom(CaseName,"Annual Pool Price Compare2",AvgYr_price_COMPARE2("l"
 # Compare Emissions
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y"),12,8)
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen2",AnnualEm_COMPARE("l", "n"),12,4)
+GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen",AnnualEm_COMPARE("l", "n"),12,8)
 GGSave_Loc_custom(CaseName,"Cummulative Emissions Compare noncogen",AnnualEm_Cum_COMPARE("l", "n"),12,8)
 
 # Capacity changes
@@ -600,7 +601,7 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
 ################################################################################
 ## CREATE COMPARE PLOTS WITH NRG STREAM DATA
 ################################################################################
-  date_filt<-"2005-01-1"
+  date_filt<-"2014-01-1"
   nrg_file_name <- "nrgstream_gen_corrected03Mar2023.RData"
   demand_file_name <-"nrgstream_demand03Mar2023.RData"
   
