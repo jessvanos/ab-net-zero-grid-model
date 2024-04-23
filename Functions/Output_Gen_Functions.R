@@ -1462,35 +1462,34 @@
   
   MaxCurtail <- function(case) {
     
-    # Filters for the desired case study
-    data <- ResHr %>%
-      filter(Run_ID == case & Condition == "Average",
-             Primary_Fuel %in% c("Customer Curtailment Level I","Customer Curtailment Level II",
-                                 "Customer Curtailment Level III","Customer Curtailment Level IV",
-                                 "Customer Curtailment Level V","Customer Curtailment Final")) %>%
-      select(Name, date, Capacity,Capability,
-             Primary_Fuel,Dispatch_Cost,Total_Cost_MWh,Percent_Marginal,Total_Hours_Run,
-             Revenue,Output_MWH)%>%
+    # Max magnitude
+    Amount_Max <- ZoneHr %>%
+      filter(Run_ID == case & Condition == "Average",Name=="WECC_Alberta") %>%
+      select(Name, date, Demand,Price,
+             Demand_Side_Capability,Demand_Side_Output,Demand_Side_Output_Total,Demand_Side_Output_Hours,
+             Load_Control_Output,Load_Control_Output_Total)%>%
       mutate(Time_Period=as.numeric(year(date)))%>%
-      group_by(Primary_Fuel,Name,Time_Period)%>%
-      summarise(MaxCap=max(Output_MWH))%>%
+      group_by(Time_Period)%>%
+      summarise(Max_dmd = max(Demand_Side_Output),
+                Max_load = max(Load_Control_Output))%>%
       ungroup()
-    
-      data$MaxCap[data$MaxCap==0]<-NA
-    
-      data$CurtOrder<-factor(data$Primary_Fuel,levels=c("Customer Curtailment Final","Customer Curtailment Level V",
-                                                        "Customer Curtailment Level IV","Customer Curtailment Level III",
-                                                        "Customer Curtailment Level II","Customer Curtailment Level I"))
-     # arrange(.,Time_Period)
-    
+   
+      # Max hours
+      Amount_Total <- ZoneYr %>%
+        filter(Run_ID == case & Condition == "Average",Name=="WECC_Alberta") %>%
+        select(Name, Time_Period, Demand,Price,
+               Demand_Side_Capability,Demand_Side_Output,Demand_Side_Output_Total,Demand_Side_Output_Hours,
+               Load_Control_Output,Load_Control_Output_Total)%>%
+        mutate(Time_Period=as.numeric(year(Time_Period)))
+      
     # Get max and min year for plot
-    YearMX<-max(data$Time_Period) #Take off the last 5 years
+    YearMX<-max(Amount_Max$Time_Period) #Take off the last 5 years
     YearMN<-2025
     
     # Plot
-    data %>%
+    Amount_Max %>%
       ggplot() +
-      aes(Time_Period, MaxCap, fill = CurtOrder) +
+      aes(Time_Period, Max_dmd) +
       geom_area(alpha=Plot_Trans,linewidth=.5, colour="black") +
       
       geom_label(aes(label = round(MaxCap,0)),

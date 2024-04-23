@@ -176,22 +176,29 @@ Exist_WindMap<-  ggplot()+
   # Filter for included only
 wind_new <- new_prj %>%
     filter(Included == "Yes") %>%
-    mutate(Type = if_else(Status == "Potential",Status,
+    mutate(Type = if_else(Status == "Potential","Potential Site",
                           if_else(Status == "NR_built","Based on Existing",
                                   if_else(Status == "NR_queue","Based on Queue","Other"))),
            `Max Capacity` = Capacity_NR*`Overall Max`) 
   
+  wind_txt <- 40
+
   # Plot
 Aurora_WindMap <-    ggplot()+
     geom_raster(data = wind_profile, 
                 aes(x = Longitude, y = Latitude, fill = Wind)) +
-    geom_sf(data = AB_sf1, 
+    geom_sf(data = AB_sf1, linewidth=1,
             aes(group = NAME_1), 
             fill = "transparent", colour = "black") +
-    scale_fill_gradientn(colors =  colorspace::diverging_hcl(100,"Blue-red 2"),
-                         limits=c(2.5,10.5), 
-                         breaks=seq(2,10,by=2),
-                         name = "Mean annual\nwind speed \nat 80m \n(m/s)"
+    scale_fill_gradientn(
+                          colours = matlab.like(100),
+                          limits=c(3,11),oob=squish, 
+                          breaks=c(3,5,7,9,11),
+                          labels=c("<3"," 5"," 7"," 9","<11"),
+                         # colors =  colorspace::diverging_hcl(100,"Blue-red 2"),
+                         # limits=c(2.5,10.5), 
+                         # breaks=seq(2,10,by=2),
+                         name = "Mean annual speed at 80m (m/s)"
     ) +
     geom_point(data = wind_new,
                aes(x= Longitude, y = Latitude, size = `Max Capacity`, color = Type), 
@@ -200,17 +207,17 @@ Aurora_WindMap <-    ggplot()+
                aes(x= Longitude, y = Latitude, size = `Max Capacity`),colour="black",
                shape=1) + 
     scale_color_manual("New Plant Source",
-                       values = c("Potential"="darkgoldenrod2",
-                                  "Based on Existing"='#767171',
-                                  "Based on Queue"='#e6e6e6')
+                       values = c("Potential Site"="#e6e6e6",
+                                  "Based on Existing"='#363636',
+                                  "Based on Queue"='#7e7e7e')
                                   ) +
     
-    scale_size(breaks=c(1600,2000,4000),range=c(3,6)) +
+    scale_size(breaks=c(1600,2000,4000),range=c(5,8)) +
     
-    guides(color = guide_legend(override.aes = list(size = 5), order = 1),
+    guides(color = guide_legend(override.aes = list(size = 6), order = 1),
            size = guide_legend(order = 2)
     ) +
-    ggtitle("Model New Wind Options") +
+    #ggtitle("Model New Wind Options") +
     theme(panel.background = element_rect(fill = "transparent"),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
@@ -220,8 +227,8 @@ Aurora_WindMap <-    ggplot()+
           plot.background = element_rect(fill = "transparent", color = NA),
           plot.title = element_text(hjust = 0.5, vjust=-5,size=16),
           #legend.key.height = (unit(2,'cm')),
-          legend.text = element_text(size=14),
-          legend.title = element_text(size=14),
+          legend.text = element_text(size=wind_txt),
+          legend.title = element_text(size=wind_txt),
           legend.background = element_rect(fill = "transparent"),
           legend.key=element_rect(fill = "transparent"),
           rect = element_rect(fill="transparent")) 
@@ -297,7 +304,8 @@ Aurora_WindMap <-    ggplot()+
   
   GGSave_Loc_custom("Wind Maps","Wind and Solar Resource3",combine_map,12,14)
   
-  GGSave_Loc_custom("Wind Maps","New Wind Options",Aurora_WindMap,8,12)
+  GGSave_Loc_custom("Wind Maps","New Wind Options Update",Aurora_WindMap,8,12)
+  
   GGSave_Loc_custom("Wind Maps","Existing Wind",Exist_WindMap,8,12)
   
   
