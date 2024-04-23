@@ -40,8 +40,8 @@ compare_rename <-function(data,type){
                                                                         if_else(grepl("AZ_",Scenario)==TRUE,input_name[8],
                                                                                 if_else(grepl("AZstrict_",Scenario)==TRUE,input_name[9],
                                                                                         if_else(grepl("CP_noEPC_",Scenario)==TRUE,input_name[10],
-                                                                                                if_else(grepl("CP_12",Scenario)==TRUE,input_name[11],
-                                                                                                        if_else(grepl("CER_14",Scenario)==TRUE,input_name[12],"unknown")))))))))))))
+                                                                                                if_else(grepl("CP_12",Scenario)==TRUE,input_name[2],
+                                                                                                        if_else(grepl("CER_14",Scenario)==TRUE,input_name[1],"unknown")))))))))))))
   
   if (any(data$Scenario == "unknown")==TRUE) {
     print("Unknown scenario detected")
