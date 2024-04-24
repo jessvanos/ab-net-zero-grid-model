@@ -952,6 +952,8 @@ AnnualDataR<- function(ScenarioName,case){
   {
     print("Tabulating annual fuel usage")
     
+    mmbtu_to_GJ = 0.947817
+    
     FuelData <- FuelYr %>%
       # Filter for case
       filter(Run_ID == case,
@@ -1162,6 +1164,8 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
     ContentsDF=data.frame(
       Sim_Name=c("",
            'FORMATED RESULTS',
+           'Note: Fuel price/usage reporting fix April 22, 2024. Priod to this fuel was reported as GJ but was in mmBTu.',
+           '',
            '1 Capacity by Tech',
            '2 Percent Capacity',
            '3 AURORA Capacity Added',
