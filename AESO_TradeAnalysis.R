@@ -622,9 +622,13 @@
 ###############################################################################################
 ## 2.C ITC Capability Plots and Stats
 ###############################################################################################  
+    allyrs <- c(2017,2018,2019,2020,2021)
     
     # Percentage of zero trade hours
-    ZeroTrade(BCI,ITC2,2018)
+    ZeroTrade(SKE,ITC2,c(allyrs))
+    ZeroTrade(SKI,ITC2,c(allyrs))
+    ZeroTrade(BCE,ITC2,c(allyrs))
+    ZeroTrade(BCI,ITC2,c(allyrs))
     
     Capab_yr(SKE,2018,2018)
     Capab_yr(SKI,2018,2018)
@@ -638,5 +642,5 @@
     Capab_Allmn(BCI,"Avg")
     
     # Give stats for timeperiod selected and QQ plots
-    Capab_Stats(ITC2,2018,2018)  
+    Capab_Stats(ITC2,2017,2021)  
     

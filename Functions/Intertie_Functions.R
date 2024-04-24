@@ -1844,13 +1844,13 @@ Capab_Stats <- function(data,yearMN,yearMX) {
   
   # QQ Plots
   # windows(10,8)
-  qqPlot(ITC4$SK_Import_Capability)
+  #qqPlot(ITC4$SK_Import_Capability)
   # windows(10,8)
-  qqPlot(ITC4$SK_Export_Capability)
+  #qqPlot(ITC4$SK_Export_Capability)
   # windows(10,8)
-  qqPlot(ITC4$BC_MT_Export_Capability)
+  #qqPlot(ITC4$BC_MT_Export_Capability)
   #windows(10,8)
-  qqPlot(ITC4$BC_MT_Import_Capability)
+  #qqPlot(ITC4$BC_MT_Import_Capability)
 }  
 
 ###############################################################################################
@@ -1860,7 +1860,7 @@ Capab_Stats <- function(data,yearMN,yearMX) {
 ZeroTrade<-function(data,dataITC,FILTYEAR) {
 
   ITC_yr <- dataITC %>%
-    filter(Year==FILTYEAR) %>%
+    filter(Year %in% FILTYEAR) %>%
     select(.,c('Fdate',"Year",'Day','he',data)) 
   
   names(ITC_yr) <- c('Fdate','Year','Day','he','data')

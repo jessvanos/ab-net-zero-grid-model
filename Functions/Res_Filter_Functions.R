@@ -751,15 +751,15 @@ sim_filtFuel <- function(inputdata) {
   # Combine the grouped data
   { case <- rbind(H2,
                   Blend1,Blend2,Blend3,Blend4,Blend5,Blend6,
-                  NGPeak,NGBase,NGConv,NG_CCS,HHub,Coal
-                  # ,Hydro, Other, Wind, Solar,
+                  NGPeak,NGBase,NGConv,NG_CCS,HHub,Coal,Other
+                  # ,Hydro, Wind, Solar,
                   # Stor_B,Stor_CA, Stor_HP
   )
     
     case$ID <- factor(case$ID, levels=c(
       "H2AB",
       "20CC80H2","50CC50H2","70CC30H2","20SC80H2","50SC50H2","70SC30H2",
-      "NG2AB","NG1AB","NG3AB","NG_CCS","NGHenry","CoalWCA"
+      "NG2AB","NG1AB","NG3AB","NG_CCS","NGHenry","CoalWCA","OT"
       # ,"WAT", "OT","WND", "SUN", 
       # "PS", "PS2","PS3"
     ))
@@ -767,7 +767,7 @@ sim_filtFuel <- function(inputdata) {
     levels(case$ID) <- c("Hydrogen",
                          "NG H2 Blend CC - 20/80","NG H2 Blend CC - 50/50","NG H2 Blend CC - 70/30",
                          "NG H2 Blend SC - 20/80","NG H2 Blend SC - 50/50","NG H2 Blend SC - 70/30",
-                         "Natural Gas - Peaking","Natural Gas - Base","Natural Gas - Boiler","Natural Gas","Henry Hub Natural Gas","Coal"
+                         "Natural Gas - Peaking","Natural Gas - Base","Natural Gas - Boiler","Natural Gas","Henry Hub Natural Gas","Coal","Biomass/Other"
                          # ,"Water", "Other","Wind", "Sun", 
                          # "Storage - Battery", "Storage - Compressed Air", "Storage - Pumped Hydro"
     ) }

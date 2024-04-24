@@ -344,6 +344,8 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
 {
 print("Selecting annual fuel usage data")
   
+  mmbtu_to_GJ = 0.947817
+  
   FuelData <- FuelYr %>%
   # Filter for case
   filter(Run_ID == case,
@@ -351,7 +353,9 @@ print("Selecting annual fuel usage data")
   sim_filtFuel(.) %>%
   mutate(Cost=Cost*1000,
          Year=year(Time_Period),
-         Year<=MaxYrStudy) %>%
+         Year<=MaxYrStudy,
+         Price=Price*mmbtu_to_GJ,
+         Usage=Usage/mmbtu_to_GJ) %>%
   subset(select=c(ID,Year,Price,Cost,Usage)) %>%
   rename("Usage (GJ)"=Usage,
          "Price ($/GJ)"=Price,
@@ -954,6 +958,8 @@ AnnualDataR<- function(ScenarioName,case){
              Condition == "Average") %>%
       sim_filtFuel(.) %>%
       mutate(Cost=Cost*1000,
+             Price=Price*mmbtu_to_GJ,
+             Usage=Usage/mmbtu_to_GJ,
              Year=year(Time_Period),
              Year<=MaxYrStudy,
              Scenario=SourceDB) %>%
