@@ -15,12 +15,21 @@
 compare_rename <-function(data,type){
   
   if (type == "l"){
-    input_name <-c("Draft CER","Current Policy","Emissions Limit","TIER 2050","TIER 2035","No ITCs",
-                   "No ITCs with CER","Absolute Zero","No H2 Absolute Zero","No Emission Credits",
-                   "new_CP","new_CER")
+    input_name <-c("Draft CER","Current Policy","Emissions Limit", # 1,2,3
+                   "TIER 2050","TIER 2035",                        # 4,5
+                   "No ITCs","No ITCs with CER",                   # 6,7
+                   "Absolute Zero","No H2 Absolute Zero",          # 8,9
+                   "No Emission Credits", "50% EPC Value",         # 10,11
+                   "CP_txmod","CER_txmod","EL_txmod",              # 12,13,14
+                   "Increased Transmission")                       # 15
   }else{
-    input_name<-c("CER","CP","EL","TIER2050","TIER2035","noITCs","CERnoITCs","AZ","AZstrict","noEPCs",
-                  "new_CP","new_CER")
+    input_name<-c("CER","CP","EL",
+                  "TIER2050","TIER2035",
+                  "noITCs","CERnoITCs",
+                  "AZ","AZ_noH2",
+                  "noEPCs", "50EPC",
+                  "CP_txmod","CER_txmod","EL_txmod",
+                  "CP_2TX")
   }
   
   # Rename if needed to make up for poor initial coding
@@ -32,16 +41,19 @@ compare_rename <-function(data,type){
   data <- data %>%
     mutate(Scenario = if_else(grepl("CER_02",Scenario)==TRUE,input_name[1],
                               if_else(grepl("CP_04",Scenario)==TRUE,input_name[2],
-                                      if_else(grepl("EL_",Scenario)==TRUE,input_name[3],
+                                      if_else(grepl("EL_06",Scenario)==TRUE,input_name[3],
                                         if_else(grepl("TIER2050_",Scenario)==TRUE,input_name[4],
                                                 if_else(grepl("TIER2035",Scenario)==TRUE,input_name[5],
                                                         if_else(grepl("CP_noITC",Scenario)==TRUE,input_name[6],
                                                                 if_else(grepl("CER_noITC",Scenario)==TRUE,input_name[7],
-                                                                        if_else(grepl("AZ_",Scenario)==TRUE,input_name[8],
-                                                                                if_else(grepl("AZstrict_",Scenario)==TRUE,input_name[9],
-                                                                                        if_else(grepl("CP_noEPC_",Scenario)==TRUE,input_name[10],
-                                                                                                if_else(grepl("CP_12",Scenario)==TRUE,input_name[2],
-                                                                                                        if_else(grepl("CER_14",Scenario)==TRUE,input_name[1],"unknown")))))))))))))
+                              if_else(grepl("AZ_",Scenario)==TRUE,input_name[8],
+                                      if_else(grepl("AZ_noH2",Scenario)==TRUE,input_name[9],
+                                              if_else(grepl("CP_noEPC_",Scenario)==TRUE,input_name[10],
+                                                      if_else(grepl("CP_50EPCs",Scenario)==TRUE,input_name[11],
+                                                              if_else(grepl("CP_12",Scenario)==TRUE,input_name[12],
+                                      if_else(grepl("CER_14",Scenario)==TRUE,input_name[13],
+                                              if_else(grepl("EL_19",Scenario)==TRUE,input_name[14],
+                                                      if_else(grepl("CP_2tx",Scenario)==TRUE,input_name[15],"unknown"))))))))))))))))
   
   if (any(data$Scenario == "unknown")==TRUE) {
     print("Unknown scenario detected")
