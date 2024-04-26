@@ -186,6 +186,7 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
       mutate(Type="Addition")%>%
       arrange(.,Beg_Date)
     
+    # HARD CODED: Increase in capacity that does not register as new
     # Add cap increases manual
     print("Manually add Suncor Base plant capacity November 2024 (change not reflected by Aurora output)")
     Capinc<-data.frame(Name=c("Base Plant (SCR1)"),
@@ -248,31 +249,27 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
     
     # FIND TOTAL CAPACITY CHANGES OVERALL
     # Added in Manually:
-    # Define 2023 additions automatically
-    AESO_2025<-Tot_Change %>%
+    # Define 2023-2025 additions automatically, since no cap expansion yet
+    AESO_2024<-Tot_Change %>%
       filter(Year<2025)%>%
       group_by(Primary_Fuel)%>%
       summarize(AESO_Add=sum(Capacity_Added))
     
-    # Add 2025 projects manually
-    AESO_2025 <- AESO_2025 %>%
+    # Add 2025/2026 projects manually (defined in Database_loading)
+    cat(prj_names)
+    AESO_2025 <- AESO_2024 %>%
       mutate(AESO_Add=if_else(Primary_Fuel=="Solar",AESO_Add+AESO_SUN_2025,
                               if_else(Primary_Fuel=="Wind",AESO_Add+AESO_WND_2025,
                                       ifelse(Primary_Fuel=="Storage - Battery",AESO_Add+AESO_PS_2025,
                                              ifelse(Primary_Fuel=="Cogeneration",AESO_Add+AESO_COGEN_2025,AESO_Add)))))
     
-    # Get Canyon
-    print("Account for Canyon pumped hydro - added manually post 2025")
-    Canyon_PS3<- Tot_Change %>%
-      filter(Year<2027,
-             Primary_Fuel=="Storage - Pumped Hydro")%>%
-      group_by(Primary_Fuel)%>%
-      summarize(AESO_Add=sum(Capacity_Added))
+    PHS <- data.frame(Primary_Fuel="Storage - Pumped Hydro",
+                      AESO_Add = AESO_PHS_2026)
     
-    AESO_Add <-rbind(AESO_2025,Canyon_PS3)
+    AESO_Add <-rbind(AESO_2025,PHS)
     
     # Aurora 
-    # Get additions from 2025-MaxYr
+    # Get additions from 2025/2026-MaxYr
     AllCap_Changes1a <- Tot_Change %>%
       filter(Year>2024)%>%
       group_by(Primary_Fuel)%>%
@@ -281,7 +278,8 @@ AnnualDataExcel<- function(ScenarioName,NameShort,case){
       mutate(Capacity_Added=if_else(Primary_Fuel=="Solar",Capacity_Added-AESO_SUN_2025,
                               if_else(Primary_Fuel=="Wind",Capacity_Added-AESO_WND_2025,
                                       ifelse(Primary_Fuel=="Storage - Battery",Capacity_Added-AESO_PS_2025,
-                                             ifelse(Primary_Fuel=="Cogeneration",Capacity_Added-AESO_COGEN_2025,Capacity_Added)))))
+                                             ifelse(Primary_Fuel=="Cogeneration",Capacity_Added-AESO_COGEN_2025,
+                                                    ifelse(Primary_Fuel=="Storage - Pumped Hydro",Capacity_Added-AESO_PHS_2026,Capacity_Added))))))
     
     # Get retirements 2022-MaxYr
     AllCap_Changes1b <- Tot_Change %>%
@@ -847,31 +845,27 @@ AnnualDataR<- function(ScenarioName,case){
   
   # FIND TOTAL CAPACITY CHANGES OVERALL
   # Added in Manually:
-  # Define 2023 additions automatically
-  AESO_2025<-Tot_Change %>%
+  # Define 2023-2025 additions automatically, since no cap expansion yet
+  AESO_2024<-Tot_Change %>%
     filter(Year<2025)%>%
     group_by(Primary_Fuel)%>%
     summarize(AESO_Add=sum(Capacity_Added))
   
-  # Add 2025 projects manually
-  AESO_2025 <- AESO_2025 %>%
+  # Add 2025/2026 projects manually (defined in Database_loading)
+  cat(prj_names)
+  AESO_2025 <- AESO_2024 %>%
     mutate(AESO_Add=if_else(Primary_Fuel=="Solar",AESO_Add+AESO_SUN_2025,
                             if_else(Primary_Fuel=="Wind",AESO_Add+AESO_WND_2025,
                                     ifelse(Primary_Fuel=="Storage - Battery",AESO_Add+AESO_PS_2025,
                                            ifelse(Primary_Fuel=="Cogeneration",AESO_Add+AESO_COGEN_2025,AESO_Add)))))
   
-  # Get pumped storage (separate since added post 2025)
-  print("Adjust for Canyon pumped hydro storage")
-  Canyon_PS3<- Tot_Change %>%
-    filter(Year<2027,
-           Primary_Fuel=="Storage - Pumped Hydro")%>%
-    group_by(Primary_Fuel)%>%
-    summarize(AESO_Add=sum(Capacity_Added))
+  PHS <- data.frame(Primary_Fuel="Storage - Pumped Hydro",
+                    AESO_Add = AESO_PHS_2026)
   
-  AESO_Add <-rbind(AESO_2025,Canyon_PS3)
+  AESO_Add <-rbind(AESO_2025,PHS)
   
   # Aurora 
-  # Get additions from 2025-MaxYr
+  # Get additions from 2025/2026-MaxYr
   AllCap_Changes1a <- Tot_Change %>%
     filter(Year>2024)%>%
     group_by(Primary_Fuel)%>%
@@ -880,7 +874,8 @@ AnnualDataR<- function(ScenarioName,case){
     mutate(Capacity_Added=if_else(Primary_Fuel=="Solar",Capacity_Added-AESO_SUN_2025,
                                   if_else(Primary_Fuel=="Wind",Capacity_Added-AESO_WND_2025,
                                           ifelse(Primary_Fuel=="Storage - Battery",Capacity_Added-AESO_PS_2025,
-                                                 ifelse(Primary_Fuel=="Cogeneration",Capacity_Added-AESO_COGEN_2025,Capacity_Added)))))
+                                                 ifelse(Primary_Fuel=="Cogeneration",Capacity_Added-AESO_COGEN_2025,
+                                                        ifelse(Primary_Fuel=="Storage - Pumped Hydro",Capacity_Added-AESO_PHS_2026,Capacity_Added))))))
   
   # Get retirements 2022-MaxYr
   AllCap_Changes1b <- Tot_Change %>%

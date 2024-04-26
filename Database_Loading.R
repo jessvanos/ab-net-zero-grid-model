@@ -85,7 +85,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CP_50EPCs_22_Apr_2024"
+  SourceDB<-"CER_02_Apr_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -647,7 +647,22 @@ COL_choice = 3
   AESO_WND_2025=400
   AESO_PS_2025=29
   AESO_COGEN_2025=25
-
+  AESO_PHS_2026=75
+  prj_names <- paste("EXOGENOUS CHANGES AFTER 2024:",
+                     "New Solar",
+                     "...P2292 FortisAlberta Killarney Lake 267S DER Solar (22.5 MW)",
+                     "...P2347 Forty Mile Granlea Solar Phase 2 (220 MW)",
+                     "New Wind",
+                     "...P1885 Northern Lights WAGF (400 MW)",
+                     "New Cogen",
+                     "...P2354 ENMAX FMC DER Cogen (7 MW)",
+                     "...P2192 ENMAX FMC Change (18 MW",
+                     "New Storage",
+                     "...P2292 FortisAlberta Killarney Lake 267S DER Storage (22.5 MW)",
+                     "...P2334 TCE Saddlebrook Storage (6.5 MW)",
+                     "...P1756 TPG Canyon Creek PHES Storage Project (75 MW)", 
+                     sep="\n")
+  
   #For fun, make the code beep when its all done
   beep(3)
 }
@@ -665,8 +680,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CP_50EPCs"
-NameShort<-'CP_50EPCs_22Apr'
+CaseName <- "CER Add"
+NameShort<-'CER_02_Additional'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
