@@ -44,26 +44,28 @@
   # combined file and merge it with a new scenario)
 
   # EXISTING SCENARIOS
-  #   'CP_12Apr''CP_04Apr'       Current policy
-  #   'CER_14Apr''CER_02Apr'     Draft CER
-  #   'EL_19Apr''EL_06Apr'       Emission limit
+  #   'CP_12Apr''CP_04Apr'       Current policy (TX mod, normal)
+  #   'CER_14Apr''CER_02Apr'     Draft CER (TX mod, normal)
+  #   'EL_19Apr''EL_06Apr'       Emission limit (TX mod, normal)
   #   'CP_noITC_07Apr'           CP no investment tax credits
   #   'CER_noITC_08Apr'          CER no investment tax credits
   #   'CP_noEPC_10Apr'           CP no emission performance credits
+  #   'TIER2050_18Apr'           CP with TIER limit to zero by 2050
+  #   'TIER2035_11Apr'           CP with TIER limit to zero by 2035 
+  #   'CP_noEPC_10Apr'          CP with EPCs values at 0% Cprice
+  #   'CP_50EPCs_22Apr'          CP with EPCs values at 50% Cprice
 
   # COMBINED SCENARIOS
-  #   'CP_CER'                   CP_11Feb, CER_12Feb
-  #   'Main_3'                   CP_11Feb, CER_12Feb, EL_25Feb   
-  #   'TIER_3'                   CP_11Feb, TIER2050_23Feb, TIER2035L_29Feb 
-  #   'All_5'                    CP_11Feb, CER_12Feb, EL_25Feb, TIER2050_23Feb, TIER2035L_29Feb 
-  #   'CP_ITC_2'
+  #   'Main_3'                   CP_04Apr, CER_02Apr, EL_06Apr   
+  #   'Main_3_BCmod'             CP_12Apr, CER_14Apr, EL_19Apr   
+  #   'ITC_4'                    CP_04Apr, CER_02Apr, CP_noITC_07Apr, CER_noITC_08Apr
 {
   # Define cases here
-  ScenarioName1<-"Main_2_BCmod"
-  ScenarioName2<-"EL_19Apr"
+  ScenarioName1<-"TIER_2"
+  ScenarioName2<-"TIER2035_11Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"Main_3"
+  CScenarioName <-"TIER_3"
 }
 
 ################################################################################
@@ -74,33 +76,34 @@
   CombineFilesR(ScenarioName1,ScenarioName2,CScenarioName)
 
 ################################################################################
-## READ R FILES WITH SCENARIO DATA (AFTER COMBINE)
+## READ R FILES WITH SCENARIO DATA (AFTER COMBINE) AND PLOT
 ################################################################################
+
+# Folder name & color selection
+CaseName <- "TIER_3" # Match 'CScenarioName' from combine files (ie: folder name)
+COL_choice = 3
 
 # Read R-Data files for compare scenario
 {
   # Annual Resource Group Capacity
-  Ann_Cap<-readRDS(here("Data Files","Result Files",CScenarioName,paste("Ann_Cap_",CScenarioName, sep = "")))
+  Ann_Cap<-readRDS(here("Data Files","Result Files",CaseName,paste("Ann_Cap_",CaseName, sep = "")))
   # Annual Fuel Usage
-  Ann_Fuel<-readRDS(here("Data Files","Result Files",CScenarioName,paste("Ann_Fuel_",CScenarioName, sep = "")))
+  Ann_Fuel<-readRDS(here("Data Files","Result Files",CaseName,paste("Ann_Fuel_",CaseName, sep = "")))
   # Annual Heat Rates
-  Ann_HR<-readRDS(here("Data Files","Result Files",CScenarioName,paste("Ann_HR_",CScenarioName, sep = "")))
+  Ann_HR<-readRDS(here("Data Files","Result Files",CaseName,paste("Ann_HR_",CaseName, sep = "")))
   # Annual EPC Values
-  EPC_Values<-readRDS(here("Data Files","Result Files",CScenarioName,paste("EPC_Values_",CScenarioName, sep = "")))
+  EPC_Values<-readRDS(here("Data Files","Result Files",CaseName,paste("EPC_Values_",CaseName, sep = "")))
   # Annual Resource Group Data
-  ResGrYr<-readRDS(here("Data Files","Result Files",CScenarioName,paste("ResGrYr_",CScenarioName, sep = "")))
+  ResGrYr<-readRDS(here("Data Files","Result Files",CaseName,paste("ResGrYr_",CaseName, sep = "")))
   # Total Capacity Changes (Study)
-  Tot_Cap<-readRDS(here("Data Files","Result Files",CScenarioName,paste("Tot_Cap_",CScenarioName, sep = "")))
+  Tot_Cap<-readRDS(here("Data Files","Result Files",CaseName,paste("Tot_Cap_",CaseName, sep = "")))
   # Annual Zone Data
-  Zone<-readRDS(here("Data Files","Result Files",CScenarioName,paste("Zone_",CScenarioName, sep = "")))
+  Zone<-readRDS(here("Data Files","Result Files",CaseName,paste("Zone_",CaseName, sep = "")))
 }  
 
 ################################################################################
 ## PLOT SETTINGS
 ################################################################################
-# Folder name & color
-CaseName <- "Main_3"
-COL_choice = 3
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
@@ -373,20 +376,28 @@ COL_choice = 3
     AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
                       "#001933")
     
-    
+  # Map scenario colors  
   COL_CP ="#4472C4"
   COL_CER =  '#A6A6A6'
   COL_EL ='gray85'
+  
   COL_TIER2050 = "#238b45"
   COL_TIER2035 = "yellowgreen"
+  
   COL_noITC = '#515151'
   COL_noITC_CER = '#cc79a7'
-  COL_Az = "goldenrod1"
-  COL_AZstrict = "goldenrod4"
-  COL_noEPC = "#001933"
   
-  COL_CP_update='blue'
-  COL_CER_update="gray10"
+  COL_Az = "goldenrod1"
+  COL_AZ_noH2 = "goldenrod4"
+
+  COL_noEPC = "#440154FF"
+  COL_50EPC = "#472D7BFF"
+  
+  COL_CP2x = "#001933"
+  
+  COL_CP_update='#32538E'
+  COL_CER_update='#262626'
+  COL_EL_update='#717171'
   
   # Scenario colors with historic
    sn_colors_l <-c("Draft CER"=COL_CER,
@@ -397,10 +408,13 @@ COL_choice = 3
                    "No ITCs"= COL_noITC,
                    "No ITCs with CER"=COL_noITC_CER,
                    "Absolute Zero" = COL_Az,
-                   "No H2 Absolute Zero" = COL_AZstrict,
+                   "No H2 Absolute Zero" = COL_AZ_noH2,
                    "No Emission Credits" = COL_noEPC,
-                   "new_CP" = COL_CP_update,
-                   "new_CER" =COL_CER_update,
+                   "50% EPC Value" = COL_50EPC,
+                   "CP_txmod" = COL_CP_update,
+                   "CER_txmod" =COL_CER_update,
+                   "EL_txmod" = COL_EL_update,
+                   "Increased Transmission" = COL_CP2x,
                    'Historic'='black')
    
    sn_line_l <-c("Draft CER"=1,
@@ -413,8 +427,11 @@ COL_choice = 3
                  "Absolute Zero" = 1,
                  "No H2 Absolute Zero"=1,
                  "No Emission Credits"=1,
-                 "new_CP" = 1,
-                 "new_CER" =1,
+                 "50% EPC Value" = 1,
+                 "CP_txmod" = 1,
+                 "CER_txmod" =1,
+                 "EL_txmod" = 1,
+                 "Increased Transmission" = 1,
                  'Historic'=1)
    
    sn_colors_s <-c("CER"=COL_CER,
@@ -425,10 +442,13 @@ COL_choice = 3
                    "noITCs"=COL_noITC,
                    "CERnoITCs"=COL_noITC_CER,
                    "AZ" = COL_Az,
-                   "AZstrict"= COL_AZstrict,
+                   "AZ_noH2"= COL_AZ_noH2,
                    "noEPCs" = COL_noEPC,
-                   "new_CP" = COL_CP_update,
-                   "new_CER" =COL_CER_update,
+                   "50EPC" = COL_50EPC,
+                   "CP_txmod" = COL_CP_update,
+                   "CER_txmod" =COL_CER_update,
+                   "EL_txmod" = COL_EL_update,
+                   "CP_2TX" = COL_CP2x,
                    'Historic'='black')
    
    sn_line_s <-c("CER"=1,
@@ -441,8 +461,11 @@ COL_choice = 3
                  "AZ"=1,
                  "AZstrict"=1,
                  "noEPCs" =1,
-                 "new_CP" = 1,
-                 "new_CER" =1,
+                 "50EPC" = 1,
+                 "CP_txmod" = 1,
+                 "CER_txmod" =1,
+                 "EL_txmod" = 1,
+                 "CP_2TX" = 1,
                  'Historic'=1)
    
    # Scenario colors no historic
@@ -454,10 +477,13 @@ COL_choice = 3
                    "No ITCs"=COL_noITC,
                    "No ITCs with CER"=COL_noITC_CER,
                    "Absolute Zero" = COL_Az,
-                   "No H2 Absolute Zero" = COL_AZstrict,
+                   "No H2 Absolute Zero" = COL_AZ_noH2,
                    "No Emission Credits"=COL_noEPC,
-                   "new_CP" = COL_CP_update,
-                   "new_CER" =COL_CER_update
+                   "50% EPC Value" = COL_50EPC,
+                   "CP_txmod" = COL_CP_update,
+                   "EL_txmod" = COL_EL_update,
+                   "CER_txmod" =COL_CER_update,
+                   "Increased Transmission" = COL_CP2x
                    )
    sn_line2_l <-c("Draft CER"=1,
                  "Current Policy"=1,
@@ -469,8 +495,11 @@ COL_choice = 3
                  "Absolute Zero" = 1,
                  "No H2 Absolute Zero" = 1,
                  "No Emission Credits" = 1,
-                 "new_CP" = 1,
-                 "new_CER" =1
+                 "50% EPC Value" = 1,
+                 "CP_txmod" = 1,
+                 "CER_txmod" =1,
+                 "EL_txmod" = 1,
+                 "Increased Transmission" = 1
                  )
    sn_colors2_s <-c("CER"=COL_CER,
                    "CP"=COL_CP,
@@ -480,10 +509,13 @@ COL_choice = 3
                    "noITCs"=COL_noITC,
                    "CERnoITCs"=COL_noITC_CER,
                    "AZ" = COL_Az,
-                   "AZstrict"=COL_AZstrict,
+                   "AZstrict"=COL_AZ_noH2,
                    "noEPCs" =COL_noEPC,
-                   "new_CP" = COL_CP_update,
-                   "new_CER" =COL_CER_update
+                   "50EPC" = COL_50EPC,
+                   "CP_txmod" = COL_CP_update,
+                   "CER_txmod" =COL_CER_update,
+                   "EL_txmod" = COL_EL_update,
+                   "CP_2TX" = COL_CP2x
                   )
    sn_line2_s <-c("CER"=1,
                  "CP"=1,
@@ -495,8 +527,11 @@ COL_choice = 3
                  "AZ"=1,
                  "AZstrict"=1,
                  "noEPCs" =1,
-                 "new_CP" = 1,
-                 "new_CER" =1
+                 "50EPC" = 1,
+                 "CP_txmod" = 1,
+                 "CER_txmod" =1,
+                 "EL_txmod" = 1,
+                 "CP_2TX" = 1
                  )
    
   }
