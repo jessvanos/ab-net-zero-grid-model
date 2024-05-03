@@ -65,7 +65,7 @@
   ScenarioName2<-"TIER2035_11Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"TIER_3"
+  CScenarioName <-"Main_3_updateEL"
 }
 
 ################################################################################
@@ -80,7 +80,7 @@
 ################################################################################
 
 # Folder name & color selection
-CaseName <- "TIER_3" # Match 'CScenarioName' from combine files (ie: folder name)
+CaseName <- "Main_3_updateEL" # Match 'CScenarioName' from combine files (ie: folder name)
 COL_choice = 3
 
 # Read R-Data files for compare scenario

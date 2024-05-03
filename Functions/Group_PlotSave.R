@@ -301,13 +301,13 @@ Value_saveall <- function(CaseName) {
   
   GGSave_Loc_Ex(CaseName,"NPV Storage",ResValue_NPV(3,1899,BC),300)
   
-  GGSave_Loc_Ex(CaseName,"NPV Wind MWh",ResValue_NPV_MWh(3,1899,BC),300)
+  GGSave_Loc_Ex(CaseName,"NPV Storage MWh",ResValue_NPV_MWh(3,1899,BC),300)
   
-  GGSave_Loc_Ex(CaseName,"Annual Value Line Wind",ResValue_Line(3,1800,BC),300)
+  GGSave_Loc_Ex(CaseName,"Annual Value Line Storage",ResValue_Line(3,1800,BC),300)
   
-  GGSave_Loc_Ex(CaseName,"Annual Value Dots Wind",ResValue_Annual(3,1899,BC),300)
+  GGSave_Loc_Ex(CaseName,"Annual Value Dots Storage",ResValue_Annual(3,1899,BC),300)
   
-  GGSave_Loc_Ex(CaseName,"Annual Value Dots Wind MWh",ResValue_Annual_MWh(3,1899,BC),300)
+  GGSave_Loc_Ex(CaseName,"Annual Value Dots Storage MWh",ResValue_Annual_MWh(3,1899,BC),300)
   
   
 # SOLAR

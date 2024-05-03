@@ -53,7 +53,8 @@ compare_rename <-function(data,type){
                                                               if_else(grepl("CP_12",Scenario)==TRUE,input_name[12],
                                       if_else(grepl("CER_14",Scenario)==TRUE,input_name[13],
                                               if_else(grepl("EL_19",Scenario)==TRUE,input_name[14],
-                                                      if_else(grepl("CP_2tx",Scenario)==TRUE,input_name[15],"unknown"))))))))))))))))
+                                                      if_else(grepl("CP_2tx",Scenario)==TRUE,input_name[15],
+                                                              if_else(grepl("EL_25",Scenario)==TRUE,input_name[3],"unknown")))))))))))))))))
   
   if (any(data$Scenario == "unknown")==TRUE) {
     print("Unknown scenario detected")
@@ -2412,6 +2413,7 @@ Cost_Cum_rel_COMPARE <- function(name_type) {
 ################################################################################
 ## FUNCTION: AnnualCost_Cum_COMPARE
 ## Plots annual average emissions in cummulative bar chart.
+## FIX: Cannot find EPCS like this, annual does not show net EPC vs cost.
 ##
 ## INPUTS: 
 ##    case - Run_ID which you want to plot
