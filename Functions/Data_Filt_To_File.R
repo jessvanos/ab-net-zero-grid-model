@@ -489,16 +489,15 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
           Month=month(date),
           Day=day(date),
           Hour=hour(date),
-          Date=as.Date(date),
           Time=format(date,"%H:%M:%S"),
           Scenario=SourceDB) %>%
    filter(Year<=MaxYrStudy) %>%
    arrange(.,date) %>%
-   subset(select=c(Date,Time,Price,Demand,Net_Load,
+   subset(select=c(date,Time,Price,Demand,Net_Load,
                    Marginal_Resource,Imports,Exports,Year,Month,Day,Scenario)) %>%
    rename("Price ($/MWh)"=Price,
-          "Demand (MW)"=Demand,
-          "Net Load (MW)"=Net_Load,
+          "Demand_MW"=Demand,
+          "Net Load_MW"=Net_Load,
           "Marginal Resource"=Marginal_Resource)
  
   # Clear un-used 
@@ -545,7 +544,6 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
         Month=month(date),
         Day=day(date),
         Hour=hour(date),
-        Date=as.Date(date),
         Time=format(date,"%H:%M:%S"),
         Scenario=paste(SourceDB),
         Revenue=Revenue*1000,
@@ -559,15 +557,13 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
    filter(Year<=MaxYrStudy) %>%
    arrange(.,date) %>%
    # Choose what to keep
-   subset(., select=c(Date,Time,ID,Output_MWH,Capacity,
+   subset(., select=c(date,Time,ID,Output_MWH,Capacity,
                       Dispatch_Cost,
                       Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,Storage_Charging_Cost,
                       Revenue,Value,Capacity_Factor,
                       Year,Month,Day,Scenario)) %>%
      rename(Plant_Type=ID)%>%
-   rename("Plant Type"=Plant_Type,
-          "Output (MWh)"=Output_MWH,
-          "Capacity (MW)"=Capacity,
+   rename("Capacity (MW)"=Capacity,
           "Average Dispatch Cost ($MWh)"=Dispatch_Cost,
           "Storage Charging Cost"=Storage_Charging_Cost,
           "Fuel Cost"=Total_Fuel_Cost,
@@ -578,14 +574,90 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
    # Clear un-used 
    gc()
 
-    
+  ################################################################################
+  ## COMBINE ZONE INFO WITH HOURLY RESOURCE GEN DATA
+  ## Summarize hourly data
+  ################################################################################
+   
+   # Sort output by group and extract
+   Output_MWh <- DataGrHr %>%
+     group_by(date) %>%
+     summarise(Output_MWh = sum(Output_MWH),
+               Wind_MWh =  sum(Output_MWH[Plant_Type == "Wind"]),
+               Wind_CF =  sum(`Capacity Factor`[Plant_Type == "Wind"]),
+               Solar_MWh =  sum(Output_MWH[Plant_Type == "Solar"]),
+               Hydro_MWh =  sum(Output_MWH[Plant_Type == "Hydro"]),
+               Other_MWh =  sum(Output_MWH[Plant_Type == "Other"]),
+               Cogen_MWh =  sum(Output_MWH[Plant_Type == "Cogeneration"]),
+               Storage_MWh = sum(Output_MWH[Plant_Type %in% c("Storage - Battery", "Storage - Pumped Hydro", "Storage - Compressed Air")]),
+               Thermal_Emit_MWh = sum(Output_MWH[Plant_Type %in% c("Coal-to-Gas","Coal", 
+                                                           "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                           "Natural Gas Simple Cycle", "Natural Gas Combined Cycle")]),
+               Thermal__clean_MWh = sum(Output_MWH[Plant_Type %in% c("Hydrogen Simple Cycle","Hydrogen Combined Cycle", 
+                                                             "Natural Gas Combined Cycle + CCS")]))
+   
+   # Combine files
+   zone_output1 <- merge(ZoneHrData,Output_MWh,by = "date") 
+   
+   # Capture stats
+   zone_output <- zone_output1%>%
+     group_by(date) %>%
+     mutate(Diff = round(Output_MWh+Imports-Demand_MW,0),
+            Demand_Met = Diff==0,
+            Demand_Unmet = Diff < 0,
+            Demand_Exceeded = Diff >0,
+            Wind_perc_gen = Wind_MWh/Output_MWh,
+            state = ifelse(Diff > 0,"Exceed",
+                           ifelse(Diff <= 0,"Tight","na"))) %>%
+     arrange(date) %>%
+     group_by(Month, Year, state, grp = with(rle(state), rep(seq_along(lengths), lengths))) %>%
+     mutate(COUNTER = seq_along(grp)) %>%
+     ungroup()
+   
+   # Consecutive hours - get periods of consectuve tight and exceeded hours
+   concec_hrs <- zone_output %>%
+     group_by(Year,Month,state,grp) %>%
+     summarise(consec_hrs = max(COUNTER)) %>%
+     ungroup()
+   
+   # summarize periods of tight by year
+   concec_hrs_yr_tight <- concec_hrs %>%
+     filter(state =="Tight") %>%
+     group_by(Year) %>%
+     summarise(max_tight_hrs = max(consec_hrs),
+               min_tight_hrs = min(consec_hrs),
+               mean_tight_hrs = mean(consec_hrs))%>%
+     ungroup()
+   
+     
+   # Summarize findings
+   zone_sum <- zone_output %>%
+     group_by(Year)%>%
+     summarise(avg_dmd_MW = mean(Demand_MW),
+               sampled_hrs = length(date),
+               tight_hrs_perc = sum(Demand_Met)/sampled_hrs,
+               exceed_hrs_perc = sum(Demand_Exceeded)/sampled_hrs,
+               unmet_hrs_perc = sum(Demand_Unmet)/sampled_hrs,
+               avg_wind_tight_MW = mean(Wind_MWh[Demand_Met==TRUE]),
+               avg_wind_exceed_MW = mean(Wind_MWh[Demand_Exceeded==TRUE]),
+               avg_wind_tight_CF = mean(Wind_CF[Demand_Met==TRUE]),
+               avg_wind_exceed_CF = mean(Wind_CF[Demand_Exceeded==TRUE]),
+               avg_wind_tight_perc_gen = mean(Wind_perc_gen[Demand_Met==TRUE]),
+               avg_wind_exceed_perc_gen = mean(Wind_perc_gen[Demand_Exceeded==TRUE]),
+               avg_diff = mean(Diff),
+               avg_unmet = mean(Diff[Demand_Unmet==TRUE]),
+               max_unmet = min(Diff[Demand_Unmet==TRUE])) 
+   
+   zone_sum <- merge(zone_sum,concec_hrs_yr_tight,by="Year")
+   
 ################################################################################
 ## SEND ALL TO ONE EXCEL FILE
 ################################################################################
    
    dataset_names <-list('1 Hourly Resource Group Data'=DataGrHr,
                         '2 Hourly Emission Data'=DataGrEmHr,
-                        '3 Hourly System Data'=ZoneHrData)
+                        '3 Hourly System Data'=ZoneHrData,
+                        '4 Additional Hourly Stats'=zone_sum)
    
    filename <-paste("Hourly_Data_",ScenarioName,"_",SourceDB,".xlsx")
    
@@ -606,6 +678,117 @@ HourlyDataExcel<- function(ScenarioName,NameShort,case){
    print("Hourly data complete")
 }
 
+
+################################################################################
+## FUNCTION: HourlyDataR
+## Writes all relevant hourly data to R files.
+## INPUTS: 
+##    ScenarioName - Name of scenario (EX: "BAU:)
+##    case - Filter by run case
+## TABLES REQUIRED: 
+##    ResGroupHr
+##    ResHr
+##    ZoneHr
+################################################################################
+
+HourlyDataR<- function(ScenarioName,NameShort,case){
+  
+################################################################################
+## HOURLY RESOURCE GROUP INFO
+################################################################################
+
+  # Resource groups over entire year
+  print("Filtering hourly resource group data")
+  
+  DataGrHr <- ResGroupHr%>%
+    sim_filt5(.) %>% #Filter to rename fuels
+    filter(Run_ID == case) %>%
+    filter(Condition == "Average") %>%
+    # Convert all costs to dollars from $000
+    mutate(Year=year(date),
+           Month=month(date),
+           Day=day(date),
+           Hour=hour(date),
+           Day=as.Date(date),
+           Time=format(date,"%H:%M:%S"),
+           Scenario=paste(SourceDB),
+           Revenue=Revenue*1000,
+           Total_Fuel_Cost=Total_Fuel_Cost*1000,
+           Fixed_Cost=Fixed_Cost*1000,
+           Variable_OM_Cost=Variable_OM_Cost*1000,
+           Value=Value*1000,
+           Storage_Charging_Cost*1000,
+           Capacity=round(Capacity,digits=0)) %>%
+    # Filter out dates after MaxYr
+    filter(Year<=MaxYrStudy) %>%
+    arrange(.,date) %>%
+    # Choose what to keep
+    subset(., select=c(date,Day,Time,ID,Output_MWH,Capacity,
+                       Dispatch_Cost,
+                       Total_Fuel_Cost,Fixed_Cost,Variable_OM_Cost,Storage_Charging_Cost,
+                       Revenue,Value,Capacity_Factor,
+                       Year,Month,Day,Scenario))
+  
+  # Save R file in folder
+  print(paste("Saving .R file to folder:",ScenarioName,"Prefix: ResGrHr_"))
+  SaveR_Loc(DataGrHr,ScenarioName,"ResGrHr")
+
+  # Clear un-used 
+  gc()
+
+################################################################################
+## HOURLY ZONE INFO
+################################################################################
+print("Filtering hourly zone data")
+
+ZoneHrData <- ZoneHr_Avg %>%
+  mutate(Year = year(date),
+         Month=month(date),
+         Day=day(date),
+         Hour=hour(date),
+         Time=format(date,"%H:%M:%S"),
+         Scenario=SourceDB) %>%
+  filter(Year<=MaxYrStudy) %>%
+  arrange(.,date) %>%
+  subset(select=c(date,Day,Time,Price,Demand,Net_Load,
+                  Marginal_Resource,Imports,Exports,Year,Month,Day,Scenario))
+
+# Send to R file
+print(paste("Saving .R file to folder:",ScenarioName,"Prefix: ZnHr_"))
+SaveR_Loc(ZoneHrData,ScenarioName,"ZnHr_")
+
+
+################################################################################
+## COMBINE ZONE INFO WITH HOURLY RESOURCE GEN DATA
+################################################################################
+
+# Sort output by group and extract
+Output_MWh <- DataGrHr %>%
+  group_by(date) %>%
+  summarise(Output_MWh = sum(Output_MWH),
+         Wind_MWh =  sum(Output_MWH[ID == "Wind"]),
+         Solar_MWh =  sum(Output_MWH[ID == "Solar"]),
+         Hydro_MWh =  sum(Output_MWH[ID == "Hydro"]),
+         Other_MWh =  sum(Output_MWH[ID == "Other"]),
+         Cogen_MWh =  sum(Output_MWH[ID == "Cogeneration"]),
+         Storage_MWh = sum(Output_MWH[ID %in% c("Storage - Battery", "Storage - Pumped Hydro", "Storage - Compressed Air")]),
+         Thermal_Emit_MWh = sum(Output_MWH[ID %in% c("Coal-to-Gas","Coal", 
+                                                     "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                     "Natural Gas Simple Cycle", "Natural Gas Combined Cycle")]),
+         Thermal__clean_MWh = sum(Output_MWH[ID %in% c("Hydrogen Simple Cycle","Hydrogen Combined Cycle", 
+                                                       "Natural Gas Combined Cycle + CCS")]))
+
+# Combine files
+zone_output <- merge(ZoneHrData,Output_MWh,by = "date") 
+
+# Clear un-used 
+gc()
+
+# Send to R file
+print(paste("Saving .R file to folder:",ScenarioName,"Prefix: Zn_output_Hr_"))
+SaveR_Loc(zone_output,ScenarioName,"ZnOutHr_")
+
+}
 ################################################################################
 ## FUNCTION: AnnualDataR
 ## Writes all relevant annual data to an seperate r file to combine with other cases later.

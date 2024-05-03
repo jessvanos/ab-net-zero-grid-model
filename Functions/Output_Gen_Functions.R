@@ -2482,11 +2482,12 @@ Week12_rCURTAIL <- function(year, month, day, case) {
     # Get y-max, demand to meet + exports
     max_out <- data_all %>%
       group_by(date)%>%
-      summarise(max_OUTPUT = sum(Output_MWH))
+      summarise(max_OUTPUT = sum(Output_MWH[Output_MWH>0]),
+                min_OUTPUT =  sum(Output_MWH[Output_MWH<0]))
     MX <- round_any(max(max_out$max_OUTPUT)+1100,1000,f=ceiling) 
 
     # Get y-min, based on exports
-    MN <- round_any(max(ZPrice2$Exports)+1100,1000,f=floor)*-1 
+    MN <- round_any(min(max_out$min_OUTPUT)-1100,1000,f=floor) 
     
     Mtitle=month.abb[month]
     
@@ -2506,6 +2507,7 @@ Week12_rCURTAIL <- function(year, month, day, case) {
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
                 aes(x = date, y = Net_Demand,linetype="Demand"), size=1.25,color='black') +
+      geom_hline(yintercept =0,size=0.25)+
       
       # geom_line(data = ZPrice,
       #           aes(x = date, y = Demand_Expo,linetype="Demand + Exports"), size=1.25,color='black') +
@@ -2536,11 +2538,7 @@ Week12_rCURTAIL <- function(year, month, day, case) {
             legend.key.size = unit(0.5, 'cm'),
             legend.text = element_text(size= GenText_Sz-2),
             text = element_text(size= GenText_Sz)
-      ) +
-      scale_y_continuous(expand=c(0,0), 
-                         limits = c(MN,MX),
-                         breaks=seq(MN,MX,by=2000),
-                         labels=comma) +
+      )+
       
       labs(x = "Date", y = "Output (MWh)", fill = "Resource", pattern ="Resource",colour = "Resource",title=Mtitle) +
       
@@ -2551,7 +2549,12 @@ Week12_rCURTAIL <- function(year, month, day, case) {
       #Add colour
       scale_fill_manual(values = col_plot) +
       scale_linetype_manual(values=c("Demand"=1,"Demand + Exports"=3)) + 
-      scale_pattern_manual(values=pattern1_rcurt)
+      scale_pattern_manual(values=pattern1_rcurt)  +
+      
+      scale_y_continuous(expand=c(0,0), 
+                         limits = c(MN,MX),
+                         breaks=seq(MN,MX,by=2000),
+                         labels=comma) 
   }
   
 ################################################################################
@@ -2636,10 +2639,14 @@ Week12_rCURTAIL <- function(year, month, day, case) {
       filter(YEAR == year)
     
     # Get y-max, demand to meet + exports
-    MX <- round_any(max(ZPrice2$Baseline_Demand) + max(ZPrice2$Exports)+1100,1000,f=ceiling) 
+    max_out <- WK %>%
+      group_by(date)%>%
+      summarise(max_OUTPUT = sum(Output_MWH[Output_MWH>0]),
+                min_OUTPUT =  sum(Output_MWH[Output_MWH<0]))
+    MX <- round_any(max(max_out$max_OUTPUT)+1100,1000,f=ceiling) 
     
     # Get y-min, based on exports
-    MN <- round_any(max(ZPrice2$Exports)+1100,1000,f=floor)*-1 
+    MN <- round_any(min(max_out$min_OUTPUT)-1100,1000,f=floor) 
     
     Mtitle=month.abb[month]
     
