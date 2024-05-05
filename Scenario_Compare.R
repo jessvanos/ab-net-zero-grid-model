@@ -65,7 +65,7 @@
   ScenarioName2<-"TIER2035_11Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"Main_3_updateEL"
+  CScenarioName <-"TIER_3"
 }
 
 ################################################################################
@@ -80,7 +80,7 @@
 ################################################################################
 
 # Folder name & color selection
-CaseName <- "Main_3_updateEL" # Match 'CScenarioName' from combine files (ie: folder name)
+CaseName <- "TIER_3" # Match 'CScenarioName' from combine files (ie: folder name)
 COL_choice = 3
 
 # Read R-Data files for compare scenario
@@ -109,7 +109,9 @@ COL_choice = 3
   # Uses local computer font files (search font in search bar to confirm font names)
   
   font_add(family="Times",regular="times.ttf")
+  font_add("times_bf", regular = "timesbd.ttf")
   Plot_Text <- "Times"
+  Plot_Text_bf <- "times_bf"
   showtext_auto()
   
   # Gives years to summarize info from 
@@ -633,6 +635,23 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   
 }
 
+# COMPARE METRICS
+  base_case=c("CP","Current Policy")
+  em_diff_groups <- c("Coal", "Cogeneration","Coal-to-Gas","Natural Gas Combined Cycle + CCS", 
+                      "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                     "Other","Cogeneration")
+  # Ind metrics
+  GGSave_Loc_custom(CaseName,"2045 Capacity Diff from CP",Cap_Year_Diff_COMPARE("l",2045,base_case),12,8)
+  GGSave_Loc_custom(CaseName,"Total Gen Diff from CP",Gen_Diff_COMPARE("l",base_case),12,8)
+  GGSave_Loc_custom(CaseName,"Total Emissions Diff from CP",Em_Diff_COMPARE("l",base_case,em_diff_groups),12,8)
+  GGSave_Loc_custom(CaseName,"Total Cost Diff from CP",Cost_Diff_COMPARE("l",base_case,0.05),12,8)
+  
+  
+  # plot of metrics (low quality)
+  SourceDB=CScenarioName
+  windows(20,12,buffered=FALSE)
+  compare_metrics("l",2045,base_case,em_diff_groups,0.1,12)
+  SaveRun_Loc(CaseName,"Compare Metrics")
 ################################################################################
 ## CREATE COMPARE PLOTS WITH NRG STREAM DATA
 ################################################################################

@@ -93,7 +93,7 @@ GGSave_Loc_custom <- function(CaseName,FileName,plotinput,w,l) {
   # Save to a local file 
   ggsave(
     filename = here(paste("Figures (Local)/",paste(fold_name),"/",FileName,".png", sep = "")),
-    device = "png",
+    #device = "png",
     plot = plotinput,
     width=w,
     height=l,

@@ -2597,3 +2597,452 @@ AnnualValue_Cum_norm <- function(name_type) {
     scale_y_continuous(expand=c(0,0),limits=c(0,Upplim),n.breaks = 6)
   
 }
+
+################################################################################
+# COMPARING METRICS 
+################################################################################
+################################################################################
+## FUNCTION: Cap_Year_Relative_COMPARE
+## Plots capacity relative to CP in chosen year.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+Cap_Year_Diff_COMPARE <- function(name_type,year_in,base_case,txt_sz=GenText_Sz) {
+  
+  # Gather all data first
+  Filt_data <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype))%>%
+    filter(Year == year_in) %>%
+    group_by(Scenario,Ptype)%>%
+    summarise(Capacity_MW=sum(Capacity_MW),
+              Output_MWH=sum(Output_MWH),
+              Emissions_Tonne=sum(Emissions_Tonne),
+              Total_Hours_Run=mean(Total_Hours_Run),
+              Percent_Marginal=mean(Percent_Marginal),
+              Capacity_Factor=mean(Capacity_Factor))
+  
+  # Format to compare against CP
+  CP_data <- Filt_data %>%
+    filter(Scenario %in% base_case)%>%
+    group_by(Ptype) %>%
+    summarise(CP_Cap = Capacity_MW,
+              CP_Out = Output_MWH,
+              CP_Em = Emissions_Tonne,
+              CP_Hours = Total_Hours_Run,
+              CP_Marginal = Percent_Marginal,
+              CP_CF = Capacity_Factor)
+  
+  # Join them
+  AllData <- merge(Filt_data,CP_data,by=c("Ptype"), all.x = TRUE) %>%
+    replace(is.na(.), 0) %>%
+    mutate(Cap_Diff = Capacity_MW-CP_Cap,
+           Out_Diff = Output_MWH-CP_Out,
+           Em_Diff= Emissions_Tonne-CP_Em,
+           Hours_Diff = Total_Hours_Run-CP_Hours,
+           Marg_Diff = Percent_Marginal-CP_Marginal,
+           CF_Diff = Capacity_Factor-CP_CF) %>%
+    # Replace this to keep in figure
+    mutate(Diff_type = if_else(Cap_Diff>0,"Increased",
+                               if_else(Cap_Diff<0,"Decreased","Same")),
+           Ptype = as.factor(Ptype)) %>%
+    filter(!Scenario %in% base_case)
+  
+  # Map short names
+  new_names <- c("NGConv"="Coal-to-Gas",
+                 "Cogen"="Cogeneration",
+                 "H2SC"="Hydrogen Simple Cycle",
+                 "NGCC"="Natural Gas Combined Cycle",
+                 "NGCCS"="Natural Gas Combined Cycle + CCS",
+                 "NGSC"= "Natural Gas Simple Cycle")
+  AllData$Ptype <- fct_recode(AllData$Ptype, !!!new_names)
+  
+  
+  #Max Capacity
+  mxc <- round_any(max(AllData$Cap_Diff[AllData$Cap_Diff>0])+151,1000,f=ceiling)
+  mnc <-round_any(min(AllData$Cap_Diff[AllData$Cap_Diff<0])-151,1000,f=floor)
+  
+  
+  #Plot data
+  ggplot(AllData,aes(x=Ptype, y=Cap_Diff)) +
+    geom_bar(aes(fill = Diff_type),
+             position="dodge", stat="identity",
+             na.rm=TRUE, alpha=Plot_Trans,color='black',
+    ) +
+    facet_wrap(~Scenario, strip.position = "top",nrow = 1) +
+    theme_bw() +
+    geom_vline(xintercept =0)+
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),  
+          axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.title.y = element_text(size = txt_sz+6, vjust=0.5,family=Plot_Text_bf),
+          panel.background = element_rect(fill = "transparent"),
+          panel.border = element_rect(color = "black", size = 1),
+          axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black"),
+          axis.text.y=element_text(color="black"),
+          plot.title = element_blank(),
+          legend.justification = c(0.5,0.5),
+          legend.position = ("none"),
+          legend.text = element_text(size = txt_sz-6),
+          legend.title=element_blank(), 
+          #legend.key.size = unit(1,"lines"),
+          text = element_text(size = txt_sz)) +
+    
+    geom_text(aes(x = "Storage",y = 2*mxc/3, label = "Increased from CP", vjust=-0.5,hjust=1),size =txt_sz/4,family=Plot_Text,color="#3A3A3A")  +
+    geom_text(aes(x = "Storage",y = 2*mnc/3, label = "Decreased from CP", vjust=-0.5,hjust=1),size =txt_sz/4,family=Plot_Text,color="#747474")  +
+    
+    theme(strip.placement = "outside",
+          strip.text = element_text(size = txt_sz-6, color = "black"),
+          strip.background = element_rect(colour="black", fill=NA, size = 1),
+          panel.spacing = unit(0,'lines')) +
+  
+    scale_fill_manual(values = c("#3A3A3A", "#747474", "black"),
+                      breaks = c("Increased", "Decreased")) +
+    guides(fill = guide_legend(ncol=1)) +
+    
+    scale_y_continuous(expand = c(0, 0),limits=c(mnc,mxc),breaks = seq(mnc,mxc,1000),labels=comma) +
+    
+    #scale_x_discrete(expand = c(0, 0)) +
+
+    labs(y = paste(year_in," Capacity Difference (MW)"))
+  
+  
+}
+
+################################################################################
+## FUNCTION: Gen_Diff_COMPARE
+## Plots capacity relative to CP in chosen year.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+Gen_Diff_COMPARE <- function(name_type,base_case,txt_sz=GenText_Sz) {
+  
+  # Gather all data first
+  Filt_data <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype))%>%
+    filter(Ptype != "Storage") %>%
+    group_by(Scenario,Ptype)%>%
+    summarise(Output_GWH=sum(Output_MWH)/1000000,
+              Emissions_MT=sum(Emissions_Tonne)/1000000)
+  
+  # Format to compare against CP
+  CP_data <- Filt_data %>%
+    filter(Scenario %in% base_case)%>%
+    group_by(Ptype) %>%
+    summarise(CP_Out = Output_GWH,
+              CP_Em = Emissions_MT)
+  
+  # Join them
+  AllData <- merge(Filt_data,CP_data,by=c("Ptype"), all.x = TRUE) %>%
+    replace(is.na(.), 0) %>%
+    mutate(Out_Diff = (Output_GWH-CP_Out),
+           Em_Diff= Emissions_MT-CP_Em) %>%
+    # Replace this to keep in figure
+    mutate(Diff_type = if_else(Out_Diff>0,"Increased",
+                               if_else(Out_Diff<0,"Decreased","Same")),
+           Ptype = as.factor(Ptype)) %>%
+    filter(!Scenario %in% base_case)
+  
+  # Map short names
+  new_names <- c("NGConv"="Coal-to-Gas",
+                 "Cogen"="Cogeneration",
+                 "H2SC"="Hydrogen Simple Cycle",
+                 "NGCC"="Natural Gas Combined Cycle",
+                 "NGCCS"="Natural Gas Combined Cycle + CCS",
+                 "NGSC"= "Natural Gas Simple Cycle")
+  AllData$Ptype <- fct_recode(AllData$Ptype, !!!new_names)
+  
+  
+  #Max Capacity
+  mxc <- round_any(max(AllData$Out_Diff[AllData$Out_Diff>0])+11,20,f=ceiling)
+  mnc <-round_any(min(AllData$Out_Diff[AllData$Out_Diff<0])-11,20,f=floor)
+  
+  
+  #Plot data
+  ggplot(AllData,aes(x=Ptype, y=Out_Diff)) +
+    geom_bar(aes(fill = Diff_type),
+             position="dodge", stat="identity",
+             na.rm=TRUE, alpha=Plot_Trans,color='black',
+    ) +
+    facet_wrap(~Scenario, strip.position = "top",nrow = 1) +
+    theme_bw() +
+    geom_vline(xintercept =0)+
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),  
+          axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.title.y = element_text(size = txt_sz+6, vjust=0.5,family=Plot_Text_bf),
+          panel.background = element_rect(fill = "transparent"),
+          panel.border = element_rect(color = "black", size = 1),
+          axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black"),
+          axis.text.y=element_text(color="black"),
+          plot.title = element_blank(),
+          legend.justification = c(0.5,0.5),
+          legend.position = ("none"),
+          legend.text = element_text(size = txt_sz-6),
+          legend.title=element_blank(), 
+          #legend.key.size = unit(1,"lines"),
+          text = element_text(size = txt_sz)) +
+    
+    geom_text(aes(x = "Solar",y = 2*mxc/3, label = "Increased from CP", vjust=-0.5,hjust=1),size =txt_sz/4,family=Plot_Text,color="#3A3A3A")  +
+    geom_text(aes(x = "Solar",y = 2*mnc/3, label = "Decreased from CP", vjust=-0.5,hjust=1),size =txt_sz/4,family=Plot_Text,color="#747474")  +
+    
+    theme(strip.placement = "outside",
+          strip.text = element_text(size = txt_sz-6, color = "black"),
+          strip.background = element_rect(colour="black", fill=NA, size = 1),
+          panel.spacing = unit(0,'lines')) +
+    
+    scale_fill_manual(values = c("#3A3A3A", "#747474", "black"),
+                      breaks = c("Increased", "Decreased")) +
+    guides(fill = guide_legend(ncol=1)) +
+    
+    scale_y_continuous(expand = c(0, 0),limits=c(mnc,mxc),breaks = seq(mnc,mxc,20),labels=comma) +
+    
+   # scale_x_discrete(expand = c(0, 0)) +
+    
+    labs(y = paste("Total Generation Difference (MW)"))
+  
+  
+}
+
+################################################################################
+## FUNCTION: Em_Diff_COMPARE
+## Plots capacity relative to CP in chosen year.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+Em_Diff_COMPARE <- function(name_type,base_case,em_diff_groups,txt_sz=GenText_Sz) {
+  
+  # Gather all data first
+  Filt_data <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type)) %>%
+    filter(Ptype %in% em_diff_groups) %>%
+    group_by(Scenario,Ptype)%>%
+    summarise(Output_GWH=sum(Output_MWH)/1000000,
+              Emissions_MT=sum(Emissions_Tonne)/1000000)
+  
+  # Format to compare against CP
+  CP_data <- Filt_data %>%
+    filter(Scenario %in% base_case)%>%
+    group_by(Ptype) %>%
+    summarise(CP_Out = Output_GWH,
+              CP_Em = Emissions_MT)
+  
+  # Join them
+  AllData <- merge(Filt_data,CP_data,by=c("Ptype"), all.x = TRUE) %>%
+    replace(is.na(.), 0) %>%
+    mutate(Out_Diff = (Output_GWH-CP_Out),
+           Em_Diff= Emissions_MT-CP_Em) %>%
+    # Replace this to keep in figure
+    mutate(Diff_type = if_else(Em_Diff>0,"Increased",
+                               if_else(Em_Diff<0,"Decreased","Same")),
+           Ptype = as.factor(Ptype)) %>%
+    filter(!Scenario %in% base_case)
+  
+  # Map short names
+  new_names <- c("NGConv"="Coal-to-Gas",
+                 "Cogen"="Cogeneration",
+                 "NGCC"="Natural Gas Combined Cycle",
+                 "NGCCS"="Natural Gas Combined Cycle + CCS",
+                 "NGSC"= "Natural Gas Simple Cycle")
+  AllData$Ptype <- fct_recode(AllData$Ptype, !!!new_names)
+  
+  
+  #Max Em
+  mxc <- round_any(max(AllData$Em_Diff[AllData$Em_Diff>0])+5,10,f=ceiling)
+  mnc <-round_any(min(AllData$Em_Diff[AllData$Em_Diff<0])-5,10,f=floor)
+  
+  
+  #Plot data
+  ggplot(AllData,aes(x=Ptype, y=Em_Diff)) +
+    geom_bar(aes(fill = Diff_type),
+             position="dodge", stat="identity",
+             na.rm=TRUE, alpha=Plot_Trans,color='black',
+    ) +
+    facet_wrap(~Scenario, strip.position = "top",nrow = 1) +
+    theme_bw() +
+    geom_vline(xintercept =0)+
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(panel.grid = element_blank(),  
+          axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.title.y = element_text(size = txt_sz+6, vjust=0.5,family=Plot_Text_bf),
+          panel.background = element_rect(fill = "transparent"),
+          panel.border = element_rect(color = "black", size = 1),
+          axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black"),
+          axis.text.y=element_text(color="black"),
+          plot.title = element_blank(),
+          legend.justification = c(0.5,0.5),
+          legend.position = ("none"),
+          legend.text = element_text(size = txt_sz-6),
+          legend.title=element_blank(), 
+          #legend.key.size = unit(1,"lines"),
+          text = element_text(size = txt_sz)) +
+    
+    geom_text(aes(x = "Other",y = 2*mxc/3, label = "Increased from CP", vjust=-0.5,hjust=1),size =txt_sz/4,family=Plot_Text,color="#3A3A3A")  +
+    geom_text(aes(x = "Other",y = 2*mnc/3, label = "Decreased from CP", vjust=-0.5,hjust=1),size =txt_sz/4,family=Plot_Text,color="#747474")  +
+    
+    theme(strip.placement = "outside",
+          strip.text = element_text(size = txt_sz-6, color = "black"),
+          strip.background = element_rect(colour="black", fill=NA, size = 1),
+          panel.spacing = unit(0,'lines')) +
+    
+    scale_fill_manual(values = c("#3A3A3A", "#747474", "black"),
+                      breaks = c("Increased", "Decreased")) +
+    guides(fill = guide_legend(ncol=1)) +
+    
+    scale_y_continuous(expand = c(0, 0),limits=c(mnc,mxc),breaks = seq(mnc,mxc,10),labels=comma) +
+    
+    #scale_x_discrete(expand = c(0, 0)) +
+    
+    labs(y = paste("Emissions Difference (Mt CO2)"))
+  
+}
+
+################################################################################
+## FUNCTION: Cost_Diff_COMPARE
+## Plots capacity relative to CP in chosen year.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+Cost_Diff_COMPARE <- function(name_type,base_case,axis_space,txt_sz=GenText_Sz) {
+  
+  # Plot color
+  if (name_type == "l"){
+    scenario_colors<-sn_colors2_l
+    scenario_lines<-sn_line2_l
+  }else{
+    scenario_colors<-sn_colors2_s
+    scenario_lines<-sn_line2_s
+  }
+  
+  # Gather all data first
+  Filt_data <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    mutate(Scenario=as.factor(Scenario)) %>%
+    group_by(Scenario,Year)%>%
+    summarise(Cost=sum(Total_Cost)/1000000) %>%
+    ungroup() %>%
+    group_by(Scenario) %>%
+    mutate(Year,
+           cum_cost = cumsum(Cost)) %>%
+    ungroup()
+  
+  # Format to compare against CP
+  CP_data <- Filt_data %>%
+    filter(Scenario %in% base_case)%>%
+    group_by(Year) %>%
+    summarise(CP_Cost = Cost,
+              CP_cum = cum_cost)
+  
+  # Join them
+  AllData <- merge(Filt_data,CP_data,by=c("Year"), all.x = TRUE) %>%
+    replace(is.na(.), 0) %>%
+    mutate(cost_diff = (Cost-CP_Cost),
+           cum_cost_diff = (cum_cost-CP_cum),
+           cum_cost_diff_perc = cum_cost_diff/CP_cum,
+           Diff_type = if_else(cost_diff>0,"Increased",
+                               if_else(cost_diff<0,"Decreased","Same"))) %>%
+    filter(!Scenario %in% base_case) 
+  
+  # Get plot max/mins
+  YearMX<-max(AllData$Year)
+  YearMN<-min(AllData$Year)
+  mxc <- round_any(max(AllData$cum_cost_diff_perc[AllData$cum_cost_diff_perc>0])+0.1,0.2,f=ceiling)
+  mnc <-round_any(min(AllData$cum_cost_diff_perc[AllData$cum_cost_diff_perc<0])-0.1,0.2,f=floor)
+  
+  #Plot data
+  ggplot(AllData) +
+    geom_line(aes(x = Year, y = cum_cost_diff_perc, colour = Scenario,linetype= Scenario), 
+              size = 1) +
+    geom_hline(yintercept =0) +
+    theme_bw() +
+    theme(text=element_text(family=Plot_Text)) +
+    theme(axis.text = element_text(color="black"),
+          axis.title = element_text(size = txt_sz+6,family=Plot_Text_bf),
+          axis.text.x = element_text(angle = 90, hjust=0,color="black"),
+          plot.title = element_blank(),
+          text = element_text(size=txt_sz),
+          axis.title.x=element_blank(),
+          panel.border = element_rect(color = "black", size = 1),
+          legend.text = element_text(size = txt_sz-8),
+          panel.grid = element_blank(),
+          legend.title = element_blank(),
+          legend.position = "bottom",
+          #panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray70'),
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.spacing = unit(1.5, "lines"),
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+    ) +
+    labs(y = "Cumulative Cost Difference", x="Year") +
+    
+    #scale_colour_grey() +
+    scale_linetype_manual(name="Guide1",values = scenario_lines,drop=TRUE,limits = force)+
+    scale_colour_manual(name="Guide1",values = scenario_colors,drop = TRUE,limits = force) +
+    
+    scale_x_continuous(expand=c(0,0),limits = c(YearMN-0.2,YearMX+0.2),breaks=seq(YearMN, YearMX, 2)) +
+    
+    scale_y_continuous(expand=c(0,0),limits=c(mnc,mxc),breaks = seq(mnc,mxc,by=axis_space),labels = percent)
+  
+}
+  
+################################################################################
+## FUNCTION: Cost_Diff_COMPARE
+## Plot 4 metrics in one.
+##
+################################################################################
+compare_metrics <- function(name_type,capyr,base_case,em_diff_groups,axis_space,txt_sz=GenText_Sz) {
+
+
+p1<-Cap_Year_Diff_COMPARE(name_type,capyr,base_case,txt_sz) + 
+  theme(plot.title = element_text(margin = margin(b = 5)),
+        axis.title.y = element_text(size = txt_sz+2, vjust=0.5,family=Plot_Text_bf))+ 
+        ggtitle("(A)")
+p2<-Gen_Diff_COMPARE(name_type,base_case,txt_sz)  + 
+  theme(plot.title = element_text(margin = margin(b = 5)),
+        axis.title.y = element_text(size = txt_sz+2, vjust=0.5,family=Plot_Text_bf))+   
+  ggtitle("(B)")
+
+p3<-Em_Diff_COMPARE(name_type,base_case,em_diff_groups,txt_sz)  + 
+  theme(plot.title = element_text(margin = margin(b = 5)),
+        axis.title.y = element_text(size = txt_sz+2, vjust=0.5,family=Plot_Text_bf))+   
+  ggtitle("(C)")
+
+p4<-Cost_Diff_COMPARE(name_type,base_case,axis_space,txt_sz) + 
+  theme(plot.title = element_text(margin = margin(b = 5)),
+        axis.title.y = element_text(size = txt_sz+2, vjust=0.5,family=Plot_Text_bf))+   
+  ggtitle("(D)") 
+
+
+# Arrange all the plots
+plot_grid(p1, p2,p3, p4,ncol=2, align="hv", axis = "lb")
+
+}
+
