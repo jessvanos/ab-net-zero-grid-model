@@ -21,7 +21,8 @@ compare_rename <-function(data,type){
                    "Absolute Zero","No H2 Absolute Zero",          # 8,9
                    "No Emission Credits", "50% EPC Value",         # 10,11
                    "CP_txmod","CER_txmod","EL_txmod",              # 12,13,14
-                   "Increased Transmission")                       # 15
+                   "Increased Transmission","No CCS",              # 15, 16
+                   "30% EPC Value", "70% EPC Value")               # 17, 18
   }else{
     input_name<-c("CER","CP","EL",
                   "TIER2050","TIER2035",
@@ -29,7 +30,8 @@ compare_rename <-function(data,type){
                   "AZ","AZ_noH2",
                   "noEPCs", "50EPC",
                   "CP_txmod","CER_txmod","EL_txmod",
-                  "CP_2TX")
+                  "CP_2TX","no_CCS",
+                  "30EPC","70EPC")
   }
   
   # Rename if needed to make up for poor initial coding
@@ -41,7 +43,7 @@ compare_rename <-function(data,type){
   data <- data %>%
     mutate(Scenario = if_else(grepl("CER_02",Scenario)==TRUE,input_name[1],
                               if_else(grepl("CP_04",Scenario)==TRUE,input_name[2],
-                                      if_else(grepl("EL_06",Scenario)==TRUE,input_name[3],
+                                      if_else(grepl("EL_25",Scenario)==TRUE,input_name[3],
                                         if_else(grepl("TIER2050_",Scenario)==TRUE,input_name[4],
                                                 if_else(grepl("TIER2035",Scenario)==TRUE,input_name[5],
                                                         if_else(grepl("CP_noITC",Scenario)==TRUE,input_name[6],
@@ -54,7 +56,9 @@ compare_rename <-function(data,type){
                                       if_else(grepl("CER_14",Scenario)==TRUE,input_name[13],
                                               if_else(grepl("EL_19",Scenario)==TRUE,input_name[14],
                                                       if_else(grepl("CP_2tx",Scenario)==TRUE,input_name[15],
-                                                              if_else(grepl("EL_25",Scenario)==TRUE,input_name[3],"unknown")))))))))))))))))
+                                                              if_else(grepl("CP_noCCS",Scenario)==TRUE,input_name[16],
+                                      if_else(grepl("CP_30EPCs",Scenario)==TRUE,input_name[17],
+                                              if_else(grepl("CP_70EPCs",Scenario)==TRUE,input_name[18],"unknown")))))))))))))))))))
   
   if (any(data$Scenario == "unknown")==TRUE) {
     print("Unknown scenario detected")
@@ -479,7 +483,7 @@ Annual_Em_group <- function(name_type,list_groups) {
       
       legend.justification = c(0.5,0.5),
       legend.key.size = unit(0.3, "cm"),
-      legend.position = ("right"),
+      legend.position = ("bottom"),
       legend.text = element_text(size = GenText_Sz-12),
       legend.title=element_blank(), 
       legend.spacing.y = unit(0.1, 'cm'),
@@ -2972,7 +2976,7 @@ Cost_Diff_COMPARE <- function(name_type,base_case,axis_space,txt_sz=GenText_Sz) 
   YearMX<-max(AllData$Year)
   YearMN<-min(AllData$Year)
   mxc <- round_any(max(AllData$cum_cost_diff_perc[AllData$cum_cost_diff_perc>0])+0.1,0.2,f=ceiling)
-  mnc <-round_any(min(AllData$cum_cost_diff_perc[AllData$cum_cost_diff_perc<0])-0.1,0.2,f=floor)
+  mnc <-round_any(min(AllData$cum_cost_diff_perc)-0.1,0.2,f=floor)
   
   #Plot data
   ggplot(AllData) +
@@ -3014,7 +3018,7 @@ Cost_Diff_COMPARE <- function(name_type,base_case,axis_space,txt_sz=GenText_Sz) 
 }
   
 ################################################################################
-## FUNCTION: Cost_Diff_COMPARE
+## FUNCTION: compare_metrics
 ## Plot 4 metrics in one.
 ##
 ################################################################################
@@ -3040,9 +3044,129 @@ p4<-Cost_Diff_COMPARE(name_type,base_case,axis_space,txt_sz) +
         axis.title.y = element_text(size = txt_sz+2, vjust=0.5,family=Plot_Text_bf))+   
   ggtitle("(D)") 
 
-
 # Arrange all the plots
-plot_grid(p1, p2,p3, p4,ncol=2, align="hv", axis = "lb")
+plot_grid(p1, p2,p3, p4,ncol=2, align="hv", axis = "lb",
+          rel_widths =c(1,1,1,1))
 
 }
 
+################################################################################
+## FUNCTION: compare_cap_gen_em
+## Plot all metrics together
+##
+################################################################################
+compare_cap_gen_em <- function(name_type) {
+  
+  em_groups <-  c("Coal", "Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                  "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Other")
+  
+  years_cap = seq.int(2023, 2045) 
+  
+  # Filter data & aggregate years
+  RawData <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
+           Ptype=as.factor(Ptype)) %>%
+    filter(Year %in% years_cap) %>%
+    group_by(Year,Scenario,Ptype) %>%
+    summarise("Capacity (GW)" = sum(Capacity_MW)/10^3,
+              "Generation (TWh)" = sum(Output_MWH)/10^6,
+              Em_Mt = sum(Emissions_Tonne)/10^6) %>%
+    ungroup()%>%
+    mutate(Em_Mt = if_else(Ptype %in% em_groups,Em_Mt,0)) %>%
+    rename("Emissions (Mt CO2)"=Em_Mt)
+  
+  # Imports
+  # netimport <- Zone %>%
+  #   compare_rename(.,name_type)%>%
+  #   group_by(Scenario,Year)%>%
+  #   summarise(Ptype = "Net Imports",
+  #             "Capacity (GW)" = 0,
+  #             "Generation (TWh)" = sum(Imports_Total-Exports_Total)/10^6,
+  #             "Emissions (Mt CO2)"=0)
+  # 
+  # RawData <- rbind(RawData,netimport)
+  
+  # Order resources
+  # Set levels to each category in order specified
+  RawData$Ptype <- factor(RawData$Ptype, levels=c("Storage","Net Imports","Solar","Wind", "Other", "Hydro", 
+                                                  "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                  "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                  "Coal-to-Gas", 
+                                                  "Coal", "Cogeneration"))
+  
+  # Map short names
+  new_names <- c("Cogen"="Cogeneration",
+                 "NGCC"="Natural Gas Combined Cycle",
+                 "NGCCS"="Natural Gas Combined Cycle + CCS",
+                 "H2SC"="Hydrogen Simple Cycle",
+                 "NGSC"= "Natural Gas Simple Cycle")
+  RawData$Ptype <- fct_recode(RawData$Ptype, !!!new_names)
+  
+  col_scale = colours3c
+  
+  # Set up plot limits
+  Yr_gap <- 2
+  
+  max_groups <-RawData %>%group_by(Scenario,Year)%>%
+    summarise(max_cap = sum(`Capacity (GW)`),
+              max_gen = sum(`Generation (TWh)`[`Generation (TWh)`>0]),
+              min_gen = sum(`Generation (TWh)`[`Generation (TWh)`<=0]),
+              max_em = sum(`Emissions (Mt CO2)`))
+  
+  mx_cap <- round_any(max(max_groups$max_cap)+3,5,f=ceiling)
+  mx_gen <- round_any(max(max_groups$max_gen)+5,10,f=ceiling)
+  mx_em <- round_any(max(max_groups$max_em)+3,5,f=ceiling)
+  mn_gen <- round_any(min(max_groups$min_gen)-5,10,f=ceiling)
+  
+  # Melt the data
+  ModData <- melt(RawData,id=c("Year","Scenario","Ptype"))
+  
+  #Plot data
+  ggplot(ModData,aes(x=Year, y=value)) +
+    geom_area(aes(fill = Ptype),size=0.25,
+              na.rm=TRUE, alpha=Plot_Trans,color='black') +
+    facet_grid(variable~Scenario, 
+               scales = "free_y", switch = "y", 
+               axes = "all_y", axis.labels = "all_y") +
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(
+      panel.grid = element_blank(),  
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      panel.background = element_rect(fill = "transparent"),
+      axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black",size = GenText_Sz-16),
+      axis.text.y=element_text(color="black",size = GenText_Sz-16),
+      plot.title = element_blank(),
+      axis.ticks = element_line(size = 0.5),
+      
+      legend.justification = c(0.5,0.5),
+      legend.key.size = unit(0.3, "cm"),
+      legend.position = ("right"),
+      legend.text = element_text(size = GenText_Sz-10),
+      legend.title=element_blank(), 
+      legend.spacing.y = unit(0.1, 'cm'),
+      
+      strip.placement = "outside",
+      strip.text = element_text(size = GenText_Sz-2, color = "black"),
+      strip.background = element_rect(colour=NA, fill=NA),
+      panel.spacing = unit(1,'lines'),
+      
+      text = element_text(size = GenText_Sz-2)) +
+    
+    scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
+    
+    scale_y_continuous(expand = expansion(c(0,0.05)), breaks=pretty_breaks(8),
+                       labels = function(x) sprintf("%.1f", x)) +
+    
+    scale_x_continuous(expand = c(0,0), limits=c(2023,2045),breaks=seq(2023,2045,Yr_gap))
+    
+    #guides(fill = guide_legend(nrow=2))
+  
+}

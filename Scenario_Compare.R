@@ -30,7 +30,8 @@
   packs_to_load = c("tidyverse","scales","grid","gtable","gridExtra","ggpubr","extrafont",
                     "lubridate","cowplot","scales","dplyr","reshape2","zoo",
                     "ggpattern","here","showtext","DescTools",
-                    "openxlsx","timeDate","writexl","viridis","ggnewscale","janitor","sjmisc","treemapify","waterfalls")
+                    "openxlsx","timeDate","writexl","viridis","ggnewscale","janitor","sjmisc","treemapify",
+                    "waterfalls")
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
   
@@ -54,15 +55,17 @@
   #   'TIER2035_11Apr'           CP with TIER limit to zero by 2035 
   #   'CP_noEPC_10Apr'          CP with EPCs values at 0% Cprice
   #   'CP_50EPCs_22Apr'          CP with EPCs values at 50% Cprice
+  #   'CP_noCCS_03May'
 
   # COMBINED SCENARIOS
   #   'Main_3'                   CP_04Apr, CER_02Apr, EL_06Apr   
   #   'Main_3_BCmod'             CP_12Apr, CER_14Apr, EL_19Apr   
   #   'ITC_4'                    CP_04Apr, CER_02Apr, CP_noITC_07Apr, CER_noITC_08Apr
+  #   'EPC_3'                    CP_04Apr,CP_50EPCs_22Apr,CP_noEPC_10Apr
 {
   # Define cases here
-  ScenarioName1<-"TIER_2"
-  ScenarioName2<-"TIER2035_11Apr"
+  ScenarioName1<-"EPC_2"
+  ScenarioName2<-"CP_noEPC_10Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
   CScenarioName <-"TIER_3"
@@ -237,8 +240,8 @@ COL_choice = 3
       cOL_NUCLEAR <- "midnightblue"
       
       # Import/Export
-      cOL_IMPORT <- "white" 
-      cOL_EXPORT <- "white"
+      cOL_IMPORT <- "rosybrown1"
+      cOL_EXPORT <- "rosybrown1"
       
       # Storage Groups
       COL_Battery <-"#F4EEA0" 
@@ -290,13 +293,19 @@ COL_choice = 3
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
     
-    colours3b = c("Net Imports"=cOL_IMPORT,"Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
-                 "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
-                 #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
-                 "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
-                 "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
+    colours3c = c("Net Imports"=cOL_IMPORT,"Coal"=cOL_COAL, "Cogen"=cOL_COGEN, 
+                 "Coal-to-Gas"=cOL_NGConv,"H2SC"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                 "NGCCS"=cOL_NGCC_CCS,
+                 "NGSC"=cOL_SCGT, "NGCC"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
+    
+    colours3b = c("Net Imports"=cOL_IMPORT,"Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+                  "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
+                  "Natural Gas Combined Cycle + CCS"=cOL_NGCC_CCS,
+                  "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
+                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
     
     Patterns3 = c("Coal"="none", "Cogeneration"="none", 
                   "Coal-to-Gas"="stripe","Hydrogen Simple Cycle"="none","Hydrogen Combined Cycle"="none",
@@ -375,9 +384,6 @@ COL_choice = 3
     colorsgroup_1 = c("Abated Natural Gas"="#001933",Hydrogen="#4472C4","Natural Gas"='#515151',"Other"='#767171',             
                      "Renewables"="#238b45","Storage"='#cc79a7','Coal'="black")
     
-    AESO_colours <- c("goldenrod1", "gray60", "yellowgreen", "cornflowerblue",
-                      "#001933")
-    
   # Map scenario colors  
   COL_CP ="#4472C4"
   COL_CER =  '#A6A6A6'
@@ -392,10 +398,14 @@ COL_choice = 3
   COL_Az = "goldenrod1"
   COL_AZ_noH2 = "goldenrod4"
 
-  COL_noEPC = "#440154FF"
-  COL_50EPC = "#472D7BFF"
-  
+  COL_noEPC = '#252323'
+  COL_30EPC = '#515151'
+  COL_50EPC = '#868181'
+  COL_70EPC = "#b6b6b6"
+
   COL_CP2x = "#001933"
+  
+  COL_noCCS = "#472D7BFF"
   
   COL_CP_update='#32538E'
   COL_CER_update='#262626'
@@ -412,13 +422,16 @@ COL_choice = 3
                    "Absolute Zero" = COL_Az,
                    "No H2 Absolute Zero" = COL_AZ_noH2,
                    "No Emission Credits" = COL_noEPC,
+                   "30% EPC Value" = COL_30EPC,
                    "50% EPC Value" = COL_50EPC,
+                   "70% EPC Value" = COL_70EPC,
                    "CP_txmod" = COL_CP_update,
                    "CER_txmod" =COL_CER_update,
                    "EL_txmod" = COL_EL_update,
                    "Increased Transmission" = COL_CP2x,
+                   "No CCS"=COL_noCCS,
                    'Historic'='black')
-   
+
    sn_line_l <-c("Draft CER"=1,
                  "Current Policy"=1,
                  "Emissions Limit"=1,
@@ -429,11 +442,14 @@ COL_choice = 3
                  "Absolute Zero" = 1,
                  "No H2 Absolute Zero"=1,
                  "No Emission Credits"=1,
+                 "30% EPC Value" = 1,
                  "50% EPC Value" = 1,
+                 "70% EPC Value" = 1,
                  "CP_txmod" = 1,
                  "CER_txmod" =1,
                  "EL_txmod" = 1,
                  "Increased Transmission" = 1,
+                 "No CCS"=1,
                  'Historic'=1)
    
    sn_colors_s <-c("CER"=COL_CER,
@@ -446,11 +462,14 @@ COL_choice = 3
                    "AZ" = COL_Az,
                    "AZ_noH2"= COL_AZ_noH2,
                    "noEPCs" = COL_noEPC,
+                   "30EPC" =COL_30EPC,
                    "50EPC" = COL_50EPC,
+                   "70EPC" =COL_70EPC,
                    "CP_txmod" = COL_CP_update,
                    "CER_txmod" =COL_CER_update,
                    "EL_txmod" = COL_EL_update,
                    "CP_2TX" = COL_CP2x,
+                   "no_CCS" =COL_noCCS,
                    'Historic'='black')
    
    sn_line_s <-c("CER"=1,
@@ -463,11 +482,14 @@ COL_choice = 3
                  "AZ"=1,
                  "AZstrict"=1,
                  "noEPCs" =1,
+                 "30EPC" =1,
                  "50EPC" = 1,
+                 "70EPC" =1,
                  "CP_txmod" = 1,
                  "CER_txmod" =1,
                  "EL_txmod" = 1,
                  "CP_2TX" = 1,
+                 "no_CCS" =1,
                  'Historic'=1)
    
    # Scenario colors no historic
@@ -481,11 +503,14 @@ COL_choice = 3
                    "Absolute Zero" = COL_Az,
                    "No H2 Absolute Zero" = COL_AZ_noH2,
                    "No Emission Credits"=COL_noEPC,
+                   "30% EPC Value" = COL_30EPC,
                    "50% EPC Value" = COL_50EPC,
+                   "70% EPC Value" = COL_70EPC,
                    "CP_txmod" = COL_CP_update,
                    "EL_txmod" = COL_EL_update,
                    "CER_txmod" =COL_CER_update,
-                   "Increased Transmission" = COL_CP2x
+                   "Increased Transmission" = COL_CP2x,
+                   "No CCS"=COL_noCCS
                    )
    sn_line2_l <-c("Draft CER"=1,
                  "Current Policy"=1,
@@ -497,11 +522,14 @@ COL_choice = 3
                  "Absolute Zero" = 1,
                  "No H2 Absolute Zero" = 1,
                  "No Emission Credits" = 1,
+                 "30% EPC Value" = 1,
                  "50% EPC Value" = 1,
+                 "70% EPC Value" = 1,
                  "CP_txmod" = 1,
                  "CER_txmod" =1,
                  "EL_txmod" = 1,
-                 "Increased Transmission" = 1
+                 "Increased Transmission" = 1,
+                 "No CCS"=1
                  )
    sn_colors2_s <-c("CER"=COL_CER,
                    "CP"=COL_CP,
@@ -513,11 +541,14 @@ COL_choice = 3
                    "AZ" = COL_Az,
                    "AZstrict"=COL_AZ_noH2,
                    "noEPCs" =COL_noEPC,
+                   "30EPC" =COL_30EPC,
                    "50EPC" = COL_50EPC,
+                   "70EPC" =COL_70EPC,
                    "CP_txmod" = COL_CP_update,
                    "CER_txmod" =COL_CER_update,
                    "EL_txmod" = COL_EL_update,
-                   "CP_2TX" = COL_CP2x
+                   "CP_2TX" = COL_CP2x,
+                   "no_CCS" =COL_noCCS
                   )
    sn_line2_s <-c("CER"=1,
                  "CP"=1,
@@ -529,11 +560,14 @@ COL_choice = 3
                  "AZ"=1,
                  "AZstrict"=1,
                  "noEPCs" =1,
+                 "30EPC" =1,
                  "50EPC" = 1,
+                 "70EPC" =1,
                  "CP_txmod" = 1,
                  "CER_txmod" =1,
                  "EL_txmod" = 1,
-                 "CP_2TX" = 1
+                 "CP_2TX" = 1,
+                 "no_CCS" =1
                  )
    
   }
@@ -632,6 +666,7 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   GGSave_Loc_custom(CaseName,"Annual Generation All Area",Annual_Gen_group_area(name_type="l",list_groups=all_groups,nrg_include=FALSE),14,6)
   GGSave_Loc_custom(CaseName,"Annual Generation All Perc",Annual_Gen_group_perc(name_type="l",list_groups=all_groups_noStor,nrg_include=FALSE),14,6)
   GGSave_Loc_custom(CaseName,"Annual Capacity All Area",Annual_Cap_group_area(name_type="l",list_groups=all_groups,nrg_include=FALSE),14,6)
+  GGSave_Loc_custom(CaseName,"Stacked Areas Grid",compare_cap_gen_em(name_type="l"),14,8)
   
 }
 
@@ -645,13 +680,14 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   GGSave_Loc_custom(CaseName,"Total Gen Diff from CP",Gen_Diff_COMPARE("l",base_case),12,8)
   GGSave_Loc_custom(CaseName,"Total Emissions Diff from CP",Em_Diff_COMPARE("l",base_case,em_diff_groups),12,8)
   GGSave_Loc_custom(CaseName,"Total Cost Diff from CP",Cost_Diff_COMPARE("l",base_case,0.05),12,8)
+  GGSave_Loc_custom(CaseName,"compare metrics",compare_metrics("l",2045,base_case,em_diff_groups,0.1,30),12,8)
   
   
   # plot of metrics (low quality)
-  SourceDB=CScenarioName
-  windows(20,12,buffered=FALSE)
-  compare_metrics("l",2045,base_case,em_diff_groups,0.1,12)
-  SaveRun_Loc(CaseName,"Compare Metrics")
+  # SourceDB="Compare Plots"
+  # windows(20,14)
+  # compare_metrics("l",2045,base_case,em_diff_groups,0.1,14)
+  # SaveRun_Loc(CaseName,"Compare Metrics")
 ################################################################################
 ## CREATE COMPARE PLOTS WITH NRG STREAM DATA
 ################################################################################
