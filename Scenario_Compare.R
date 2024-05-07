@@ -61,11 +61,11 @@
   #   'Main_3'                   CP_04Apr, CER_02Apr, EL_06Apr   
   #   'Main_3_BCmod'             CP_12Apr, CER_14Apr, EL_19Apr   
   #   'ITC_4'                    CP_04Apr, CER_02Apr, CP_noITC_07Apr, CER_noITC_08Apr
-  #   'EPC_3'                    CP_04Apr,CP_50EPCs_22Apr,CP_noEPC_10Apr
+  #   'EPC_4'                    CP_04Apr,CP_50EPCs_22Apr,CP_noEPC_10Apr,CP_30EPCs_04May
 {
   # Define cases here
-  ScenarioName1<-"EPC_2"
-  ScenarioName2<-"CP_noEPC_10Apr"
+  ScenarioName1<-"EPC_3"
+  ScenarioName2<-"CP_30EPCs_04May"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
   CScenarioName <-"TIER_3"
@@ -389,14 +389,14 @@ COL_choice = 3
   COL_CER =  '#A6A6A6'
   COL_EL ='gray85'
   
-  COL_TIER2050 = "#238b45"
-  COL_TIER2035 = "yellowgreen"
+  COL_TIER2050 = '#767676'#"goldenrod1"
+  COL_TIER2035 = 'gray80'#"goldenrod4"
   
   COL_noITC = '#515151'
   COL_noITC_CER = '#cc79a7'
   
-  COL_Az = "goldenrod1"
-  COL_AZ_noH2 = "goldenrod4"
+  COL_Az = "#238b45"
+  COL_AZ_noH2 = "yellowgreen"
 
   COL_noEPC = '#252323'
   COL_30EPC = '#515151'
@@ -521,10 +521,10 @@ COL_choice = 3
                  "No ITCs with CER"=1,
                  "Absolute Zero" = 1,
                  "No H2 Absolute Zero" = 1,
-                 "No Emission Credits" = 1,
-                 "30% EPC Value" = 1,
-                 "50% EPC Value" = 1,
-                 "70% EPC Value" = 1,
+                 "No Emission Credits" = 5,
+                 "30% EPC Value" = 2,
+                 "50% EPC Value" = 3,
+                 "70% EPC Value" = 4,
                  "CP_txmod" = 1,
                  "CER_txmod" =1,
                  "EL_txmod" = 1,
@@ -559,10 +559,10 @@ COL_choice = 3
                  "CERnoITCs"=1,
                  "AZ"=1,
                  "AZstrict"=1,
-                 "noEPCs" =1,
-                 "30EPC" =1,
-                 "50EPC" = 1,
-                 "70EPC" =1,
+                 "noEPCs" =5,
+                 "30EPC" =2,
+                 "50EPC" = 3,
+                 "70EPC" =4,
                  "CP_txmod" = 1,
                  "CER_txmod" =1,
                  "EL_txmod" = 1,
@@ -586,7 +586,7 @@ GGSave_Loc_custom(CaseName,"Annual Pool Price Compare2",AvgYr_price_COMPARE2("l"
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y"),12,8)
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen2",AnnualEm_COMPARE("l", "n"),12,4)
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen",AnnualEm_COMPARE("l", "n"),12,8)
-GGSave_Loc_custom(CaseName,"Cummulative Emissions Compare noncogen",AnnualEm_Cum_COMPARE("l", "n"),12,8)
+GGSave_Loc_custom(CaseName,"Cummulative Emissions Compare noncogen",AnnualEm_Cum_COMPARE("l", "n"),12,6)
 
 # Capacity changes
 GGSave_Loc_custom(CaseName,"Total Capacity Added",Total_Cap_Add_COMPARE("l"),12,8)
@@ -667,7 +667,7 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   GGSave_Loc_custom(CaseName,"Annual Generation All Perc",Annual_Gen_group_perc(name_type="l",list_groups=all_groups_noStor,nrg_include=FALSE),14,6)
   GGSave_Loc_custom(CaseName,"Annual Capacity All Area",Annual_Cap_group_area(name_type="l",list_groups=all_groups,nrg_include=FALSE),14,6)
   GGSave_Loc_custom(CaseName,"Stacked Areas Grid",compare_cap_gen_em(name_type="l"),14,8)
-  
+
 }
 
 # COMPARE METRICS
@@ -683,11 +683,22 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   GGSave_Loc_custom(CaseName,"compare metrics",compare_metrics("l",2045,base_case,em_diff_groups,0.1,30),12,8)
   
   
-  # plot of metrics (low quality)
-  # SourceDB="Compare Plots"
-  # windows(20,14)
-  # compare_metrics("l",2045,base_case,em_diff_groups,0.1,14)
-  # SaveRun_Loc(CaseName,"Compare Metrics")
+  # EPC PLOTS
+  epc_cap_groups <- c("Hydrogen Simple Cycle","Coal-to-Gas",
+                  "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                  "Other", "Wind", "Solar", "Storage")
+  # Overwrite color
+  EPC_colors <-c("Current Policy"="black",
+                   "No Emission Credits"="black",
+                   "30% EPC Value" = "black",
+                   "50% EPC Value" = "black",
+                   "70% EPC Value" = "black"
+  )
+  GGSave_Loc_custom(CaseName,"Capacity based on EPC",Annual_Cap_group_dots(epc_cap_groups,TRUE),12,8)
+  GGSave_Loc_custom(CaseName,"Gen based on EPC",Cum_Gen_group_dots(TRUE),12,8)
+  GGSave_Loc_custom(CaseName,"EPC Emissions Compare noncogen",AnnualEm_COMPARE("l", "n",FALSE),12,6)
+  
+  
 ################################################################################
 ## CREATE COMPARE PLOTS WITH NRG STREAM DATA
 ################################################################################
@@ -709,6 +720,12 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
 ################################################################################
 GenText_Sz <-20
 
+  # plot of metrics (low quality)
+  # SourceDB="Compare Plots"
+  # windows(20,14)
+  # compare_metrics("l",2045,base_case,em_diff_groups,0.1,14)
+  # SaveRun_Loc(CaseName,"Compare Metrics")
+  
 # Average price, use "Y" to include AESO historic prices
 AvgYr_price_COMPARE(name_type="l", AESO_include="Y")
 
