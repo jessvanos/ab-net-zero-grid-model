@@ -64,11 +64,11 @@
   #   'EPC_4'                    CP_04Apr,CP_50EPCs_22Apr,CP_noEPC_10Apr,CP_30EPCs_04May
 {
   # Define cases here
-  ScenarioName1<-"EPC_3"
-  ScenarioName2<-"CP_30EPCs_04May"
+  ScenarioName1<-"TIER2035_11Apr"
+  ScenarioName2<-"CP_noEPC_10Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"TIER_3"
+  CScenarioName <-"TIER2035_vs_noEPC"
 }
 
 ################################################################################
@@ -83,7 +83,7 @@
 ################################################################################
 
 # Folder name & color selection
-CaseName <- "TIER_3" # Match 'CScenarioName' from combine files (ie: folder name)
+CaseName <- "TIER2035_vs_noEPC" # Match 'CScenarioName' from combine files (ie: folder name)
 COL_choice = 3
 
 # Read R-Data files for compare scenario
@@ -441,10 +441,10 @@ COL_choice = 3
                  "No ITCs with CER"=1,
                  "Absolute Zero" = 1,
                  "No H2 Absolute Zero"=1,
-                 "No Emission Credits"=1,
-                 "30% EPC Value" = 1,
-                 "50% EPC Value" = 1,
-                 "70% EPC Value" = 1,
+                 "No Emission Credits" = 5,
+                 "30% EPC Value" = 2,
+                 "50% EPC Value" = 3,
+                 "70% EPC Value" = 4,
                  "CP_txmod" = 1,
                  "CER_txmod" =1,
                  "EL_txmod" = 1,
@@ -481,10 +481,10 @@ COL_choice = 3
                  "CERnoITCs"=1,
                  "AZ"=1,
                  "AZstrict"=1,
-                 "noEPCs" =1,
-                 "30EPC" =1,
-                 "50EPC" = 1,
-                 "70EPC" =1,
+                 "noEPCs" =5,
+                 "30EPC" =2,
+                 "50EPC" = 3,
+                 "70EPC" =4,
                  "CP_txmod" = 1,
                  "CER_txmod" =1,
                  "EL_txmod" = 1,
@@ -680,13 +680,18 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   GGSave_Loc_custom(CaseName,"Total Gen Diff from CP",Gen_Diff_COMPARE("l",base_case),12,8)
   GGSave_Loc_custom(CaseName,"Total Emissions Diff from CP",Em_Diff_COMPARE("l",base_case,em_diff_groups),12,8)
   GGSave_Loc_custom(CaseName,"Total Cost Diff from CP",Cost_Diff_COMPARE("l",base_case,0.05),12,8)
-  GGSave_Loc_custom(CaseName,"compare metrics",compare_metrics("l",2045,base_case,em_diff_groups,0.1,30),12,8)
+  GGSave_Loc_custom(CaseName,"compare metrics 3",compare_metrics("l",2045,base_case,em_diff_groups,0.1,20),10,4)
+  compare_metrics("l",2045,base_case,em_diff_groups,0.1,24)
   
   
   # EPC PLOTS
   epc_cap_groups <- c("Hydrogen Simple Cycle","Coal-to-Gas",
                   "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
                   "Other", "Wind", "Solar", "Storage")
+  epc_cap_groups2 <- c("Coal","Cogeneration","Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                  "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                  "Hydro", "Other", "Wind", "Solar", "Storage")
+  
   # Overwrite color
   EPC_colors <-c("Current Policy"="black",
                    "No Emission Credits"="black",
@@ -695,7 +700,10 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
                    "70% EPC Value" = "black"
   )
   GGSave_Loc_custom(CaseName,"Capacity based on EPC",Annual_Cap_group_dots(epc_cap_groups,TRUE),12,8)
+  GGSave_Loc_custom(CaseName,"All Capacity based on EPC",Annual_Cap_group_dots(all_groups,TRUE),12,8)
   GGSave_Loc_custom(CaseName,"Gen based on EPC",Cum_Gen_group_dots(TRUE),12,8)
+  GGSave_Loc_custom(CaseName,"CF based on EPC",CF_group_dots(TRUE),12,8)
+  
   GGSave_Loc_custom(CaseName,"EPC Emissions Compare noncogen",AnnualEm_COMPARE("l", "n",FALSE),12,6)
   
   

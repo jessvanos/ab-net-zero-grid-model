@@ -2676,8 +2676,8 @@ Cap_Year_Diff_COMPARE <- function(name_type,year_in,base_case,txt_sz=GenText_Sz)
   
   
   #Max Capacity
-  mxc <- round_any(max(AllData$Cap_Diff[AllData$Cap_Diff>0])+151,1000,f=ceiling)
-  mnc <-round_any(min(AllData$Cap_Diff[AllData$Cap_Diff<0])-151,1000,f=floor)
+  mxc <- round_any(max(AllData$Cap_Diff[AllData$Cap_Diff>0])+151,500,f=ceiling)
+  mnc <-round_any(min(AllData$Cap_Diff[AllData$Cap_Diff<0])-151,500,f=floor)
   
   
   #Plot data
@@ -2719,7 +2719,7 @@ Cap_Year_Diff_COMPARE <- function(name_type,year_in,base_case,txt_sz=GenText_Sz)
                       breaks = c("Increased", "Decreased")) +
     guides(fill = guide_legend(ncol=1)) +
     
-    scale_y_continuous(expand = c(0, 0),limits=c(mnc,mxc),breaks = seq(mnc,mxc,1000),labels=comma) +
+    scale_y_continuous(expand = c(0, 0),limits=c(mnc,mxc),breaks = seq(mnc,mxc,500),labels=comma) +
     
     #scale_x_discrete(expand = c(0, 0)) +
 
@@ -2822,7 +2822,7 @@ Gen_Diff_COMPARE <- function(name_type,base_case,txt_sz=GenText_Sz) {
                       breaks = c("Increased", "Decreased")) +
     guides(fill = guide_legend(ncol=1)) +
     
-    scale_y_continuous(expand = c(0, 0),limits=c(mnc,mxc),breaks = seq(mnc,mxc,20),labels=comma) +
+    scale_y_continuous(expand = c(0, 0),limits=c(mnc,mxc),breaks = seq(mnc,mxc,20),labels = function(x) sprintf("%.1f", x)) +
     
    # scale_x_discrete(expand = c(0, 0)) +
     
@@ -2923,7 +2923,7 @@ Em_Diff_COMPARE <- function(name_type,base_case,em_diff_groups,txt_sz=GenText_Sz
                       breaks = c("Increased", "Decreased")) +
     guides(fill = guide_legend(ncol=1)) +
     
-    scale_y_continuous(expand = c(0, 0),limits=c(mnc,mxc),breaks = seq(mnc,mxc,10),labels=comma) +
+    scale_y_continuous(expand = c(0, 0),limits=c(mnc,mxc),breaks = seq(mnc,mxc,10),labels = function(x) sprintf("%.1f", x)) +
     
     #scale_x_discrete(expand = c(0, 0)) +
     
@@ -3035,26 +3035,28 @@ compare_metrics <- function(name_type,capyr,base_case,em_diff_groups,axis_space,
 
 p1<-Cap_Year_Diff_COMPARE(name_type,capyr,base_case,txt_sz) + 
   theme(plot.title = element_text(margin = margin(b = 5)),
-        axis.title.y = element_text(size = txt_sz+2, vjust=0.5,family=Plot_Text_bf))+ 
+        strip.text = element_blank(),
+        axis.title.y = element_text(size = txt_sz+2,family=Plot_Text_bf))+ 
         ggtitle("(A)")
 p2<-Gen_Diff_COMPARE(name_type,base_case,txt_sz)  + 
   theme(plot.title = element_text(margin = margin(b = 5)),
-        axis.title.y = element_text(size = txt_sz+2, vjust=0.5,family=Plot_Text_bf))+   
+        strip.text = element_blank(),
+        axis.title.y = element_text(size = txt_sz+2,family=Plot_Text_bf))+   
   ggtitle("(B)")
 
 p3<-Em_Diff_COMPARE(name_type,base_case,em_diff_groups,txt_sz)  + 
   theme(plot.title = element_text(margin = margin(b = 5)),
-        axis.title.y = element_text(size = txt_sz+2, vjust=0.5,family=Plot_Text_bf))+   
+        strip.text = element_blank(),
+        axis.title.y = element_text(size = txt_sz+2,family=Plot_Text_bf))+   
   ggtitle("(C)")
 
-p4<-Cost_Diff_COMPARE(name_type,base_case,axis_space,txt_sz) + 
-  theme(plot.title = element_text(margin = margin(b = 5)),
-        axis.title.y = element_text(size = txt_sz+2, vjust=0.5,family=Plot_Text_bf))+   
-  ggtitle("(D)") 
+# p4<-Cost_Diff_COMPARE(name_type,base_case,axis_space,txt_sz) + 
+#   theme(plot.title = element_text(margin = margin(b = 5)),
+#         axis.title.y = element_text(size = txt_sz+2,family=Plot_Text_bf))+   
+#   ggtitle("(D)") 
 
 # Arrange all the plots
-plot_grid(p1, p2,p3, p4,ncol=2, align="hv", axis = "lb",
-          rel_widths =c(1,1,1,1))
+grid.arrange(plot_grid(p1, p2, p3,nrow=1),nrow=1,family=Plot_Text)
 
 }
 
@@ -3226,6 +3228,7 @@ Annual_Cap_group_dots <- function(list_groups,EPC_rename) {
                                                   "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
                                                   "Coal-to-Gas", 
                                                   "Coal", "Cogeneration"))
+  GenText_Sz = GenText_Sz-10
   #Plot data
   ggplot(Capdata,aes(x=Year, y=Cap_MW)) +
     geom_point(aes(shape=Scenario),color='black',size=2) +
@@ -3372,5 +3375,92 @@ Cum_Gen_group_dots <- function(EPC_rename) {
                        breaks = pretty_breaks(8),labels = scales::comma) +
     
     labs(y = "Cumulative Generation (TWh)") 
+  
+}
+
+################################################################################
+## FUNCTION: CF_group_dots
+## Plots CF for grouped resource years
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+CF_group_dots <- function(EPC_rename) {
+  
+  years_cap = c(2025,2030,2035,2040,2045) 
+  
+  # Filter data
+  CF_data <- ResGrYr %>%
+    compare_rename(.,"l")%>%
+    mutate(Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
+           Scenario=as.factor(Scenario))%>%
+    filter(Year %in% years_cap,
+           Capacity_Factor>0) %>%
+    select(Year,Scenario,Ptype,Capacity_Factor) 
+
+  # Order resources
+  # Set levels to each category in order specified
+  CF_data$Ptype <- factor(CF_data$Ptype, levels=c("Storage","Solar","Wind", "Other", "Hydro", 
+                                                  "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                  "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                  "Coal-to-Gas", 
+                                                  "Coal", "Cogeneration",
+                                                  "Imports","Exports"))
+  
+  if (EPC_rename==TRUE){
+    CF_data <- CF_data %>%
+      mutate(Scenario = if_else(Scenario=="Current Policy","90%",
+                                if_else(grepl('No Emission Credits',Scenario),"0%",
+                                        if_else(grepl('30%',Scenario),"30%",
+                                                if_else(grepl('50%',Scenario),"50%",
+                                                        if_else(grepl('70%',Scenario),"70%","unknown"))))))
+    CF_data$Scenario <- factor(CF_data$Scenario, levels=c("0%","30%","50%","70%","90%"))
+  }
+  
+  GenText_Sz = GenText_Sz-10
+  #Plot data
+  ggplot(CF_data,aes(x=Year, y=Capacity_Factor)) +
+    geom_point(aes(shape=Scenario),color='black',size=1.25) +
+    facet_wrap(~Ptype, strip.position = "top",scales = "free_y",
+               axes = "all", axis.labels = "all") +
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(
+      panel.grid = element_blank(),  
+      axis.title.x = element_blank(),
+      axis.title.y = element_text(size = GenText_Sz+6, vjust=1,family=Plot_Text_bf),
+      panel.background = element_rect(fill = "transparent"),
+      axis.text.x=element_text(angle=0,vjust = 0.5, hjust = 0.5,color="black",size = GenText_Sz-12),
+      axis.text.y=element_text(color="black",size = GenText_Sz-12),
+      plot.title = element_blank(),
+      
+      legend.justification = c(0.5,0.5),
+      legend.key.size = unit(0.3, "cm"),
+      legend.position = ("right"),
+      legend.text = element_text(size = GenText_Sz-12),
+      legend.title=element_text(size = GenText_Sz-12),
+      legend.spacing.y = unit(0.1, 'cm'),
+      
+      strip.placement = "outside",
+      strip.text = element_text(size = GenText_Sz-6, color = "black"),
+      strip.background = element_rect(colour="black", fill=NA),
+      #panel.spacing = unit(0,'lines'),
+      
+      text = element_text(size = GenText_Sz)) +
+    
+    scale_shape_discrete(name="EPC Value") +
+    
+    scale_y_continuous(expand = expansion(c(0.1,0.1)),
+                       limits = c(0, 1),
+                       breaks = seq(0,1,by=0.2),
+                       labels = percent) +
+    
+    labs(y = "Capacity Factor (%)") 
   
 }
