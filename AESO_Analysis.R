@@ -403,3 +403,32 @@ Wind_Dur_AESO(BC)
 
 # Wind duration curve with Output normalized
 Wind_DurNorm_AESO(BC)
+
+################################################################################
+## PART 5: COST COMPARE
+## Compare AESO capital cost to model and NREL
+################################################################################
+# Read data
+Cost_Compare <- readRDS(here("Data Files","Other Data","Cost_Compare")) 
+
+type_filt1 = "Cost"
+type_filt2 = "Norm"
+
+# Remove ones that do not change
+Res_Filt =c("Battery Storage","CCS Retrofit","Combined Cycle CCS","SMR",
+            #"Simple Cycle Aero","Combined Cycle","Simple Cycle Frame","Simple Cycle Rep",
+            #"Compressed Air","Nucelar Fission","Hydro","Pumped Hydro",
+            "Solar","Wind")
+
+# Colors and lines
+GenText_Sz =30
+
+# Save plot
+GGSave_Loc_custom("Cost Compare","new_cost_curves",capcost_learning_compare(type_filt1,Res_Filt),12,6)
+GGSave_Loc_custom("Cost Compare","new_cost_curves_norm",capcost_learning_compare(type_filt2,Res_Filt),12,6)
+
+
+
+
+
+

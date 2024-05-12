@@ -68,7 +68,7 @@
   ScenarioName2<-"CP_noEPC_10Apr"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"TIER2035_vs_noEPC"
+  CScenarioName <-"EPC_5"
 }
 
 ################################################################################
@@ -83,7 +83,7 @@
 ################################################################################
 
 # Folder name & color selection
-CaseName <- "TIER2035_vs_noEPC" # Match 'CScenarioName' from combine files (ie: folder name)
+CaseName <- "EPC_5" # Match 'CScenarioName' from combine files (ie: folder name)
 COL_choice = 3
 
 # Read R-Data files for compare scenario
@@ -580,7 +580,6 @@ COL_choice = 3
 # Compare pool prices
 GGSave_Loc_custom(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE("l","Y"),12,8)
 GGSave_Loc_custom(CaseName,"Annual Pool Price Compare2",AvgYr_price_COMPARE2("l","Y"),6,8)
-  
 
 # Compare Emissions
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y"),12,8)
@@ -601,6 +600,7 @@ GGSave_Loc_custom(CaseName,"Annual Generation Aggregated",Annual_Gen_COMPARE("s"
 GGSave_Loc_custom(CaseName,"Year Gen Study 2023",Year_Gen_COMPARE("l",2023,show_neg="N"),12,8)
 GGSave_Loc_custom(CaseName,"Year Gen Study 2045",Year_Gen_COMPARE("l",2045,show_neg="N"),12,8)
 GGSave_Loc_custom(CaseName,"Year Gen Study 2045 with neg",Year_Gen_COMPARE("l",2045,show_neg="Y"),12,8)
+GGSave_Loc_custom(CaseName,"Marginal Resource",Marginal_Resource_Compare(),12,8)
 
 # Total Gen Cummulative
 GGSave_Loc_custom(CaseName,"Total Gen Study",Total_Gen_COMPARE("l"),12,8)
@@ -613,7 +613,7 @@ GGSave_Loc_custom(CaseName,"Total Cost Breakdown",Cost_Cum_COMPARE("l"),12,8)
 GGSave_Loc_custom(CaseName,"Cummulative Annual Cost",AnnualCost_Cum_COMPARE("l",emissions_include="Y"),12,8)
 GGSave_Loc_custom(CaseName,"Cummulative Annual Cost rel",AnnualCost_Cum_rel_COMPARE("l",emissions_include="Y"),12,8)
 GGSave_Loc_custom(CaseName,"Total Cost Breakdown rel",Cost_Cum_rel_COMPARE("l"),12,8)
-GGSave_Loc_custom(CaseName,"Total Cost Breakdown norm",AnnualCost_Cum_COMPARE_norm("l"),12,8)
+#GGSave_Loc_custom(CaseName,"Total Cost Breakdown norm",AnnualCost_Cum_COMPARE_norm("l"),12,8)
 GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"),12,8)
 
 }
@@ -703,6 +703,9 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   GGSave_Loc_custom(CaseName,"All Capacity based on EPC",Annual_Cap_group_dots(all_groups,TRUE),12,8)
   GGSave_Loc_custom(CaseName,"Gen based on EPC",Cum_Gen_group_dots(TRUE),12,8)
   GGSave_Loc_custom(CaseName,"CF based on EPC",CF_group_dots(TRUE),12,8)
+  GGSave_Loc_custom(CaseName,"Value based on EPC",value_group_dots(TRUE),12,8)
+  GGSave_Loc_custom(CaseName,"Avg bid based on EPC",Avg_Bid_Cost_dots(TRUE),12,8)
+  
   
   GGSave_Loc_custom(CaseName,"EPC Emissions Compare noncogen",AnnualEm_COMPARE("l", "n",FALSE),12,6)
   

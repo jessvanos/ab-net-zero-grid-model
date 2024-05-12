@@ -2423,7 +2423,7 @@ Cost_Cum_rel_COMPARE <- function(name_type) {
 }
 
 ################################################################################
-## FUNCTION: AnnualCost_Cum_COMPARE
+## FUNCTION: AnnualCost_Cum_COMPARE - Need to fix
 ## Plots annual average emissions in cummulative bar chart.
 ## FIX: Cannot find EPCS like this, annual does not show net EPC vs cost.
 ##
@@ -2446,34 +2446,25 @@ AnnualCost_Cum_COMPARE_norm <- function(name_type) {
 Sim <- ResGrYr %>%
       compare_rename(.,name_type)%>%
       group_by(Scenario,Year)%>%
-      summarise(Em_Cost = sum(Emissions_Cost[Emissions_Cost>0.1])/1000000,
-                EPC = sum(Emissions_Cost[Emissions_Cost<0])/1000000,
-                Em_net = EPC+Em_Cost,
-                Capital_Costs=sum(CAPEX)/1000000,
-                Operational_Costs=sum(OPEX)/1000000 - Em_net,
-                Total = Capital_Costs + Operational_Costs + Em_net,
-                Total_no_em =Capital_Costs + Operational_Costs,
-                Total_no_EPC = Capital_Costs + Operational_Costs + Em_Cost
+      reframe(Total=sum(Total_Cost),
+              Value=sum(Value),
+                Total_no_em =Total - sum(Emissions_Cost),
       ) %>%
-      ungroup() %>%
-      group_by(Scenario)%>%
-      summarise(Year,
-                Total = cumsum(Total),
-                Total_no_em = cumsum(Total_no_em),
-                Total_no_EPC = cumsum(Total_no_EPC)) %>%
+      group_by(Scenario,Year)%>%
+      reframe(Total = cumsum(Total),
+              Total_no_em = cumsum(Total_no_em),
+              Value = cumsum(Value)) %>%
   filter(Year == 2045)
 
   # Get totals
   base_total = as.numeric(Sim[Sim$Scenario == sn_base, "Total"])
   base_total_no_em = as.numeric(Sim[Sim$Scenario == sn_base, "Total_no_em"])
-  base_total_no_EPC = as.numeric(Sim[Sim$Scenario == sn_base, "Total_no_EPC"])
-  
+
   # Normalize
   Sim <- Sim %>%
     mutate("Total Cost" = Total/base_total,
-           "Total Cost Excluding Net Emissions" = Total_no_em/base_total_no_em,
-           "Total Cost Excluding EPCs" = Total_no_EPC/base_total_no_EPC)%>%
-    select(.,c(Scenario,`Total Cost`,`Total Cost Excluding Net Emissions`,`Total Cost Excluding EPCs`))
+           "Total Cost Excluding Net Emissions" = Total_no_em/base_total_no_em)%>%
+    select(.,c(Scenario,`Total Cost`,`Total Cost Excluding Net Emissions`))
 
   # Make one column
   Cost_T <- melt(Sim,id=c("Scenario"))
@@ -2497,7 +2488,7 @@ Sim <- ResGrYr %>%
           legend.text = element_text(size = GenText_Sz-6),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.position = "bottom",
+          legend.position = "none",
           panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray70'),
           panel.background = element_rect(fill = "transparent"),
           panel.grid.major.x = element_blank(),
@@ -3464,3 +3455,273 @@ CF_group_dots <- function(EPC_rename) {
     labs(y = "Capacity Factor (%)") 
   
 }
+
+################################################################################
+## FUNCTION: value_group_dots
+## Value of entire study
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+value_group_dots <- function(EPC_rename) {
+  # 
+  # years_cap = c(2025,2030,2035,2040,2045) 
+  # 
+  # Price_data <- Zone %>%
+  #   compare_rename(.,"l")%>%
+  #   select(Year,Scenario,Avg_Price) %>%
+  #   mutate(yr_hrs = if_else(Year %in% c(2024,2028,2032,2036,2040,2044),8784,8760))
+  
+  # Filter data & aggregate years
+  Capdata <- ResGrYr %>%
+    compare_rename(.,"l")%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
+           Ptype=as.factor(Ptype)) %>%
+    group_by(Scenario,Ptype) %>%
+    reframe(Gen_MWh = sum(Output_MWH),
+            Rev = sum(Revenue)*10^3/Gen_MWh,
+            Cost_M = sum(Total_Cost)/10^3,
+            Value_MWh = sum(Value)*10^3/Gen_MWh,
+            Value_M = sum(Value)/10^3,
+              )  %>%
+    filter(Ptype != "Storage")
+  
+  if (EPC_rename==TRUE){
+    Capdata <- Capdata %>%
+      mutate(Scenario = if_else(Scenario=="Current Policy","90%",
+                                if_else(grepl('No Emission Credits',Scenario),"0%",
+                                        if_else(grepl('30%',Scenario),"30%",
+                                                if_else(grepl('50%',Scenario),"50%",
+                                                        if_else(grepl('70%',Scenario),"70%","unknown"))))))
+    Capdata$Scenario <- factor(Capdata$Scenario, levels=c("0%","30%","50%","70%","90%"))
+  }
+  
+  # Order resources
+  # Set levels to each category in order specified
+  Capdata$Ptype <- factor(Capdata$Ptype, levels=c("Storage","Solar","Wind", "Other", "Hydro", 
+                                                  "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                  "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                  "Coal-to-Gas", 
+                                                  "Coal", "Cogeneration"))
+  
+  # Map short names
+  new_names <- c("NGConv"="Coal-to-Gas",
+                 "Cogen"="Cogeneration",
+                 "NGCC"="Natural Gas Combined Cycle",
+                 "NGCCS"="Natural Gas Combined Cycle + CCS",
+                 "NGSC"= "Natural Gas Simple Cycle",
+                 "H2SC"="Hydrogen Simple Cycle")
+  Capdata$Ptype <- fct_recode(Capdata$Ptype, !!!new_names)
+  
+  #Plot data
+  ggplot(Capdata,aes(x=Ptype, y=Value_MWh)) +
+    geom_point(aes(shape=Scenario),color='black',size=2) +
+    # facet_wrap(~Ptype, strip.position = "top",
+    #            axes = "all", axis.labels = "all") +
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    geom_hline(yintercept =0,linewidth=0.5) +
+    
+    theme(
+      panel.grid = element_blank(),  
+      axis.title.x = element_blank(),
+      axis.title.y = element_text(size = GenText_Sz+6, vjust=1,family=Plot_Text_bf),
+      panel.background = element_rect(fill = "transparent"),
+      axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black",size = GenText_Sz-12),
+      axis.text.y=element_text(color="black",size = GenText_Sz-12),
+      plot.title = element_blank(),
+      
+      legend.justification = c(0.5,0.5),
+      legend.key.size = unit(0.3, "cm"),
+      legend.position = ("right"),
+      legend.text = element_text(size = GenText_Sz-12),
+      legend.title=element_text(size = GenText_Sz-12),
+      legend.spacing.y = unit(0.1, 'cm'),
+      
+      strip.placement = "outside",
+      strip.text = element_text(size = GenText_Sz-6, color = "black"),
+      strip.background = element_rect(colour="black", fill=NA),
+      #panel.spacing = unit(0,'lines'),
+      
+      text = element_text(size = GenText_Sz)) +
+    
+    scale_shape_discrete(name="EPC Value") +
+    
+    scale_y_continuous(expand = expansion(c(0.1,0.1)),
+                       #limits = c(0, NA),
+                       breaks = pretty_breaks(8),labels = function(x) sprintf("%.1f", x)) +
+    
+    labs(y = "Value (nominal $/MWh)") 
+  
+}
+
+################################################################################
+## FUNCTION: Avg_Bid_Cost_dots
+## Plots annual average bid by group.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+Avg_Bid_Cost_dots <- function(EPC_rename) {
+  
+  years_cap = c(2025,2030,2035,2040,2045) 
+  
+  # Filter data & aggregate years
+  Biddata <- ResGrYr %>%
+    compare_rename(.,"l")%>%
+    mutate(Scenario=as.factor(Scenario),
+           Ptype = as.character(Plant_Type),
+           Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
+           Ptype=as.factor(Ptype)) %>%
+    filter(Year %in% years_cap) %>%
+    group_by(Year,Scenario,Ptype) %>%
+    reframe(Capacity_MW=sum(Capacity_MW),
+            Output_MWH=sum(Output_MWH),
+            Avg_Dispatch_Cost=mean(Avg_Dispatch_Cost)) %>%
+    mutate(Avg_Dispatch_Cost = if_else(Avg_Dispatch_Cost<0,0,
+                                       if_else(Avg_Dispatch_Cost>1000,999.99,Avg_Dispatch_Cost)))
+  
+  if (EPC_rename==TRUE){
+    Biddata <- Biddata %>%
+      mutate(Scenario = if_else(Scenario=="Current Policy","90%",
+                                if_else(grepl('No Emission Credits',Scenario),"0%",
+                                        if_else(grepl('30%',Scenario),"30%",
+                                                if_else(grepl('50%',Scenario),"50%",
+                                                        if_else(grepl('70%',Scenario),"70%","unknown"))))))
+    Biddata$Scenario <- factor(Biddata$Scenario, levels=c("0%","30%","50%","70%","90%"))
+  }
+  
+  # Order resources
+  # Set levels to each category in order specified
+  Biddata$Ptype <- factor(Biddata$Ptype, levels=c("Storage","Solar","Wind", "Other", "Hydro", 
+                                                  "Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                                                  "Blended  Simple Cycle","Blended  Combined Cycle",
+                                                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle + CCS","Natural Gas Combined Cycle", 
+                                                  "Coal-to-Gas", 
+                                                  "Coal", "Cogeneration"))
+  GenText_Sz = GenText_Sz-10
+  #Plot data
+  ggplot(Biddata,aes(x=Year, y=Avg_Dispatch_Cost)) +
+    geom_point(aes(shape=Scenario),color='black',size=2) +
+    facet_wrap(~Ptype, strip.position = "top",
+               axes = "all", axis.labels = "all") +
+    theme_bw() +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    
+    theme(
+      panel.grid = element_blank(),  
+      axis.title.x = element_blank(),
+      axis.title.y = element_text(size = GenText_Sz+6, vjust=1,family=Plot_Text_bf),
+      panel.background = element_rect(fill = "transparent"),
+      axis.text.x=element_text(angle=0,vjust = 0.5, hjust = 0.5,color="black",size = GenText_Sz-12),
+      axis.text.y=element_text(color="black",size = GenText_Sz-12),
+      plot.title = element_blank(),
+      
+      legend.justification = c(0.5,0.5),
+      legend.key.size = unit(0.3, "cm"),
+      legend.position = ("right"),
+      legend.text = element_text(size = GenText_Sz-12),
+      legend.title=element_text(size = GenText_Sz-12),
+      legend.spacing.y = unit(0.1, 'cm'),
+      
+      strip.placement = "outside",
+      strip.text = element_text(size = GenText_Sz-6, color = "black"),
+      strip.background = element_rect(colour="black", fill=NA),
+      #panel.spacing = unit(0,'lines'),
+      
+      text = element_text(size = GenText_Sz)) +
+    
+    scale_shape_discrete(name="EPC Value") +
+    
+    scale_y_continuous(expand = expansion(c(0.1,0.1)),
+                       #limits = c(0, NA),
+                       breaks = pretty_breaks(8),labels = function(x) sprintf("%.1f", x)) +
+    
+    labs(y = "Average Bid ($/MWh)") 
+  
+}
+
+################################################################################
+## FUNCTION: Marginal_Resource_Compare
+## Plots annual average bid by group.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+
+Marginal_Resource_Compare <- function() {
+  
+  years_cap = c(2025,2030,2035,2040,2045) 
+
+# Filter data & aggregate years
+Marginal_data <- ResGrYr %>%
+  compare_rename(.,"l")%>%
+  mutate(Scenario=as.factor(Scenario),
+         Ptype = as.character(Plant_Type),
+         Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
+         Ptype=as.factor(Ptype)) %>%
+  filter(Year %in% years_cap) %>%
+  group_by(Year,Scenario,Ptype) %>%
+  reframe(Capacity_MW=sum(Capacity_MW),
+          Output_MWH=sum(Output_MWH),
+          Percent_Marginal=sum(Percent_Marginal)/100)
+
+
+# Plot
+ggplot(Marginal_data) +
+  geom_bar(aes(x = Year, y = Percent_Marginal, fill = Scenario), 
+           size = 0.25,stat="identity",position = "dodge",color="black") +
+  theme_bw() +
+  facet_wrap(~Ptype, strip.position = "top",
+             axes = "all", axis.labels = "all") +
+  theme(text=element_text(family=Plot_Text)) +
+  theme(axis.text = element_text(color="black"),
+        axis.title = element_text(size = GenText_Sz+6,family=Plot_Text_bf),
+        axis.text.x = element_text(angle = 0, hjust=0.5,color="black"),
+        plot.title = element_blank(),
+        text = element_text(size=GenText_Sz),
+        axis.title.x=element_blank(),
+        legend.text = element_text(size = GenText_Sz-6),
+        panel.grid = element_blank(),
+        legend.title = element_blank(),
+        legend.position = "bottom",
+        #panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray70'),
+        panel.background = element_rect(fill = "transparent"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.spacing = unit(1.5, "lines"),
+        
+        strip.placement = "outside",
+        strip.text = element_text(size = GenText_Sz-6, color = "black"),
+        strip.background = element_rect(colour="black", fill=NA),
+        #panel.spacing = unit(0,'lines'),
+        
+        legend.key = element_rect(colour = "transparent", fill = "transparent"),
+        legend.background = element_rect(fill='transparent'),
+        legend.key.size = unit(0.3, "cm"),
+        legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+  ) +
+  labs(y = expression("Percent Marginal")) +
+  
+  #scale_colour_grey() +
+  scale_fill_manual(name="Guide1",values = sn_colors2_l,drop = TRUE,limits = force) +
+  
+  scale_x_continuous(expand = c(0.01,0.01),breaks=seq(2025,2045,by=5)) +
+  
+  scale_y_continuous(expand=c(0,0.01),n.breaks = 8,labels = percent)
+
+}
+
+

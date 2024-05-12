@@ -654,3 +654,91 @@ Load_NRG_demand <- function(date_filt,demand_file_name) {
   
 }
 
+################################################################################
+## FUNCTION: capcost_learning_compare
+## Compare capital costs based on excel compare file.
+##
+## INPUTS: 
+##    type_filt - Cost or Norm, type of cost compare 
+##    Res_Filt - Resource types included
+################################################################################
+
+capcost_learning_compare <- function(type_filt,Res_Filt) {
+
+  if (type_filt == "Norm"){
+    title_lab = "Capital Cost Relative to 2022"
+  } else{
+    title_lab = "Capital Cost (2022$/kW)"
+  }
+  
+  # Colors and lines
+  cost_COL = c("NREL"='#b6b1b1',"Model"="#4472C4","CEC"='#515151',"AESO"="black")
+  cost_line = c("NREL"=1,"Model"=2,"CEC"=1,"AESO"=1)
+  
+  Cost_Compare_filt <- melt(Cost_Compare, id=c("Type","Source","Name","Cost_Type")) %>%
+    rename(Year=variable,
+           Amount=value)%>%
+    filter(Cost_Type == type_filt,
+           !is.na(Amount),
+           Type %in% Res_Filt,
+           ) %>%
+    mutate(Year =as.numeric(as.character(Year)),
+           Source = if_else(Source == "UofA","Model",Source))
+  
+  # Replace CEC data
+  Cost_Compare_filt$Amount[(Cost_Compare_filt$Source == "CEC") & (Cost_Compare_filt$Year > 2035)] <- NA
+  
+  # Set order
+  Cost_Compare_filt$Source <- factor(Cost_Compare_filt$Source, levels=c("AESO","CEC","NREL","Model"))
+  
+  
+  # Plot
+  ggplot(Cost_Compare_filt) +
+    geom_line(aes(x = Year, y = Amount, colour = Source,linetype= Source), 
+              size = 0.75) +
+    facet_wrap(~Type, scales = "free_y",
+               axes = "all", axis.labels = "all") +
+    theme_bw() +
+    theme(text=element_text(family=Plot_Text)) +
+    theme(axis.text = element_text(color="black"),
+          axis.title = element_text(size = GenText_Sz+6,family=Plot_Text_bf),
+          axis.text.x = element_text(angle = 45, hjust=1,color="black"),
+          plot.title = element_blank(),
+          text = element_text(size=GenText_Sz),
+          axis.title.x=element_blank(),
+          legend.text = element_text(size = GenText_Sz-6),
+          panel.grid = element_blank(),
+          legend.title = element_blank(),
+          legend.position = "bottom",
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          #panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray85'),
+          
+          
+          strip.placement = "outside",
+          strip.text = element_text(size = GenText_Sz-2, color = "black"),
+          strip.background = element_rect(colour=NA, fill=NA),
+          panel.spacing = unit(1,'lines'),
+          
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent'),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+    ) +
+    labs(y = title_lab, x="Year") +
+    
+    scale_colour_manual(name="Guide1",values = cost_COL,drop = TRUE,limits = force) +
+    scale_linetype_manual(name="Guide1",values = cost_line,drop=TRUE,limits = force)+
+    
+    scale_x_continuous(expand=c(0,0),breaks=seq(2022, 2045, 1)) +
+    
+    scale_y_continuous(expand=expansion(c(0,0.1)),
+                       limits=c(0,NA),
+                       breaks = pretty_breaks(12),
+                       labels = comma)
+
+}
+
+
+
+
