@@ -667,8 +667,10 @@ capcost_learning_compare <- function(type_filt,Res_Filt) {
 
   if (type_filt == "Norm"){
     title_lab = "Capital Cost Relative to 2022"
+    cap_add=""
   } else{
     title_lab = "Capital Cost (2022$/kW)"
+    cap_add="NREL costs converted to 2022 CAD based on 0.7688 conversion rate and 2.5% inflation rate"
   }
   
   # Colors and lines
@@ -713,7 +715,8 @@ capcost_learning_compare <- function(type_filt,Res_Filt) {
           panel.background = element_rect(fill = "transparent"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          #panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray85'),
+          plot.caption = element_text(size = GenText_Sz-12,family=Plot_Text,hjust = 1,face="italic"),
+          panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray85'),
           
           
           strip.placement = "outside",
@@ -725,7 +728,7 @@ capcost_learning_compare <- function(type_filt,Res_Filt) {
           legend.background = element_rect(fill='transparent'),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
     ) +
-    labs(y = title_lab, x="Year") +
+    labs(y = title_lab, x="Year",caption=cap_add) +
     
     scale_colour_manual(name="Guide1",values = cost_COL,drop = TRUE,limits = force) +
     scale_linetype_manual(name="Guide1",values = cost_line,drop=TRUE,limits = force)+

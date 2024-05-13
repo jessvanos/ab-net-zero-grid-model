@@ -428,6 +428,153 @@ AnnualEm_Cum_COMPARE <- function(name_type,cogen_include) {
 }
 
 ################################################################################
+## FUNCTION: AnnualEm_Cum_Dots
+## Plots annual average emissions in cummulative bar chart.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+AnnualEm_Cum_Dots <- function(name_type,cogen_include) {
+  
+  # Plot color
+  if (name_type == "l"){
+    scenario_colors<-sn_colors2_l
+    group_ITC <- c("No ITCs")
+    group_TIER <-c("TIER 2050","TIER 2035")
+    group_EPC <-c("No Emission Credits","70% EPC Value","50% EPC Value","30% EPC Value")
+    group_CCS <-c("No CCS")
+    group_policy <- c("Draft CER","No ITCs with CER","Emissions Limit")
+    
+    BAU <- "Current Policy"
+    
+  }else{
+    scenario_colors<-sn_colors2_s
+    group_ITC <- c("noITCs")
+    group_TIER <-c("TIER2050","TIER2035")
+    group_EPC <-c("noEPCs","70EPC","50EPC","30EPC")
+    group_CCS <-c("no_CCS")
+    group_policy <- c("CER","CERnoITCs","EL")
+    
+    BAU <- "CP"
+    
+  }
+  
+  # Filter emissions data
+  if (cogen_include=="Y"){
+    # Filter and prepare Simulation data
+    Sim <- Zone %>%
+      mutate(Year=as.numeric(Year))%>%
+      select(.,c(Year,Emissions,Scenario))%>%
+      compare_rename(.,name_type)%>%
+      mutate(Scenario=as.factor(Scenario))%>%
+      group_by(Scenario)%>%
+      summarise(Year = Year,
+                "2045 Annual Emissions"=Emissions,
+                "Cumulative Emissions"=cumsum(Emissions)) %>%
+      filter(Year==2045)%>%
+      mutate(subtype = if_else(Scenario %in% group_ITC, "ITC",
+                               if_else(Scenario %in% group_TIER, "TIER",
+                                       if_else(Scenario %in% group_EPC, "EPCs",
+                                               if_else(Scenario %in% group_CCS, "CCS",
+                                                       if_else(Scenario %in% group_policy, "Policy",Scenario))))))
+    
+    add_note<-""
+  }else{
+    Sim <- Zone %>%
+      mutate(Year=as.numeric(Year))%>%
+      select(.,c(Year,NonCogen_Emissions,Scenario))%>%
+      compare_rename(.,name_type)%>%
+      rename(Emissions=NonCogen_Emissions)%>%
+      mutate(Scenario=as.factor(Scenario))%>%
+      group_by(Scenario)%>%
+      summarise(Year = Year,
+                "2045 Annual Emissions"=Emissions,
+                "Cumulative Emissions"=cumsum(Emissions)) %>%
+      filter(Year==2045) %>%
+      mutate(subtype = if_else(Scenario %in% group_ITC, "ITC",
+                               if_else(Scenario %in% group_TIER, "TIER",
+                                       if_else(Scenario %in% group_EPC, "EPCs",
+                                               if_else(Scenario %in% group_CCS, "CCS",
+                                                       if_else(Scenario %in% group_policy, "Policy",Scenario))))))
+    
+    add_note<-"Cogeneration emissions excluded"
+  }
+  
+  em_2045 <- melt(Sim,id=c("Scenario","Year","subtype"))
+  
+  # Get current policy values & remove from data
+  cp_2045 <- em_2045$value[em_2045$Scenario==BAU & em_2045$variable == "2045 Annual Emissions"]
+  cp_cum <- em_2045$value[em_2045$Scenario==BAU & em_2045$variable == "Cumulative Emissions"]
+  em_2045 <- em_2045 %>%
+    filter(Scenario != BAU)
+  
+  # reorder
+  em_2045$Scenario <- reorder(em_2045$Scenario, em_2045$value)
+  
+  # Plot
+  ggplot(em_2045) +
+    geom_point(aes(x = Scenario, y = value, shape=Scenario),
+             size = 2) +
+    # geom_point(aes(x = Scenario, y = value), 
+    #                      size = 2,shape=16) +
+    theme_bw() +
+    facet_wrap(~variable,scales="free_y") +
+    
+    scale_shape_manual(values = sn_shape_l) +
+    
+    geom_hline(data = subset(em_2045, variable == "2045 Annual Emissions"), 
+               aes(yintercept = cp_2045,colour  = BAU), 
+               linetype = "dashed") +
+    geom_text(data = subset(em_2045, variable == "2045 Annual Emissions"), 
+              aes(x = "No Emission Credits", y = cp_2045, label = BAU), 
+              hjust = 1,vjust=-0.5,family=Plot_Text,size=GenText_Sz-34) +
+    
+    geom_hline(data = subset(em_2045, variable == "Cumulative Emissions"), 
+               aes(yintercept = cp_cum,colour  = BAU), 
+               linetype = "dashed") +
+    geom_text(data = subset(em_2045, variable == "Cumulative Emissions"), 
+              aes(x = "No Emission Credits", y = cp_cum, label = BAU), 
+              hjust = 1,vjust=-0.5,family=Plot_Text,size=GenText_Sz-34) +
+    
+    scale_color_manual(name = NULL, values = c("black")) +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    theme(axis.text = element_text(color="black"),
+          axis.title = element_text(size = GenText_Sz+6,family=Plot_Text_bf),
+          axis.text.x = element_text(angle = 90, hjust=1,vjust=0.5,color="black",size = GenText_Sz-6),
+          plot.title = element_blank(),
+          text = element_text(size=GenText_Sz),
+          axis.title.x=element_blank(),
+          legend.text = element_text(size = GenText_Sz-6),
+          panel.grid = element_blank(),
+          legend.title = element_blank(),
+          legend.position = "none",
+          #panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray70'),
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.spacing = unit(1.5, "lines"),
+          
+          strip.placement = "outside",
+          strip.text = element_text(size = GenText_Sz-6, color = "black"),
+          strip.background = element_rect(colour=NA, fill=NA),
+          #panel.spacing = unit(0,'lines'),
+          
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent'),
+          legend.key.size = unit(0.3, "cm"),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+    ) +
+    labs(y = expression("Emissions (Mt CO"[2]*")")) +
+
+    scale_y_continuous(expand=expansion(c(0,0.1)),limits=c(0,NA),
+                       n.breaks = 8,labels = function(x) sprintf("%.1f", x))
+  
+}
+
+################################################################################
 ## FUNCTION: Annual_Em_group
 ## Plots annual capacity for selected resource group
 ##
@@ -3280,6 +3427,7 @@ Cum_Gen_group_dots <- function(EPC_rename) {
            Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
            Scenario=as.factor(Scenario))%>%
     group_by(Year,Scenario,Ptype) %>%
+    filter(Ptype != "Coal") %>%
     summarise(Output_MWH = sum(Output_MWH))
   
   
@@ -3300,7 +3448,7 @@ Cum_Gen_group_dots <- function(EPC_rename) {
     mutate(report_group = if_else(between(Year,2025,2029),"2025-2029",
                                           if_else(between(Year,2030,2034),"2030-2034",
                                                   if_else(between(Year,2035,2039),"2035-2039",
-                                                          if_else(between(Year,2040,2045),"2040-2045","na")))))%>%
+                                                          if_else(between(Year,2040,2044),"2040-2044","na")))))%>%
     filter(report_group != "na") %>%
     group_by(report_group,Scenario,Ptype) %>%
     summarise(Output_TWh = sum(Output_MWH)/10^6) %>%
@@ -3722,6 +3870,110 @@ ggplot(Marginal_data) +
   
   scale_y_continuous(expand=c(0,0.01),n.breaks = 8,labels = percent)
 
+}
+
+################################################################################
+## FUNCTION: AnnualEm_vs_CCS
+## Plots annual average emissions in cummulative bar chart.
+##
+## INPUTS: 
+##    case - Run_ID which you want to plot
+## TABLES REQUIRED: 
+##    ZoneHr_Avg - Average hourly info in zone
+################################################################################
+AnnualEm_vs_CCS <- function(name_type,resfilter_type) {
+  
+  # Plot color
+  if (name_type == "l"){
+    scenario_colors<-sn_colors2_l
+    
+    order_legend <-c("Current Policy","No ITCs",
+                     "30% EPC Value","50% EPC Value","70% EPC Value","No Emission Credits","No CCS",
+                     "Draft CER","No ITCs with CER","Emissions Limit",
+                     "TIER 2050","TIER 2035")
+    ccs_name <- "No CCS"
+    
+  }else{
+    scenario_colors<-sn_colors2_s
+    
+    order_legend <- c("CP","noITCs","30EPC","50EPC","70EPC","noEPCs","no_CCS",
+                      "CER","CERnoITCs","EL","TIER2050","TIER2035")
+    ccs_name<-"no_CCS"
+    
+  }
+  
+    Sim <- Zone %>%
+      mutate(Year=as.numeric(Year))%>%
+      select(.,c(Year,NonCogen_Emissions,Scenario))%>%
+      compare_rename(.,name_type)%>%
+      rename(Emissions=NonCogen_Emissions)%>%
+      mutate(Scenario=as.factor(Scenario))%>%
+      group_by(Scenario)%>%
+      summarise(Year = Year,
+                "Annual_Emissions"=Emissions) 
+    
+  # Get CCS capacity
+  Res_cap <- ResGrYr %>%
+    compare_rename(.,name_type)%>%
+    filter(Plant_Type == resfilter_type)%>%
+    select(Scenario,Year,Capacity_MW) %>%
+    mutate(Capacity_MW=Capacity_MW/10^3)
+  
+  # Add arbitrary values for no CCS case as needed
+  if (resfilter_type == "Natural Gas Combined Cycle + CCS"){
+    noCCS <- data.frame(Scenario=ccs_name,
+                        Year = 2023:2045,
+                        Capacity_MW=0)
+    
+    Res_cap <- rbind(Res_cap,noCCS)
+  }
+  
+  # Add CCS capacity
+  Res_cap_comb <- merge(Sim,Res_cap,by=c("Scenario","Year")) %>%
+    filter(Year %in% c(2025,2030,2035,2040,2045)) %>%
+    mutate(Year_fct =as.factor(Year))
+  
+  # Plot
+  ggplot(Res_cap_comb) +
+    geom_point(aes(x = Capacity_MW, y = Annual_Emissions, shape=Scenario,color=Year_fct), 
+               size = 2.5) +
+    theme_bw() +
+
+    scale_shape_manual(name="Scenario",values = sn_shape_l) +
+    
+    scale_color_manual(name="Year",values=c("2025"='#252323',
+                                            "2030"="#515151",
+                                            "2035"="#969191",
+                                            "2040"="#c6c6c6",
+                                            "2045"="black")) +
+    
+    theme(text=element_text(family=Plot_Text)) +
+    theme(axis.text = element_text(color="black"),
+          axis.title = element_text(size = GenText_Sz+6,family=Plot_Text_bf),
+          axis.text.x = element_text(color="black"),
+          plot.title = element_blank(),
+          text = element_text(size=GenText_Sz),
+          legend.text = element_text(size = GenText_Sz-6),
+          panel.grid = element_blank(),
+          legend.position = "right",
+          panel.background = element_rect(fill = "transparent"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.spacing = unit(1.5, "lines"),
+
+          legend.key = element_rect(colour = "transparent", fill = "transparent"),
+          legend.background = element_rect(fill='transparent'),
+          legend.key.size = unit(0.3, "cm"),
+          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
+    ) +
+    labs(y = expression("Annual Emissions (Mt CO"[2]*")"),x=paste(resfilter_type," Capacity (GW)")) +
+    
+    scale_x_continuous(expand=expansion(c(0.01,0.01)),
+                       breaks=pretty_breaks(10),labels = function(x) sprintf("%.1f", x)) +
+  
+    scale_y_continuous(expand=c(0,0),limits=c(0,16),
+                       breaks=seq(0,16,by=2),labels = function(x) sprintf("%.1f", x))
+  
 }
 
 

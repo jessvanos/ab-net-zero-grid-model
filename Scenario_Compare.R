@@ -47,13 +47,13 @@
   # EXISTING SCENARIOS
   #   'CP_12Apr''CP_04Apr'       Current policy (TX mod, normal)
   #   'CER_14Apr''CER_02Apr'     Draft CER (TX mod, normal)
-  #   'EL_19Apr''EL_06Apr'       Emission limit (TX mod, normal)
+  #   'EL_25Apr''EL_06Apr' Emission limit (TX mod, normal)
   #   'CP_noITC_07Apr'           CP no investment tax credits
   #   'CER_noITC_08Apr'          CER no investment tax credits
   #   'CP_noEPC_10Apr'           CP no emission performance credits
   #   'TIER2050_18Apr'           CP with TIER limit to zero by 2050
   #   'TIER2035_11Apr'           CP with TIER limit to zero by 2035 
-  #   'CP_noEPC_10Apr'          CP with EPCs values at 0% Cprice
+  #   'CP_noEPC_10Apr'           CP with EPCs values at 0% Cprice
   #   'CP_50EPCs_22Apr'          CP with EPCs values at 50% Cprice
   #   'CP_noCCS_03May'
 
@@ -64,11 +64,11 @@
   #   'EPC_4'                    CP_04Apr,CP_50EPCs_22Apr,CP_noEPC_10Apr,CP_30EPCs_04May
 {
   # Define cases here
-  ScenarioName1<-"TIER2035_11Apr"
-  ScenarioName2<-"CP_noEPC_10Apr"
+  ScenarioName1<-"All_11"
+  ScenarioName2<-"CP_noCCS_03May"
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"EPC_5"
+  CScenarioName <-"All_12"
 }
 
 ################################################################################
@@ -83,7 +83,7 @@
 ################################################################################
 
 # Folder name & color selection
-CaseName <- "EPC_5" # Match 'CScenarioName' from combine files (ie: folder name)
+CaseName <- "All_12" # Match 'CScenarioName' from combine files (ie: folder name)
 COL_choice = 3
 
 # Read R-Data files for compare scenario
@@ -512,6 +512,22 @@ COL_choice = 3
                    "Increased Transmission" = COL_CP2x,
                    "No CCS"=COL_noCCS
                    )
+   
+   sn_shape_l <-c("Draft CER"=16,
+                    "Current Policy"=15,
+                    "Emissions Limit"=18,
+                    "TIER 2050" = 8,
+                    "TIER 2035" = 17,
+                    "No ITCs"=0,
+                    "No ITCs with CER"=1,
+                    "Absolute Zero" = 24,
+                    "No H2 Absolute Zero" = 25,
+                    "No Emission Credits"=7,
+                    "30% EPC Value" = 9,
+                    "50% EPC Value" = 12,
+                    "70% EPC Value" = 14,
+                    "No CCS"=11
+   )
    sn_line2_l <-c("Draft CER"=1,
                  "Current Policy"=1,
                  "Emissions Limit"=1,
@@ -586,6 +602,7 @@ GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y")
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen2",AnnualEm_COMPARE("l", "n"),12,4)
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen",AnnualEm_COMPARE("l", "n"),12,8)
 GGSave_Loc_custom(CaseName,"Cummulative Emissions Compare noncogen",AnnualEm_Cum_COMPARE("l", "n"),12,6)
+GGSave_Loc_custom(CaseName,"Compare final emissions",AnnualEm_Cum_Dots("l", "n"),12,8)
 
 # Capacity changes
 GGSave_Loc_custom(CaseName,"Total Capacity Added",Total_Cap_Add_COMPARE("l"),12,8)
@@ -701,13 +718,18 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   )
   GGSave_Loc_custom(CaseName,"Capacity based on EPC",Annual_Cap_group_dots(epc_cap_groups,TRUE),12,8)
   GGSave_Loc_custom(CaseName,"All Capacity based on EPC",Annual_Cap_group_dots(all_groups,TRUE),12,8)
-  GGSave_Loc_custom(CaseName,"Gen based on EPC",Cum_Gen_group_dots(TRUE),12,8)
+  GGSave_Loc_custom(CaseName,"Gen based on EPC2",Cum_Gen_group_dots(TRUE),12,8)
   GGSave_Loc_custom(CaseName,"CF based on EPC",CF_group_dots(TRUE),12,8)
   GGSave_Loc_custom(CaseName,"Value based on EPC",value_group_dots(TRUE),12,8)
   GGSave_Loc_custom(CaseName,"Avg bid based on EPC",Avg_Bid_Cost_dots(TRUE),12,8)
   
   
   GGSave_Loc_custom(CaseName,"EPC Emissions Compare noncogen",AnnualEm_COMPARE("l", "n",FALSE),12,6)
+  
+  
+  # CCS PLOTS
+  GGSave_Loc_custom(CaseName,"CCS vs annual emissions",AnnualEm_vs_CCS("l",resfilter_type="Natural Gas Combined Cycle + CCS"),12,6)
+  GGSave_Loc_custom(CaseName,"Wind vs annual emissions",AnnualEm_vs_CCS("l",resfilter_type="Wind"),12,6)
   
   
 ################################################################################

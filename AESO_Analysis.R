@@ -421,7 +421,14 @@ Res_Filt =c("Battery Storage","CCS Retrofit","Combined Cycle CCS","SMR",
             "Solar","Wind")
 
 # Colors and lines
+{
 GenText_Sz =30
+font_add(family="Times",regular="times.ttf")
+font_add("times_bf", regular = "timesbd.ttf")
+Plot_Text <- "Times"
+Plot_Text_bf <- "times_bf"
+showtext_auto()
+}
 
 # Save plot
 GGSave_Loc_custom("Cost Compare","new_cost_curves",capcost_learning_compare(type_filt1,Res_Filt),12,6)
