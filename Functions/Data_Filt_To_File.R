@@ -1684,3 +1684,58 @@ CombineFilesR<-function(ScenarioName1,ScenarioName2,CScenarioName){
              col_names = TRUE, format_headers = TRUE) 
   
 }
+
+################################################################################
+## FUNCTION: CombineFilesR_multiple
+## Combine annual data from multiple files, use after AnnualDataR.
+## Outputs excel file and new r data files
+## INPUTS: 
+##    list_scenarios - Name of scenarios to combine
+##    CScenarioName - Combined file name
+## TABLES REQUIRED: 
+##    ResGroupEmYr
+##    ResGroupYr
+##    ResYr
+##    FuelYr
+##    ZoneYr
+################################################################################
+CombineFilesR_multiple <- function(list_scenarios,CScenarioName){
+  
+  # get number of scenarios
+  total_scn <- length(list_scenarios)
+  total_unq_scn <- length(unique(list_scenarios))
+  
+  if (total_scn != total_unq_scn) {
+    
+    cat('Entered non-unique scenario! Check list.\n')
+    
+  }else{
+    
+    cat('Combining',total_scn, "scenarios\n")
+    
+    # Combine the first two scenarios
+    ScenarioName1 <- list_scenarios[1]
+    ScenarioName2 <- list_scenarios[2]
+    CombineFilesR(ScenarioName1,ScenarioName2,CScenarioName)
+    
+    # Add the rest of scenarios
+    if (total_scn>2) {
+      list_scenarios_left <- tail(list_scenarios, -2) 
+      
+      for (scn in list_scenarios_left){
+        cat('...adding sceanrio:',scn,'\n')
+        # Combine two scenarios, overwrite previous CScenarioName
+        ScenarioName1 <- CScenarioName
+        ScenarioName2 <- scn
+        CombineFilesR(ScenarioName1,ScenarioName2,CScenarioName)
+        
+      }
+    }
+  }
+
+  
+}
+  
+  
+
+
