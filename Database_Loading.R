@@ -85,7 +85,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CER_02_Apr_2024"
+  SourceDB<-"CP_04_Apr_2024"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -683,7 +683,7 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CER Update"
+CaseName <- "CER New Figs"
 NameShort<-'CER_02_update'
 
 ################################################################################
@@ -691,6 +691,10 @@ NameShort<-'CER_02_update'
 ##  Data: Data Files > Result Files
 ##  Figures: Figures (Local)
 ################################################################################
+GenText_Sz=60
+GGSave_Loc_narrow(CaseName,"Price Duration Curve Avg only",Sim_dur_avg(BC),300)
+GGSave_Loc_hourly(CaseName,"2030 4 month sum (Stacked Area + price)",FourMonthSummary(2030,01,04,07,10,BC),300)
+GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price)",FourMonthSummary(2045,01,04,07,10,BC),300)
 
 # SAVE PLOTS AND FIGURES  
 

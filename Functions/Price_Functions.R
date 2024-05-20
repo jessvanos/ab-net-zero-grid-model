@@ -42,7 +42,7 @@ week_price <- function(year, month, day,case) {
   ggplot() +
     geom_line(data = ZPrice, 
               aes(x = date, y = Price), 
-              size = 1.25, colour = "darkred") +
+              size = 1.25, colour = "black") +
     theme_bw() +
    # theme(text=element_text(family=Plot_Text)) +
     theme(panel.background = element_rect(fill = "transparent"),
@@ -155,9 +155,9 @@ Sim_dur_avg <- function(case) {
     
     theme(panel.grid = element_blank(),
           panel.spacing = unit(2, "lines"),
-          axis.title.x = element_text(size = GenText_Sz+6,face="bold"),
+          axis.title.x = element_text(size = GenText_Sz+6,family=Plot_Text_bf),
           axis.text=element_text(colour = "black"),
-          axis.title.y = element_text(size = GenText_Sz+6,face="bold"),
+          axis.title.y = element_text(size = GenText_Sz+6,family=Plot_Text_bf),
           text = element_text(size = GenText_Sz),
           legend.title = element_blank(),
           #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray70")
