@@ -126,7 +126,7 @@ AvgYr_price_COMPARE <- function(name_type,AESO_include) {
     theme_bw() +
     theme(text=element_text(family=Plot_Text)) +
     theme(axis.text = element_text(color="black"),
-          axis.title = element_text(size = GenText_Sz+6),
+          axis.title = element_text(size = GenText_Sz+6,famil=Plot_Text_bf),
           axis.text.x = element_text(angle = 0, hjust=0.5,color="black"),
           plot.title = element_blank(),
           text = element_text(size=GenText_Sz),
@@ -210,12 +210,10 @@ AvgYr_price_COMPARE2 <- function(name_type,AESO_include) {
     geom_line(aes(x = Year, y = Avg_Price, colour = Scenario,linetype= Scenario), 
               size = 1.25) +
     theme_bw() +
-    theme(text=element_text(family=Plot_Text)) +
-    theme(axis.text = element_text(color="black"),
-          axis.title = element_text(size = GenText_Sz+6),
+    theme(text=element_text(size=GenText_Sz,family=Plot_Text),
+          axis.text = element_text(color="black"),
           axis.text.x = element_text(angle = 0, hjust=0.5,color="black"),
           plot.title = element_blank(),
-          text = element_text(size=GenText_Sz),
           axis.title.x=element_blank(),
           legend.text = element_text(size = GenText_Sz-8),
           panel.grid = element_blank(),
@@ -239,7 +237,9 @@ AvgYr_price_COMPARE2 <- function(name_type,AESO_include) {
     scale_x_continuous(expand=c(0,0),limits = c(YearMN-1,YearMX+1),breaks=seq(YearMN, YearMX, 5)) +
     
     scale_y_continuous(expand=c(0,0),limits=c(0,Upplim),n.breaks = 8, 
-    )
+    ) +
+    
+    theme(axis.title.y = element_text(size = GenText_Sz+6, family=Plot_Text_bf))
   
 }
 
@@ -515,10 +515,10 @@ AnnualEm_Cum_Dots <- function(name_type,cogen_include) {
   
   # Plot
   ggplot(em_2045) +
-    geom_point(aes(x = Scenario, y = value, shape=Scenario),
-             size = 2) +
-    # geom_point(aes(x = Scenario, y = value), 
-    #                      size = 2,shape=16) +
+    # geom_point(aes(x = Scenario, y = value, shape=Scenario),
+    #          size = 2) +
+    geom_point(aes(x = Scenario, y = value),
+                         size = 2,shape=16) +
     theme_bw() +
     facet_wrap(~variable,scales="free_y") +
     
@@ -528,14 +528,14 @@ AnnualEm_Cum_Dots <- function(name_type,cogen_include) {
                aes(yintercept = cp_2045,colour  = BAU), 
                linetype = "dashed") +
     geom_text(data = subset(em_2045, variable == "2045 Annual Emissions"), 
-              aes(x = "No Emission Credits", y = cp_2045, label = BAU), 
+              aes(x = "No Emission Credits", y = cp_2045, label = "Current Policy Scenario"), 
               hjust = 1,vjust=-0.5,family=Plot_Text,size=GenText_Sz-34) +
     
     geom_hline(data = subset(em_2045, variable == "Cumulative Emissions"), 
                aes(yintercept = cp_cum,colour  = BAU), 
                linetype = "dashed") +
     geom_text(data = subset(em_2045, variable == "Cumulative Emissions"), 
-              aes(x = "No Emission Credits", y = cp_cum, label = BAU), 
+              aes(x = "No Emission Credits", y = cp_cum, label = "Current Policy Scenario"), 
               hjust = 1,vjust=-0.5,family=Plot_Text,size=GenText_Sz-34) +
     
     scale_color_manual(name = NULL, values = c("black")) +
@@ -630,7 +630,6 @@ Annual_Em_group <- function(name_type,list_groups) {
     theme(
       panel.grid = element_blank(),  
       axis.title.x = element_blank(),
-      axis.title.y = element_text(size = GenText_Sz+6, vjust=0),
       panel.background = element_rect(fill = "transparent"),
       axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black",size = GenText_Sz-12),
       axis.text.y=element_text(color="black"),
@@ -650,14 +649,15 @@ Annual_Em_group <- function(name_type,list_groups) {
       
       text = element_text(size = GenText_Sz)) +
     
-    guides(fill = guide_legend(ncol=1,byrow = TRUE)) +
+    #guides(fill = guide_legend(ncol=1,byrow = TRUE)) +
     
     scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
     
     scale_y_continuous(expand = c(0, 0),limits=c(0,mxc),breaks = pretty_breaks(8),labels=comma) +
     scale_x_continuous(expand = c(0,0), breaks=seq(2023,2045,1))+
     
-    labs(y = "Emissions (Mtonne CO2)") 
+    labs(y = expression("Annual Emissions (Mt CO"[2]*")")) +
+    theme(axis.title.y = element_text(size = GenText_Sz+6, vjust=0,family=Plot_Text_bf))
   
 }
 
@@ -1609,7 +1609,7 @@ Annual_Gen_group_area <- function(name_type,list_groups,nrg_include) {
     theme(
       panel.grid = element_blank(),  
       axis.title.x = element_blank(),
-      axis.title.y = element_text(size = GenText_Sz+6, vjust=0),
+      axis.title.y = element_text(size = GenText_Sz+6, vjust=0,family=Plot_Text_bf),
       panel.background = element_rect(fill = "transparent"),
       axis.text.x=element_text(angle=90,vjust = 0.5, hjust = 1,color="black",size = GenText_Sz-12),
       axis.text.y=element_text(color="black"),
@@ -1629,7 +1629,7 @@ Annual_Gen_group_area <- function(name_type,list_groups,nrg_include) {
       
       text = element_text(size = GenText_Sz)) +
     
-    #guides(fill = guide_legend(ncol=1,byrow = TRUE)) +
+    guides(fill = guide_legend(nrow=2,byrow = TRUE)) +
     
     scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
     
@@ -3418,7 +3418,7 @@ Annual_Cap_group_dots <- function(list_groups,EPC_rename) {
 ## TABLES REQUIRED: 
 ##    ZoneHr_Avg - Average hourly info in zone
 ################################################################################
-Cum_Gen_group_dots <- function(EPC_rename) {
+Cum_Gen_group_dots <- function(EPC_rename,all_groups) {
   
   # Filter data
   Gendata <- ResGrYr %>%
@@ -3427,7 +3427,8 @@ Cum_Gen_group_dots <- function(EPC_rename) {
            Ptype=if_else(Ptype %in% c("Storage - Compressed Air","Storage - Pumped Hydro","Storage - Battery"),"Storage",Ptype),
            Scenario=as.factor(Scenario))%>%
     group_by(Year,Scenario,Ptype) %>%
-    filter(Ptype != "Coal") %>%
+    filter(Ptype != "Coal",
+           Ptype %in% all_groups) %>%
     summarise(Output_MWH = sum(Output_MWH))
   
   

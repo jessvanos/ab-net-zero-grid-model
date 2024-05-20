@@ -345,12 +345,15 @@ COL_choice = 3
   # Uses local computer font files (search font in search bar to confirm font names)
   
     #font_import()
-    #loadfonts(dev="win")
     font_add(family="Times",regular="times.ttf")
-    Plot_Text <- "Times"
+    font_add(family="times_bf", regular = "timesbd.ttf")
+    font_add("times_it", regular = "/path/to/your/fonts/timesi.ttf")  
     
-    # Make ggplot show text changes
-        showtext_auto()
+    Plot_Text <- "Times"
+    Plot_Text_bf <- "times_bf"
+    Plot_Text_it <- "times_it"
+    
+    showtext_auto()
     # font_add(family="Cambrai",regular="CAMBRIA.ttc")
     # Plot_Text <- 'Cambrai'
     
@@ -1256,7 +1259,8 @@ NameShort<-'CER_02_update'
     Wind_DurNorm_AESO()
   
     # Historical Gen (year min plot, seperate)
-    Evalyr_AESO(2010,"y")
+    Evalyr_AESO(2005,"y")
+    GGSave_Loc_custom("Hist Figs","hist_gen_nrg_update",Evalyr_AESO(2005,"y"),12,6)
     
     # Capacity AESO
     Evalcap_AESO(2010,"n")
@@ -1266,7 +1270,7 @@ NameShort<-'CER_02_update'
     Resource_Ridge_AESO("SOLAR",2017)
     
     SourceDB<-"NRG"
-    GGSave_Loc("Hist Figs","hist_cap_AB_byplant",Evalcap_AESO2(2010,"n"),300)
+    GGSave_Loc_custom("Hist Figs","hist_cap_AB_byplant_new",Evalcap_AESO2(2010,"n"),12,8)
 ################################################################################
 ## Developing Functions (Developing_Functions)
 ################################################################################

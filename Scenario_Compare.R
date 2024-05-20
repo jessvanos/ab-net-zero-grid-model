@@ -67,8 +67,13 @@
                         'TIER2050_18Apr','TIER2035_11Apr','CP_noEPC_10Apr','CP_50EPCs_22Apr',
                             'CP_30EPCs_04May','CP_70EPCs_07May','CP_noCCS_03May')
   
+  # Define list of cases here
+  list_scenarios_EC<-c('CP_04Apr','CER_02Apr','CP_noITC_07Apr','CER_noITC_08Apr',
+                    'TIER2050_18Apr','TIER2035_11Apr','CP_noEPC_10Apr','CP_50EPCs_22Apr',
+                    'CP_30EPCs_04May','CP_70EPCs_07May')
+  
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"All_12"
+  CScenarioName <-"Conf_scenarios"
 }
 
 ################################################################################
@@ -79,14 +84,14 @@
   CombineFilesR(ScenarioName1,ScenarioName2,CScenarioName)
 
   # Combine multiple scenarios
-  CombineFilesR_multiple(list_scenarios,CScenarioName)
+  CombineFilesR_multiple(list_scenarios_EC,CScenarioName)
   
 ################################################################################
 ## READ R FILES WITH SCENARIO DATA (AFTER COMBINE) AND PLOT
 ################################################################################
 
 # Match 'CScenarioName' from combine files (ie: folder name)
-CaseName <- "All_12" 
+CaseName <- "Main_2" 
 # Color selection
 COL_choice = 3
 
@@ -114,11 +119,15 @@ COL_choice = 3
 
 { # Available Fonts for plotting, can choose different one and change Plot_Text if needed
   # Uses local computer font files (search font in search bar to confirm font names)
-  
+  #font_import()
   font_add(family="Times",regular="times.ttf")
-  font_add("times_bf", regular = "timesbd.ttf")
+  font_add(family="times_bf", regular = "timesbd.ttf")
+  font_add("times_it", regular = "/path/to/your/fonts/timesi.ttf")  
+  
   Plot_Text <- "Times"
   Plot_Text_bf <- "times_bf"
+  Plot_Text_it <- "times_it"
+  
   showtext_auto()
   
   # Gives years to summarize info from 
@@ -598,12 +607,12 @@ COL_choice = 3
 ################################################################################
 {
 # Compare pool prices
-GGSave_Loc_custom(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE("l","Y"),12,8)
-GGSave_Loc_custom(CaseName,"Annual Pool Price Compare2",AvgYr_price_COMPARE2("l","Y"),6,8)
+GGSave_Loc_custom(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE("l","Y"),10,8)
+GGSave_Loc_custom(CaseName,"Annual Pool Price Compare2",AvgYr_price_COMPARE2("l","Y"),10,8)
 
 # Compare Emissions
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y"),12,8)
-GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen2",AnnualEm_COMPARE("l", "n"),12,4)
+GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen2",AnnualEm_COMPARE("l", "n"),12,6)
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen",AnnualEm_COMPARE("l", "n"),12,8)
 GGSave_Loc_custom(CaseName,"Cummulative Emissions Compare noncogen",AnnualEm_Cum_COMPARE("l", "n"),12,6)
 GGSave_Loc_custom(CaseName,"Compare final emissions",AnnualEm_Cum_Dots("l", "n"),12,8)
@@ -654,7 +663,7 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
                   "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle")
   unabated_fossil <- c("Coal", "Coal-to-Gas","Natural Gas Simple Cycle", "Natural Gas Combined Cycle")
   h2_ccs <- c("Hydrogen Simple Cycle","Hydrogen Combined Cycle","Natural Gas Combined Cycle + CCS")
-  em_groups <-  c("Coal", "Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+  em_groups <-  c("Coal", "Coal-to-Gas",
                  "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle","Other")
   em_groups_noOT <-  c("Coal", "Coal-to-Gas",
                   "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle")
@@ -677,14 +686,14 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   GGSave_Loc_custom(CaseName,"Annual Generation Wind",Annual_Gen_group(name_type="l",list_groups=c("Wind")),14,6)
   GGSave_Loc_custom(CaseName,"Annual Generation Solar",Annual_Gen_group(name_type="l",list_groups=c("Solar")),14,6)
   
-  GGSave_Loc_custom(CaseName,"Annual Emissions non-cogen",Annual_Em_group(name_type="l",list_groups=em_groups),14,6)
-  GGSave_Loc_custom(CaseName,"Annual Emissions non-cogen no other",Annual_Em_group(name_type="l",list_groups=em_groups_noOT),14,6)
+  GGSave_Loc_custom(CaseName,"Annual Emissions non-cogen",Annual_Em_group(name_type="l",list_groups=em_groups),8,6)
+  GSave_Loc_custom(CaseName,"Annual Emissions non-cogen no other",Annual_Em_group(name_type="l",list_groups=em_groups_noOT),14,6)
   GGSave_Loc_custom(CaseName,"Annual Emissions Combined-Cycle",Annual_Em_group(name_type="l",list_groups=c("Natural Gas Combined Cycle + CCS", "Natural Gas Combined Cycle")),14,6)
   GGSave_Loc_custom(CaseName,"Annual Emissions Simple-Cycle and Coal-to-gas",Annual_Em_group(name_type="l",list_groups=c("Natural Gas Simple Cycle","Coal-to-Gas")),14,6)
   
   
   # STACKED AREAS
-  GGSave_Loc_custom(CaseName,"Annual Generation All Area",Annual_Gen_group_area(name_type="l",list_groups=all_groups,nrg_include=FALSE),14,6)
+  GGSave_Loc_custom(CaseName,"Annual Generation All Area2",Annual_Gen_group_area(name_type="l",list_groups=all_groups,nrg_include=FALSE),14,6)
   GGSave_Loc_custom(CaseName,"Annual Generation All Perc",Annual_Gen_group_perc(name_type="l",list_groups=all_groups_noStor,nrg_include=FALSE),14,6)
   GGSave_Loc_custom(CaseName,"Annual Capacity All Area",Annual_Cap_group_area(name_type="l",list_groups=all_groups,nrg_include=FALSE),14,6)
   GGSave_Loc_custom(CaseName,"Stacked Areas Grid",compare_cap_gen_em(name_type="l"),14,8)
@@ -709,9 +718,13 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   epc_cap_groups <- c("Hydrogen Simple Cycle","Coal-to-Gas",
                   "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
                   "Other", "Wind", "Solar", "Storage")
-  epc_cap_groups2 <- c("Coal","Cogeneration","Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
-                  "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
-                  "Hydro", "Other", "Wind", "Solar", "Storage")
+  
+  gen_all_groups <- c("Coal", "Cogeneration","Coal-to-Gas","Hydrogen Simple Cycle","Hydrogen Combined Cycle",
+                      "Natural Gas Combined Cycle + CCS", "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                      "Hydro", "Other", "Wind", "Solar", "Storage")
+  
+  epc_cap_groups2 <- c("Natural Gas Combined Cycle + CCS", "Natural Gas Combined Cycle", 
+                   "Wind", "Solar", "Storage")
   
   # Overwrite color
   EPC_colors <-c("Current Policy"="black",
@@ -720,9 +733,9 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
                    "50% EPC Value" = "black",
                    "70% EPC Value" = "black"
   )
-  GGSave_Loc_custom(CaseName,"Capacity based on EPC",Annual_Cap_group_dots(epc_cap_groups,TRUE),12,8)
+  GGSave_Loc_custom(CaseName,"Capacity based on EPC select",Annual_Cap_group_dots(epc_cap_groups,TRUE),12,8)
   GGSave_Loc_custom(CaseName,"All Capacity based on EPC",Annual_Cap_group_dots(all_groups,TRUE),12,8)
-  GGSave_Loc_custom(CaseName,"Gen based on EPC2",Cum_Gen_group_dots(TRUE),12,8)
+  GGSave_Loc_custom(CaseName,"Gen based on EPC",Cum_Gen_group_dots(TRUE,epc_cap_groups2),6,12)
   GGSave_Loc_custom(CaseName,"CF based on EPC",CF_group_dots(TRUE),12,8)
   GGSave_Loc_custom(CaseName,"Value based on EPC",value_group_dots(TRUE),12,8)
   GGSave_Loc_custom(CaseName,"Avg bid based on EPC",Avg_Bid_Cost_dots(TRUE),12,8)

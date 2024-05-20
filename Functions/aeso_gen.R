@@ -2416,6 +2416,7 @@ ggplot(data = Gen_Demand_Filt, aes(x = Gap)) +
 
 Evalyr_AESO <- function(YrMin,Sep_cogen) {
 
+  YrMax<-2023
   # Combine cogen 
   if (Sep_cogen == "n") {
     # Select only a single week
@@ -2452,7 +2453,27 @@ Evalyr_AESO <- function(YrMin,Sep_cogen) {
     summarise(Gen=sum(total_gen),
               Gen_TWh=Gen/1000000)
   
-  YR <- rbind(YRall, YRtrade)
+  YR_NRG <- rbind(YRall, YRtrade)
+  
+  # Add 2023
+  gen2023 <- data.frame(Plant_Type=c("SOLAR","WIND","HYDRO",
+                                     "OTHER","GAS","COGEN", 
+                                     "COAL", "STORAGE","TRADE"),
+                        Year=as.factor(2023),
+                        YEAR=2023,
+                        Gen=c(2310297.721,
+                              10214688.89,
+                              1697135.533,
+                              2059662.312,
+                              29869645.98,
+                              33533379.56,
+                              6514634.755,
+                              NA,
+                              0
+                        )) %>%
+    mutate(Gen_TWh=Gen/1000000)
+  
+  YR <- rbind(YR_NRG,gen2023)
   
   {
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "SOLAR", after = Inf)
@@ -2471,17 +2492,17 @@ Evalyr_AESO <- function(YrMin,Sep_cogen) {
                                                   "COAL", "STORAGE","TRADE"))
   
   levels(YR$Plant_Type) <- c("Solar","Wind","Hydro",
-                             "Other","Natural Gas","Cogeneration", 
+                             "Biomass/Other","Natural Gas","Cogeneration", 
                              "Coal", "Storage","Net Imports")
   
-  YrMax
   # Filter years
   YR <- YR%>%
     filter(YEAR >=YrMin,
            YEAR<=YrMax,
-           !Plant_Type =="Storage")
+           Plant_Type !="Storage")
   
-  GenText_Sz<-56
+
+  #GenText_Sz<-56
   # Plot
   YR %>%
     ggplot() +
@@ -2498,19 +2519,19 @@ Evalyr_AESO <- function(YrMin,Sep_cogen) {
       # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
       plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
       panel.background = element_blank(), # Transparent background
-      panel.border = element_blank(),
-      text = element_text(size = GenText_Sz),                # Text size
+     # panel.border = element_blank(),
+      text = element_text(size = GenText_Sz,family=Plot_Text),                # Text size
       plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
       axis.line.y = element_line(),
       axis.line.x = element_line(),
-      plot.caption = element_text(hjust = 1,size = GenText_Sz-10,face = "italic"),             # Plot subtitle size (if present)
+      plot.caption = element_text(hjust = 1,size = GenText_Sz-12,family=Plot_Text_it),             # Plot subtitle size (if present)
 
       # X-axis
       axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
       #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
       axis.title.x = element_blank(),
       # Y-axis
-      axis.title.y = element_text(size = GenText_Sz+8),           # y-axis title text size
+      axis.title.y = element_text(size = GenText_Sz+6,family=Plot_Text_bf),           # y-axis title text size
       axis.text.y = element_text(colour = "black"),                 # Horizontal text
       
       # Legend
@@ -2521,7 +2542,7 @@ Evalyr_AESO <- function(YrMin,Sep_cogen) {
       legend.title=element_blank()) +                        # Remove legend title
     
     # Set axis scales
-    scale_x_continuous(expand=c(0,0),limits = c(YrMax,2022),breaks=seq(YrMin, 2022, 2)) +
+    scale_x_continuous(expand=c(0,0),limits = c(YrMin,2023),breaks=seq(YrMin, 2023, 2)) +
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,100),
                        breaks=pretty_breaks(6)) +
@@ -2532,10 +2553,15 @@ Evalyr_AESO <- function(YrMin,Sep_cogen) {
     
     
     # Legend color scheme
-    scale_fill_manual(values = c("Storage"='#cc79a7',"Solar"="darkgoldenrod2","Wind"="#238b45","Hydro"="#4472C4",
-                                 "Other"='#e6e6e6',"Natural Gas"='#A6A6A6', 
-                                 "Cogeneration"='#767171',"Coal"='#515151',"Net Imports"='#252323'),
-                      drop = TRUE) 
+    # scale_fill_manual(values = c("Storage"='#cc79a7',"Solar"="darkgoldenrod2","Wind"="#238b45","Hydro"="#4472C4",
+    #                              "Other"='#e6e6e6',"Natural Gas"='#A6A6A6', 
+    #                              "Cogeneration"='#767171',"Coal"='#515151',"Net Imports"='#252323'),
+    #                   drop = TRUE) 
+    # 
+  scale_fill_manual(values = c("Storage"='#cc79a7',"Solar"=cOL_SOLAR,"Wind"=cOL_WIND,"Hydro"=cOL_HYDRO,
+                               "Biomass/Other"='#D2DFFF',"Natural Gas"='#A6A6A6', 
+                               "Cogeneration"='#767171',"Coal"='#515151',"Net Imports"='#252323'),
+                    drop = TRUE,limits = force) 
   
   # ggsave(
   #   filename = here(paste("Figures (Local)/","Historical Gen",".png", sep = "")),
@@ -2726,10 +2752,6 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
     
   }
 
-  # Add expected capacity
-
-  GenText_Sz<-16
-
   # cols_choice <- c("2017"='#252323',"2018"="#515151","2019"="#767171","2020"="#A6A6A6",
   #                  "2021"='#e6e6e6',"2022"='#4472C4',
   #                  "2023"='#238b45',"2024"='darkgoldenrod2',"2025 Expected"='#cc79a7')
@@ -2749,10 +2771,7 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
                      pattern_spacing=0.01) +
 
     theme_bw() +
-    
-    # Changes the font type
-    #theme(text=element_text(family=Plot_Text)) +             
-    
+
     theme(
       # General Plot Settings
       panel.grid = element_blank(),
@@ -2760,23 +2779,22 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
       plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
       panel.background = element_blank(), # Transparent background
      # panel.border = element_blank(),
-      text = element_text(size = GenText_Sz),                # Text size
+      text = element_text(size = GenText_Sz,family=Plot_Text),                # Text size
       plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
       axis.line.y = element_line(),
       axis.line.x = element_line(),
-      plot.caption = element_text(hjust = 1,size = GenText_Sz-4,face = "italic"),             # Plot subtitle size (if present)
+      plot.caption = element_text(hjust = 1,size = GenText_Sz-12,family=Plot_Text_it),             # Plot subtitle size (if present)
       
       # X-axis
       axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
-      #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
       axis.title.x = element_blank(),
       # Y-axis
-      axis.title.y = element_text(size = GenText_Sz+4),           # y-axis title text size
+      axis.title.y = element_text(size = GenText_Sz+6,family=Plot_Text_bf),           # y-axis title text size
       axis.text.y = element_text(colour = "black"),                 # Horizontal text
       
       # Legend
       legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
-      legend.position = c(0.94,0.9),                            # Move legend to the bottom
+      legend.position = c(0.92,0.86),                            # Move legend to the bottom
       legend.background = element_rect(fill = "transparent"),
       legend.text = element_text(size =GenText_Sz-4),              # Size of legend text
       legend.title=element_blank()) +                        # Remove legend title
@@ -2802,9 +2820,7 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
     scale_fill_manual(values = cols_choice,
                       drop = FALSE) 
     
-    
   
-
   # ggsave(
   #   filename = here(paste("Figures (Local)/Hist Figs NRG/","Historical Gen",".png", sep = "")),
   #   device = "png",
