@@ -310,17 +310,18 @@ AnnualEm_COMPARE <- function(name_type,cogen_include,bw_color=FALSE) {
           legend.text = element_text(size = GenText_Sz-6),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.position = "bottom",
+          legend.position = c(0.85,0.96),
           #panel.grid.major.y = element_line(size=0.25,linetype=2,color = 'gray70'),
           panel.background = element_rect(fill = "transparent"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
           panel.spacing = unit(1.5, "lines"),
+          plot.caption = element_text(family = Plot_Text_it,size=GenText_Sz-6),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.background = element_rect(fill='transparent'),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
     ) +
-    labs(y = expression("Annual Emissions (Mt CO"[2]*")"), x="Year",caption=add_note) +
+    labs(y = expression("Annual Emissions (Mt CO"[2]*"e)"), x="Year",caption=add_note) +
     
     #scale_colour_grey() +
     scale_linetype_manual(name="Guide1",values = scenario_lines,drop=TRUE,limits = force)+
@@ -656,7 +657,7 @@ Annual_Em_group <- function(name_type,list_groups) {
     scale_y_continuous(expand = c(0, 0),limits=c(0,mxc),breaks = pretty_breaks(8),labels=comma) +
     scale_x_continuous(expand = c(0,0), breaks=seq(2023,2045,1))+
     
-    labs(y = expression("Annual Emissions (Mt CO"[2]*")")) +
+    labs(y = expression("Annual Emissions (Mt CO"[2]*"e)")) +
     theme(axis.title.y = element_text(size = GenText_Sz+6, vjust=0,family=Plot_Text_bf))
   
 }
@@ -1617,7 +1618,7 @@ Annual_Gen_group_area <- function(name_type,list_groups,nrg_include) {
       
       legend.justification = c(0.5,0.5),
       legend.key.size = unit(0.3, "cm"),
-      legend.position = ("bottom"),
+      legend.position = ("right"),
       legend.text = element_text(size = GenText_Sz-12),
       legend.title=element_blank(), 
       legend.spacing.y = unit(0.1, 'cm'),
@@ -1629,7 +1630,7 @@ Annual_Gen_group_area <- function(name_type,list_groups,nrg_include) {
       
       text = element_text(size = GenText_Sz)) +
     
-    guides(fill = guide_legend(nrow=2,byrow = TRUE)) +
+    guides(fill = guide_legend(ncol=1,byrow = TRUE)) +
     
     scale_fill_manual(name="Plant Type",values=col_scale,drop = TRUE,limits = force) +
     

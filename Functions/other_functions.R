@@ -269,6 +269,35 @@ legend("center",
                cOL_IMPORT,cOL_EXPORT),InputAplha),
        title=c("Legend"))
 }
+
+################################################################################
+## FUNCTION: Legend_Plot_curt
+## Plot legend for all things referenced in other plots
+################################################################################
+Legend_Plot_curt <- function(){
+  
+  gen_names<-c("Trade", "Coal","Cogeneration","Coal-to-Gas",
+                  "Hydrogen Simple Cycle","Natural Gas Combined Cycle + CCS",
+                  "Natural Gas Simple Cycle", "Natural Gas Combined Cycle", 
+                  "Hydro", "Other", "Wind", 
+                  "Solar",  "Storage","Curtailed Solar","Curtailed Wind")
+  
+  gen_cols = c(cOL_EXPORT,cOL_COAL,cOL_COGEN,cOL_NGConv, 
+               cOL_SCGT_H2,cOL_NGCC_CCS,
+               cOL_SCGT, cOL_NGCC, 
+               cOL_HYDRO, cOL_OTHER, cOL_WIND, 
+               cOL_SOLAR,  cOL_STORAGE,cOL_SOLAR,cOL_WIND)
+  
+  plot(1 ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1) +
+    legend("center", 
+           legend = gen_names,
+           #cex = 1.5,
+           ncol=1,          # Allow two columns for legend
+           fill = gen_cols
+           )
+
+    
+}
 ################################################################################
 ## FUNCTION: Legend_PlotMain
 ## Plot legend for main things referenced in other plots

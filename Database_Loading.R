@@ -672,7 +672,7 @@ COL_choice = 3
 
 ### CAN DELTE LATER. ##
 # Plot all colors used
-Legend_PlotAll(0.7)
+Legend_Plot_curt()
 
 # Plot main colors used
 Legend_PlotMain(0.7)
@@ -1264,7 +1264,7 @@ GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price)",FourMonthSu
   
     # Historical Gen (year min plot, seperate)
     Evalyr_AESO(2005,"y")
-    GGSave_Loc_custom("Hist Figs","hist_gen_nrg_update",Evalyr_AESO(2005,"y"),12,6)
+    GGSave_Loc_custom("Hist Figs","hist_gen_nrg_update2",Evalyr_AESO(2005,"y"),12,6)
     
     # Capacity AESO
     Evalcap_AESO(2010,"n")
@@ -1301,6 +1301,8 @@ GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price)",FourMonthSu
     # Plot main colors used
     Legend_PlotGray(1)
     
+    Legend_Plot_curt()
+    GGSave_Loc_custom("Misc","legened",Legend_Plot_curt(),8,6)
     
 ################################################################################
 ## THESE ARE JUST SOME WINDOW SIZES AND STUFF

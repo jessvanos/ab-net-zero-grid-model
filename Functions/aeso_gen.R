@@ -2476,6 +2476,7 @@ Evalyr_AESO <- function(YrMin,Sep_cogen) {
   YR <- rbind(YR_NRG,gen2023)
   
   {
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "TRADE", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "SOLAR", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "WIND", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "HYDRO", after = Inf)
@@ -2484,16 +2485,15 @@ Evalyr_AESO <- function(YrMin,Sep_cogen) {
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "COGEN", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "COAL", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "STORAGE", after = Inf)
-    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "TRADE", after = Inf)
   }
   
-  YR$Plant_Type <- factor(YR$Plant_Type, levels=c("SOLAR","WIND", "HYDRO",  
+  YR$Plant_Type <- factor(YR$Plant_Type, levels=c("TRADE","SOLAR","WIND", "HYDRO",  
                                                   "OTHER","GAS","COGEN",
-                                                  "COAL", "STORAGE","TRADE"))
+                                                  "COAL", "STORAGE"))
   
-  levels(YR$Plant_Type) <- c("Solar","Wind","Hydro",
+  levels(YR$Plant_Type) <- c("Net Imports","Solar","Wind","Hydro",
                              "Biomass/Other","Natural Gas","Cogeneration", 
-                             "Coal", "Storage","Net Imports")
+                             "Coal", "Storage")
   
   # Filter years
   YR <- YR%>%

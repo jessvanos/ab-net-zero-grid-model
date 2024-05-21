@@ -612,7 +612,7 @@ GGSave_Loc_custom(CaseName,"Annual Pool Price Compare2",AvgYr_price_COMPARE2("l"
 
 # Compare Emissions
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y"),12,8)
-GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen2",AnnualEm_COMPARE("l", "n"),12,6)
+GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen new",AnnualEm_COMPARE("l", "n"),10,12)
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen",AnnualEm_COMPARE("l", "n"),12,8)
 GGSave_Loc_custom(CaseName,"Cummulative Emissions Compare noncogen",AnnualEm_Cum_COMPARE("l", "n"),12,6)
 GGSave_Loc_custom(CaseName,"Compare final emissions",AnnualEm_Cum_Dots("l", "n"),12,8)
@@ -687,13 +687,13 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
   GGSave_Loc_custom(CaseName,"Annual Generation Solar",Annual_Gen_group(name_type="l",list_groups=c("Solar")),14,6)
   
   GGSave_Loc_custom(CaseName,"Annual Emissions non-cogen",Annual_Em_group(name_type="l",list_groups=em_groups),8,6)
-  GSave_Loc_custom(CaseName,"Annual Emissions non-cogen no other",Annual_Em_group(name_type="l",list_groups=em_groups_noOT),14,6)
+  GGSave_Loc_custom(CaseName,"Annual Emissions non-cogen no other",Annual_Em_group(name_type="l",list_groups=em_groups_noOT),14,6)
   GGSave_Loc_custom(CaseName,"Annual Emissions Combined-Cycle",Annual_Em_group(name_type="l",list_groups=c("Natural Gas Combined Cycle + CCS", "Natural Gas Combined Cycle")),14,6)
   GGSave_Loc_custom(CaseName,"Annual Emissions Simple-Cycle and Coal-to-gas",Annual_Em_group(name_type="l",list_groups=c("Natural Gas Simple Cycle","Coal-to-Gas")),14,6)
   
   
   # STACKED AREAS
-  GGSave_Loc_custom(CaseName,"Annual Generation All Area2",Annual_Gen_group_area(name_type="l",list_groups=all_groups,nrg_include=FALSE),14,6)
+  GGSave_Loc_custom(CaseName,"Annual Generation All Area h2 right",Annual_Gen_group_area(name_type="l",list_groups=all_groups,nrg_include=FALSE),14,6)
   GGSave_Loc_custom(CaseName,"Annual Generation All Perc",Annual_Gen_group_perc(name_type="l",list_groups=all_groups_noStor,nrg_include=FALSE),14,6)
   GGSave_Loc_custom(CaseName,"Annual Capacity All Area",Annual_Cap_group_area(name_type="l",list_groups=all_groups,nrg_include=FALSE),14,6)
   GGSave_Loc_custom(CaseName,"Stacked Areas Grid",compare_cap_gen_em(name_type="l"),14,8)
@@ -772,7 +772,7 @@ GGSave_Loc_custom(CaseName,"Total Value Breakdown norm",AnnualValue_Cum_norm("l"
 ##  Copy/paste below
 ################################################################################
 GenText_Sz <-20
-
+  cOL_SCGT_H2<-"#9EC4FF"
   # plot of metrics (low quality)
   # SourceDB="Compare Plots"
   # windows(20,14)
