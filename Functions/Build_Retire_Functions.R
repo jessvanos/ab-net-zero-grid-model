@@ -812,7 +812,7 @@ Tot_Change %>%
     #axis.title.x = element_text(size = GenText_Sz+6),           # x-axis title text size
     axis.title.x = element_blank(),
     # Y-axis
-    axis.title.y = element_text(size = GenText_Sz+6),           # y-axis title text size
+    axis.title.y = element_text(size = GenText_Sz+6,family=Plot_Text_bf),           # y-axis title text size
     axis.text.y = element_text(color = "black"),
     # Legend
     legend.key.size = unit(1,"lines"),                     # Shrink legend boxes

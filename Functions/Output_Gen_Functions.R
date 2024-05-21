@@ -2457,7 +2457,8 @@ Week12_rCURTAIL <- function(year, month, day, case) {
     ## SELECT A SINGLE WEEK
     
     # Select only a single week from the zone Hourly, and Export data
-    WK <- WkTime(data,year,month,day)
+    WK <- WkTime(data,year,month,day) %>%
+      mutate(Output_GWH=Output_MWH/1000)
     ZPrice <- WkTime(ZoneHr_Avg,year,month,day) %>%
       filter(Run_ID == case)%>%
       group_by(date)%>%
@@ -2468,7 +2469,8 @@ Week12_rCURTAIL <- function(year, month, day, case) {
                 Demand_Expo=Demand+Exports,
                 Net_Load,
                 Marginal_Resource,
-                Demand_Side_Output)
+                Demand_Side_Output) %>%
+      mutate(Net_Demand_GWh=Net_Demand/1000)
     
     # # Set the max and min for the plot
     ZPrice2 <- ZoneHr_Avg %>%
@@ -2482,12 +2484,12 @@ Week12_rCURTAIL <- function(year, month, day, case) {
     # Get y-max, demand to meet + exports
     max_out <- data_all %>%
       group_by(date)%>%
-      summarise(max_OUTPUT = sum(Output_MWH[Output_MWH>0]),
-                min_OUTPUT =  sum(Output_MWH[Output_MWH<0]))
-    MX <- round_any(max(max_out$max_OUTPUT)+1100,1000,f=ceiling) 
+      summarise(max_OUTPUT = sum(Output_MWH[Output_MWH>0])/1000,
+                min_OUTPUT =  sum(Output_MWH[Output_MWH<0])/1000)
+    MX <- round_any(max(max_out$max_OUTPUT)+1,1,f=ceiling) 
 
     # Get y-min, based on exports
-    MN <- round_any(min(max_out$min_OUTPUT)-1100,1000,f=floor) 
+    MN <- round_any(min(max_out$min_OUTPUT)-1,1,f=floor) 
     
     Mtitle=month.abb[month]
     
@@ -2497,7 +2499,7 @@ Week12_rCURTAIL <- function(year, month, day, case) {
     ## PLOT WITH AREA PLOT
     
     ggplot() +
-      geom_area_pattern(data = na.omit(WK), aes(x = date, y = Output_MWH, fill = ID,pattern=ID),
+      geom_area_pattern(data = na.omit(WK), aes(x = date, y = Output_GWH, fill = ID,pattern=ID),
                         size=.25,color='black',
                         pattern_density = 0.3,
                         pattern_fill = "black",
@@ -2506,7 +2508,7 @@ Week12_rCURTAIL <- function(year, month, day, case) {
       
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
-                aes(x = date, y = Net_Demand,linetype="Demand"), size=1.25,color='black') +
+                aes(x = date, y = Net_Demand_GWh,linetype="Demand"), size=1.25,color='black') +
       geom_hline(yintercept =0,size=0.25)+
       
       # geom_line(data = ZPrice,
@@ -2518,7 +2520,7 @@ Week12_rCURTAIL <- function(year, month, day, case) {
       theme_bw() +
       theme(panel.grid = element_blank()) +
       
-      #theme(text=element_text(family=Plot_Text)) +
+      theme(text=element_text(family=Plot_Text)) +
       
       theme(plot.title = element_text(size= GenText_Sz)) +
       
@@ -2533,18 +2535,18 @@ Week12_rCURTAIL <- function(year, month, day, case) {
             legend.background = element_rect(fill='transparent',colour ='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
             #legend.key.size = unit(1,"lines"), #Shrink legend
-            legend.position = "bottom",
+            legend.position = "right",
             legend.spacing.y = unit(0.1, 'cm'),
             legend.key.size = unit(0.5, 'cm'),
             legend.text = element_text(size= GenText_Sz-2),
             text = element_text(size= GenText_Sz)
       )+
       
-      labs(x = "Date", y = "Output (MWh)", fill = "Resource", pattern ="Resource",colour = "Resource",title=Mtitle) +
+      labs(x = "Date", y = "Output (GWh)", fill = "Resource", pattern ="Resource",colour = "Resource",title=Mtitle) +
       
-      guides(fill = guide_legend(nrow = 2)) +
-      guides(color = guide_legend(nrow = 2)) +
-      guides(linetype = guide_legend(nrow = 2)) +
+      guides(fill = guide_legend(ncol = 1)) +
+      guides(color = guide_legend(ncol = 1)) +
+      guides(linetype = guide_legend(ncol = 1)) +
       
       #Add colour
       scale_fill_manual(values = col_plot) +
@@ -2553,8 +2555,7 @@ Week12_rCURTAIL <- function(year, month, day, case) {
       
       scale_y_continuous(expand=c(0,0), 
                          limits = c(MN,MX),
-                         breaks=seq(MN,MX,by=2000),
-                         labels=comma) 
+                         breaks=seq(MN,MX,by=2)) 
   }
   
 ################################################################################
@@ -2695,8 +2696,7 @@ Week12_rCURTAIL <- function(year, month, day, case) {
             legend.text = element_text(size= GenText_Sz-2),
             text = element_text(size= GenText_Sz)
       ) +
-      scale_y_continuous(expand=c(0,0), limits = c(MN,MX),breaks=seq(MN,MX,by=2),
-                         labels = function(x) sprintf("%.1f", x)) +
+      scale_y_continuous(expand=c(0,0), limits = c(MN,MX),breaks=seq(MN,MX,by=2)) +
       
       labs(x = "Date", y = "Output (GWh)", fill = "Resource", colour = "Resource",title=Mtitle) +
       
@@ -3307,32 +3307,37 @@ year_weeks_rCURTAIL <- function(year,case,type) {
 ################################################################################
   FourMonthSummary_rCurtail <- function(year,m1,m2,m3,m4,case) {
     
+    grouped_font <- 26
     
     # Gather weekly output data (Feb,May,Aug,Nov)
     p1 <- Week12_rCURTAIL(year,m1,08,case) +
-      theme(plot.title=element_text(face='bold',size=12),
-            axis.title.y=element_text(size=18),
+      theme(plot.title=element_text(family=Plot_Text_bf,size=grouped_font-6),
+            axis.title.y=element_text(size=grouped_font,family=Plot_Text_bf),
             axis.title.x=element_blank(),
+            text = element_text(size=grouped_font-6),
             legend.position = "bottom",) +
       guides(fill = guide_legend(nrow = 2)) +
       guides(linetype = guide_legend(nrow = 2))
     
     p2 <- Week12_rCURTAIL(year,m2,08,case) +
-      theme(plot.title=element_text(face='bold',size=12),
+      theme(plot.title=element_text(family=Plot_Text_bf,size=grouped_font-6),
             legend.position ="none",
             axis.title.y=element_blank(),
+            text = element_text(size=grouped_font-6),
             axis.title.x=element_blank())
     
     p3 <- Week12_rCURTAIL(year,m3,08,case) +
-      theme(plot.title=element_text(face='bold',size=12),
+      theme(plot.title=element_text(family=Plot_Text_bf,size=grouped_font-6),
             legend.position ="none",
             axis.title.y=element_blank(),
+            text = element_text(size=grouped_font-6),
             axis.title.x=element_blank())
     
     p4 <- Week12_rCURTAIL(year,m4,08,case) +
-      theme(plot.title=element_text(face='bold',size=12),
+      theme(plot.title=element_text(family=Plot_Text_bf,size=grouped_font-6),
             legend.position ="none",
             axis.title.y=element_blank(),
+            text = element_text(size=grouped_font-6),
             axis.title.x=element_blank())
     
     # Gather intertie info (Feb,May,Aug,Nov)
@@ -3372,13 +3377,15 @@ year_weeks_rCURTAIL <- function(year,case,type) {
     p9 <- week_price(year,m1,08,case) +
       theme(legend.position ="none",
             plot.caption=element_blank(),
-            axis.title.y=element_text(size=18),
+            text = element_text(size=grouped_font-6),
+            axis.title.y=element_text(size=grouped_font,family=Plot_Text_bf),
             axis.title.x=element_blank())+
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
     
     p10 <- week_price(year,m2,08,case) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
+            text = element_text(size=grouped_font-6),
             plot.caption=element_blank(),
             axis.title.x=element_blank())+
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
@@ -3386,6 +3393,7 @@ year_weeks_rCURTAIL <- function(year,case,type) {
     p11 <- week_price(year,m3,08,case) +
       theme(legend.position ="none",
             axis.title.y=element_blank(),
+            text = element_text(size=grouped_font-6),
             plot.caption=element_blank(),
             axis.title.x=element_blank())+
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
@@ -3393,6 +3401,7 @@ year_weeks_rCURTAIL <- function(year,case,type) {
     p12 <- week_price(year,m4,08,case) +
       theme(legend.position ="none",
             plot.caption=element_blank(),
+            text = element_text(size=grouped_font-6),
             axis.title.y=element_blank(),
             axis.title.x=element_blank())+
       scale_x_datetime(expand=c(0,0),date_labels = "%e", breaks = "day")
@@ -3402,12 +3411,12 @@ year_weeks_rCURTAIL <- function(year,case,type) {
     p1 <- p1 + theme(legend.position ="none")
     
     # Plot Labels
-    bottom <- textGrob("Day of Month", gp = gpar(fontsize = 18))
+    bottom <- textGrob("Day of Month", gp = gpar(fontsize = grouped_font,family=Plot_Text_bf))
     
     # Label the source and year
     xsubtitle <- ggplot() +
       annotate("text", x = 10,  y = 10,
-               size = 4,
+               size = grouped_font/5,
                label = paste("year:",year,", Database:",SourceDB)) + 
       theme_void()
     
