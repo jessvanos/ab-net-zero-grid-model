@@ -2499,20 +2499,36 @@ Evalyr_AESO <- function(YrMin,Sep_cogen) {
   YR <- YR%>%
     filter(YEAR >=YrMin,
            YEAR<=YrMax,
-           Plant_Type !="Storage")
+           Plant_Type !="Storage",
+           Gen_TWh>=0)
   
 
   #GenText_Sz<-56
   # Plot
   YR %>%
     ggplot() +
-    geom_area(aes(YEAR, Gen_TWh, fill = Plant_Type),alpha=1, size=.25, colour="black") +
+    geom_area_pattern(aes(YEAR, Gen_TWh, fill = Plant_Type,pattern=Plant_Type),alpha=1, size=.5, colour="black",
+                      pattern_density = 0.25,
+                      pattern_fill = "black",
+                      pattern_colour  = NA,
+                      pattern_spacing=0.016) +
     
     theme_bw() +
     
-    # Changes the font type
-    #theme(text=element_text(family=Plot_Text)) +             
+    labs(x = "Year", y = "Alberta Annual Generation (TWh)", fill = "Resource",pattern="Resource",caption = "Data from NRGStream") +
+
     
+    # Legend color scheme
+    
+    scale_fill_manual(values = c("Storage"='#cc79a7',"Solar"=cOL_SOLAR,"Wind"=cOL_WIND,"Hydro"=cOL_HYDRO,
+                                 "Biomass/Other"='#D2DFFF',"Natural Gas"='#A6A6A6', 
+                                 "Cogeneration"='#A6A6A6',#'#767171',
+                                 "Coal"='#515151',"Net Imports"='#252323')) +
+    
+    scale_pattern_manual(values = c("Storage"='none',"Solar"='none',"Wind"='none',"Hydro"='none',
+                                    "Biomass/Other"='none',"Natural Gas"='none', 
+                                    "Cogeneration"='stripe',"Coal"='none',"Net Imports"='none')) + 
+  
     theme(
       # General Plot Settings
       panel.grid = element_blank(),
@@ -2543,25 +2559,15 @@ Evalyr_AESO <- function(YrMin,Sep_cogen) {
     
     # Set axis scales
     scale_x_continuous(expand=c(0,0),limits = c(YrMin,2023),breaks=seq(YrMin, 2023, 2)) +
+    
     scale_y_continuous(expand=c(0,0),
                        limits = c(0,100),
-                       breaks=pretty_breaks(6)) +
+                       breaks=pretty_breaks(5))
     
     #guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
     # Plot labels
-    labs(x = "Year", y = "Alberta Annual Generation (TWh)", fill = "Resource",colour="Resource",caption = "Data from NRGStream") +
     
-    
-    # Legend color scheme
-    # scale_fill_manual(values = c("Storage"='#cc79a7',"Solar"="darkgoldenrod2","Wind"="#238b45","Hydro"="#4472C4",
-    #                              "Other"='#e6e6e6',"Natural Gas"='#A6A6A6', 
-    #                              "Cogeneration"='#767171',"Coal"='#515151',"Net Imports"='#252323'),
-    #                   drop = TRUE) 
-    # 
-  scale_fill_manual(values = c("Storage"='#cc79a7',"Solar"=cOL_SOLAR,"Wind"=cOL_WIND,"Hydro"=cOL_HYDRO,
-                               "Biomass/Other"='#D2DFFF',"Natural Gas"='#A6A6A6', 
-                               "Cogeneration"='#767171',"Coal"='#515151',"Net Imports"='#252323'),
-                    drop = TRUE,limits = force) 
+
   
   # ggsave(
   #   filename = here(paste("Figures (Local)/","Historical Gen",".png", sep = "")),
@@ -2722,7 +2728,7 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
              Year_fact = as.factor(Year))%>%
       group_by(Plant_Type,Year,Year_fact)%>%
       summarise(Cap=sum(Capacity)) %>%
-      mutate(Year_fact=if_else(Year == 2025,"2025 Expected",paste(Year_fact)))
+      mutate(Year_fact=if_else(Year == 2025,"2025 Under Construction",paste(Year_fact)))
       ymax<-16000
   } else{
     # Select only a single week
@@ -2733,15 +2739,15 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
              Year_fact = as.factor(Year))%>%
       group_by(Plant_Type,Year,Year_fact)%>%
       summarise(Cap=sum(Capacity))%>%
-      mutate(Year_fact=if_else(Year == 2025,"2025 Expected",paste(Year_fact)))
+      mutate(Year_fact=if_else(Year == 2025,"2025 Under Construction",paste(Year_fact)))
     ymax<-10000
     
   }
   
   {
-    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Natural Gas", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Coal", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Cogeneration", after = Inf)
+    YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Natural Gas", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Hydro", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Other", after = Inf)
     YR$Plant_Type<-fct_relevel(YR$Plant_Type, "Hydro & Other", after = Inf)
@@ -2756,9 +2762,16 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
   #                  "2021"='#e6e6e6',"2022"='#4472C4',
   #                  "2023"='#238b45',"2024"='darkgoldenrod2',"2025 Expected"='#cc79a7')
   
-  cols_choice <- c("2017"='#252323',"2018"="#515151","2019"="#767171","2020"="#A6A6A6",
-                   "2021"='#e6e6e6',"2022"='#203764',
-                   "2023"='#305496',"2024"='#4472C4',"2025 Expected"='#8EA9DB')
+  # cols_choice <- c("2017"='#252323',"2018"="#515151","2019"="#767171","2020"="#A6A6A6",
+  #                  "2021"='#e6e6e6',"2022"='#203764',
+  #                  "2023"='#305496',"2024"='#4472C4',"2025 Under Construction"='#8EA9DB')
+  
+  # Set colors and patterns with string wrap
+  cols_choice <- setNames(c('#252323', '#515151', '#767171', '#A6A6A6', '#e6e6e6', '#203764', '#305496', '#4472C4', '#8EA9DB'), 
+                              c("2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025 Under Construction"))
+  
+  patterns_choice <- setNames(c('none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'stripe'), 
+                       c("2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025 Under Construction"))
   
   # Plot
   YR %>%
@@ -2793,10 +2806,12 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
       axis.text.y = element_text(colour = "black"),                 # Horizontal text
       
       # Legend
-      legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
-      legend.position = c(0.92,0.86),                            # Move legend to the bottom
+      #legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+      legend.key.width = unit(1, "lines"),
+      legend.key.height = unit(1, "lines"),
+      legend.position = c(0.87,0.86),                            # Move legend to the bottom
       legend.background = element_rect(fill = "transparent"),
-      legend.text = element_text(size =GenText_Sz-4),              # Size of legend text
+      legend.text = element_text(size =GenText_Sz-6, lineheight = 0.8),              # Size of legend text
       legend.title=element_blank()) +                        # Remove legend title
     
     # Set axis scales
@@ -2812,13 +2827,10 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
     guides(fill = guide_legend(ncol = 1)) +
     guides(pattern = guide_legend(ncol = 1)) +
   
-    scale_pattern_manual(values = c("2017"='none',"2018"="none","2019"="none","2020"="none",
-                                    "2021"='none',"2022"='none', 
-                                    "2023"='none',"2024"='none',"2025 Expected"='stripe'),drop = FALSE) +
+    scale_pattern_manual(values = patterns_choice,drop = FALSE) +
   
     # Legend color scheme
-    scale_fill_manual(values = cols_choice,
-                      drop = FALSE) 
+    scale_fill_manual(values = cols_choice,drop = FALSE) 
     
   
   # ggsave(
@@ -2889,3 +2901,126 @@ Resource_Ridge_AESO <- function(RType,MinYr) {
     
     scale_x_continuous(expand=c(0,0),limits = c(0,PMax),breaks=seq(0, PMax, by=0.2),labels = percent) 
 }
+
+################################################################################  
+## FUNCTION: Eval_gas_AESO 
+## TEXT - DELETE LATER
+##
+################################################################################
+
+Eval_gas_AESO <- function(inputdata,short_names=FALSE) {
+  
+Gas_stats <- melt(inputdata, id="Year") %>%
+    rename("Plant_Type"=variable,
+           "total_gen"=value) %>%
+    mutate(Plant_Type = as.factor(Plant_Type))
+  
+
+Gas_stats$Plant_Type <- factor(Gas_stats$Plant_Type, levels=c("Gas Fired Steam","Dual Fuel",
+                                                              "NGSC","NGCC","Cogen",
+                                                              "NGSC BTF","NGCC BTF","Cogen BTF"
+                                                              ))
+
+if (short_names == FALSE ){
+  new_names <- c("Cogeneration"="Cogen",
+                 "Cogeneration (BTF)"="Cogen BTF",
+                 "Simple-Cycle Natural Gas"="NGSC",
+                 "Combined-Cycle Natural Gas"="NGCC",
+                 "Combined-Cycle Natural Gas (BTF)"="NGCC BTF",
+                 "Simple-Cycle Natural Gas (BTF)"="NGSC BTF"
+                 )
+  Gas_stats$Plant_Type <- fct_recode(Gas_stats$Plant_Type, !!!new_names)
+  
+  Col_gas_types <- c("Dual Fuel"='#e6e6e6',"Gas Fired Steam"="#2F2D41",
+                     "Simple-Cycle Natural Gas"='#b4AEFC',"Combined-Cycle Natural Gas"="#515151",
+                     "Cogeneration"='#A6A6A6',
+                     "Simple-Cycle Natural Gas (BTF)"='#b4AEFC',"Combined-Cycle Natural Gas (BTF)"="#515151",
+                     "Cogeneration (BTF)"='#A6A6A6')
+  
+  pat_gas_types <-c("Dual Fuel"='none',"Gas Fired Steam"='none',
+                    "Simple-Cycle Natural Gas"='none',"Combined-Cycle Natural Gas"='none',
+                    "Cogeneration"='none',
+                    "Simple-Cycle Natural Gas (BTF)"='stripe',"Combined-Cycle Natural Gas (BTF)"='stripe',
+                    "Cogeneration (BTF)"='stripe')
+  }else{
+    new_names <- c("Cogen (BTF)"="Cogen BTF",
+                   "NGCC (BTF)"="NGCC BTF",
+                   "NGSC (BTF)"="NGSC BTF"
+    )
+    Gas_stats$Plant_Type <- fct_recode(Gas_stats$Plant_Type, !!!new_names)
+    
+    Col_gas_types <- c("Dual Fuel"='#e6e6e6',"Gas Fired Steam"="#2F2D41",
+                       "NGSC"='#b4AEFC',"NGCC"="#515151",
+                       "Cogen"='#A6A6A6',
+                       "NGSC (BTF)"='#b4AEFC',"NGCC (BTF)"="#515151",
+                       "Cogen (BTF)"='#A6A6A6')
+    
+    
+    pat_gas_types <-c("Dual Fuel"='none',"Gas Fired Steam"='none',
+                      "NGSC"='none',"NGCC"='none',
+                      "Cogen"='none',
+                      "NGSC (BTF)"='stripe',"NGCC (BTF)"='stripe',
+                      "Cogen (BTF)"='stripe')
+  }
+
+
+# Plot
+Gas_stats %>%
+    ggplot() +
+    geom_area_pattern(aes(Year, total_gen, fill = Plant_Type,pattern=Plant_Type),alpha=1, size=.5, colour="black",
+                      pattern_density = 0.25,
+                      pattern_fill = "black",
+                      pattern_colour  = NA,
+                      pattern_spacing=0.016) +
+    
+    theme_bw() +
+    
+    labs(x = "Year", y = "Alberta Annual Gas Generation (TWh)", fill = "Resource",pattern="Resource",
+         caption = "Data from AESO's Annual Market Statistics Report") +
+    
+    
+    # Legend color scheme
+    
+    scale_fill_manual(values = Col_gas_types) +
+    
+    scale_pattern_manual(values = pat_gas_types) + 
+    
+    theme(
+      # General Plot Settings
+      panel.grid = element_blank(),
+      # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
+      plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+      panel.background = element_blank(), # Transparent background
+      # panel.border = element_blank(),
+      text = element_text(size = GenText_Sz,family=Plot_Text),                # Text size
+      plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
+      axis.line.y = element_line(),
+      axis.line.x = element_line(),
+      plot.caption = element_text(hjust = 1,size = GenText_Sz-12,family=Plot_Text_it),             # Plot subtitle size (if present)
+      
+      # X-axis
+      axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
+      #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
+      axis.title.x = element_blank(),
+      # Y-axis
+      axis.title.y = element_text(size = GenText_Sz+6,family=Plot_Text_bf),           # y-axis title text size
+      axis.text.y = element_text(colour = "black"),                 # Horizontal text
+      
+      # Legend
+      legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
+      legend.position = "right",                            # Move legend to the bottom
+      legend.justification = c(0.5,0.5),                     # Center the legend
+      legend.text = element_text(size =GenText_Sz-6),              # Size of legend text
+      legend.title=element_blank()) +                        # Remove legend title
+    
+    # Set axis scales
+    scale_x_continuous(expand=c(0,0),limits = c(2015,2023),breaks=seq(2015, 2023, 1)) +
+    
+    scale_y_continuous(expand=c(0,0),
+                       limits = c(0,70),
+                       breaks=pretty_breaks(7))
+  
+
+  
+}
+
