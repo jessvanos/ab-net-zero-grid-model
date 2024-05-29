@@ -25,10 +25,22 @@
   # Packages required
   packs_to_load = c("terra","sf","ggplot2","ggpubr","cowplot","tidyverse","dplyr",
                     "lubridate","readxl","colorRamps","scales",'raster',
-                    "ggmap","sp","geodata",'ggspatial','dplyr','nasapower','grid','gridExtra')
+                    "ggmap","sp","geodata",'ggspatial','dplyr','nasapower','grid','gridExtra','showtext')
   # Function to check for packages, install if not present, and load
   packs_check(packs_to_load)
   
+}
+
+{
+  font_add(family="Times",regular="times.ttf")
+  font_add(family="times_bf", regular = "timesbd.ttf")
+  font_add("times_it", regular = "/path/to/your/fonts/timesi.ttf")  
+  
+  Plot_Text <- "Times"
+  Plot_Text_bf <- "times_bf"
+  Plot_Text_it <- "times_it"
+  
+  GenTextSz <-12
 }
 
 ################################################################################
@@ -42,6 +54,8 @@
   colnames(wind_profile) <- c('Latitude', 'Longitude', 'Wind')
   
   wind_Aurora <- read_excel(here("Data Files","Wind Data","Aurora_Wind.xlsx"))
+  
+  solar_Aurora <- read_excel(here("Data Files","Wind Data","Aurora_Solar.xlsx"))
   
   # New options
   new_prj <- wind_Aurora %>%
@@ -126,7 +140,7 @@
 
 # Filter the data
 wind_active <- existing_prj %>%
-    mutate(Type = if_else(Status == "Queue","Expected",
+    mutate(Type = if_else(Status == "Queue","Under Construction",
                           if_else(Status == "Active",Status,"Other")))
 
 # Plot
@@ -136,38 +150,48 @@ Exist_WindMap<-  ggplot()+
   geom_sf(data = AB_sf1, 
           aes(group = NAME_1), 
           fill = "transparent", colour = "black") +
-  scale_fill_gradientn(colors =  colorspace::diverging_hcl(100,"Blue-yellow 2"),
-                       limits=c(2.5,10.5),oob=squish, 
-                       breaks=seq(2,10,by=2),
-                       name = "Mean annual\nwind speed \nat 80m height \n(m/s)"
-  ) +
-  geom_point(data = city_data, aes(x = lon, y = lat), color = "black", size = 0.5) +
-  geom_text(data = city_data, aes(x = lon, y = lat, label = city), vjust = -0.5,size=2) +
+  scale_fill_gradientn(#colours = colorspace::rainbow_hcl(100),
+                        #colours = colorspace::diverging_hcl(100,"Cork"),
+                        #colours = colorspace::sequential_hcl(100,"Mako"),
+                        colours = matlab.like(100),
+                        # colors =  colorspace::diverging_hcl(100,"Blue-yellow 2"),
+                        limits=c(3,11),oob=squish, 
+                        breaks=c(3,5,7,9,11),
+                        labels=c("<3"," 5"," 7"," 9","<11"),
+                        name = "Wind speed at\n 80m height (m/s)") +
   geom_point(data = wind_active,
-             aes(x= Longitude, y = Latitude, size = Capacity, color = Type), 
-             shape = 16) +#, color = "black") +
-  geom_point(data = wind_active,
-             aes(x= Longitude, y = Latitude, size = Capacity),colour="black",
-             shape=1) + 
-  scale_color_manual("Installation Date",
-                     values = c("Expected"='#e6e6e6',"Active"= '#767171')) +
-  guides(color = guide_legend(override.aes = list(size = 5), order = 1),
-         size = guide_legend(order = 2),
-         #fill = guide_legend(keyheight = unit(0.5,'cm'),
-         #                    reverse = TRUE)
+             aes(x= Longitude, y = Latitude, shape = Type, 
+                 #color = Type
+                 ), 
+             size = 1.5, color = '#767171') +
+  scale_shape_manual("Wind Farms",
+                     values = c("Under Construction"=15,
+                                "Active"=17)) +
+  # scale_color_manual("Wind Farms",
+  #                    values = c("Under Construction"='#767171',"Active"= '#767171')) +
+  
+  geom_point(data = city_data, aes(x = lon, y = lat), color = "black", size = 1,shape=18) +
+  geom_text(data = city_data, aes(x = lon, y = lat, label = city), vjust = -0.5,size=3) +
+  
+  guides(
+    shape = guide_legend(order = 1),
+    fill = guide_colorbar(order = 2)
   ) +
-  ggtitle("Current Wind Farms") +
+  
+  ggtitle("Mean Annual Wind Speeds") +
   theme(panel.background = element_rect(fill = "transparent"),
+        text = element_text(size=GenTextSz),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
+        axis.line = element_blank(),
         axis.title = element_blank(),
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         plot.background = element_rect(fill = "transparent", color = NA),
-        plot.title = element_text(size=16, hjust = 0.5, vjust=-5),
+        plot.title = element_text(hjust = 0.5),
         #legend.key.height = (unit(2,'cm')),
-        legend.text = element_text(size=14),
-        legend.title = element_text(size=14),
+        legend.text = element_text(),
+        legend.title = element_text(),
         legend.background = element_rect(fill = "transparent"),
         legend.key=element_rect(fill = "transparent"),
         rect = element_rect(fill="transparent")) 
@@ -356,6 +380,11 @@ All_WindMap <- ggplot() +
     rename(Ann_Rad = "Annual.Solar.Radiation.1971.2000") %>%
     filter(!is.na(Ann_Rad))
 
+  # Filter the data
+  solar_active <- solar_Aurora  %>%
+    mutate(Type = if_else(Status == "Queue","Under Construction",
+                          if_else(Status == "Active",Status,"Other")))
+  
   # Plot with ggplot2
   solar_map <-ggplot() + 
     geom_raster(data = solar_df, 
@@ -371,9 +400,12 @@ All_WindMap <- ggplot() +
                          breaks=c(3500,4000,4500,5000,5500),
                          name = expression(atop("Solar Radiation",paste("(MJ/m"^2,")"))),
                          labels=c("<3500"," 4000"," 4500"," 5000","<5500")) +
+
+    # scale_color_manual("Solar Farms",
+    #                    values = c("Under Construction"='#767171',"Active"= '#767171')) +
     
-    geom_point(data = city_data, aes(x = lon, y = lat), color = "black", size = 0.5) +
-    geom_text(data = city_data, aes(x = lon, y = lat, label = city), vjust = -0.5,size=2) +
+    geom_point(data = city_data, aes(x = lon, y = lat), color = "black", size = 1) +
+    geom_text(data = city_data, aes(x = lon, y = lat, label = city), vjust = -0.5,size=3) +
   
     
     theme(panel.background = element_rect(fill = "transparent"),
@@ -392,15 +424,69 @@ All_WindMap <- ggplot() +
           legend.title = element_text()) +
     labs(title="Annual Solar Radiation")
   
+  # Plot with ggplot2
+  solar_map_exist <-ggplot() + 
+    geom_raster(data = solar_df, 
+                aes(x = x, y = y, fill = Ann_Rad)) +
+    geom_sf(data = AB_sf1, 
+            aes(group = NAME_1), 
+            fill = "transparent", colour = "black") +
+    # https://colorspace.r-forge.r-project.org/reference/rainbow_hcl.html
+    scale_fill_gradientn(#colours = matlab.like(100),
+      #colours = colorspace::diverging_hcl(100,"Vik"),
+      colours = colorspace::sequential_hcl(100,"Lajolla"),
+      limits=c(3500,5500),oob=squish, 
+      breaks=c(3500,4000,4500,5000,5500),
+      name = expression("Solar Radiation (MJ/m"^2*")"),
+      labels=c("<3500"," 4000"," 4500"," 5000","<5500")) +
+    
+    geom_point(data = solar_active,
+               aes(x= Longitude, y = Latitude, shape = Type, 
+                   #color = Type
+               ), 
+               size = 1.5,color='#767171') +
+    scale_shape_manual("Solar Farms",
+                       values = c("Under Construction"=15,
+                                  "Active"=17)) +
+    # scale_color_manual("Solar Farms",
+    #                    values = c("Under Construction"='#767171',"Active"= '#767171')) +
+    
+    geom_point(data = city_data, aes(x = lon, y = lat), color = "black", size = 1,shape=18) +
+    geom_text(data = city_data, aes(x = lon, y = lat, label = city), vjust = -0.5,size=3) +
+    
+    
+    theme(panel.background = element_rect(fill = "transparent"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          axis.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          legend.background = element_rect(fill = "transparent"),
+          #legend.key.height = unit(2,'cm'),
+          legend.box.background = element_rect(fill = "transparent", color = "transparent"),
+          legend.text = element_text(),
+          plot.title = element_text(hjust=0.5),
+          text = element_text(size=GenTextSz),
+          legend.title = element_text(hjust = 0)) +
+    labs(title="Annual Solar Radiation")
+  
+  
 ################################################################################
 # SAVE EM!
 ################################################################################
 
   combine_map <- plot_grid(wind_map,solar_map, ncol=2, align="hv", axis = "t", rel_heights = c(1,1))
+  combine_map_prj <- plot_grid(Exist_WindMap,solar_map_exist, ncol=2, align="hv", axis = "t", rel_heights = c(1,1))
+  
+ # + theme_set(theme_cowplot(font_size=8))
   
   plot(combine_map)
   
   GGSave_Loc_custom("Wind Maps","Wind and Solar Resource4",combine_map,12,14)
+  
+  GGSave_Loc_custom("Wind Maps","Wind and Solar Resource with projs",combine_map_prj,12,14)
   
   GGSave_Loc_custom("Wind Maps","New Wind Options Update",Aurora_WindMap,8,12)
   
