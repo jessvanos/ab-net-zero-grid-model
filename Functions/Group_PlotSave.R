@@ -559,7 +559,7 @@ Detail_Gen_save <- function(CaseName) {
 
 ################################################################################
 # Ren_Curtail_Gen_save
-# Save detailed year of weeks and daily generation plots.
+# Save detailed year of weeks and daily generation plots with curtailment.
 ################################################################################
 Ren_Curtail_Gen_save <- function(CaseName) {
   

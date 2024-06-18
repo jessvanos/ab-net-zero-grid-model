@@ -2093,3 +2093,86 @@ data <- ResGroupYr %>%
   filter(Run_ID == case & Condition == "Average") %>%
   select(ID, Time_Period,Output_MWH,Capacity) %>%
   sim_filtg(.)
+
+################################################################################
+## FUNCTION: ResGrouphr_Renew8760
+## Saves all plots to a new folder names after case
+##
+## INPUTS: 
+##    CaseName - name for folder. Enter as "folder"
+##    FileName - Name for image. Enter as "name"
+################################################################################
+#NEEDS WORK
+ResGrouphr_Renew8760 <- function() {
+  
+  # Years to get 
+  years_in <-as.list(seq(2023, MaxYrStudy))
+  
+  # Bring in sim data & filter years
+  Res_Data <- ResGroupHr %>%
+    filter(ID %in% c("LTO_Wind","LTO_Solar"),
+           Condition=="Average",
+           Run_ID == case,
+           Report_Year %in% years_in) %>%
+    rename(CF=Capacity_Factor)%>%
+    subset(.,select=c(date,Output,Capacity,CF,Forced_Outage)) %>%
+    mutate(Year_f=as.numeric(year(date)),
+           Month_f=as.numeric(month(date)),
+           Day_f=as.numeric(day(date)),
+           Hour_f=as.numeric(hour(date)),
+           Wday_f=as.numeric(wday(date)),
+           date=as.POSIXct(date,tz="MST"))
+  Res_Data[is.na(Res_Data)] <- 0
+  
+  
+  # Days already done (to save computational time)
+  day_Aurora <- as.list(unique(Res_Data$Day_f))
+  day_seq <- as.list(1:31)
+  day_seq <- day_seq[!day_seq %in% day_Aurora]
+  
+  
+  # Fill missing dates, set up all dates needed
+  ts <- seq.POSIXt(as.POSIXct(paste(2023,"-01-01 0:00", sep = ""), tz = "MST"), as.POSIXct(paste(MaxYrStudy,"-12-31 23:00", sep = ""), tz = "MST"), by="hour")
+  
+  # Create df
+  df_time <- data.frame(date=ts) 
+  
+  # Extend data, prepare to fill
+  Res_Data_all <- full_join(Res_Data,df_time)  %>%
+    mutate(Year_f=as.numeric(year(date)),
+           Month_f=as.numeric(month(date)),
+           Day_f=as.numeric(day(date)),
+           Hour_f=as.numeric(hour(date)),
+           Wday_f=as.numeric(wday(date)))
+  
+  # Loop over each hour to fill data. Assume days are representative other other days
+  for (y in years_in){
+    for (m in 1:12){
+      for (d in day_seq){
+        # Check to see if day exists. If TRUE, the day exists
+        if (any(Res_Data_all$Day_f[Res_Data_all$Year_f == y & Res_Data_all$Month_f == m & Res_Data_all$Day_f == d] >0) == TRUE) {
+          
+          # Get day of week to find
+          wday_match = as.numeric(wday(paste(y,m,d,sep="-")))
+          
+          for (h in 0:23){
+            # Get actual data for weekday and hour
+            act_CF <-Res_Data$CF[Res_Data$Year_f == y & Res_Data$Month_f == m & Res_Data$Hour_f == h & Res_Data$Wday_f == wday_match]
+            act_Out <-Res_Data$Output[Res_Data$Year_f == y & Res_Data$Month_f == m & Res_Data$Hour_f == h & Res_Data$Wday_f == wday_match]
+            act_Cap <-Res_Data$Capacity[Res_Data$Year_f == y & Res_Data$Month_f == m & Res_Data$Hour_f == h & Res_Data$Wday_f == wday_match]
+            act_FOR <-Res_Data$Forced_Outage[Res_Data$Year_f == y & Res_Data$Month_f == m & Res_Data$Hour_f == h & Res_Data$Wday_f == wday_match]
+            
+            # Replace in the 8760 data
+            Res_Data_all$CF[Res_Data_all$Year_f == y & Res_Data_all$Month_f == m & Res_Data_all$Day_f == d & Res_Data_all$Hour_f == h]<-act_CF
+            Res_Data_all$Output[Res_Data_all$Year_f == y & Res_Data_all$Month_f == m & Res_Data_all$Day_f == d & Res_Data_all$Hour_f == h]<-act_Out
+            Res_Data_all$Capacity[Res_Data_all$Year_f == y & Res_Data_all$Month_f == m & Res_Data_all$Day_f == d & Res_Data_all$Hour_f == h]<-act_Cap
+            Res_Data_all$Forced_Outage[Res_Data_all$Year_f == y & Res_Data_all$Month_f == m & Res_Data_all$Day_f == d & Res_Data_all$Hour_f == h]<-act_FOR
+          }
+        }
+      }
+    }
+  }
+  
+  return(Res_Data_all)
+  
+}
