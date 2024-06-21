@@ -54,12 +54,13 @@
   ScenarioName2<-"CER_02Apr"
   
   # Define list of cases here (if more than 2)
+  # list_scenarios<-c('CP_04Apr','CER_02Apr','EL_06Apr')
   # list_scenarios<-c('CP_04Apr','CER_02Apr','EL_06Apr','CP_noITC_07Apr','CER_noITC_08Apr',
   #                       'TIER2050_18Apr','TIER2035_11Apr','CP_noEPC_10Apr','CP_50EPCs_22Apr',
   #                           'CP_30EPCs_04May','CP_70EPCs_07May','CP_noCCS_03May')
   
   # This is the name for the new combined R files and excel sheet. Adds compare to name automatically!
-  CScenarioName <-"CP_CER_2"
+  CScenarioName <-"Example_compare"
 }
 
 ################################################################################
@@ -70,7 +71,7 @@
   CombineFilesR(ScenarioName1,ScenarioName2,CScenarioName)
 
   # Combine multiple scenarios
-  CombineFilesR_multiple(list_scenarios_EC,CScenarioName)
+  CombineFilesR_multiple(list_scenarios,CScenarioName)
   
 ################################################################################
 ## READ R FILES WITH SCENARIO DATA (AFTER COMBINE) AND PLOT
