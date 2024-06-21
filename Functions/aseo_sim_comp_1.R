@@ -1,15 +1,20 @@
 ################################################################################
 # TITLE: aeso_sim_comp_1
 # DESCRIPTION: Functions To used to compare simulation data with other data.
-
-# ORIGINAL AUTHOR: Taylor Pawlenchuk (Retrieved June 7, 2022)
+#
+# AUTHOR: 
+#   Codes adapted from Taylor Pawlenchuk include name in header block, 
+#   modified since retrieval
+#   If not specific, code is by Jessica Van Os
+#
 # EDITS & ADDITIONAL CONTENT: Jessica Van Os
-# LAST EDIT: June 14, 2022
+# LAST EDIT: June 17, 2024
 
 ################################################################################
 ################################################################################
 ## FUNCTIONS: AESO_SimOP
 ## Plot comparison between actual and simulated data
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year, month, day - Date to plot, the week will start on the day chosen
@@ -92,6 +97,7 @@ AESO_SimOP <- function(year,month,day,case) {
 ################################################################################
 ## FUNCTIONS: AESO_SimP
 ## Plot comparison between actual and simulated data price for 1 week
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year, month, day - Date to plot, the week will start on the day chosen
@@ -173,6 +179,7 @@ AESO_SimP <- function(year,month,day,case) {
 ################################################################################
 ## FUNCTIONS: AESO_SimP
 ## Plot comparison between actual and simulated data price for 1 week
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year, month, day - Date to plot, the week will start on the day chosen
@@ -256,6 +263,7 @@ AESO_SimP2 <- function(year,case) {
 ################################################################################
 ## FUNCTIONS: AESO_SimO
 ## Plot comparison between actual and simulated data
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year, month, day - Date to plot, the week will start on the day chosen
@@ -313,100 +321,9 @@ AESO_SimO <- function(year,month,day,case) {
 }
 
 ################################################################################
-## FUNCTIONS: rev_dur **NOT READ
-## Plot difference between simulated and actual pool price
-##
-## INPUTS:
-##    year1 and year2 - Years to compare
-##    type - Plant type, ex: "WIND"
-##    case - Run_ID which you want to plot
-################################################################################
-
-rev_dur <- function(year1, year2, type, case) {
-  # Plots revenue duration plot by plant type, comparing simulated and AESO
-  
-  totZone <- ZoneHr_All%>%
-    filter(Report_Year >= year1 & 
-             Report_Year <= year2,
-           Run_ID == case, 
-           Condition != "Average") %>%
-    subset(.,select=c(date,Condition,Price))
-  
-  typeH <- ResGroupHr_sub%>%
-    sim_filt1(.) %>%
-    filter(Report_Year >= year1 & 
-             Report_Year <= year2,
-           ID == type,
-           Run_ID == case) 
-  
-  data1 <- left_join(totZone, typeH, by=c("date")) 
-  
-  totSim <- data1 %>%
-    group_by(Condition, Report_Year) %>%
-    mutate(Revenue = Price*Output_MWH/1000, perc = 1-ecdf(Revenue)(Revenue)) %>%
-    select(Condition, Report_Year, Revenue, perc) %>%
-    rename(Year = Report_Year) %>%
-    ungroup() %>%
-    mutate(sit = "Simulated")
-  
-  #  totSim$Report_Year <- as.factor(totSim$Report_Year)
-  
-  Actual <- na.omit(sub_samp)
-  Actual$Year <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%Y")
-  Actual$Hour <- format(as.POSIXct(Actual$time, format = "%Y/%m/%d %H:%M:%S"), "%H")
-  
-  totAct <- Actual %>%
-    filter(Year >= year1, 
-           Year <= year2,
-           Plant_Type == type) %>%
-    mutate(Condition = if_else(between(Hour, 08, 23), 
-                               "On-Peak WECC", "Off-Peak WECC"),
-           Revenue = Revenue/1000) %>%
-    group_by(Year, Condition) %>%
-    mutate(perc = 1-ecdf(Revenue)(Revenue)) %>%
-    select(Condition, Year, Revenue, perc) %>%
-    ungroup() %>%
-    mutate(sit = "Actual")
-  
-  total <- rbind(totSim, totAct)
-  sz <- 15
-  
-  ggplot() +
-    geom_line(data = total, 
-              aes(x = perc, y = Revenue, colour = Year, linetype = sit), size = 1) +
-    facet_grid(cols = vars(Condition)) +
-    theme_bw() +
-    theme(axis.text = element_text(size = sz),
-          axis.title = element_text(size = sz),
-          plot.title = element_text(size = sz+2),
-          legend.text = element_text(size = sz),
-          panel.grid = element_blank(),
-          legend.title = element_blank(),
-          panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.spacing = unit(1.5, "lines"),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.key = element_rect(colour = "transparent", fill = "transparent"),
-          legend.background = element_rect(fill='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-    ) +
-    labs(y = "Revenue ($ in thousands)", 
-         x = "Percentage of Time", 
-         title = paste("AESO ", type, "Data vs Simulation"),
-         subtitle = SourceDB) +
-    scale_color_manual(values = c("goldenrod1", "forestgreen", "cornflowerblue",
-                                  "firebrick","gray60")) +
-    scale_x_continuous(expand=c(0,0), 
-                       limits = c(0,1.1),
-                       labels = percent) +
-    scale_y_continuous(expand=c(0,0)
-    )
-}
-
-################################################################################
 ## FUNCTIONS: year_comp 
 ## Plots the difference in Pool Price between AESO and Sim
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year- Year to compare
@@ -460,6 +377,7 @@ year_comp <- function(year,case) {
 ################################################################################
 ## FUNCTIONS: year_dif 
 ## Bar plot showing the difference between AESO and Sim
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year- Year to compare
@@ -522,6 +440,7 @@ year_dif <- function(year,case) {
 ################################################################################
 ## FUNCTIONS: year_avg 
 ## Bar chart comparing monthly average pool prices
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year- Year to compare
@@ -586,6 +505,7 @@ year_avg <- function(year,case) {
 ## FUNCTIONS: year_pool 
 ## A function to plot the Monthly average pool price 
 ## (Like in the AESO Market Report 2021 Figure 1)
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year1. year2 - Year to compare
@@ -704,6 +624,7 @@ year_pool <- function(year1, year2,case) {
 ## FUNCTIONS: comp_dur
 ## Plots the Pool Price duration vs percentile for AESO and Sim
 ## Like AESO Market Report 2021 Figures 2 and 3
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year1. year2 - Year to compare
@@ -790,6 +711,7 @@ comp_dur <- function(year1, year2, case) {
 ## FUNCTIONS: load_dur
 ## Plots the load duration vs percentile for AESO and Sim
 ## Like AESO Market Report 2021 Figures 7 and 8
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year1. year2 - Year to compare
@@ -878,6 +800,7 @@ load_dur <- function(year1, year2, case) {
 ## FUNCTIONS: tech_cap 
 ## Plots the capacity factor by technology for AESO and Sim
 ## Like AESO Market Report 2021 Figure 15
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS:
 ##    year1. year2 - Year to compare
@@ -968,197 +891,6 @@ tech_cap <- function(yearstart, yearend, case) {
                        limits = c(0,1),
                        breaks = seq(0,1, by = 0.2)
     )
-}
-
-################################################################################
-## FUNCTIONS: margin **Not read
-## Plots the marginal price-setting technology for AESO and Sim
-## Like AESO Market Report 2021 Figure 19
-##
-## INPUTS:
-##    year1. year2 - Year to compare
-##    case - Run_ID which you want to plot
-################################################################################
-
-margin <- function(year1, year2, case) {
-
-    totZone <- ZoneHr_All%>%
-    filter(Report_Year >= year1 & 
-             Report_Year <= year2,
-           Run_ID == case, 
-           Condition != "Average") %>%
-    mutate(Name = Marginal_Resource) %>%
-    subset(.,select=c(date,Name,Price))
-  
-  totHour <- ResHr%>%
-    filter(Report_Year >= year1 & 
-             Report_Year <= year2,
-           Run_ID == case) %>%
-    subset(.,select=c(date,Name,Dispatch_Cost,Incr_Cost,Primary_Fuel,Percent_Marginal,Zone))
-  
-  data1 <- left_join(totZone, totHour, by=c("date","Name")) 
-  
-  data1 <- data1 %>%
-    group_by(Name, Report_Year) %>%
-    mutate(perc = 1-ecdf(Price)(Price)) %>%
-    
-    Act <- merit_filt %>%
-    filter(dispatched_mw != 0) %>%
-    group_by(date, he) %>%
-    slice_max(n=1,merit)
-}
-
-
-################################################################################
-## FUNCTIONS: tot_cap **Not read
-## Plots the year-end capacity by technology for AESO and Sim
-## Like AESO Market Report 2021 Figure 11
-##
-## INPUTS:
-##    year1. year2 - Year to compare
-##    case - Run_ID which you want to plot
-################################################################################
-
-tot_cap <- function(year1, year2, case) {
-
-  
-  Act <- sub_samp %>%
-    filter(! NRG_Stream %in% trade_excl,
-           year(time) >= year1,
-           year(time) <= year2,
-           month(time) == 12,
-           day(time) == 31,
-           hour(time) == 23,
-           #           Plant_Type != "STORAGE"
-    ) %>%
-    group_by(time, Plant_Type) %>%
-    summarise(Cap = sum(Capacity)) %>%
-    #    subset(., select=c(time, Cap, perc)) %>%
-    mutate(sit = "Actual", Year = as.factor(year(time))) %>%
-    subset(., select=c(Year, Plant_Type, Cap, sit))
-  
-  Act <- na.omit(Act)
-  
-  Act$Plant_Type<-fct_relevel(Act$Plant_Type, "HYDRO",after=Inf)
-  Act$Plant_Type<-fct_relevel(Act$Plant_Type, "WIND",after=Inf)
-  Act$Plant_Type<-fct_relevel(Act$Plant_Type, "SOLAR",after=Inf)
-  Act$Plant_Type<-fct_relevel(Act$Plant_Type, "OTHER",after=Inf)
-  Act$Plant_Type<-fct_relevel(Act$Plant_Type, "STORAGE",after=Inf)
-  
-  Sim <- ResGroupHr%>%
-    filter(Run_ID == case,
-           Report_Month == 12,
-           Report_Day == 31,
-           Report_Hour == 24,
-           ID == "LTO_Coal" | ID == "AB_CCCT_noncogen" | ID == "LTO_Cogen" | 
-             ID == "AB_SCCT_noncogen" | ID == "LTO_Hydro" | ID == "LTO_Other" | 
-             ID == "LTO_Wind" | ID == "LTO_Solar") %>%
-    group_by(Report_Year, ID) %>%
-    subset(., select=c(Report_Year, ID, Capacity)) %>%
-    #    summarise(Cap = mean(Capacity_Factor)) %>%
-    mutate(sit = "Simulation")
-  
-  colnames(Sim) <- c("Year", "Plant_Type", "Cap", "sit")
-  
-  Sim$Plant_Type <- factor(Sim$Plant_Type, levels=c("LTO_Coal", "AB_CCCT_noncogen", "LTO_Cogen",
-                                                    "AB_SCCT_noncogen", "LTO_Hydro", "LTO_Other", 
-                                                    "LTO_Wind", "LTO_Solar"))
-  levels(Sim$Plant_Type) <- c("COAL", "NGCC", "COGEN", "SCGT", "HYDRO", "OTHER",
-                              "WIND", "SOLAR")
-  
-  Sim$Year <- as.factor(Sim$Year)
-  
-  total <- rbind(Sim,Act)
-  
-  sz <- 15
-  
-  ggplot() +
-    geom_col(data = total, position = "dodge", alpha = 0.8, width = 0.7,
-             aes(x = Plant_Type, y = Cap, fill = sit, linetype = sit)) +
-    facet_grid(~Year) +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-          axis.title.x = element_blank(),
-          axis.text = element_text(size = sz),
-          axis.title = element_text(size = sz),
-          plot.title = element_text(size = sz+2),
-          legend.text = element_text(size = sz),
-          panel.grid = element_blank(),
-          legend.title = element_blank(),
-          
-          # For transparent background
-          panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.spacing = unit(1.5, "lines"),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.key = element_rect(colour = "transparent", fill = "transparent"),
-          legend.background = element_rect(fill='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-    ) +
-    labs(y = "Installed Generation Capacity (MW)", 
-         title = "Year-end generation capacity AESO Data vs Simulation",
-         subtitle = SourceDB) +
-    scale_fill_manual(values = AESO_colours) +
-    #    scale_x_continuous(expand=c(0,0), 
-    #                       limits = c(0,1.1),
-    #                       labels = percent) +
-    scale_y_continuous(expand=c(0,0),
-                       limits = c(0,6000),
-                       #                       breaks = seq(0,1, by = 0.2)
-    )
-}
-
-################################################################################
-## FUNCTIONS: AESOSim **Not read
-##
-## INPUTS:
-################################################################################
-
-AESOSim <- function(year1,year2,case) {
-  
-  sz <- 16
-  
-  p.c <- comp_dur(year1,year2,case) +
-    theme(axis.text = element_text(size = sz),
-          axis.title = element_text(size = sz),
-          axis.text.x = element_text(angle = 45, hjust=1, size = sz),
-          plot.title = element_text(size = sz+2),
-          legend.text = element_text(size = sz-2),
-          axis.title.x = element_blank())
-  p.y <- year_pool(year1,year2,case) + 
-    theme(axis.text = element_text(size = sz),
-          axis.title = element_text(size = sz),
-          axis.text.x = element_text(angle = 45, hjust=1, size = sz),
-          
-          legend.text = element_text(size = sz-2),
-          plot.title = element_blank(),
-          plot.subtitle = element_blank(),
-          axis.title.x = element_blank(),
-          legend.position = "right")
-  p.t <- tech_cap(year1,year2,case) + 
-    theme(axis.text = element_text(size = sz-2),
-          axis.title = element_text(size = sz),
-          axis.text.x = element_text(angle = 45, hjust=1, size = sz-2),
-          
-          legend.text = element_text(size = sz-2),
-          plot.title = element_blank(),
-          plot.subtitle = element_blank(),
-          legend.position = "right")
-  
-  p.c + p.y + p.t + plot_layout(design = "A
-                                B
-                                C") &
-    theme(panel.background = element_rect(fill = "transparent"),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          plot.background = element_rect(fill = "transparent", color = NA),
-          legend.key = element_rect(colour = "transparent", fill = "transparent"),
-          legend.background = element_rect(fill='transparent'),
-          legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          panel.border = element_rect(colour = "black", fill = "transparent"))
-  
-
 }
 
 ################################################################################
@@ -1314,7 +1046,7 @@ AESO_Sim_WindDurNorm <- function(MinYr,MaxYr,yrgap,case) {
 
 ################################################################################
 ## FUNCTIONS: AESO_Sim_RidgeCF
-## Plot comparison between actual and simulated wind duration curves
+## Plot comparison between actual and simulated wind ridgelines
 ##
 ## INPUTS:
 ##    year, month, day - Date to plot, the week will start on the day chosen

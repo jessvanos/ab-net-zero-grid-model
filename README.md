@@ -1,6 +1,6 @@
-# **AB ELECTRICITY GRID MODELING**
+# **AB ELECTRICITY GRID MODELLING**
 
-Code and functions to visually analyze large groups of forecasting energy data. Data is taken from SQL server databases, excel files, and .R files.
+Code and functions to visually analyze large groups of forecasting energy data. Data is taken from SQL server databases, excel files, and .R files. Formatting is based on Aurora software output, but code could be modified to work for other model outputs.
 
 Also includes functions and code segments to visualize historical data from Alberta's electricity sector.
 
@@ -12,6 +12,7 @@ Also includes functions and code segments to visualize historical data from Albe
     -   [AESO_TradeAnalysis](#aeso_tradeanalysis)
     -   [AESO-Analysis](#aeso_analysis)
     -   [Referenced_Code](#referenced_code)
+    -   [wind_maps](#wind_maps)
 -   [FUNCTION FILES](#function-files)
     -   [Build_Retire_Functions](#build_retire_functions)
     -   [Daily_Output_Functions](#daily_output_functions)
@@ -25,7 +26,7 @@ Also includes functions and code segments to visualize historical data from Albe
     -   [Price_Functions](#price_functions)
     -   [Res_Filter_Functions](#res_filter_functions)
     -   [Table_Functions](#table_functions)
-    -   [aeso_eval_1](#aeso_eval_1)
+    -   [aeso_gen](#aeso_gen)
     -   [aeso_sim_comp_1](#aeso_sim_comp_1)
     -   [Scenario_Compare_Functions](#scenario_compare_functions)
 
@@ -82,7 +83,7 @@ Script for general analysis and plots related to historical generation using NRG
 
 ### <ins>Misc_Data_Visuals
 
-Plots not directly related to simulation and modeling work. Inlcudes AESO planning area plots data and more.
+Plots not directly related to simulation and modelling work. Inlcudes AESO planning area plots data and more.
 
 ##### *Misc_Data_Visuals Special Notes:*
 
@@ -93,13 +94,17 @@ Plots not directly related to simulation and modeling work. Inlcudes AESO planni
 
 Codes adapted from Dr. Andrew Leach and Taylor Pawlenchuk.Functions are used inside some other functions. 
 
+### <ins>wind_maps
+
+Codes to plot map of AB wind potential and solar potential. Includes options to include existing or proposed project locations based on excel file.
+
 ## FUNCTION FILES
 
 > Functions are found in the ["Functions"](https://github.com/jessvanos/ab-net-zero-grid-model/tree/main/Functions) folder and are organized into categories and stored in respective code files. For each function, there is a short description bellow, for more details (including inputs and required tables) see .R file.
 
 ### <ins>Build_Retire_Functions<ins>
 
-Functions to evaluate the electricity grid capacity changes in alternative scenarios. These functions focus on resource additions and retirements.
+Functions to evaluate additions and retirements of electricity grid based on long-term capacity expansion. May be some hard coded values!
 
 #### Functions:
 
@@ -149,7 +154,7 @@ Hourly outut for single days under alternative conditions.
 
 ### <ins>Data_Filt_To_File<ins>
 
-Filters and organizes annual and hourly data, sends to an excel file which can be easily interpreted and exported to other programs. Also includes functions to filter and reformat key data for comparison between scenarios.
+Filters and organizes annual and hourly data, sends to an excel file or .R file which can be easily interpreted and exported to other programs. Also includes functions to filter and reformat key data for comparison between scenarios.
 
 #### Functions:
 
@@ -157,9 +162,13 @@ Filters and organizes annual and hourly data, sends to an excel file which can b
 
 -   *HourlyDataExcel* : Writes all relevant hourly data to an excel file on different sheets.
 
+-   *HourlyDataR* : Writes all relevant hourly data to an R file on different sheets.
+
 -   *AnnualDataR* : Filters and organizes annual data, sends to R files for easy accessibility.
 
--   *CombineFilesR* : Reads filtered R data and combines two files into a single excel sheet.
+-   *CombineFilesR* : Reads filtered R data and combines two files into a single excel sheet and output R data files.
+  
+-   *CombineFilesR_multiple* : Reads filtered R data and combines mutliple files into a single excel sheet and output R data files.
 
 ##### *Data_Filt_To_Table Special Notes:*
 
@@ -192,12 +201,16 @@ Quickly save groups of plots to folders without creating each figure individuall
 #### Functions:
 
 -   *GGSave_Loc* : Saves all plots to a new folder named after case using ggplot.
-
+  
+-   *GGSave_Loc_custom* : Saves all plots to a new folder names after case, custom image size.
+  
 -   *GGSave_Loc_Ex* : Saves all plots to a new folder called "Additional Analysis" inside image folder named after case using ggplot.
 
 -   *GGSave_Loc_narrow* : Saves all plots to a new folder named after case using ggplot, narrow image.
 
 -   *GGSave_Loc_wide* : Saves all plots to a new folder named after case using ggplot, wide image.
+
+-   *GGSave_Loc_hourly* : Saves all plots to a new folder names after case, bigger and wider image.
 
 -   *Value_saveall* : Save all value plots including NPV, annual value, annual value per MWh generated.
 
@@ -206,7 +219,9 @@ Quickly save groups of plots to folders without creating each figure individuall
 -   *Analysis_saveall* : Save general analysis plots including capacity, generation, emissions, and cost information.
 
 -   *Detail_Gen_save* : Save detailed generation plots, shows hourly generation in different months and years.
-
+  
+-   *Ren_Curtail_Gen_save* : Save detailed year of weeks and daily generation plots with curtailment..
+  
 -   *CER_saveall* : Save plot related to CER constraint implimentation.
 
 
@@ -255,8 +270,6 @@ Additional functions to use, not related the data itself. Used within main funct
 
 -   *packs_check :* Checks if packages are installed, installs them if not, and loads required functions.
 
--   *SaveRun_Loc* : Saves all plots to a new folder names after case.
-
 -   *yhour* : Get the hour of year associated with a date in the form "%Y-%m-%d %H:%M:%S" (EX: Jan 1 at 1:00 = 0001, Dec 31 at 23:00 = 8760).
 
 -   *round_any* : Use to round value to a certain accuracy.
@@ -273,6 +286,12 @@ Additional functions to use, not related the data itself. Used within main funct
 
 -   *Legend_PlotMain* : Plot legend for main things referenced in other plots.
 
+-   *Legend_PlotGray* : Plot legend for main things referenced in other plots in grayscale.
+  
+-   *NRG_student_generate_R* : Format input data and save as R files.
+  
+-   *Load_NRG_hourly* : Load nrgstream hourly data, can only be used once R file is generated.
+  
 ### <ins>Output_Gen_Functions
 
 Functions to use for plotting and evaluating simulation data on resource outputs and generation. Also plots other miscalaneous things not covered elsewhere
@@ -412,7 +431,7 @@ Functions To use for summarizing data within R environment.
 -   *Build_A\_Totals* : Report the capacity built for each fuel type in the study by year. Aurora new builds only.
 
 
-### <ins>aeso_eval_1
+### <ins>aeso_gen
 
 Functions used to used to plot and analyze other (AESO) data. Some functions based on code from Taylor Pawlenchuk (Retrieved June 3, 2022).
 
@@ -425,36 +444,6 @@ Functions used to used to plot and analyze other (AESO) data. Some functions bas
 -   *Day_AESO* : Plots actual AESO output for a single day.
 
 -   *wkPrice* : Plot AESO pool price.
-
--   *cap_pf*
-
--   *hrc*
-
--   *cap_offer*
-
--   *cap_offermn*
-
--   *var_label*
-
--   *cdata*
-
--   *cap_type*
-
--   *table_type*
-
--   *table_data*
-
--   *graph_type*
-
--   *var_label*
-
--   *Cap3*
-
--   *Cap4*
-
--   *yearly_dmd*
-
--   *monthly_dmd_ave*
 
 -   *AESO_PrOt* : Price and output side-by-side.
 
@@ -474,6 +463,14 @@ Functions used to used to plot and analyze other (AESO) data. Some functions bas
 
 -   *Resource_Ridge_AESO* : Show capacity factor frequency for selected resources between two dates. Probability (ECDF) shown in color.
 
+-   *AIL_Gen_Gaps* : Understand differences in AIL and generation
+  
+-   *Evalyr_AESO* : Plotting year profiles of resource output (generation)
+  
+-   *Evalcap_AESO* : Plotting year profiles of resource capacity
+  
+-   *Evalcap_AESO* : Plot gas generation from NRG
+
 ### <ins>aeso_sim_comp_1
 
 Functions used to compare simulation data with other/actual data. Some functions have been adapted from Taylor Pawlenchuk (Retrieved June 14, 2022).
@@ -487,8 +484,6 @@ Functions used to compare simulation data with other/actual data. Some functions
 -   *AESO_SimP2* : Plot comparison between actual and simulated data price for 1 week.
 
 -   *AESO_SimO* : Plot comparison between actual and simulated data generation.
-
--   *rev_dur* : Plot difference between simulated and actual revenues.
 
 -   *year_comp* : Plots the difference in Pool Price between AESO and Sim.
 
@@ -504,18 +499,102 @@ Functions used to compare simulation data with other/actual data. Some functions
 
 -   *tech_cap* : Plots the capacity factor by technology for AESO and Sim; like AESO Market Report 2021 Figure 15.
 
--   *margin* : Plots the marginal price-setting technology for AESO and Sim; like AESO Market Report 2021 Figure 19.
-
--   *tot_cap* : Plots the year-end capacity by technology for AESO and Sim; like AESO Market Report 2021 Figure 11.
-
--   *AESOSim*
-
 -   *AESO_Sim_WindDur* : Plot comparison between actual and simulated wind duration curves.
 
 -   *AESO_Sim_WindDurNorm* : Plot comparison between actual and simulated wind duration curves.
+  
+-   *AESO_Sim_RidgeCF* : Plot comparison between actual and simulated wind ridgelines.
 
 ### <ins>Scenario_Compare_Functions
 
 Functions used to compare between different scenarios/simulations. To be run after files are combined in "Scenario_Compare" function
 
+-   *compare_rename* : Rename scenarios for comparison, this is the name that will show up in plots.
+
 -   *AvgYr_price_COMPARE* : Plot average annual pool price.
+  
+-   *AvgYr_price_COMPARE2* : Plots annual average pool price, with optional historical.
+  
+-   *AnnualEmLine_COMPARE* : Plots annual average emissions.
+  
+-   *AnnualEm_Cum_COMPARE* : Plots annual average emissions in Cumulative bar chart.
+  
+-   *AnnualEm_Cum_Dots* : Plots annual average emissions in Cumulative bar chart.
+  
+-   *Annual_Em_group* : Plots annual capacity for selected resource group.
+  
+-   *Total_Cap_COMPARE* : Plots total capacity added.
+  
+-   *Total_Cap_add_ret_COMPARE* : Plots total capacity added.
+  
+-   *Total_Cap_Ret_COMPARE* : Plots total capacity retired.
+  
+-   *Cap_Relative_COMPARE* : Plots capacity additions relative to CP.
+  
+-   *Cap_Year_Relative_COMPARE* : Plots capacity relative to CP in chosen year.
+  
+-   *Annual_Cap_Add_COMPARE* : Plots annual capacity addded.
+  
+-   *Annual_Cap_COMPARE* : Plots annual capacity.
+  
+-   *Annual_Cap_group* : Plots annual capacity for selected resource group.
+  
+-   *Annual_Cap_group_area* : Plots annual capacity for selected resource group.
+  
+-   *Total_Gen_COMPARE* : Plots total study generation.
+  
+-   *Annual_Gen_group* : Plots annual generation for selected resource group.
+  
+-   *Annual_Gen_group_area* : Plots annual generation for selected resource group in area chart.
+  
+-   *Annual_CF_group* : Plots annual capacity factor for selected resource group.
+  
+-   *Annual_Gen_group_perc* : Plots annual generation percentage for selected resource group.
+  
+-   *Total_Gen_Relative_COMPARE* : Plots generation relative to CP.
+  
+-   *Annual_Gen_COMPARE* : Plots annual generation.
+  
+-   *Total_Gen_Treemap_COMPARE* : Plots total study generation using percentages.
+  
+-   *Year_Gen_COMPARE* : Plots generation for a single year.
+  
+-   *Cost_Cum_COMPARE* : Plots cumulative costs.
+  
+-   *AnnualCost_Cum_COMPARE* : Plots total cost compare.
+  
+-   *AnnualCost_Cum_rel_COMPARE* : Plots total cost compare, relative to CP.
+  
+-   *Cost_Cum_rel_COMPARE* : Plots cumulative cost compare relative to CP.
+  
+-   *AnnualValue_Cum_norm* : Plots total nominal resource group value.
+  
+-   *Cap_Year_Relative_COMPARE* : Plots total capacity relative to CP.
+  
+-   *Gen_Diff_COMPARE* : Plots total generation relative to CP.
+  
+-   *Em_Diff_COMPARE* : Plots total GHG emissions relative to CP.
+  
+-   *Cost_Diff_COMPARE* : Plots cost relative to CP in each year.
+  
+-   *compare_metrics* : Plot 4 metrics in one: capacity, generation, GHG's, and cost.
+  
+-   *compare_cap_gen_em* : Plot all metrics together: capacity, generation, GHG's, and cost.
+  
+-   *Annual_Cap_group_dots* : Plots annual capacity for selected resource group in years.
+  
+-   *Cum_Gen_group_dots* : Plots gen for grouped resource years.
+  
+-   *CF_group_dots* : Plots CF for grouped resource years.
+  
+-   *value_group_dots* : Value of entire study.
+  
+-   *Avg_Bid_Cost_dots* : Plots annual average bid by group.
+  
+-   *Marginal_Resource_Compare* : Plots annual average bid by group.
+  
+-   *AnnualEm_vs_group* : Plots annual GHG emissions compared to chosen resource group.
+
+-   *TotalCapChange_Compare* : Gives capacity added and retired each year in the same plot.
+  
+-   *NetCapChange_Compare* : Gives net capacity added and retired each year in the same plot.

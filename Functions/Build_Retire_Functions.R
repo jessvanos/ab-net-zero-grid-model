@@ -1,6 +1,7 @@
 ################################################################################
 # TITLE: Build_Retire_Functions
-# DESCRIPTION: Functions to evaluate the electricity grid as it approaches possible net zero states
+# DESCRIPTION: Functions to evaluate additions and retirements of electricity grid based on long-term capacity expansion.
+#              May be some hard coded values!
 
 # AUTHOR: Jessica Van Os
 # CONTACT: jvanos@ualberta.ca
@@ -833,6 +834,7 @@ Tot_Change %>%
 ################################################################################  
 ## FUNCTION: Units
 ## Unit specific bar chart showing builds by unit for certain resource type.
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ## ex: "WND"
 ##
 ## INPUTS: 
@@ -886,6 +888,7 @@ Units <- function(case, Fuel) {
 ################################################################################  
 ## FUNCTION: Slack
 ## Unit specific bar chart showing units not built (or available) for certain resource type.
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS: 
 ##    case - Run_ID which you want to plot
@@ -936,6 +939,7 @@ Slack <- function(case, Fuel) {
 ################################################################################
 ## FUNCTION: BuildUnits
 ## Show units built compared to available ones for a resource type
+## Original Author: Taylor Pawlenchuk (Retrieved June 7, 2022)
 ##
 ## INPUTS: 
 ##    year, month, day - Date to plot, the week will start on the day chosen
