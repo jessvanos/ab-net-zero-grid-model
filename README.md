@@ -1,4 +1,4 @@
-# **AB ELECTRICITY GRID MODELING**
+# **AB ELECTRICITY GRID MODELLING**
 
 Code and functions to visually analyze large groups of forecasting energy data. Data is taken from SQL server databases, excel files, and .R files. Formatting is based on Aurora software output, but code could be modified to work for other model outputs.
 
@@ -83,7 +83,7 @@ Script for general analysis and plots related to historical generation using NRG
 
 ### <ins>Misc_Data_Visuals
 
-Plots not directly related to simulation and modeling work. Inlcudes AESO planning area plots data and more.
+Plots not directly related to simulation and modelling work. Inlcudes AESO planning area plots data and more.
 
 ##### *Misc_Data_Visuals Special Notes:*
 
