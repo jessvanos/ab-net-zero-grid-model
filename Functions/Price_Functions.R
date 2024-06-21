@@ -145,6 +145,8 @@ Sim_dur_avg <- function(case) {
   tot <- tot %>%
     filter(Report_Year %in% Years2Disp)
   
+  # Custom grayscale palette
+  grayscale_palette <- c("#E0E0E0", "#B0B0B0", "#808080", "#505050", "#303030")  
   ggplot() +
     geom_line(data = tot, 
               aes(x = perc, y = Price, colour = Report_Year), size = 1.25) +
@@ -159,13 +161,15 @@ Sim_dur_avg <- function(case) {
           axis.text=element_text(colour = "black"),
           axis.title.y = element_text(size = GenText_Sz+6,family=Plot_Text_bf),
           text = element_text(size = GenText_Sz),
+          legend.text = element_text(GenText_Sz+6),
           legend.title = element_blank(),
           #panel.grid.major.y = element_line(size=0.25,linetype=5,color = "gray70")
     ) +
     
     labs(y = "Wholesale Pool Price ($/MWh)", x = "Percentage of Time",caption = SourceDB) +
     
-    scale_color_brewer(palette= "RdYlBu") +
+    #scale_color_brewer(palette= "RdYlBu") +
+    scale_color_manual(values=grayscale_palette) +
     
     scale_x_continuous(expand=c(0,0), 
                        limits = c(0,1),
