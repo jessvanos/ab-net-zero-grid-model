@@ -429,6 +429,28 @@ print("Selecting annual fuel usage data")
   }
 
 ################################################################################
+## RENEW CURTAIL
+################################################################################  
+
+  # Estiamte wind and solar curtail
+  Curtail_Data <- ResGroupYr%>%
+    sim_filt(.)%>%
+    filter(ID %in% c("Wind","Solar"),
+           Condition=="Average",
+           Run_ID == case) %>%
+    group_by(ID,Report_Year) %>%
+    summarise(Hours_tot=Output_MWH/Output,
+              Capability,
+              Capacity,
+              Output_MWa=Capability-Output,
+              CF_reduction=Output_MWa/Capacity,
+              Curtailed_MWH=Output_MWa*Hours_tot,
+              Curtailed_TWH=Curtailed_MWH/10^6,
+              Output_TWH = Output_MWH/10^6,
+              perc_curt=Curtailed_TWH/(Curtailed_TWH+Output_TWH))
+
+  
+################################################################################
 ## SEND ALL TO ONE EXCEL FILE
 ################################################################################
 
@@ -440,7 +462,8 @@ dataset_names <-list('1 Annual Resource Group Data'=AllDataGrYr,
                      '6 Annual System Data'=AllZoneData,
                      '7 Annual Fuel Data'=FuelData,
                      '8 Avg Heat Rates by Plant Type'=AVG_HeatRates,
-                     '9 Offset Value'=AllRenewData)
+                     '9 Offset Value'=AllRenewData,
+                     '10 WS Curtailment'=Curtail_Data)
 
 
 filename <-paste("Annual_Data_",ScenarioName,"_",SourceDB,".xlsx")
