@@ -85,7 +85,7 @@
 
 
 { #Input Database Name below:
-  SourceDB<-"CP_04_Apr_2024"
+  SourceDB<-"validate_2022_2023"
   
   #Connect to database specified (via server, user, and password)
   con <- dbConnect(odbc(),
@@ -313,8 +313,8 @@ COL_choice = 3
   merit_file_name <- "Leach_MeritData15Aug2023.RData"
   nrg_file_name <- "nrgstream_gen_corrected03Mar2023.RData"
   demand_file_name <-"nrgstream_demand03Mar2023.RData"
-  date_filt<-"2005-01-1"
-  yr_max <- 2023
+  date_filt<-"2022-01-1"
+  yr_max <- 2024
   
 # # FILTER AND SAVE NEW DATA
 #   NRG_student_generate_R(student_data_name,nrg_raw_name,merit_file_name,nrg_file_name,demand_file_name)
@@ -489,6 +489,7 @@ COL_choice = 3
       # Import/Export
       cOL_IMPORT <- "white" 
       cOL_EXPORT <- "white"
+      #cOL_EXPORT <- "#FFD4DA"
       
       # Storage Groups
       COL_Battery <-"#F4EEA0" 
@@ -510,6 +511,12 @@ COL_choice = 3
                 "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                 "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
+     colours1_exist=c("Trade"= cOL_EXPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+                "Coal-to-Gas"=cOL_NGConv,
+                "Natural Gas Simple Cycle"=cOL_SCGT, "Natural Gas Combined Cycle"=cOL_NGCC, 
+                "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
+     
       colours1b=c("Trade"= cOL_EXPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
                  "Coal-to-Gas"=cOL_NGConv,"Hydrogen Simple Cycle"=cOL_SCGT_H2,"Hydrogen Combined Cycle"=cOL_NGCC_H2,
                  #"Blended  Simple Cycle"=cOL_SCGT_Blend,"Blended  Combined Cycle"=cOL_NGCC_Blend,
@@ -526,6 +533,12 @@ COL_choice = 3
                  "SCCT"=cOL_SCGT, "NGCC"=cOL_NGCC, 
                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
+      
+      colours1_daily=c("Import"= cOL_IMPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
+                  "Coal-to-Gas"=cOL_NGConv,
+                  "NGSC"=cOL_SCGT, "NGCC"=cOL_NGCC, 
+                  "Hydro"=cOL_HYDRO, "Other"=cOL_OTHER, "Wind"=cOL_WIND, 
+                  "Solar"=cOL_SOLAR, "Storage"=cOL_STORAGE)
       
       # Used for curtail graph 
       colours1_rcurt = c("Trade"= cOL_EXPORT, "Coal"=cOL_COAL, "Cogeneration"=cOL_COGEN, 
@@ -683,8 +696,8 @@ Legend_PlotGray(1)
 # Create folder name to save as 
 #   Casename is long description for figures/files
 #   NameShort is short name for later reference in r files
-CaseName <- "CER New Figs"
-NameShort<-'CER_02_update'
+CaseName <- "Compare AESO"
+NameShort<-'2022_2023'
 
 ################################################################################
 ## OUTPUT PLOTS AND DATA TO FOLDERS:
@@ -1219,11 +1232,9 @@ GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price)",FourMonthSu
     load_dur(2025,2030,BC)
     
     # Plot capacity factors 
-    tech_cap(2021,2022,BC)
+    tech_cap(2022,2022,BC)
     
     margin(2021,2022,BC)
-    
-    tot_cap(2021,2022,BC)
     
     AESOSim(2021,2022,BC)
     
@@ -1234,6 +1245,50 @@ GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price)",FourMonthSu
     AESO_Sim_RidgeCF("WIND",2017,2045,3,BC)
     SaveRun_Loc(CaseName,"Wind variety Ridgelines")
     
+    
+    
+    GGSave_Loc(CaseName,"Daily Output Nov- Years",CompDay_AESO(2023,01,10,BC),300)
+    
+    GGSave_Loc_custom(CaseName,"Daily Output model",Day_AESO(2023,01,08,13000),6,12)
+    GGSave_Loc_custom(CaseName,"Daily Output actual test",Day2(2023,01,08,13000,BC),6,12)
+    
+{
+    GGSave_Loc_custom(CaseName,"Week 01 Act 2022",Week_act(2022,01,08,MN=0,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 01 Model 2022",Week1(2022,01,08,MN=0,MX=12500,BC),12,3.5)
+    
+    GGSave_Loc_custom(CaseName,"Week 02 Act 2022",Week_act(2022,02,08,MN=0,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 02 Model 2022",Week1(2022,02,08,MN=0,MX=12500,BC),12,3.5)    
+    
+    GGSave_Loc_custom(CaseName,"Week 03 Act 2022",Week_act(2022,03,08,MN=0,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 03 Model 2022",Week1(2022,03,08,MN=0,MX=12500,BC),12,3.5)  
+    
+    GGSave_Loc_custom(CaseName,"Week 04 Act 2022",Week_act(2022,04,08,MN=0,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 04 Model 2022",Week1(2022,04,08,MN=0,MX=12500,BC),12,3.5)  
+    
+    GGSave_Loc_custom(CaseName,"Week 05 Act 2022",Week_act(2022,05,08,MN=0,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 05 Model 2022",Week1(2022,05,08,MN=0,MX=12500,BC),12,3.5)  
+    
+    GGSave_Loc_custom(CaseName,"Week 06 Act 2022",Week_act(2022,06,08,MN=0,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 06 Model 2022",Week1(2022,06,08,MN=0,MX=12500,BC),12,3.5)  
+    
+    GGSave_Loc_custom(CaseName,"Week 07 Act 2022",Week_act(2022,07,08,MN=0,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 07 Model 2022",Week1(2022,07,08,MN=0,MX=12500,BC),12,3.5)  
+    
+    GGSave_Loc_custom(CaseName,"Week 08 Act 2022",Week_act(2022,08,08,MN=0,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 08 Model 2022",Week1(2022,08,08,MN=0,MX=12500,BC),12,3.5)  
+    
+    GGSave_Loc_custom(CaseName,"Week 09 Act 2022",Week_act(2022,09,08,MN=0,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 09 Model 2022",Week1(2022,09,08,MN=0,MX=12500,BC),12,3.5)  
+    
+    GGSave_Loc_custom(CaseName,"Week 10 Act 2022",Week_act(2022,10,08,MN=0,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 10 Model 2022",Week1(2022,10,08,MN=0,MX=12500,BC),12,3.5)  
+    
+    GGSave_Loc_custom(CaseName,"Week 11 Act 2022 v2",Week_act(2022,11,08,MN=-1250,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 11 Model 2022 v2",Week1(2022,11,08,MN=-1250,MX=12500,BC),12,3.5)  
+    
+    GGSave_Loc_custom(CaseName,"Week 12 Act 2022",Week_act(2022,12,08,MN=-1250,MX=12500),12,3.5)
+    GGSave_Loc_custom(CaseName,"Week 12 Model 2022",Week1(2022,12,08,MN=-1250,MX=12500,BC),12,3.5) 
+    }
 ################################################################################
 ## Data summarize and put in table  (Data_Filt_To_Table)
 ################################################################################
@@ -1267,7 +1322,7 @@ GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price)",FourMonthSu
     GGSave_Loc_custom("Hist Figs","hist_gen_nrg_stripe",Evalyr_AESO(2005,"y"),12,6)
     
     # Gas capacity
-    GGSave_Loc_custom("Hist Figs","hist_gas_gen_stripe_short",Eval_gas_AESO(Annual_market_Stats,short_names=TRUE),12,6)
+    GGSave_Loc_custom("Hist Figs","hist_gas_gen_stripe_short",Eval_gas_AESO(Annual_market_Stats,short_names=FALSE),12,6)
     
     # Capacity AESO
     Evalcap_AESO(2010,"n")
@@ -1276,8 +1331,8 @@ GGSave_Loc_hourly(CaseName,"2045 4 month sum (Stacked Area + price)",FourMonthSu
     Resource_Ridge_AESO("WIND",2017)
     Resource_Ridge_AESO("SOLAR",2017)
     
-    SourceDB<-"NRG"
-    GGSave_Loc_custom("Hist Figs","hist_cap_AB_byplant_final2",Evalcap_AESO2(2010,"n"),12,8)
+    SourceDB<-"NRG new"
+    GGSave_Loc_custom("Hist Figs","hist_cap_AB_byplant_final3",Evalcap_AESO2(2010,"n"),12,8)
     GGSave_Loc_custom("Hist Figs","hist_cap_AB_byplant_sepcog2",Evalcap_AESO2(2010,"y"),12,8)
     
 ################################################################################

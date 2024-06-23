@@ -30,7 +30,7 @@ plnt_tr <- function(Asset_ID) {
 ## TABLES REQUIRED: 
 ##    df1a - Filtered version of nrgstream
 ################################################################################
-Week_act <- function(year,month,day) {
+Week_act <- function(year,month,day,MN=0,MX=13000) {
   
   wk_st <- as.POSIXct(paste(day,month,year, sep = "/"), format="%d/%m/%Y")
   wk_end <- as.POSIXct(paste(day+7,month,year, sep = "/"), format="%d/%m/%Y")
@@ -40,7 +40,8 @@ Week_act <- function(year,month,day) {
   # Select only a single week
   WKa <- df1a %>%
     filter(Plant_Type != "EXPORT" & Plant_Type != "IMPORT") %>%
-    filter(time >= wk_st, time <= wk_end)
+    filter(time >= wk_st, time <= wk_end)%>%
+    subset(.,select=c(Plant_Type,time,meancap,total_gen,total_rev,price_mean,heatrt_mean,Day,Year,Hour))
   
   WKIM <- df1a %>%
     filter(Plant_Type %in% c("EXPORT","IMPORT")) %>%
@@ -88,44 +89,46 @@ Week_act <- function(year,month,day) {
   # Plot the data    
   ggplot() +
     geom_area(data = WK, aes(x = time, y = total_gen, fill = Plant_Type), colour = "black", 
-              alpha=Plot_Trans, size=0.5) +
+              alpha=Plot_Trans, size=0.25) +
     
     # Add hourly load line
     geom_line(data = dmd, 
-              aes(x = time, y = Demand), size=2, colour = "black") +
+              aes(x = time, y = Demand), size=1.25, colour = "black") +
     
     scale_x_datetime(expand=c(0,0),date_labels = "%b-%e" ,breaks = "day") +
     
+    geom_hline(yintercept = 0) +
     # Set the theme for the plot
     theme_bw() +
     
-    theme(text=element_text(family=Plot_Text)) +
+    theme(text=element_text(family=Plot_Text,color="black",size= GenText_Sz)) +
     
     theme(panel.grid = element_blank(),
           legend.position = "bottom",
     ) +
-    theme(axis.text.x = element_text(vjust = 1),
+    theme(axis.text.x = element_text(color="black",size= GenText_Sz),
+          axis.text.y = element_text(color="black",size= GenText_Sz),
           panel.background = element_rect(fill = "transparent"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          axis.title.x = element_text(size= XTit_Sz),
-          axis.title.y = element_text(size= YTit_Sz),
-          title = element_text(size= Tit_Sz),
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(size= GenText_Sz+12,family = Plot_Text_bf),
+          plot.title = element_text(size= GenText_Sz,family = Plot_Text_bf),
           plot.background = element_rect(fill = "transparent", color = NA),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.background = element_rect(fill='transparent'),
-          legend.key.size = unit(0.5,"lines"),
+          #legend.key.size = unit(0.5,"lines"),
           legend.title=element_blank(),
+          legend.text = element_text(size=GenText_Sz-12),
+          legend.position = "right",
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size= 15)
     ) +
-    guides(fill = guide_legend(nrow = 1)) +
-    scale_y_continuous(expand=c(0,0)) +
-    labs(title = paste("AESO Data,", year), x = "Date", y = "Output (MWh)", fill = "Plant_Type", colour = "Plant_Type",
-         caption="NRG Stream Data") +
+    guides(fill = guide_legend(ncol = 1)) +
+    scale_y_continuous(expand=c(0,0),labels=comma,limits=c(MN,MX),breaks = seq(MN,MX,by = 2500)) +
+    labs(title = paste("NRG Stream Data,", year), x = "Date", y = "Output (MWh)", fill = "Plant_Type", colour = "Plant_Type") +
 
     #Add colour
-    scale_fill_manual(values = colours1) 
+    scale_fill_manual(values = colours1_exist,drop=FALSE) 
     
 }
 
@@ -767,7 +770,7 @@ Day_AESO <- function(year,month,day,MX) {
   
   levels(DY_Tot$Plant_Type) <- c("Import","Solar","Wind", 
                             "Other", "Hydro", 
-                            "SCGT","NGCC", "Coal-to-Gas", 
+                            "NGSC","NGCC", "Coal-to-Gas", 
                             "Coal", "Cogeneration","Storage")
   
   # Get demand line
@@ -791,19 +794,20 @@ Day_AESO <- function(year,month,day,MX) {
     theme(panel.grid = element_blank(),
           legend.position = "bottom",
     ) +
-    theme(axis.text.x = element_text(vjust = 1),
+    theme(axis.text = element_text(size= GenText_Sz,colour = "black"),
           panel.background = element_rect(fill = "transparent"),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          axis.title.x = element_text(size= XTit_Sz),
-          axis.title.y = element_text(size= YTit_Sz),
-          plot.background = element_rect(fill = "transparent", color = NA),
+          axis.title.x = element_text(size= GenText_Sz+6),
+          axis.title.y = element_text(size= GenText_Sz+6,family = Plot_Text_bf),
+          #plot.background = element_rect(fill = "transparent", color = NA),
           legend.key = element_rect(colour = "transparent", fill = "transparent"),
           legend.background = element_rect(fill='transparent'),
           legend.position = 'right',
+          legend.text = element_text(size=GenText_Sz-6),
           legend.title=element_blank(),
           legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-          text = element_text(size= 15)
+          text = element_text(size= GenText_Sz)
     ) +
 
     scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
@@ -814,7 +818,7 @@ Day_AESO <- function(year,month,day,MX) {
     labs(title = "NRG Stream Data", x = day_report, y = "Output (MWh)", fill = "Plant_Type", colour = "Plant_Type") +
     
     #Add colour
-    scale_fill_manual(values = colours1c) 
+    scale_fill_manual(values = colours1_daily) 
   
 }
 
@@ -1143,12 +1147,12 @@ Evalyr_AESO <- function(YrMin,Sep_cogen) {
       plot.caption = element_text(hjust = 1,size = GenText_Sz-12,family=Plot_Text_it),             # Plot subtitle size (if present)
 
       # X-axis
-      axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
+      axis.text.x = element_text(vjust = 1,colour = "black",size = GenText_Sz),                 # Horizontal text
       #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
       axis.title.x = element_blank(),
       # Y-axis
-      axis.title.y = element_text(size = GenText_Sz+6,family=Plot_Text_bf),           # y-axis title text size
-      axis.text.y = element_text(colour = "black"),                 # Horizontal text
+      axis.title.y = element_text(size = GenText_Sz+12,family=Plot_Text_bf),           # y-axis title text size
+      axis.text.y = element_text(colour = "black",size = GenText_Sz),                 # Horizontal text
       
       # Legend
       legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
@@ -1389,29 +1393,29 @@ Evalcap_AESO2 <- function(YrMin,Sep_cogen) {
       # General Plot Settings
       panel.grid = element_blank(),
       # (t,r,b,l) margins, adjust to show full x-axis, default: (5.5,5.5,5.5,5.5)
-      plot.margin = unit(c(6, 12, 5.5, 5.5), "points"),      # Plot margins
+      plot.margin = unit(c(7, 12, 5.5, 5.5), "points"),      # Plot margins
+      
       panel.background = element_blank(), # Transparent background
      # panel.border = element_blank(),
       text = element_text(size = GenText_Sz,family=Plot_Text),                # Text size
-      plot.title = element_text(size = GenText_Sz),              # Plot title size (if present)
       axis.line.y = element_line(),
       axis.line.x = element_line(),
       plot.caption = element_text(hjust = 1,size = GenText_Sz-12,family=Plot_Text_it),             # Plot subtitle size (if present)
       
       # X-axis
-      axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
+      axis.text.x = element_text(vjust = 1,colour = "black",size = GenText_Sz+2),                 # Horizontal text
       axis.title.x = element_blank(),
       # Y-axis
-      axis.title.y = element_text(size = GenText_Sz+6,family=Plot_Text_bf),           # y-axis title text size
-      axis.text.y = element_text(colour = "black"),                 # Horizontal text
+      axis.title.y = element_text(size = GenText_Sz+18,family=Plot_Text_bf),           # y-axis title text size
+      axis.text.y = element_text(colour = "black",size = GenText_Sz+2),                 # Horizontal text
       
       # Legend
       #legend.key.size = unit(1,"lines"),                     # Shrink legend boxes
       legend.key.width = unit(1, "lines"),
       legend.key.height = unit(1, "lines"),
-      legend.position = c(0.87,0.86),                            # Move legend to the bottom
+      legend.position = c(0.88,0.86),                            # Move legend to the bottom
       legend.background = element_rect(fill = "transparent"),
-      legend.text = element_text(size =GenText_Sz-6, lineheight = 0.8),              # Size of legend text
+      legend.text = element_text(size =GenText_Sz-4, lineheight = 0.8),              # Size of legend text
       legend.title=element_blank()) +                        # Remove legend title
     
     # Set axis scales
@@ -1599,12 +1603,12 @@ Gas_stats %>%
       plot.caption = element_text(hjust = 1,size = GenText_Sz-12,family=Plot_Text_it),             # Plot subtitle size (if present)
       
       # X-axis
-      axis.text.x = element_text(vjust = 1,colour = "black"),                 # Horizontal text
+      axis.text.x = element_text(vjust = 1,colour = "black",size = GenText_Sz),                 # Horizontal text
       #axis.title.x = element_text(size = XTit_Sz),           # x-axis title text size
       axis.title.x = element_blank(),
       # Y-axis
-      axis.title.y = element_text(size = GenText_Sz+6,family=Plot_Text_bf),           # y-axis title text size
-      axis.text.y = element_text(colour = "black"),                 # Horizontal text
+      axis.title.y = element_text(size = GenText_Sz+12,family=Plot_Text_bf),           # y-axis title text size
+      axis.text.y = element_text(colour = "black",size = GenText_Sz),                 # Horizontal text
       
       # Legend
       legend.key.size = unit(1,"lines"),                     # Shrink legend boxes

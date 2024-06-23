@@ -18,8 +18,8 @@
 ################################################################################
 
 ################################################################################
-## FUNCTION: week1
-## Plots output for a single week given the case study
+## FUNCTION: Week1_exist
+## Plots output for a single week given the case study, for comparison to existing data.
 ##
 ## INPUTS: 
 ##    year, month, day - Date to plot, the week will start on the day chosen
@@ -30,7 +30,7 @@
 ##    Export - Exports selected from Zone Hourly Table
 ################################################################################
 
-  Week1 <- function(year, month, day, case) {
+  Week1_exist <- function(year, month, day, case,MN=0,MX=20000) {
     
     # Title Formating
     wk_st <- as.Date(paste(year,month,day, sep = "-"),tz="MST")
@@ -51,7 +51,7 @@
       filter(date >= wk_st) %>%
       filter(date <= wk_end)
     
-    data$Output_MWH[data$Output_MWH<0.001] <-0
+    #data$Output_MWH[data$Output_MWH<0.001] <-0
     
     # Set levels to each category in order specified
     data$ID <- factor(data$ID, levels=c("Solar","Wind","Hydro","Other", 
@@ -72,20 +72,22 @@
     # Get y-max, demand to meet + exports
     Max <- ZPrice$Demand + Expo$Output_MWH
     
+    if (MN==0 & MX==20000) {
     # Set the max and min for the plot Output axis (y), Set slightly above max (200 above)
     MX <- plyr::round_any(max(abs(Max))+500, 100, f = ceiling)
     MN <- plyr::round_any(min(Max), 100, f = floor)
-    
+    }
     ## PLOT WITH AREA PLOT
     
     ggplot() +
       geom_area(data = WK, aes(x = date, y = Output_MWH, fill = ID), colour = "black", 
-                alpha=Plot_Trans, size=0.5) +
-
+                alpha=Plot_Trans, size=0.25) +
+      geom_hline(yintercept = 0) +
+      
       # Add hourly load line (black line on the top)
       geom_line(data = ZPrice, 
-                aes(x = date, y = Demand), size=1.5, colour = "black") +
-      scale_x_datetime(expand=c(0,0),date_labels = "%b-%e", breaks = "day") +
+                aes(x = date, y = Demand), size=1.25, colour = "black") +
+      scale_x_datetime(expand=c(0,0),date_labels = "%b-%e" ,breaks = "day") +
       
       # Set the theme for the plot
       theme_bw() +
@@ -93,32 +95,31 @@
       
       theme(text=element_text(family=Plot_Text)) +
       
-      theme(plot.title = element_text(size= Tit_Sz)) +
+      theme(plot.title = element_text(size= GenText_Sz)) +
       
-      theme(axis.text.x = element_text(vjust = 1,color="black"),
-            axis.text.y = element_text(color="black"),
-            axis.title.x = element_text(size= XTit_Sz),
-            axis.title.y = element_text(size= YTit_Sz),
+      theme(axis.text.x = element_text(color="black",size= GenText_Sz),
+            axis.text.y = element_text(color="black",size= GenText_Sz),
+            axis.title.x = element_blank(),
+            axis.title.y = element_text(size= GenText_Sz+12,family = Plot_Text_bf),
             panel.background = element_rect(fill = "transparent"),
             plot.background = element_rect(fill = "transparent", color = NA),
             legend.title=element_blank(),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.background = element_rect(fill='transparent',colour ='transparent'),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            legend.key.size = unit(1,"lines"), #Shrink legend
-            legend.position = "bottom",
-            plot.title = element_text(),
-            text = element_text(size= 15)
+            #legend.key.size = unit(1,"lines"), #Shrink legend
+            legend.position = "right",
+            legend.text = element_text(size=GenText_Sz-12),
+            plot.title = element_text(size= GenText_Sz,family = Plot_Text_bf),
+            text = element_text(size= GenText_Sz)
       ) +
-      scale_y_continuous(expand=c(0,0), limits = c(0,MX), 
-                         breaks = seq(0, MX, by = MX/4),labels=comma) +
-      guides(fill = guide_legend(nrow = 2)) +
+      scale_y_continuous(expand=c(0,0),limits=c(MN,MX),breaks = seq(MN,MX,by=2500),labels=comma) +
+     # guides(fill = guide_legend(nrow = 2)) +
       
-      labs(x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource",
-           title=year,caption=SourceDB) +
+      labs(title = paste("Model Data,", year),x = "Date", y = "Output (MWh)", fill = "Resource", colour = "Resource") +
       
       #Add colour
-      scale_fill_manual(values = colours1) 
+      scale_fill_manual(values = colours1_exist, drop=FALSE) 
   }
 
 ################################################################################
@@ -261,7 +262,7 @@
     levels(data$ID)<-c("Import","Solar","Wind", "Other", "Hydro", 
                        "H2SC","H2CC",
                        "Blended  Simple Cycle","Blended  Combined Cycle",
-                       "SCCT", "NGCC+CCS","NGCC", 
+                       "NGSC", "NGCC+CCS","NGCC", 
                        "Coal-to-Gas", 
                        "Coal", "Cogeneration","Storage")
     
@@ -296,23 +297,23 @@
       
       theme(text=element_text(family=Plot_Text)) +
       
-      theme(axis.text = element_text(color="black"),
+      theme(axis.text = element_text(color="black",size= GenText_Sz),
             panel.background = element_rect(fill = "transparent", colour = "transparent"),
             panel.grid = element_blank(),
             panel.grid.major.x = element_blank(),
             panel.grid.major.y = element_blank(),
             panel.grid.minor.x = element_blank(),
-            plot.background = element_blank(),
+            #plot.background = element_blank(),
             legend.title=element_blank(),
             legend.key = element_rect(colour = "transparent", fill = "transparent"),
             legend.key.size = unit(1,"lines"), #Shrink legend
             legend.background = element_rect(fill='transparent'),
             legend.position = 'right',
-            legend.text = element_text(size=14),
+            legend.text = element_text(size=GenText_Sz-6),
             legend.box.background = element_rect(fill='transparent', colour = "transparent"),
-            axis.title.x = element_text(size=20),
-            axis.title.y = element_text(size=26),
-            text = element_text(size= 20)
+            axis.title.x = element_text(size=GenText_Sz+6),
+            axis.title.y = element_text(size=GenText_Sz+6,family = Plot_Text_bf),
+            text = element_text(size= GenText_Sz)
       ) +
       
       guides(fill = guide_legend(ncol = 1)) +
@@ -325,7 +326,7 @@
       labs(title=SourceDB,x = day_report, y = "Output (MWh)", fill = "Resource",colour = "Resource" ) +
       
       #Add colour, keep all in legend for now
-      scale_fill_manual(values = colours1c,drop=FALSE) 
+      scale_fill_manual(values = colours1_daily,drop=TRUE) 
   }   
   
    

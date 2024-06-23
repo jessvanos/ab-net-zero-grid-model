@@ -811,7 +811,7 @@ tech_cap <- function(yearstart, yearend, case) {
   # Plots the capacity factor by technology for AESO and Sim
   # Like AESO Market Report 2021 Figure 15
   
-  Act <- df1 %>%
+  Act <- df1a %>%
     filter(Plant_Type != "STORAGE") %>%
     group_by(Year, Plant_Type) %>%
     summarise(Cap = mean(meancap)) %>%

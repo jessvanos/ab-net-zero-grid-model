@@ -78,7 +78,7 @@
 ################################################################################
 
 # Match 'CScenarioName' from combine files (ie: folder name)
-CaseName <- "EPC_5" 
+CaseName <- "Main_3_updateEL" 
   
 # Color selection (numerical, corresponds to alternate color schemes)
 COL_choice = 3
@@ -750,8 +750,8 @@ COL_choice = 3
 {
 # Compare pool prices
 GGSave_Loc_custom(CaseName,"Annual Pool Price Compare",AvgYr_price_COMPARE("l","Y"),10,5)
-GGSave_Loc_custom(CaseName,"Annual Pool Price Compare2",AvgYr_price_COMPARE2("l","Y"),10,8)
-
+GGSave_Loc_custom(CaseName,"Annual Pool Price Compare2",AvgYr_price_COMPARE("l","Y"),10,8)
+  
 # Compare Emissions
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare",AnnualEm_COMPARE("l", "Y"),12,8)
 GGSave_Loc_custom(CaseName,"Annual Emissions Compare noncogen_june",AnnualEm_COMPARE("l", "n"),12,6)

@@ -78,10 +78,12 @@ CompDay_AESO<-function(year1,month1,day1,case) {
     # Set the max and min for the plot Output axis (y), Set above max ( round up to nearest 1000)
     MX <- round_any(max(ZPriceYr$Demand + ExpoYr$Output_MWH+1070), 100, f = ceiling)
     
+    GenText_Sz = 20
     # GENERATE PLOTS
     # Create a graph for each month of the year
-    p1 <- Day2(year1,month1,day1,MX,case) +
-      theme(axis.title.y=element_blank())
+    p1 <- Day2(year1,month1,day1,MX,case) 
+    # +
+    #   theme(axis.title.y=element_blank())
     
     # Get a common legend
     legend <- get_legend(p1)
@@ -92,14 +94,19 @@ CompDay_AESO<-function(year1,month1,day1,case) {
             axis.title.y=element_blank())
     
     # Plot Labels
-    yleft <- textGrob("Output (MWh)", rot = 90, gp = gpar(fontsize = 15))
+   # yleft <- textGrob("Output (MWh)", rot = 90, gp = gpar(fontsize = 15))
     
     
     # PLOT TOGETHER
+    # grid.arrange(plot_grid(p1, p2,legend, ncol=3, align="v", axis = "l", rel_widths = c(1,1,0.4)),
+    #              ncol=1,nrow=1, 
+    #              heights=c(1),
+    #              left=yleft)  
+    # 
+    # PLOT TOGETHER
     grid.arrange(plot_grid(p1, p2,legend, ncol=3, align="v", axis = "l", rel_widths = c(1,1,0.4)),
                  ncol=1,nrow=1, 
-                 heights=c(1),
-                 left=yleft)  
+                 heights=c(1))  
     }
     
 ################################################################################  

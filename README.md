@@ -298,7 +298,7 @@ Functions to use for plotting and evaluating simulation data on resource outputs
 
 #### Functions:
 
--   *Week1* : Plots output for a single week given the case study.
+-   *Week1_exist* : Plots output for a single week given the case study, for comparison to existing data.
 
 -   *day1* : Plots output for a single day given the case study.
 
